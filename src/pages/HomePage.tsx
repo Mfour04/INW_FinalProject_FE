@@ -1,4 +1,7 @@
+import { DarkModeToggler } from "../components/DarkModeToggler"
 import Typography from "../components/TypographyComponent"
+import ArrowLeftIcon from "../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg"
+import ArrowRightIcon from "../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg"
 
 export const HomePage = () => {
   return (
@@ -9,7 +12,8 @@ export const HomePage = () => {
             <Typography variant="h4" size="large" >Truyện Vừa Ra Mắt</Typography>
           </div>
           <div className="mt-7 h-80 border border-black rounded-[10px] bg-[#1c1c1f] flex">
-            <div className="h-full min-w-1/5 bg-[#d9d9d9] rounded-[10px]" />
+            <img src="" alt="" className="h-full min-w-1/5 bg-[#d9d9d9] rounded-[10px]" />
+            {/* <div className="h-full min-w-1/5 bg-[#d9d9d9] rounded-[10px]" /> */}
             <div className="my-5 mx-6 flex-col">
               <Typography variant="h3" size="large">Osoraku Kanojo wa Ore no Aniki wo Neratteru Osoraku Kanojo wa Ore no Aniki wo Neratteru Kanojo wa Ore no...</Typography>
               <div className="flex gap-2.5">
@@ -31,10 +35,10 @@ export const HomePage = () => {
                     NO.1
                   </div>
                   <div>
-                    P
+                    <img src={ArrowLeftIcon} />
                   </div>
                    <div>
-                    N
+                    <img src={ArrowRightIcon} />
                   </div>
                 </div>
               </div>
@@ -268,6 +272,45 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
+        <div className="h-[490px] w-full flex-col">
+          <div className="py-6">
+            <Typography variant="h4" size="large" >Đề cử</Typography>
+          </div>
+          <div className="gap-12 flex max-w-screen overflow-x-hidden">
+            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
+            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
+            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
+            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
+            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
+          </div>
+        </div>
+
+        <div className="h-[625px] w-full flex-col">
+          <div className="py-6">
+            <Typography variant="h4" size="large" >Truyện mới cập nhật</Typography>
+          </div>
+          <div>
+            <div className="h-64 gap-12 flex max-w-screen overflow-x-hidden">
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+            </div>
+            <div className="h-64 gap-12 flex max-w-screen overflow-x-hidden">
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+            </div>
+          </div>
+        </div>
+        <DarkModeToggler />
       </div>
     </div>
   )

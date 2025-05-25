@@ -1,10 +1,10 @@
 import { NavLink } from "react-router-dom";
 import logo from "../../../assets/img/logo.png"
-import HomeIcon from "../../../assets/svg/home-11-stroke-rounded.svg"
-import BookMarkIcon from "../../../assets/svg/bookmark-01-stroke-rounded.svg"
-import BookOpenIcon from "../../../assets/svg/book-open-01-stroke-rounded.svg"
-import CommunityIcon from "../../../assets/svg/user-group-02-stroke-rounded.svg"
-import PinIcon from "../../../assets/svg/pin-stroke-rounded.svg"
+import HomeIcon from "../../../assets/svg/SideBar/home-11-stroke-rounded.svg"
+import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded.svg"
+import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg"
+import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg"
+import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg"
 import type { MenuItem } from "./type";
 
 
