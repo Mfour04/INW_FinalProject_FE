@@ -188,3 +188,7 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+.TE {
+  color: red;
+}

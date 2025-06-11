@@ -1,8 +1,8 @@
-import bannerImage from '../assets/img/th.png';
-import avatarImage from '../assets/img/hlban.jpg';
+import bannerImage from "../../assets/img/th.png";
+import avatarImage from "../../assets/img/hlban.jpg";
+import '../../pages/userProfile/UserProfile.css';
 
 export const UserProfile = () => {
-
 
   return (
     <div className="bg-black text-white font-sans min-h-screen">
@@ -29,9 +29,7 @@ export const UserProfile = () => {
             <p className="text-gray-400">@fromgermanwithlove</p>
             <p className="text-sm mt-1 text-gray-400">📅 Tham gia từ Tháng 3/2025</p>
           </div>
-          <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-4 rounded">
-            Theo dõi
-          </button>
+          <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-4 rounded">Theo dõi</button>
         </div>
 
         <div className="mt-4 text-sm text-gray-400">
@@ -65,6 +63,10 @@ export const UserProfile = () => {
           </div>
         </div>
       </div>
+      <div>
+        <span className="TE"> test</span>
+      </div>
     </div>
+
   )
 }
