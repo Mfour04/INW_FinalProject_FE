@@ -2,8 +2,19 @@ import { DarkModeToggler } from "../components/DarkModeToggler"
 import Typography from "../components/TypographyComponent"
 import ArrowLeftIcon from "../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg"
 import ArrowRightIcon from "../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg"
+import { useQuery } from "@tanstack/react-query"
+import { GetNovels } from "../api/Novels/novel.api"
+import type { Novel } from "../api/Novels/novel.type"
 
 export const HomePage = () => {
+  const { isLoading, data } = useQuery({
+    queryKey: ['novels'],
+    queryFn: async () => {
+      const res = await GetNovels()
+      return res.data.data as Novel[]
+    },
+  })
+
   return (
     <div>
       <div className="flex-col items-center px-[50px] bg-white dark:text-white dark:bg-[#0f0f11] justify-between">
@@ -15,7 +26,7 @@ export const HomePage = () => {
             <img src="" alt="" className="h-full min-w-1/5 bg-[#d9d9d9] rounded-[10px]" />
             {/* <div className="h-full min-w-1/5 bg-[#d9d9d9] rounded-[10px]" /> */}
             <div className="my-5 mx-6 flex-col">
-              <Typography variant="h3" size="large">Osoraku Kanojo wa Ore no Aniki wo Neratteru Osoraku Kanojo wa Ore no Aniki wo Neratteru Kanojo wa Ore no...</Typography>
+              <Typography variant="h3" size="large">{isLoading? 'title': data?.[0].title}</Typography>
               <div className="flex gap-2.5">
                 <div className="border-2 rounded-[5px] w-fit px-1.5 py-0.5 bg-black">Trinh Thám</div>
                 <div className="border-2 rounded-[5px] w-fit px-1.5 py-0.5 bg-black">Hài</div>
@@ -24,7 +35,7 @@ export const HomePage = () => {
                 <div className="border-2 rounded-[5px] w-fit px-1.5 py-0.5 bg-black">Gia đình</div>
               </div>
               <div className="mt-4">
-                <Typography variant="p" size="small" className="font-sans">Năm 2095, khi thế giới bước vào kỷ nguyên sống song song giữa thực và ảo, công nghệ DataLink cho phép con người đồng bộ ý thức trực tiếp vào không gian dữ liệu. Ở đó, mọi thứ đều được mã hóa thành bit và byte, tạo ra một thế giới giả lập sống động hơn cả thực tại. Zero, một hacker vô danh, tỉnh dậy bên trong DataVerse mà không nhớ mình là ai và vì sao bị “đóng gói” thành một chuỗi dữ liệu. Với sự giúp sức của V, một AI quản lý hệ thống, Zero phát hiện ra rằng toàn bộ thế giới số đang dần bị thao túng bởi tổ chức bí ẩn mang tên BlackGate.</Typography>
+                <Typography variant="p" size="small" className="font-sans">{isLoading? 'des': data?.[0].description}</Typography>
               </div>
               <div className="py-3.5 flex justify-between">
                 <div className="italic text-lg">
