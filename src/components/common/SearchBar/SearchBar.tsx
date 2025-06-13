@@ -1,3 +1,5 @@
+import DefaultAvatar from '../../../assets/img/default_avt.png'
+
 export const SearchBar = () => {
   return (
      <div className="h-[90px] flex items-center px-[50px] bg-white dark:bg-[#0f0f11] justify-between">
@@ -11,6 +13,7 @@ export const SearchBar = () => {
             Coin
         </div>
         <img
+          src={DefaultAvatar}
             alt="User Avatar"
             className="w-12 h-12 rounded-full ml-3 object-cover cursor-pointer bg-white"
         />
