@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import DefaultAvatar from '../../../assets/img/default_avt.png'
 
 export const SearchBar = () => {
   return (
@@ -14,6 +15,7 @@ export const SearchBar = () => {
         </div>
         <Link to="/profile">
           <img
+            src={DefaultAvatar}
             alt="User Avatar"
             className="w-12 h-12 rounded-full ml-3 object-cover cursor-pointer bg-white"
           />

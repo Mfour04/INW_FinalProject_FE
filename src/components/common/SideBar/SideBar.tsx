@@ -1,5 +1,10 @@
 import { NavLink } from "react-router-dom";
 import logo from "../../../assets/img/logo.png"
+import HomeIcon from "../../../assets/svg/SideBar/home-11-stroke-rounded.svg"
+import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded.svg"
+import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg"
+import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg"
+import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg"
 import type { MenuItem } from "./type";
 
 
@@ -11,24 +16,24 @@ import type { MenuItem } from "./type";
 export const SideBar = () => {  
   const menuItems: MenuItem[] = [
     {
-      icon: "/images/img_home11.svg",
+      icon: HomeIcon,
       label: "Trang chủ",
       path: "/",
       isHeader: true
     },
     {
-      icon: "/images/img_bookmark01.svg",
+      icon: BookMarkIcon,
       label: "Theo dõi",
       path: "/following",
       isHeader: true,
       subItems: [
-        { label: "Cập nhập", path: "/updates" },
-        { label: "Thư viện", path: "/library", isActive: true },
-        { label: "Lịch sử", path: "/history" }
+        { label: "Cập nhập", path: "/following/updates" },
+        { label: "Thư viện", path: "/following/library" },
+        { label: "Lịch sử", path: "/following/history" }
       ]
     },
     {
-      icon: "/images/img_bookopen01.svg",
+      icon: BookOpenIcon,
       label: "Tiểu thuyết",
       path: "/novels",
       isHeader: true,
@@ -38,7 +43,7 @@ export const SideBar = () => {
       ]
     },
     {
-      icon: "/images/img_usergroup02.svg",
+      icon: CommunityIcon,
       label: "Cộng đồng",
       path: "/community",
       isHeader: true,
@@ -48,7 +53,7 @@ export const SideBar = () => {
       ]
     },
     {
-      icon: "/images/img_pin.svg",
+      icon: PinIcon,
       label: "InkWave",
       path: "/inkwave",
       isHeader: true,
@@ -86,6 +91,7 @@ export const SideBar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-4 py-1.5 mx-1.5 rounded-md ${isActive ? 'bg-[#ff6740]' : 'hover:bg-[#2c2c2c]'}`
                 }
+                  end
                 >
                   {item.icon && <img src={item.icon} alt={item.label} className="w-[25px] h-[25px] mr-5" />}
                   <span className="text-lg font-bold">{item.label}</span>

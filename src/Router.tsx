@@ -7,7 +7,12 @@ export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path='/following' element={<></>}>
+        <Route index element={<></>} />
+        <Route path=':id' element={<></>} />
+        <Route path='new' element={<></>} />
+      </Route>
+      <Route path="/*" element={<NotFound />} />
       <Route path="/profile" element={<UserProfile />} />
     </Routes>
   );
