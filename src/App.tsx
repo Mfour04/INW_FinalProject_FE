@@ -6,12 +6,10 @@ import { Router } from './Router';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)  
-  useEffect(() => {
-    console.log(isSidebarOpen)
-  }, [isSidebarOpen])
+
   return (
     <div className={`grid ${isSidebarOpen ? 'grid-cols-[250px_1fr]' : 'grid-cols-[0px_1fr]'} min-h-screen transition-all duration-300`}>
-        <SideBar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <SideBar onClose={() => setIsSidebarOpen(false)} />
       <main className="bg-amber-50 dark:bg-[#0f0f11]">
         {!isSidebarOpen && (
           <button

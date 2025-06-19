@@ -9,11 +9,10 @@ import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-ro
 import type { MenuItem } from "./type";
 
 interface SidebarProps {
-  isOpen: boolean;
   onClose?: () => void;
 }
 
-export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
+export const SideBar = ({ onClose }: SidebarProps) => {
   const menuItems: MenuItem[] = [
     {
       icon: HomeIcon,
@@ -64,19 +63,6 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       ]
     }
   ];
-
-      // [scrollbar-width:none] 
-      // [scrollbar-color:transparent_transparent]
-      // [&::-webkit-scrollbar]:w-0   
-      // hover:[scrollbar-width:thin]
-      // hover:[scrollbar-color:#ff6740_transparent]
-      // hover:[&::-webkit-scrollbar]:w-1
-      // hover:[&::-webkit-scrollbar-track]:bg-transparent
-      // hover:[&::-webkit-scrollbar-thumb]:bg-[#ff6740]
-      // hover:[&::-webkit-scrollbar-thumb]:rounded-lg
-
-      // ${isOpenSideBar ? 'left-0' : '-left-[250px]'} 
-      //   ${isOpenSideBar ? 'lg:left-0' : 'lg:-left-[250px]'}
 
   return (
     <div className={
