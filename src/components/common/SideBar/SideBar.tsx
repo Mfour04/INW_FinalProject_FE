@@ -5,15 +5,15 @@ import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded
 import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg"
 import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg"
 import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg"
+import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-rounded.svg"
 import type { MenuItem } from "./type";
 
+interface SidebarProps {
+  isOpen: boolean;
+  onClose?: () => void;
+}
 
-
-// interface SidebarProps {
-//   onClose?: () => void;
-// }
-
-export const SideBar = () => {  
+export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
   const menuItems: MenuItem[] = [
     {
       icon: HomeIcon,
@@ -65,8 +65,25 @@ export const SideBar = () => {
     }
   ];
 
+      // [scrollbar-width:none] 
+      // [scrollbar-color:transparent_transparent]
+      // [&::-webkit-scrollbar]:w-0   
+      // hover:[scrollbar-width:thin]
+      // hover:[scrollbar-color:#ff6740_transparent]
+      // hover:[&::-webkit-scrollbar]:w-1
+      // hover:[&::-webkit-scrollbar-track]:bg-transparent
+      // hover:[&::-webkit-scrollbar-thumb]:bg-[#ff6740]
+      // hover:[&::-webkit-scrollbar-thumb]:rounded-lg
+
+      // ${isOpenSideBar ? 'left-0' : '-left-[250px]'} 
+      //   ${isOpenSideBar ? 'lg:left-0' : 'lg:-left-[250px]'}
+
   return (
-    <div className="w-[250px] flex flex-col bg-amber-100 text-black dark:bg-[#151517] dark:text-white">
+    <div className={
+      `w-[250px] flex flex-col min-h-screen
+      transition-all duration-300 
+      bg-amber-100 text-black dark:bg-[#151517] dark:text-white`
+    }>
       <div className="p-5 flex items-center justify-between">
         <div className="max-h-[50px] w-[150px] overflow-hidden flex items-center justify-center">
             <img 
@@ -75,8 +92,8 @@ export const SideBar = () => {
                 className="h-full w-auto object-contain "
             />
         </div>
-        <button className="focus:outline-none">
-          <img src="/images/img_multiplicationsign.svg" alt="Close" className="w-6 h-6" />
+        <button className="cursor-pointer " onClick={onClose}>
+          <img src={MenuClose} alt="Close" className="w-6 h-6" />
         </button>
       </div>
       
