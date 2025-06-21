@@ -1,3 +1,32 @@
 .img_banner {
   padding: 10px;
 }
+
+.profile {
+  height: 848px;
+}
+
+.follow {
+  margin-bottom: 17px;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
+}
+
+.post {
+  height: 100px;
+}
