@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import avatarImage from "../../assets/img/th.png";
-import bannerImage from "../../assets/img/hlban.jpg";
+import avatarImage from '../../assets/img/th.png';
+import bannerImage from '../../assets/img/hlban.jpg';
 import '../../pages/userProfile/UserProfile.css';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import BlockIcon from '@mui/icons-material/Block';
+import { CalendarUserIcon, Flag02Icon, CommentAdd01Icon } from './UserProfileIcon';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 export const UserProfile = () => {
-  const [activeTab, setActiveTab] = useState<'posts' | 'followers' | 'following' | 'achievements'>('posts');
 
+  const [activeTab, setActiveTab] = useState<'posts' | 'followers' | 'following' | 'achievements'>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
@@ -26,7 +29,6 @@ export const UserProfile = () => {
     setAnchorEl(null);
   };
 
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'posts':
@@ -42,10 +44,18 @@ export const UserProfile = () => {
                   </div>
                 </div>
                 <p className="mt-4">Tình yêu nồng cháy không phải do em mà là dothai.</p>
-                <div className="mt-4 flex space-x-6 text-gray-400 text-sm">
-                  <span className="cursor-pointer">❤️ Yêu thích</span>
-                  <span className="cursor-pointer">💬 Bình luận</span>
+                <hr className="my-4 border-t border-gray-700" />
+                <div className="mt-4 flex space-x-6 text-white">
+                  <span className="flex items-center gap-2">
+                    <FavoriteBorderIcon />
+                    Yêu thích
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <CommentAdd01Icon />
+                    Bình luận
+                  </span>
                 </div>
+
               </div>
             ))}
           </div>
@@ -98,14 +108,17 @@ export const UserProfile = () => {
           onClick={handleFollowClick}
           variant="contained"
           sx={{
-            backgroundColor: '#ff4500',
+            width: '140px',
+            backgroundColor: isFollowing ? '#3a3a3a' : '#ff4500',
             color: '#fff',
             textTransform: 'none',
-            borderRadius: '20px',
-            padding: '6px 16px',
-            fontWeight: 'bold',
+            borderRadius: '6px',
+            padding: '6px 20px',
+            fontWeight: 600,
+            fontSize: '17px',
+            boxShadow: 'none',
             '&:hover': {
-              backgroundColor: '#e03e00',
+              backgroundColor: isFollowing ? '#555' : '#e03e00',
             },
           }}
         >
@@ -114,38 +127,66 @@ export const UserProfile = () => {
 
         <div
           onClick={handleMenuOpen}
-          className="cursor-pointer z-50 relative"
+          className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
         >
           <MoreHorizIcon style={{ color: '#aaa' }} />
         </div>
-
-
 
         <Menu
           anchorEl={anchorEl}
           open={open}
           onClose={handleMenuClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+
+          slotProps={{
+            paper: {
+              sx: {
+                bgcolor: '#1f1f1f',
+                color: '#fff',
+                borderRadius: 2,
+                minWidth: 200,
+                boxShadow: 4,
+              },
+            },
+          }}
         >
-          <MenuItem onClick={handleFollowClick}>
-            {isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'}
+          <MenuItem
+            onClick={() => alert('Báo cáo người dùng')}
+            sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+          >
+            <Flag02Icon />
+            Báo cáo
           </MenuItem>
-          <MenuItem onClick={() => alert('Báo cáo người dùng')}>Báo cáo</MenuItem>
-          <MenuItem onClick={() => alert('Đã chặn người dùng')}>Chặn người dùng</MenuItem>
+
+          <MenuItem
+            onClick={() => alert('Đã chặn người dùng')}
+            sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+          >
+            <BlockIcon />
+            Chặn người dùng
+          </MenuItem>
         </Menu>
       </div>
 
       <div className="-mt-10 px-80">
-        <div className="flex justify-between">
+        <div className="flex flex-col space-y-1">
           <div>
-            <h1 className="text-4xl font-bold">Hít Lê</h1>
+            <h1 className="text-4xl font-bold leading-tight">Hít Lê</h1>
             <p className="text-gray-400">@fromgermanwithlove</p>
-            <span className="mr-4"><strong className="text-white">3</strong> Đang theo dõi</span>
-            <span><strong className="text-white">2</strong> Người theo dõi</span>
           </div>
+
+          <p className="text-gray-400">
+            <strong className="text-gray-400">3</strong> Đang theo dõi
+            <span className="mx-2">•</span>
+            <strong className="text-gray-400">2</strong> Người theo dõi
+          </p>
+
+          <p className="text-gray-400 flex items-center gap-1">
+            <CalendarUserIcon className="w-5 h-5" />
+            Tham gia từ Tháng 3/2025
+          </p>
         </div>
-        <p className="mt-4 text-sm text-gray-400">📅 Tham gia từ Tháng 3/2025</p>
       </div>
 
       <div className="mt-4 border-b border-gray-700 flex space-x-9 text-sm px-10">
@@ -158,6 +199,6 @@ export const UserProfile = () => {
       <div className="follow overflow-y-auto px-10">
         {renderTabContent()}
       </div>
-    </div>
+    </div >
   )
 };
