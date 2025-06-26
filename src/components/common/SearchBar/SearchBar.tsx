@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import DefaultAvatar from '../../../assets/img/default_avt.png'
 
 export const SearchBar = () => {
