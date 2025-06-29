@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import DefaultAvatar from '../../../assets/img/default_avt.png'
 import LoginLogo from '../../../assets/img/SearchBar/login_logo.png'
 import GoogleLogin from '../../../assets/img/SearchBar/google_login.png'
@@ -8,21 +8,43 @@ import History from '@mui/icons-material/History'
 import Settings from '@mui/icons-material/Settings'
 import Logout from '@mui/icons-material/Logout'
 import { useMutation } from '@tanstack/react-query';
-import { Login } from '../../../api/Login/login.api';
-import type { LoginParams } from '../../../api/Login/login.type';
+import { Login, Register } from '../../../api/Auth/auth.api';
+import type { LoginParams, RegisterParams } from '../../../api/Auth/auth.type';
 import { useAuth } from '../../../hooks/useAuth';
+import { validatePassword, type PasswordValidationResult } from '../../../utils/validation';
 
 const initialLoginForm: LoginParams = {
   username: '',
   password: ''
 }
 
+const initialRegisterForm: RegisterParams = {
+  username: '',
+  email: '',
+  password: ''
+}
+
+export const AUTH_ACTIONS = {
+  LOGIN: 'login',
+  REGISTER: 'register',
+  FORGOT_PASSWORD: 'forgot-password',
+} as const;
+
+export type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
+
 export const SearchBar = () => {
   const { auth, setAuth, logout } = useAuth();
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+  const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
+  const [registerForm, setRegisterForm] = useState<RegisterParams>(initialRegisterForm);
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [registerMessage, setRegisterMessage] = useState<string>('');
 
-  const { mutate } = useMutation({
+  const validationPassword: PasswordValidationResult = validatePassword(registerForm.password);
+  const isRegisterError = registerForm.password !== confirmPassword && confirmPassword.length > 0;
+
+  const { mutate: loginMutate } = useMutation({
     mutationFn: (body: LoginParams) => {
       return Login(body)
     },
@@ -32,12 +54,28 @@ export const SearchBar = () => {
   },
   })
 
+  const { mutate: registerMutate } = useMutation({
+    mutationFn:(body: RegisterParams) => {
+      return Register(body)
+    },
+    onError:(res) => {
+
+    }
+  })
+
   const handleLoginButtonClick = () => {
-    mutate(loginForm, {
+    loginMutate(loginForm, {
       onSuccess: () => {
-        console.log('Login success');
         setIsPopupOpen(false);
       },
+    })
+  }
+
+  const handleRegisterButtonClick = () => {
+    registerMutate(registerForm, {
+      onSuccess: () => {
+        setAction(AUTH_ACTIONS.LOGIN)
+      }
     })
   }
 
@@ -45,6 +83,172 @@ export const SearchBar = () => {
     logout();
     setIsPopupOpen(false);
   };
+
+  const onLoginCloseClick = () => {
+    setIsPopupOpen(false);
+    setAction(AUTH_ACTIONS.LOGIN);
+  }
+
+  const content = useMemo(() => {
+    switch (action) {
+      case AUTH_ACTIONS.LOGIN:
+        return (
+          <>
+            <div className="text-sm text-left text-[#45454e] mb-4">Hoặc đăng nhập tài khoản:</div>
+            <input
+              type="text"
+              placeholder="Tên đăng nhập"
+              value={loginForm.username}
+              onChange={e => setLoginForm(prev => ({
+                ...prev,
+                username: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+            <input
+              type="password"
+               placeholder="Mật khẩu"
+              value={loginForm.password}
+              onChange={e => setLoginForm(prev => ({
+                ...prev,
+                password: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+            <div onClick={() => setAction(AUTH_ACTIONS.FORGOT_PASSWORD)} className="pr-1 text-right text-sm hover:underline text-[#45454e] cursor-pointer mb-4">
+              Quên mật khẩu?
+            </div>
+            <div className="w-full flex justify-center">
+              <button 
+                onClick={handleLoginButtonClick}
+                className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
+                ĐĂNG NHẬP
+              </button>
+            </div>
+            <div className="text-sm text-center text-[#45454e] mt-4">
+              Nếu bạn chưa có tài khoản,{" "}
+              <span onClick={() => setAction(AUTH_ACTIONS.REGISTER)} className="text-[#ff6740] hover:underline cursor-pointer">đăng ký ngay</span>
+            </div>
+          </>
+        );
+      case AUTH_ACTIONS.REGISTER:
+        return (
+          <>
+            <div className="text-sm text-left text-[#45454e] mb-4">Hoặc đăng ký tài khoản:</div>
+            <input
+              type="text"
+              placeholder="Tên đăng nhập"
+              value={registerForm.username}
+              onChange={e => setRegisterForm(prev => ({
+                ...prev,
+                username: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={registerForm.email}
+              onChange={e => setRegisterForm(prev => ({
+                ...prev,
+                email: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+            <input
+              type="password"
+               placeholder="Mật khẩu"
+              value={registerForm.password}
+              onChange={e => setRegisterForm(prev => ({
+                ...prev,
+                password: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+          
+            <input
+              type="password"
+               placeholder="Nhập lại mật khẩu"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+            {
+              !validationPassword.isValid && (
+                <div>
+                  {
+                    validationPassword.errors.map((error, index) => 
+                      (
+                        <div key={index} className="text-sm text-left text-red-500">
+                          {error}
+                        </div>
+                      )
+                    )
+                  }
+                </div>
+              )
+            }
+            {
+            isRegisterError && 
+              <div className="text-sm text-left text-red-500">
+                Nhập lại mật khẩu không giống với mật khẩu
+              </div>
+            }
+            {
+              registerMessage && 
+              <div className="text-sm text-left text-red-500">
+                {registerMessage}
+              </div>
+            }
+            <div className="w-full flex justify-center">
+              <button 
+                onClick={handleRegisterButtonClick}
+                className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
+                ĐĂNG KÝ
+              </button>
+            </div>
+            <div className="text-sm text-center text-[#45454e] mt-4">
+              Nếu bạn đã có tài khoản,{" "}
+              <span onClick={() => setAction(AUTH_ACTIONS.LOGIN)}className="text-[#ff6740] hover:underline cursor-pointer">đăng nhập</span>
+            </div>
+          </>
+        );
+      case AUTH_ACTIONS.FORGOT_PASSWORD:
+        return (
+          <>
+            <div className="text-sm text-left text-[#45454e] mb-4">Quên mật khẩu?</div>
+            <input
+              type="text"
+              placeholder="Email/Tên đăng nhập"
+              value={loginForm.username}
+              onChange={e => setLoginForm(prev => ({
+                ...prev,
+                username: e.target.value
+              }))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
+            />
+
+            <div onClick={() => setAction(AUTH_ACTIONS.LOGIN)} className="text-sm text-left cursor-pointer text-[#ff6740] hover:underline pb-2">
+              Về đăng nhập
+            </div>
+            
+            <div className="w-full flex justify-center">
+              <button 
+                onClick={handleLoginButtonClick}
+                className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
+                Gửi
+              </button>
+            </div>
+
+            <div className="text-sm text-center text-[#45454e] mt-4">
+              Nhập tên đăng nhập hoặc email để nhận hướng dẫn đặt lại mật khẩu.
+            </div>
+            
+          </>
+        );
+      default:   
+    }
+  }, [action, setAction, loginForm, setLoginForm, registerForm, setRegisterForm, confirmPassword, setConfirmPassword, registerMessage])
 
   return (
     <>
@@ -81,7 +285,7 @@ export const SearchBar = () => {
                 <div className="text-xs text-gray-400">@{auth.user.username}</div>
                 <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
-                    🥇<span>0</span>
+                    🥇<span>{auth.user.badgeId.length ?? 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     🔥<span>1</span>
@@ -93,7 +297,7 @@ export const SearchBar = () => {
 
 
             <div className="flex justify-between items-center mt-4">
-              <div className="text-yellow-300 font-bold text-sm">🪙 {auth.user.coin || 0}</div>
+              <div className="text-yellow-300 font-bold text-sm">🪙 {auth.user.coin }</div>
               <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold">
                 Nạp thêm
               </button>
@@ -125,7 +329,7 @@ export const SearchBar = () => {
                 />
               </div>
               <button
-                  onClick={() => setIsPopupOpen(false)}
+                  onClick={onLoginCloseClick}
                   className="absolute cursor-pointer top-2 right-3 text-gray-500 hover:text-gray-700 text-xl"
                   aria-label="Đóng popup"
                   >
@@ -139,45 +343,7 @@ export const SearchBar = () => {
                 <span>Đăng nhập bằng Google</span>
               </button>
 
-              <div className="text-sm text-center text-gray-500 mb-4">Hoặc đăng nhập tài khoản:</div>
-
-              <input
-                type="text"
-                placeholder="Tên đăng nhập"
-                value={loginForm.username}
-                onChange={e => setLoginForm(prev => ({
-                  ...prev,
-                  username: e.target.value
-                }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
-              />
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                value={loginForm.password}
-                onChange={e => setLoginForm(prev => ({
-                  ...prev,
-                  password: e.target.value
-                }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
-              />
-              <div className="text-right text-sm hover:underline text-gray-500 cursor-pointer mb-4">
-                Quên mật khẩu?
-              </div>
-
-              <div className="w-full flex justify-center">
-                <button 
-                  onClick={handleLoginButtonClick}
-                  className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
-                  ĐĂNG NHẬP
-                </button>
-              </div>
-
-
-              <div className="text-sm text-center text-gray-600 mt-4">
-                Nếu bạn chưa có tài khoản,{" "}
-                <span className="text-[#ff6740] hover:underline cursor-pointer">đăng ký ngay</span>
-              </div>
+              {content}
             </div>
           </div>
         }
