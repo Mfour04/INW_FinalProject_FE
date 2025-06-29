@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './App.css'
 import { SearchBar } from './components/common/SearchBar/SearchBar';
 import { SideBar } from './components/common/SideBar/SideBar';
-import { Router } from './Router';
+import { Router } from './Routes/Router';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)  
