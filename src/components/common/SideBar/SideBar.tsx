@@ -5,15 +5,15 @@ import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded
 import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg"
 import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg"
 import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg"
+import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-rounded.svg"
 import type { MenuItem } from "./type";
 
+interface SidebarProps {
+  isOpen: boolean;   
+  onClose?: () => void;
+}
 
-
-// interface SidebarProps {
-//   onClose?: () => void;
-// }
-
-export const SideBar = () => {  
+export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
   const menuItems: MenuItem[] = [
     {
       icon: HomeIcon,
@@ -66,7 +66,22 @@ export const SideBar = () => {
   ];
 
   return (
-    <div className="w-[250px] flex flex-col bg-amber-100 text-black dark:bg-[#151517] dark:text-white">
+    <div className={
+      `bg-amber-100 text-black dark:bg-[#151517] dark:text-white
+        flex flex-col h-full
+
+        transition-all duration-300 ease-in-out
+        transform
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:transition-[width] lg:duration-300
+
+        fixed top-0 left-0 z-40 w-[250px] h-screen
+        lg:static
+        lg:h-auto
+
+        /* Desktop toggle logic */
+        lg:${isOpen ? 'w-[250px] opacity-100' : 'w-0 opacity-0 pointer-events-none'}`
+    }>
       <div className="p-5 flex items-center justify-between">
         <div className="max-h-[50px] w-[150px] overflow-hidden flex items-center justify-center">
             <img 
@@ -75,8 +90,8 @@ export const SideBar = () => {
                 className="h-full w-auto object-contain "
             />
         </div>
-        <button className="focus:outline-none">
-          <img src="/images/img_multiplicationsign.svg" alt="Close" className="w-6 h-6" />
+        <button className="cursor-pointer lg" onClick={onClose}>
+          <img src={MenuClose} alt="Close" className="w-6 h-6" />
         </button>
       </div>
       
