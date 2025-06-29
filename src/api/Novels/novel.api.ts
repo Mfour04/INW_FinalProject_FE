@@ -8,4 +8,4 @@ interface GetNovelsParams {
   searchTerm?: string
 }
 
-export const GetNovels = (params?: GetNovelsParams) => http.get<Novels>('Novels', { params });
+export const GetNovels = (params?: GetNovelsParams) => http.http.get<Novels>('Novels', { params });

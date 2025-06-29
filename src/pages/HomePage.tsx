@@ -199,7 +199,7 @@ export const HomePage = () => {
             )}
           </div>
         </div>
-        <div className="h-[490px] w-full flex-col">
+        {/* <div className="h-[490px] w-full flex-col">
           <div className="py-6">
             <Typography variant="h4" size="large" >Đề cử</Typography>
           </div>
@@ -236,7 +236,7 @@ export const HomePage = () => {
               <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )
