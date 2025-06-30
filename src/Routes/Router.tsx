@@ -5,6 +5,7 @@ import { UserProfile } from '../pages/userProfile/UserProfile';
 import { ProtectedRoutes } from './ProtectedRoutes';
 import { Unauthorized } from '../pages/Unauthorized';
 import { Roles } from '../context/AuthContext/AuthProvider';
+import { Novels } from '../pages/Novels/Novels';
 
 export const Router = () => {
   return (
@@ -15,6 +16,7 @@ export const Router = () => {
         <Route path=':id' element={<></>} />
         <Route path='new' element={<></>} />
       </Route>
+      <Route path='/novels' element={ <Novels /> }/>
       <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin}/>}>
 
       </Route>
