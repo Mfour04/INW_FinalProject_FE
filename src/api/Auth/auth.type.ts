@@ -1,8 +1,10 @@
+import type { Role } from "../../context/AuthContext/AuthProvider";
+
 export interface User {
   userId: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
   avatarUrl: string | null;
   bio: string | null;
   coin: number;
@@ -18,7 +20,7 @@ export interface RegisterUser {
   password: string;
   avata_url: string | null;
   bio: string | null;
-  role: number;
+  role: Role;
   is_verified: boolean;
   is_banned: boolean;
   coin: number;

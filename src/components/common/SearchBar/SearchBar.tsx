@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DefaultAvatar from '../../../assets/img/default_avt.png'
 import LoginLogo from '../../../assets/img/SearchBar/login_logo.png'
 import GoogleLogin from '../../../assets/img/SearchBar/google_login.png'
@@ -12,6 +12,8 @@ import { Login, Register } from '../../../api/Auth/auth.api';
 import type { LoginParams, RegisterParams } from '../../../api/Auth/auth.type';
 import { useAuth } from '../../../hooks/useAuth';
 import { validatePassword, type PasswordValidationResult } from '../../../utils/validation';
+import Button from '../../ButtonComponent';
+import { useToast } from '../../../context/ToastContext/toast-context';
 
 const initialLoginForm: LoginParams = {
   username: '',
@@ -34,6 +36,7 @@ export type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
 
 export const SearchBar = () => {
   const { auth, setAuth, logout } = useAuth();
+  const toast = useToast();
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
@@ -44,22 +47,23 @@ export const SearchBar = () => {
   const validationPassword: PasswordValidationResult = validatePassword(registerForm.password);
   const isRegisterError = registerForm.password !== confirmPassword && confirmPassword.length > 0;
 
-  const { mutate: loginMutate } = useMutation({
+  const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: (body: LoginParams) => {
       return Login(body)
     },
     onSuccess: (data) => {
     const { accessToken, refreshToken, user } = data.data.token;
     setAuth({ accessToken, refreshToken, user });
+      toast?.onOpen('Bạn đã đăng nhập thành công!');
   },
   })
 
-  const { mutate: registerMutate } = useMutation({
+  const { mutate: registerMutate, isPending: isRegisterPending } = useMutation({
     mutationFn:(body: RegisterParams) => {
       return Register(body)
     },
     onError:(res) => {
-
+      setRegisterMessage(res.message);
     }
   })
 
@@ -74,7 +78,8 @@ export const SearchBar = () => {
   const handleRegisterButtonClick = () => {
     registerMutate(registerForm, {
       onSuccess: () => {
-        setAction(AUTH_ACTIONS.LOGIN)
+        setAction(AUTH_ACTIONS.LOGIN);
+        toast?.onOpen('Đăng ký thành công, kiểm tra email để xác thực!');
       }
     })
   }
@@ -82,6 +87,7 @@ export const SearchBar = () => {
   const handleLogoutClick = () => {
     logout();
     setIsPopupOpen(false);
+    toast?.onOpen('Đăng xuất thành công!');
   };
 
   const onLoginCloseClick = () => {
@@ -119,11 +125,12 @@ export const SearchBar = () => {
               Quên mật khẩu?
             </div>
             <div className="w-full flex justify-center">
-              <button 
+              <Button 
+                isLoading={isLoginPending}
                 onClick={handleLoginButtonClick}
                 className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
                 ĐĂNG NHẬP
-              </button>
+              </Button>
             </div>
             <div className="text-sm text-center text-[#45454e] mt-4">
               Nếu bạn chưa có tài khoản,{" "}
@@ -201,11 +208,12 @@ export const SearchBar = () => {
               </div>
             }
             <div className="w-full flex justify-center">
-              <button 
+              <Button 
+                isLoading={isRegisterPending}
                 onClick={handleRegisterButtonClick}
                 className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
                 ĐĂNG KÝ
-              </button>
+              </Button>
             </div>
             <div className="text-sm text-center text-[#45454e] mt-4">
               Nếu bạn đã có tài khoản,{" "}
@@ -248,7 +256,7 @@ export const SearchBar = () => {
         );
       default:   
     }
-  }, [action, setAction, loginForm, setLoginForm, registerForm, setRegisterForm, confirmPassword, setConfirmPassword, registerMessage])
+  }, [action, setAction, loginForm, setLoginForm, registerForm, setRegisterForm, confirmPassword, setConfirmPassword, registerMessage, isRegisterPending, isLoginPending])
 
   return (
     <>

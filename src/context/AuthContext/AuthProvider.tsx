@@ -1,10 +1,17 @@
 import React, { createContext, useState } from 'react';
 
+export const Roles = {
+  Reader: 'Reader',
+  Author: 'Author',
+  Admin: 'Admin',
+} as const;
+
+export type Role = (typeof Roles)[keyof typeof Roles];
 interface User {
   userId: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
   avatarUrl: string | null;
   bio: string | null;
   coin: number;
