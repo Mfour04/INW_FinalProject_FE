@@ -1,19 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import DefaultAvatar from '../../../assets/img/default_avt.png'
 import LoginLogo from '../../../assets/img/SearchBar/login_logo.png'
 import GoogleLogin from '../../../assets/img/SearchBar/google_login.png'
 import Notification from '../../../assets/svg/SearchBar/notification-02-stroke-rounded.svg'
+import Search from '../../../assets/svg/SearchBar/search-02-stroke-rounded.svg'
+import SearchArea from '../../../assets/svg/SearchBar/search-area-stroke-rounded.svg'
+import Delete from '../../../assets/svg/SearchBar/multiplication-sign-stroke-rounded.svg'
 import Person from '@mui/icons-material/Person'
 import History from '@mui/icons-material/History'
 import Settings from '@mui/icons-material/Settings'
 import Logout from '@mui/icons-material/Logout'
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Login, Register } from '../../../api/Auth/auth.api';
 import type { LoginParams, RegisterParams } from '../../../api/Auth/auth.type';
 import { useAuth } from '../../../hooks/useAuth';
 import { validatePassword, type PasswordValidationResult } from '../../../utils/validation';
 import Button from '../../ButtonComponent';
 import { useToast } from '../../../context/ToastContext/toast-context';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { SORT_BY_FIELDS, SORT_DIRECTIONS } from '../../../pages/HomePage';
+import { getTags } from '../../../api/Tags/tag.api';
 
 const initialLoginForm: LoginParams = {
   username: '',
@@ -25,6 +31,17 @@ const initialRegisterForm: RegisterParams = {
   email: '',
   password: ''
 }
+
+const sortOptions = [
+  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`},
+  { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
+  { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
+  { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
+  { label: "Đánh giá ↑", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}` },
+  { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
+];
+
+
 
 export const AUTH_ACTIONS = {
   LOGIN: 'login',
@@ -43,9 +60,37 @@ export const SearchBar = () => {
   const [registerForm, setRegisterForm] = useState<RegisterParams>(initialRegisterForm);
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [registerMessage, setRegisterMessage] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<string>(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
+  const [selectedTag, setSelectedTag] = useState<string>("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const validationPassword: PasswordValidationResult = validatePassword(registerForm.password);
   const isRegisterError = registerForm.password !== confirmPassword && confirmPassword.length > 0;
+
+  const {data: tagData } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => getTags().then(res => res.data.data)
+  })
+
+  const capitalize = (str: string) =>
+  str
+    .split("-")
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(" ");
+
+    const tagOptions = [
+      { label: "All Tags", value: "" },
+      ...(tagData?.map(tag => ({
+        label: capitalize(tag.name),
+        value: tag.name
+      })) ?? [])
+    ];
+
+
 
   const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: (body: LoginParams) => {
@@ -67,6 +112,19 @@ export const SearchBar = () => {
     }
   })
 
+  const handleSearchNovels = useCallback(() => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) return;
+
+    const params = new URLSearchParams({
+      query: trimmed,
+      ...(selectedSort && { selectedSort }),
+      ...(selectedTag && { tag: selectedTag }),
+    });
+
+    navigate(`/novels?${params.toString()}`);
+  }, [searchTerm, selectedSort, selectedTag, navigate]);
+
   const handleLoginButtonClick = () => {
     loginMutate(loginForm, {
       onSuccess: () => {
@@ -83,6 +141,7 @@ export const SearchBar = () => {
       }
     })
   }
+  
 
   const handleLogoutClick = () => {
     logout();
@@ -261,11 +320,83 @@ export const SearchBar = () => {
   return (
     <>
       <div className="h-[90px] flex items-center justify-between px-12 md:px-13 lg:px-[50px] bg-white dark:bg-[#0f0f11]">
-        <input
-          type="text"
-          placeholder="Tìm Kiếm..."
-          className="w-full max-w-[650px] h-11 text-white rounded-[10px] px-4 py-2 bg-[#1c1c1f] border-0 focus:outline-none focus:ring-0"
-        />
+        <div className="relative w-full max-w-[650px]">
+          <button className="absolute left-3 top-1/2 -translate-y-1/2" onClick={handleSearchNovels}>
+            <img
+              src={Search}
+              alt="Search"
+              className="w-5 h-5 opacity-70 hover:opacity-100"
+            />
+          </button>
+          <input
+            type="text"
+            placeholder="Tìm Kiếm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-11 text-white rounded-[10px] pl-10 pr-4 py-2 bg-[#1c1c1f] border-0 focus:outline-none focus:ring-0"
+          />
+          {
+            searchTerm && (
+              <button
+                className="absolute right-9 top-1/2 -translate-y-1/2"
+                onClick={() => setSearchTerm('')}
+              >
+                <img
+                  src={Delete}
+                  alt="Delete"
+                  className="w-5 h-5 opacity-70 hover:opacity-100"
+                  />
+              </button>
+            )
+          }
+
+          <button
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+              onClick={() => setSearchTerm('')}
+            >
+              <img
+                src={SearchArea}
+                alt="SearchArea"
+                onClick={() => setShowDropdown((prev) => !prev)}
+                className="w-5 h-5 opacity-70 hover:opacity-100"
+              />
+          </button>
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 w-64 bg-[#2e2e2e] rounded-lg shadow-lg z-20 p-4 space-y-4 text-white">
+              <div>
+                <label className="block mb-1 text-sm font-semibold">Sắp xếp theo</label>
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="w-full bg-[#1c1c1f] text-white px-3 py-2 rounded-md focus:outline-none"
+                >
+                  <option value="" disabled>Chọn kiểu sắp xếp</option>
+                  {sortOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-semibold">Lọc theo tag</label>
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
+                  className="w-full bg-[#1c1c1f] text-white px-3 py-2 rounded-md focus:outline-none"
+                >
+                  <option value="" disabled>Chọn tag</option>
+                  {tagOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center h-[50px] ml-4 shrink-0 gap-8">
           <img src={Notification} alt="Notification" />

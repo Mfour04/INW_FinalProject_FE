@@ -6,6 +6,7 @@ interface GetNovelsParams {
   limit?: number
   sortBy?: string
   searchTerm?: string
+  searchTagTerm?: string
 }
 
 export const GetNovels = (params?: GetNovelsParams) => http.http.get<Novels>('Novels', { params });

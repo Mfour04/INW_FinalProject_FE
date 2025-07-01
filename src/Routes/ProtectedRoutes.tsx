@@ -19,6 +19,6 @@ export const ProtectedRoutes = ({ role: allowedRoles }: MyComponentProps) => {
 
   return (
     isAllowed ? <Outlet /> :
-    auth?.user ? < Navigate to='/unauthorized' />: <Navigate to='/unauthorized'/>
+    auth?.user ? < Navigate to='/unauthorized' />: <Navigate to='/needlogin'/>
   )
 }
