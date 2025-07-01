@@ -5,12 +5,39 @@ import Dashboard from '@mui/icons-material/Dashboard'
 import StarRate from '@mui/icons-material/StarRate'
 import BookMark from '@mui/icons-material/Bookmark'
 import Comment from '@mui/icons-material/Comment'
+import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { GetNovels } from '../../api/Novels/novel.api'
 
 type ViewAction = 'Grid' | 'List';
 
 export const Novels = () => {
     const [actionState, setActionState] = useState<ViewAction>('Grid');
+    const [page, setPage] = useState<number>(0);
+    const limit = 18;
+
+    const [searchParams] = useSearchParams();
+    const searchTerm = searchParams.get("query") || "";
+    const sortBy = searchParams.get("selectedSort") || "";
+    const searchTagTerm = searchParams.get("tag") || "";
+
+    const { data, isLoading, isError } = useQuery({
+    queryKey: ['novels', { searchTerm,page , limit }],
+    queryFn: () =>
+        GetNovels({
+        ...(searchTerm.trim() ? { searchTerm } : {}),
+        page: 0,
+        limit,
+        ...(sortBy ? { sortBy } : {}),
+        ...(searchTagTerm ? { searchTagTerm } : {}),
+        }),
+    });
+
+    const novels = Array.isArray(data?.data?.data) ? data.data.data : [];
+    const totalPage = Math.ceil((data?.data.data.length ?? 0) / limit);
+
+    console.log(data?.data.data);
 
     const view = useMemo(() => {
         switch (actionState) {
@@ -18,12 +45,12 @@ export const Novels = () => {
                 return (
                     <>
                         <div className="grid grid-cols-6 gap-4 mb-6">
-                            {[...Array(18)].map((_, i) => (
-                                <div key={i} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
+                            {novels.map((novel) => (
+                                <div key={novel.title} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
                                     <img
                                         className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
                                     />
-                                    <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">Championship no Majo asdasd</p>
+                                    <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">{novel.title}</p>
                                 </div>
                             ))}
                         </div>
@@ -32,8 +59,8 @@ export const Novels = () => {
             case 'List':
                 return (
                     <>
-                        {[...Array(18)].map((_, i) => (
-                            <div className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
+                        {novels.map((novel) => (
+                            <div key={novel.title} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
                                 <img
                                     className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
                                 />
@@ -41,15 +68,15 @@ export const Novels = () => {
                                 <div className="flex flex-col flex-1 overflow-hidden justify-between">
                                     <div>
                                         <h2 className="text-[18px] font-medium truncate">
-                                            Osoraku Kanojo wa Ore no Aniki wo Neratteru Osoraku Kanojo wa Ore no Aniki wo Neratteru Kanojo wa...
+                                            {novel.title}
                                         </h2>
                                         <div className="flex flex-wrap gap-2 my-1">
-                                            {['Trinh thám', 'Hài', 'Lãng mạn', 'Học đường', 'Gia đình'].map((tag, index) => (
+                                            {novel.tags.map((tag) => (
                                                 <div
-                                                key={index}
+                                                key={tag.tagId}
                                                 className="h-[24px] border-2 rounded-[5px] px-2 bg-black text-white text-sm"
                                                 >
-                                                    {tag}
+                                                    {tag.name}
                                                 </div>
                                             ))}
                                         </div>
@@ -62,7 +89,7 @@ export const Novels = () => {
                                                 <div className="flex items-center gap-1 text-sm">
                                                     <StarRate sx={{height: '20px', width: '20px'}} /> 
                                                     <div className='flex items-center'>
-                                                        4.9
+                                                        {novel.ratingAvg}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 text-sm ">
@@ -74,13 +101,15 @@ export const Novels = () => {
                                                 <div className="flex items-center gap-1 text-sm ">
                                                     <Comment sx={{ height: '20px', width: '20px' }} /> 
                                                     <div>
-                                                        123
+                                                        {novel.totalViews}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                                                <span className="h-2 w-2 bg-green-400 rounded-full inline-block" />
-                                                Đang diễn ra
+                                                <span className={`h-2 w-2 rounded-full inline-block ${
+                                                    novel.status === 1 ? 'bg-gray-400' : 'bg-green-400'
+                                                }`} />
+                                                {novel.status === 1 ? 'Hoàn thành' : 'Đang diễn ra'}
                                             </div>
                                         </div>
                                     </div>
@@ -90,14 +119,14 @@ export const Novels = () => {
                     </>
                 )
         }
-    }, [actionState])
+    }, [actionState, data])
   return (
     <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
         <div className=" justify-between items-center mb-6">
             <div className="flex items-center justify-between">
                 <img src={ArrowLeft02} className="h-6 w-6 cursor-pointer" />
                 <div className="flex-1 text-center">
-                    <h1 className="text-2xl font-semibold">Tiểu thuyết mới nhất</h1>
+                    <h1 className="text-2xl font-semibold">Danh sách tiểu thuyết</h1>
                 </div>
                 <div className="w-6" />
             </div>
@@ -125,11 +154,11 @@ export const Novels = () => {
         {view}
 
         <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
-            <button className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowLeft02} /></button>
+            <button onClick={() => setPage(page - 1)} disabled={page === 0} className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowLeft02} /></button>
             <div className='w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]'>
-                <span className="text-sm">Trang <span className="border-1 rounded-[5px] px-2.5">1</span> / 7</span>
+                <span className="text-sm">Trang <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> / {totalPage}</span>
             </div>
-            <button className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowRight02} /></button>
+            <button onClick={() => setPage(page + 1)} disabled={page === totalPage - 1} className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowRight02} /></button>
         </div>
     </div>
 
