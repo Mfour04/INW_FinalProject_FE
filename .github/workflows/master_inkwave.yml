@@ -63,5 +63,5 @@ jobs:
         with:
           app-name: 'inkwave'
           slot-name: 'Production'
-          package: .
+          package: ./dist
           
