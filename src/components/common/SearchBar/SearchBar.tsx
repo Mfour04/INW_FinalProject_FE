@@ -33,7 +33,7 @@ const initialRegisterForm: RegisterParams = {
 }
 
 const sortOptions = [
-  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`},
+  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
   { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
   { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
   { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
@@ -71,24 +71,24 @@ export const SearchBar = () => {
   const validationPassword: PasswordValidationResult = validatePassword(registerForm.password);
   const isRegisterError = registerForm.password !== confirmPassword && confirmPassword.length > 0;
 
-  const {data: tagData } = useQuery({
+  const { data: tagData } = useQuery({
     queryKey: ['tags'],
     queryFn: () => getTags().then(res => res.data.data)
   })
 
   const capitalize = (str: string) =>
-  str
-    .split("-")
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(" ");
+    str
+      .split("-")
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(" ");
 
-    const tagOptions = [
-      { label: "All Tags", value: "" },
-      ...(tagData?.map(tag => ({
-        label: capitalize(tag.name),
-        value: tag.name
-      })) ?? [])
-    ];
+  const tagOptions = [
+    { label: "All Tags", value: "" },
+    ...(tagData?.map(tag => ({
+      label: capitalize(tag.name),
+      value: tag.name
+    })) ?? [])
+  ];
 
 
 
@@ -97,17 +97,17 @@ export const SearchBar = () => {
       return Login(body)
     },
     onSuccess: (data) => {
-    const { accessToken, refreshToken, user } = data.data.token;
-    setAuth({ accessToken, refreshToken, user });
+      const { accessToken, refreshToken, user } = data.data.token;
+      setAuth({ accessToken, refreshToken, user });
       toast?.onOpen('Bạn đã đăng nhập thành công!');
-  },
+    },
   })
 
   const { mutate: registerMutate, isPending: isRegisterPending } = useMutation({
-    mutationFn:(body: RegisterParams) => {
+    mutationFn: (body: RegisterParams) => {
       return Register(body)
     },
-    onError:(res) => {
+    onError: (res) => {
       setRegisterMessage(res.message);
     }
   })
@@ -141,7 +141,7 @@ export const SearchBar = () => {
       }
     })
   }
-  
+
 
   const handleLogoutClick = () => {
     logout();
@@ -172,7 +172,7 @@ export const SearchBar = () => {
             />
             <input
               type="password"
-               placeholder="Mật khẩu"
+              placeholder="Mật khẩu"
               value={loginForm.password}
               onChange={e => setLoginForm(prev => ({
                 ...prev,
@@ -184,7 +184,7 @@ export const SearchBar = () => {
               Quên mật khẩu?
             </div>
             <div className="w-full flex justify-center">
-              <Button 
+              <Button
                 isLoading={isLoginPending}
                 onClick={handleLoginButtonClick}
                 className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
@@ -223,7 +223,7 @@ export const SearchBar = () => {
             />
             <input
               type="password"
-               placeholder="Mật khẩu"
+              placeholder="Mật khẩu"
               value={registerForm.password}
               onChange={e => setRegisterForm(prev => ({
                 ...prev,
@@ -231,10 +231,10 @@ export const SearchBar = () => {
               }))}
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
-          
+
             <input
               type="password"
-               placeholder="Nhập lại mật khẩu"
+              placeholder="Nhập lại mật khẩu"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
@@ -243,31 +243,31 @@ export const SearchBar = () => {
               !validationPassword.isValid && (
                 <div>
                   {
-                    validationPassword.errors.map((error, index) => 
-                      (
-                        <div key={index} className="text-sm text-left text-red-500">
-                          {error}
-                        </div>
-                      )
+                    validationPassword.errors.map((error, index) =>
+                    (
+                      <div key={index} className="text-sm text-left text-red-500">
+                        {error}
+                      </div>
+                    )
                     )
                   }
                 </div>
               )
             }
             {
-            isRegisterError && 
+              isRegisterError &&
               <div className="text-sm text-left text-red-500">
                 Nhập lại mật khẩu không giống với mật khẩu
               </div>
             }
             {
-              registerMessage && 
+              registerMessage &&
               <div className="text-sm text-left text-red-500">
                 {registerMessage}
               </div>
             }
             <div className="w-full flex justify-center">
-              <Button 
+              <Button
                 isLoading={isRegisterPending}
                 onClick={handleRegisterButtonClick}
                 className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
@@ -276,7 +276,7 @@ export const SearchBar = () => {
             </div>
             <div className="text-sm text-center text-[#45454e] mt-4">
               Nếu bạn đã có tài khoản,{" "}
-              <span onClick={() => setAction(AUTH_ACTIONS.LOGIN)}className="text-[#ff6740] hover:underline cursor-pointer">đăng nhập</span>
+              <span onClick={() => setAction(AUTH_ACTIONS.LOGIN)} className="text-[#ff6740] hover:underline cursor-pointer">đăng nhập</span>
             </div>
           </>
         );
@@ -298,9 +298,9 @@ export const SearchBar = () => {
             <div onClick={() => setAction(AUTH_ACTIONS.LOGIN)} className="text-sm text-left cursor-pointer text-[#ff6740] hover:underline pb-2">
               Về đăng nhập
             </div>
-            
+
             <div className="w-full flex justify-center">
-              <button 
+              <button
                 onClick={handleLoginButtonClick}
                 className="w-[200px] h-[34px] flex items-center justify-center gap-2.5 rounded-2xl border border-gray-300 bg-orange-500 text-white text-sm font-semibold px-[25px] py-[7px] hover:bg-orange-600">
                 Gửi
@@ -310,10 +310,10 @@ export const SearchBar = () => {
             <div className="text-sm text-center text-[#45454e] mt-4">
               Nhập tên đăng nhập hoặc email để nhận hướng dẫn đặt lại mật khẩu.
             </div>
-            
+
           </>
         );
-      default:   
+      default:
     }
   }, [action, setAction, loginForm, setLoginForm, registerForm, setRegisterForm, confirmPassword, setConfirmPassword, registerMessage, isRegisterPending, isLoginPending])
 
@@ -345,21 +345,21 @@ export const SearchBar = () => {
                   src={Delete}
                   alt="Delete"
                   className="w-5 h-5 opacity-70 hover:opacity-100"
-                  />
+                />
               </button>
             )
           }
 
           <button
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-              onClick={() => setSearchTerm('')}
-            >
-              <img
-                src={SearchArea}
-                alt="SearchArea"
-                onClick={() => setShowDropdown((prev) => !prev)}
-                className="w-5 h-5 opacity-70 hover:opacity-100"
-              />
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            onClick={() => setSearchTerm('')}
+          >
+            <img
+              src={SearchArea}
+              alt="SearchArea"
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="w-5 h-5 opacity-70 hover:opacity-100"
+            />
           </button>
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-64 bg-[#2e2e2e] rounded-lg shadow-lg z-20 p-4 space-y-4 text-white">
@@ -409,84 +409,84 @@ export const SearchBar = () => {
         </div>
       </div>
       {isPopupOpen && (
-        <> 
-        {
-          auth?.user? 
-          <div className="absolute right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
-            <div className="flex items-center gap-4">
-              <img
-                src={auth.user.avatarUrl || DefaultAvatar}
-                alt="User Avatar"
-                className="w-15 h-15 rounded-full object-cover bg-white"
-              />
-              <div className='flex flex-col gap-0.5'>
-                <div className="font-bold text-sm">{auth.user.username}</div>
-                <div className="text-xs text-gray-400">@{auth.user.username}</div>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    🥇<span>{auth.user.badgeId.length ?? 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    🔥<span>1</span>
+        <>
+          {
+            auth?.user ?
+              <div className="absolute right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={auth.user.avatarUrl || DefaultAvatar}
+                    alt="User Avatar"
+                    className="w-15 h-15 rounded-full object-cover bg-white"
+                  />
+                  <div className='flex flex-col gap-0.5'>
+                    <div className="font-bold text-sm">{auth.user.username}</div>
+                    <div className="text-xs text-gray-400">@{auth.user.username}</div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        🥇<span>{auth.user.badgeId.length ?? 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        🔥<span>1</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
 
 
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-yellow-300 font-bold text-sm">🪙 {auth.user.coin }</div>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold">
-                Nạp thêm
-              </button>
-            </div>
+                <div className="flex justify-between items-center mt-4">
+                  <div className="text-yellow-300 font-bold text-sm">🪙 {auth.user.coin}</div>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold">
+                    Nạp thêm
+                  </button>
+                </div>
 
-            <div className="mt-4 pt-3  space-y-2 text-sm border-t border-white">
-              <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
-                <Person /> <span>Trang cá nhân</span>
-              </div>
-              <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
-                <History /> <span>Lịch sử giao dịch</span>
-              </div>
-              <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
-                <Settings /> <span>Cài đặt</span>
-              </div>
-            </div>
+                <div className="mt-4 pt-3  space-y-2 text-sm border-t border-white">
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <Person /> <span>Trang cá nhân</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <History /> <span>Lịch sử giao dịch</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <Settings /> <span>Cài đặt</span>
+                  </div>
+                </div>
 
-            <div onClick={() => handleLogoutClick()} className="mt-4 border-t border-white pt-3 text-sm cursor-pointer hover:text-red-400 flex items-center gap-2">
-              <Logout /> <span>Đăng xuất</span>
-            </div>
-          </div>
-        : <div className="fixed inset-0 z-50 flex items-center justify-center  bg-[rgba(0,0,0,0.4)]">
-            <div className="w-[350px] bg-white shadow-lg rounded-xl p-6 transform transition-all duration-200 ease-out scale-100 opacity-100">
-              <div className="max-h-[50px] w-full overflow-hidden flex justify-center items-center mb-4">
-                <img
-                  src={LoginLogo}
-                  alt="Login Logo"
-                  className="max-w-42 h-auto object-contain"
-                />
+                <div onClick={() => handleLogoutClick()} className="mt-4 border-t border-white pt-3 text-sm cursor-pointer hover:text-red-400 flex items-center gap-2">
+                  <Logout /> <span>Đăng xuất</span>
+                </div>
               </div>
-              <button
-                  onClick={onLoginCloseClick}
-                  className="absolute cursor-pointer top-2 right-3 text-gray-500 hover:text-gray-700 text-xl"
-                  aria-label="Đóng popup"
+              : <div className="fixed inset-0 z-50 flex items-center justify-center  bg-[rgba(0,0,0,0.4)]">
+                <div className="w-[350px] bg-white shadow-lg rounded-xl p-6 transform transition-all duration-200 ease-out scale-100 opacity-100">
+                  <div className="max-h-[50px] w-full overflow-hidden flex justify-center items-center mb-4">
+                    <img
+                      src={LoginLogo}
+                      alt="Login Logo"
+                      className="max-w-42 h-auto object-contain"
+                    />
+                  </div>
+                  <button
+                    onClick={onLoginCloseClick}
+                    className="absolute cursor-pointer top-2 right-3 text-gray-500 hover:text-gray-700 text-xl"
+                    aria-label="Đóng popup"
                   >
-                  &times;
-              </button>
-              <h2 className="text-lg font-semibold text-center mb-2">Chào mừng đến với InkWave</h2>
-              <p className="text-sm text-center text-gray-600 mb-4">Gõ cửa thế giới truyện</p>
+                    &times;
+                  </button>
+                  <h2 className="text-lg font-semibold text-center mb-2">Chào mừng đến với InkWave</h2>
+                  <p className="text-sm text-center text-gray-600 mb-4">Gõ cửa thế giới truyện</p>
 
-              <button className="w-full border border-gray-300 rounded-md py-2 flex items-center justify-center gap-2 mb-4 hover:bg-gray-100">
-                <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
-                <span>Đăng nhập bằng Google</span>
-              </button>
+                  <button className="w-full border border-gray-300 rounded-md py-2 flex items-center justify-center gap-2 mb-4 hover:bg-gray-100">
+                    <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
+                    <span>Đăng nhập bằng Google</span>
+                  </button>
 
-              {content}
-            </div>
-          </div>
-        }
-          
+                  {content}
+                </div>
+              </div>
+          }
+
         </>
       )}
 
