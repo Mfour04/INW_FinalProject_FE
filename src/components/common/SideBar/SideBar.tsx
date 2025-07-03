@@ -38,7 +38,6 @@ export const SideBar = () => {
       path: "/novels",
       isHeader: true,
       subItems: [
-        { label: "Tìm kiếm nâng cao", path: "/novels/advanced-search" },
         { label: "Phòng sáng tác", path: "/novels/writing-room" }
       ]
     },
