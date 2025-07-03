@@ -3,7 +3,7 @@ import { novelData } from "../../pages/novelRead/Content";
 import { useQuery } from '@tanstack/react-query';
 import { GetChapters } from '../../api/Chapters/chapter.api';
 import type { Chapter, Chapters } from '../../api/Chapters/chapter.type';
-// import { CommentUser } from "../../pages/commentUser/CommentUser";
+import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
 
@@ -43,7 +43,7 @@ export const NovelRead = () => {
                 </div>
             </div>
 
-            {/* <CommentUser /> */}
+            <CommentUser />
         </div>
     );
 }
