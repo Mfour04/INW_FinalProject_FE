@@ -10,6 +10,7 @@ import { LoginNeeded } from '../pages/LoginNeeded';
 import { WritingRoom } from '../pages/WritingRoom/WritingRoom';
 import { NovelRead } from '../pages/novelRead/NovelRead';
 import { Chapters } from '../pages/Chapters/Chapters';
+import CreateChapters from '../pages/WritingRoom/CreateChapters';
 
 export const Router = () => {
   return (
@@ -25,6 +26,7 @@ export const Router = () => {
         <Route path=':id' element={ <Chapters />}/>
         <Route path='writing-room' element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}>
           <Route index element={<WritingRoom />} />
+          <Route path='chapters' element={<CreateChapters /> } />
         </ Route>
       </Route>
       <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin} />}>

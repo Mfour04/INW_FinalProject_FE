@@ -3,6 +3,8 @@ import StarRate from '@mui/icons-material/StarRate'
 import BookMark from '@mui/icons-material/Bookmark'
 import Comment from '@mui/icons-material/Comment'
 import Share from '@mui/icons-material/Share'
+import ModeEdit from '@mui/icons-material/ModeEdit'
+import Add from '@mui/icons-material/Add'
 import RateReview from '@mui/icons-material/RateReview'
 import Report from '@mui/icons-material/Report'
 import { useState } from 'react'
@@ -58,8 +60,8 @@ export const Chapters = () => {
           </div>
 
           <div className="flex flex-wrap gap-7 mt-10 h-[37px]">
-            <button className="flex items-center justify-center gap-2.5 bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"><BookMark sx={{ height: '20px', width: '20px' }} /><p>Theo dõi</p></button>
-            <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]"><Share sx={{ height: '20px', width: '20px' }}/><p>Chia sẻ</p></button>
+            <button className="flex items-center justify-center gap-2.5 bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"><ModeEdit sx={{ height: '20px', width: '20px' }} /><p>Theo dõi</p></button>
+            <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]"><Share sx={{ height: '20px', width: '20px' }}/><Add sx={{ height: '20px', width: '20px' }} /><p>Chia sẻ</p></button>
             <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]"><Report sx={{ height: '20px', width: '20px' }}/><p>Báo cáo</p></button>
           </div>
 
