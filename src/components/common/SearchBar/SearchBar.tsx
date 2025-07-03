@@ -82,13 +82,16 @@ export const SearchBar = () => {
       .map(s => s.charAt(0).toUpperCase() + s.slice(1))
       .join(" ");
 
-  const tagOptions = [
-    { label: "All Tags", value: "" },
-    ...(tagData?.map(tag => ({
-      label: capitalize(tag.name),
-      value: tag.name
-    })) ?? [])
-  ];
+const tagOptions = [
+  { label: "All Tags", value: "" },
+  ...(Array.isArray(tagData)
+    ? tagData.map(tag => ({
+        label: capitalize(tag.name),
+        value: tag.name
+      }))
+    : [])
+];
+
 
 
 

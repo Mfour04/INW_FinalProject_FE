@@ -48,6 +48,7 @@ export const Novels = () => {
                             {novels.map((novel) => (
                                 <div key={novel.title} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
                                     <img
+                                        src={novel.novelImage || undefined}
                                         className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
                                     />
                                     <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">{novel.title}</p>
@@ -62,6 +63,7 @@ export const Novels = () => {
                         {novels.map((novel) => (
                             <div key={novel.title} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
                                 <img
+                                    src={novel.novelImage || undefined}
                                     className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
                                 />
 

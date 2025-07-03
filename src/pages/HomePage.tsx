@@ -74,6 +74,7 @@ export const HomePage = () => {
         </Typography>
         <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
+            src={trendingData?.[nNovelsIndex].novelImage || undefined}
             className="w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
           />
 
@@ -84,7 +85,7 @@ export const HomePage = () => {
             </Typography>
 
             <div className="flex flex-wrap gap-2 mb-4">
-              {trendingData?.[0].tags.map((tag) => (
+              {trendingData?.[nNovelsIndex].tags.map((tag) => (
                 <div
                   key={tag.tagId}
                   className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm"
@@ -180,7 +181,9 @@ export const HomePage = () => {
             ): (
               topRated?.map((novel) => (
                 <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
-                  <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px]" />
+                  <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
+                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                  </div>
                   <div className="mx-2.5 mt-1">
                     <div className="text-[15px] py-[1px]">
                       {novel.title}
