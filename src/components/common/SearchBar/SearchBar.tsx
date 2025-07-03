@@ -407,12 +407,89 @@ export const SearchBar = () => {
             onClick={() => setIsPopupOpen(!isPopupOpen)}
           />
         </div>
-        <img
-          src={DefaultAvatar}
-          alt="User Avatar"
-          className="w-12 h-12 rounded-full ml-3 object-cover cursor-pointer bg-white"
-        />
       </div>
-    </div >
+      {isPopupOpen && (
+        <>
+          {
+            auth?.user ?
+              <div className="absolute right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={auth.user.avatarUrl || DefaultAvatar}
+                    alt="User Avatar"
+                    className="w-15 h-15 rounded-full object-cover bg-white"
+                  />
+                  <div className='flex flex-col gap-0.5'>
+                    <div className="font-bold text-sm">{auth.user.username}</div>
+                    <div className="text-xs text-gray-400">@{auth.user.username}</div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        🥇<span>{auth.user.badgeId.length ?? 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        🔥<span>1</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div className="flex justify-between items-center mt-4">
+                  <div className="text-yellow-300 font-bold text-sm">🪙 {auth.user.coin}</div>
+                  <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold">
+                    Nạp thêm
+                  </button>
+                </div>
+
+                <div className="mt-4 pt-3  space-y-2 text-sm border-t border-white">
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <Person /> <span>Trang cá nhân</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <History /> <span>Lịch sử giao dịch</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                    <Settings /> <span>Cài đặt</span>
+                  </div>
+                </div>
+
+                <div onClick={() => handleLogoutClick()} className="mt-4 border-t border-white pt-3 text-sm cursor-pointer hover:text-red-400 flex items-center gap-2">
+                  <Logout /> <span>Đăng xuất</span>
+                </div>
+              </div>
+              : <div className="fixed inset-0 z-50 flex items-center justify-center  bg-[rgba(0,0,0,0.4)]">
+                <div className="w-[350px] bg-white shadow-lg rounded-xl p-6 transform transition-all duration-200 ease-out scale-100 opacity-100">
+                  <div className="max-h-[50px] w-full overflow-hidden flex justify-center items-center mb-4">
+                    <img
+                      src={LoginLogo}
+                      alt="Login Logo"
+                      className="max-w-42 h-auto object-contain"
+                    />
+                  </div>
+                  <button
+                    onClick={onLoginCloseClick}
+                    className="absolute cursor-pointer top-2 right-3 text-gray-500 hover:text-gray-700 text-xl"
+                    aria-label="Đóng popup"
+                  >
+                    &times;
+                  </button>
+                  <h2 className="text-lg font-semibold text-center mb-2">Chào mừng đến với InkWave</h2>
+                  <p className="text-sm text-center text-gray-600 mb-4">Gõ cửa thế giới truyện</p>
+
+                  <button className="w-full border border-gray-300 rounded-md py-2 flex items-center justify-center gap-2 mb-4 hover:bg-gray-100">
+                    <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
+                    <span>Đăng nhập bằng Google</span>
+                  </button>
+
+                  {content}
+                </div>
+              </div>
+          }
+
+        </>
+      )}
+
+    </>
   )
 }
