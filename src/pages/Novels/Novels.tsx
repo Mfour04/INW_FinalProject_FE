@@ -37,8 +37,6 @@ export const Novels = () => {
     const novels = Array.isArray(data?.data?.data) ? data.data.data : [];
     const totalPage = Math.ceil((data?.data.data.length ?? 0) / limit);
 
-    console.log(data?.data.data);
-
     const view = useMemo(() => {
         switch (actionState) {
             case 'Grid':
@@ -46,7 +44,7 @@ export const Novels = () => {
                     <>
                         <div className="grid grid-cols-6 gap-4 mb-6">
                             {novels.map((novel) => (
-                                <div key={novel.title} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
+                                <div key={novel.novelId} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
                                     <img
                                         src={novel.novelImage || undefined}
                                         className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
@@ -61,7 +59,7 @@ export const Novels = () => {
                 return (
                     <>
                         {novels.map((novel) => (
-                            <div key={novel.title} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
+                            <div key={novel.novelId} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
                                 <img
                                     src={novel.novelImage || undefined}
                                     className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"

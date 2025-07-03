@@ -10,7 +10,6 @@ import { ToastProvider } from './context/ToastContext/toast.tsx'
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
@@ -22,5 +21,4 @@ createRoot(document.getElementById('root')!).render(
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
-  </StrictMode>,
 )
