@@ -1,7 +1,7 @@
 import '../../pages/novelRead/NovelRead.css';
 import { novelData } from "../../pages/novelRead/Content";
 import { useQuery } from '@tanstack/react-query';
-import { GetChapters } from '../../api/Chapters/chapter.api';
+import { GetChapter } from '../../api/Chapters/chapter.api';
 import type { Chapter, Chapters } from '../../api/Chapters/chapter.type';
 // import { CommentUser } from "../../pages/commentUser/CommentUser";
 
@@ -12,7 +12,7 @@ export const NovelRead = () => {
     const { isLoading, data } = useQuery({
         queryKey: ['chapters', novelId],
         queryFn: async () => {
-            const res = await GetChapters(novelId);
+            const res = await GetChapter(novelId);
             return res.data.data;
         },
     });

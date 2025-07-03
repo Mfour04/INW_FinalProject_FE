@@ -9,6 +9,7 @@ import { Novels } from '../pages/Novels/Novels';
 import { LoginNeeded } from '../pages/LoginNeeded';
 import { WritingRoom } from '../pages/WritingRoom/WritingRoom';
 import { NovelRead } from '../pages/novelRead/NovelRead';
+import { Chapters } from '../pages/Chapters/Chapters';
 
 export const Router = () => {
   return (
@@ -21,6 +22,7 @@ export const Router = () => {
       </Route>
       <Route path='/novels' >
         <Route index element={<Novels />} />
+        <Route path=':id' element={ <Chapters />}/>
         <Route path='writing-room' element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}>
           <Route index element={<WritingRoom />} />
         </ Route>

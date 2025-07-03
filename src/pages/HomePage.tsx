@@ -126,7 +126,7 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ) : (
               mostViewed?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
                   </div>
@@ -149,7 +149,7 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ): (
               trendingData?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
                   </div>
@@ -180,7 +180,7 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ): (
               topRated?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
                   </div>

@@ -1,4 +1,19 @@
-export interface Novel {
+export interface CreateNovelRequest {
+  title: string
+  description: string
+  authorId: string
+  novelImage: File | null
+  tags: string[]
+  status: number
+  isPublic: boolean
+  isPaid: boolean
+  isLock: boolean
+  purchaseType: number
+  price: number
+}
+
+export interface NovelReponse {
+  novelId: string;
   title: string;
   description: string;
   authorId: string;
@@ -25,5 +40,5 @@ export interface Tag {
 export type Novels = {
     success: boolean,
     message: string,
-    data: Novel[]
+    data: NovelReponse[]
 }
