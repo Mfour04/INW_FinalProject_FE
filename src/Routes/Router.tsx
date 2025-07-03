@@ -8,6 +8,7 @@ import { Roles } from '../context/AuthContext/AuthProvider';
 import { Novels } from '../pages/Novels/Novels';
 import { LoginNeeded } from '../pages/LoginNeeded';
 import { WritingRoom } from '../pages/WritingRoom/WritingRoom';
+import { NovelRead } from '../pages/novelRead/NovelRead';
 
 export const Router = () => {
   return (
@@ -19,17 +20,18 @@ export const Router = () => {
         <Route path='new' element={<></>} />
       </Route>
       <Route path='/novels' >
-        <Route index element={ <Novels /> }/>
-        <Route path='writing-room' element={ <ProtectedRoutes role={[Roles.Reader, Roles.Author]} /> }>
+        <Route index element={<Novels />} />
+        <Route path='writing-room' element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}>
           <Route index element={<WritingRoom />} />
         </ Route>
       </Route>
-      <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin}/>}>
+      <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin} />}>
 
       </Route>
+      <Route path="/novelRead" element={<NovelRead />} />
       <Route path="/profile" element={<UserProfile />} />
-      <Route path='/unauthorized' element={<Unauthorized />}/>
-      <Route path='/needlogin' element={<LoginNeeded />}/>
+      <Route path='/unauthorized' element={<Unauthorized />} />
+      <Route path='/needlogin' element={<LoginNeeded />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>
   );
