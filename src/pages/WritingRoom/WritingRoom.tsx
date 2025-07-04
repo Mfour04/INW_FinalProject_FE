@@ -148,7 +148,7 @@ export const WritingRoom = () => {
                                                             </div>
                                                             <div className="flex gap-[25px]">
                                                                 <button onClick={() => handleEditNovelButtonClick(novel.id)} className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"><ModeEdit sx={{ height: '20px', width: '20px'}}/></button>
-                                                                <button className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"><Add sx={{ height: '20px', width: '20px'}}/></button>
+                                                                <button onClick={() => navigate(`${novel.id}`)} className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"><Add sx={{ height: '20px', width: '20px'}}/></button>
                                                                 <button onClick={() => handleDeleteNovelClick(novel.id)} className="bg-red-700 h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-red-500"><ModeDelete sx={{ height: '20px', width: '20px'}}/></button>
                                                             </div>
                                                         </div>

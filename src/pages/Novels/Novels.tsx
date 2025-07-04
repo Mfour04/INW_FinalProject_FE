@@ -24,7 +24,7 @@ export const Novels = () => {
     const sortBy = searchParams.get("selectedSort") || "";
     const searchTagTerm = searchParams.get("tag") || "";
 
-    const { data, isLoading, isError } = useQuery({
+    const { data } = useQuery({
     queryKey: ['novels', { searchTerm,page , limit }],
     queryFn: () =>
         GetNovels({
@@ -37,7 +37,7 @@ export const Novels = () => {
     });
 
     const novels = Array.isArray(data?.data?.data) ? data.data.data : [];
-    const totalPage = Math.ceil((data?.data.data.length ?? 0) / limit);
+    // const totalPage = Math.ceil((data?.data.data.length ?? 0) / limit);
 
     const view = useMemo(() => {
         switch (actionState) {
