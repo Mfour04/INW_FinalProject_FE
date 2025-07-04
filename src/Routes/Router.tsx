@@ -23,16 +23,17 @@ export const Router = () => {
       </Route>
       <Route path='/novels' >
         <Route index element={<Novels />} />
-        <Route path=':id' element={ <Chapters />}/>
+        <Route path=':novelId' element={ <Chapters />} />
+        <Route path=":novelId/:chapterId" element={<NovelRead />} />
         <Route path='writing-room' element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}>
           <Route index element={<WritingRoom />} />
-          <Route path='chapters' element={<CreateChapters /> } />
+          <Route path='create-chapters' element={<CreateChapters /> } />
         </ Route>
       </Route>
       <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin} />}>
 
       </Route>
-      <Route path="/novelRead" element={<NovelRead />} />
+      {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/profile" element={<UserProfile />} />
       <Route path='/unauthorized' element={<Unauthorized />} />
       <Route path='/needlogin' element={<LoginNeeded />} />

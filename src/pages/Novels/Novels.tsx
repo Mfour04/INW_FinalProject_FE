@@ -7,7 +7,7 @@ import BookMark from '@mui/icons-material/Bookmark'
 import Comment from '@mui/icons-material/Comment'
 import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { GetNovels } from '../../api/Novels/novel.api'
 
 type ViewAction = 'Grid' | 'List';
@@ -15,7 +15,9 @@ type ViewAction = 'Grid' | 'List';
 export const Novels = () => {
     const [actionState, setActionState] = useState<ViewAction>('Grid');
     const [page, setPage] = useState<number>(0);
-    const limit = 18;
+    const limit = 12;
+
+    const navigate = useNavigate();
 
     const [searchParams] = useSearchParams();
     const searchTerm = searchParams.get("query") || "";
@@ -27,7 +29,7 @@ export const Novels = () => {
     queryFn: () =>
         GetNovels({
         ...(searchTerm.trim() ? { searchTerm } : {}),
-        page: 0,
+        page: page,
         limit,
         ...(sortBy ? { sortBy } : {}),
         ...(searchTagTerm ? { searchTagTerm } : {}),
@@ -44,7 +46,7 @@ export const Novels = () => {
                     <>
                         <div className="grid grid-cols-6 gap-4 mb-6">
                             {novels.map((novel) => (
-                                <div key={novel.novelId} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
+                                <div key={novel.novelId} onClick={() => navigate(`/novels/${novel.novelId}`)} className='cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden'>
                                     <img
                                         src={novel.novelImage || undefined}
                                         className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
@@ -59,7 +61,7 @@ export const Novels = () => {
                 return (
                     <>
                         {novels.map((novel) => (
-                            <div key={novel.novelId} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
+                            <div key={novel.novelId} onClick={() => navigate(`novels/${novel.novelId}`)} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
                                 <img
                                     src={novel.novelImage || undefined}
                                     className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
@@ -156,9 +158,9 @@ export const Novels = () => {
         <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
             <button onClick={() => setPage(page - 1)} disabled={page === 0} className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowLeft02} /></button>
             <div className='w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]'>
-                <span className="text-sm">Trang <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> / {totalPage}</span>
+                <span className="text-sm">Trang <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> / 2</span>
             </div>
-            <button onClick={() => setPage(page + 1)} disabled={page === totalPage - 1} className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowRight02} /></button>
+            <button onClick={() => setPage(page + 1)} className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"><img src={ArrowRight02} /></button>
         </div>
     </div>
 
