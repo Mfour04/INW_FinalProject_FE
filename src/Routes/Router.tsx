@@ -12,6 +12,7 @@ import { NovelRead } from '../pages/novelRead/NovelRead';
 import { Chapters } from '../pages/Chapters/Chapters';
 import CreateChapters from '../pages/WritingRoom/CreateChapters';
 import { UpsertNovels } from '../pages/WritingRoom/UpsertNovels';
+import { UpsertChapter } from '../pages/WritingRoom/UpsertChapter';
 
 export const Router = () => {
   return (
@@ -29,7 +30,8 @@ export const Router = () => {
         <Route path='writing-room' element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}>
           <Route index element={<WritingRoom />} />
           <Route path='upsert-novel/:id?' element={< UpsertNovels/> }/>
-          <Route path='create-chapters' element={<CreateChapters /> } />
+          <Route path=':novelId' element={<CreateChapters /> } />
+          <Route path=':novelId/upsert-chapter/:chapterId?' element={<UpsertChapter /> } />
         </ Route>
       </Route>
       <Route path='/admin' element={< ProtectedRoutes role={Roles.Admin} />}>

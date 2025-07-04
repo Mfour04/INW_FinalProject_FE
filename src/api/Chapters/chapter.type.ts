@@ -9,6 +9,20 @@ export interface Chapter {
     isPublic: boolean;
 }
 
+export type CreateChapterRequest = Omit<Chapter, 'chapterNumber'>
+
+export interface UpdateChapterRequest {
+  chapterId: string,
+  title: string,
+  content: string,
+  chapterNumber: number,
+  isPaid: boolean,
+  price: number,
+  scheduledAt: Date,
+  isDraft: boolean,
+  isPublic: boolean
+}
+
 export interface ChapterByNovel {
     id: string;
     novel_id: string;
@@ -37,6 +51,12 @@ export type NovelChapters = {
     success: boolean,
     message: string,
     data: ChapterByNovel[]
+}
+
+export interface CreateChapterResponse {
+  success: boolean;
+  message: string;
+  data: Chapter;
 }
 
 export interface PublishStatus {

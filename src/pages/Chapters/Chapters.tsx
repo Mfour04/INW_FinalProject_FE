@@ -33,6 +33,8 @@ export const Chapters = () => {
     select: res => res.data.data
   })
 
+  const lastChapter = chapterData?.[chapterData?.length -1]
+
   const { data: novelData, isLoading: isLoadingNovel } = useQuery({
       queryKey: ['novel', novelId],
       queryFn: () => GetNovelById(novelId!).then(res => res.data.data.novelInfo),
@@ -114,10 +116,10 @@ export const Chapters = () => {
           Cập nhật gần nhất:
         </p>
         <p className='flex items-center text-[#ff6740]'>
-          Chương 211: Sống hay chết?
+          Chương {lastChapter?.chapter_number}: {lastChapter?.title}
         </p>
         <p className='flex items-center text-[#cfcfcf]'>
-          6 giờ trước
+          {formatTicksToRelativeTime(lastChapter?.created_at!)}
         </p>
       </div>
 
