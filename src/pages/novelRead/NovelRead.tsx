@@ -3,22 +3,26 @@ import { novelData } from "../../pages/novelRead/Content";
 import { useQuery } from '@tanstack/react-query';
 import { GetChapter } from '../../api/Chapters/chapter.api';
 import type { Chapter, Chapters } from '../../api/Chapters/chapter.type';
+import { useParams } from 'react-router-dom';
 // import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
+
+    const { chapterId } = useParams()
 
     const novelId = "2571CB441A87286E3BEBE8FA";
 
     const { isLoading, data } = useQuery({
         queryKey: ['chapters', novelId],
         queryFn: async () => {
-            const res = await GetChapter(novelId);
+            const res = await GetChapter(chapterId!);
             return res.data.data;
         },
+        enabled: !!chapterId
     });
 
-    console.log(data);
-
+    console.log(data)
+    
     return (
         <div style={{ border: '1px', padding: '20px', borderRadius: '8px', marginTop: '-10px' }}>
             <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '50px', fontFamily: 'Arial, sans-serif', borderRadius: '10px' }}>

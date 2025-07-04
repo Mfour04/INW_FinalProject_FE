@@ -1,5 +1,5 @@
 import http from "../../utils/http";
-import type { Novels } from "./novel.type";
+import type { Novels, NovelsByAuthor, NovelUpdate } from "./novel.type";
 
 interface GetNovelsParams {
   page?: number
@@ -13,4 +13,6 @@ export const GetNovels = (params?: GetNovelsParams) => http.http.get<Novels>('No
 
 export const CreateNovels = (request: FormData) => http.multipartHttp.post<Novels>('Novels/created', request);
 
-export const GetAuthorNovels = () => http.privateHttp.get<Novels>('Novels/get-by-authorid');
+export const GetAuthorNovels = () => http.privateHttp.get<NovelsByAuthor>('Novels/get-by-authorid');
+
+export const GetNovelById = (id: string) => http.privateHttp.get<NovelUpdate>(`Novels/${id}`);
