@@ -64,10 +64,10 @@ export const WritingRoom = () => {
     }
 
     useEffect(() => {
-        if (novelsData) {
-            setIsNull(true);
-        } else {
+        if (!novelsData || novelsData.length === 0) {
             setIsNull(false);
+        } else {
+            setIsNull(true);
         }
     }, [novelsData])
 

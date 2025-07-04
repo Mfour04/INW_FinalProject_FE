@@ -75,10 +75,11 @@ export const HomePage = () => {
         <Typography variant="h4" size="large" className="mb-4">
               Truyện Vừa Ra Mắt
         </Typography>
-        <div onClick={() => navigate(`/novels/${trendingData?.[nNovelsIndex].novelId}`)} className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
+        <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
+            onClick={() => navigate(`/novels/${trendingData?.[nNovelsIndex].novelId}`)}
             src={trendingData?.[nNovelsIndex].novelImage || undefined}
-            className="w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
+            className="cursor-pointer w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
           />
 
           <div className="p-4 flex flex-col flex-1 min-w-0">
@@ -134,7 +135,7 @@ export const HomePage = () => {
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px] truncate">{novel.title}</div>
+                    <div className="text-[15px] py-[1px] line-clamp-1">{novel.title}</div>
                     <div className="text-[12px] py-[1px] flex items-center gap-1 truncate"><RemoveRedEye sx={{ height: '20px'}}/>{novel.totalViews}</div>
                     <div className="text-[12px] py-[1px] flex items-center gap-1 truncate w-full"><BookMark sx={{ height: '20px'}}/> {novel.ratingCount}</div>
                   </div>
@@ -157,7 +158,7 @@ export const HomePage = () => {
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px]">
+                    <div className="text-[15px] py-[1px] line-clamp-1">
                       {novel.title}
                     </div>
                     <div className="text-[12px] py-[1px] flex items-center gap-1">
@@ -188,7 +189,7 @@ export const HomePage = () => {
                     {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px]">
+                    <div className="text-[15px] py-[1px] line-clamp-1">
                       {novel.title}
                     </div>
                     <div className="text-[13px] py-[1px] flex items-center gap-1">

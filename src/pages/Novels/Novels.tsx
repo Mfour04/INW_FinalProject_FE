@@ -126,7 +126,7 @@ export const Novels = () => {
     <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
         <div className=" justify-between items-center mb-6">
             <div className="flex items-center justify-between">
-                <img src={ArrowLeft02} className="h-6 w-6 cursor-pointer" />
+                <img onClick={() => navigate(-1)} src={ArrowLeft02} className="h-6 w-6 cursor-pointer" />
                 <div className="flex-1 text-center">
                     <h1 className="text-2xl font-semibold">Danh sách tiểu thuyết</h1>
                 </div>
