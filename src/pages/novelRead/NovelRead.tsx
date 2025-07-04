@@ -2,18 +2,19 @@ import '../../pages/novelRead/NovelRead.css';
 import { novelData } from "../../pages/novelRead/Content";
 import { useQuery } from '@tanstack/react-query';
 import { GetChapter } from '../../api/Chapters/chapter.api';
-import type { Chapter, Chapters } from '../../api/Chapters/chapter.type';
-import { useParams } from 'react-router-dom';
+import { GetChapters } from '../../api/Chapters/chapter.api';
+import { useNavigate, useParams } from 'react-router-dom';
+import type { ChapterByNovel } from '../../api/Chapters/chapter.type';
 // import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
 
-    const { chapterId } = useParams()
+    const { novelId, chapterId } = useParams()
 
-    const novelId = "2571CB441A87286E3BEBE8FA";
+    const navigate = useNavigate()
 
-    const { isLoading, data } = useQuery({
-        queryKey: ['chapters', novelId],
+    const { data } = useQuery({
+        queryKey: ['chapters', chapterId],
         queryFn: async () => {
             const res = await GetChapter(chapterId!);
             return res.data.data;
@@ -21,8 +22,31 @@ export const NovelRead = () => {
         enabled: !!chapterId
     });
 
-    console.log(data)
-    
+    const { data: chapterList } = useQuery({
+        queryKey: ['chapter-list', novelId],
+        queryFn: async () => {
+            const res = await GetChapters(novelId!);
+            return res.data.data as ChapterByNovel[];
+        },
+        enabled: !!novelId,
+    });
+
+    const currentChapter = chapterList?.find(chap => chap.id === chapterId);
+
+    const currentNumber = currentChapter?.chapter_number ?? 0;
+
+    const handleGoToChapterNumber = (offset: number) => {
+        if (!chapterList || currentNumber === 0) return;
+
+        const nextChapter = chapterList.find(
+            chap => chap.chapter_number === currentNumber + offset
+        );
+
+        if (nextChapter) {
+            navigate(`/novels/${nextChapter.novel_id}/${nextChapter.id}`);
+        }
+    };
+
     return (
         <div style={{ border: '1px', padding: '20px', borderRadius: '8px', marginTop: '-10px' }}>
             <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '50px', fontFamily: 'Arial, sans-serif', borderRadius: '10px' }}>
@@ -33,17 +57,27 @@ export const NovelRead = () => {
 
                 <div style={{ lineHeight: '4' }}>
                     <hr style={{ marginLeft: '-50px', marginRight: '-50px', marginTop: '20px', width: 'calc(100% + 100px)', borderTop: '1px solid #4B5563' }} />
-                    {novelData.contentLines.map((line, index) => (
-                        <p key={index}>{line}</p>
-                    ))}
+                    {data?.content}
                 </div>
 
                 <hr style={{ marginLeft: '-50px', marginRight: '-50px', marginTop: '10px', width: 'calc(100% + 100px)', borderTop: '1px solid #4B5563' }} />
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '30px', marginBottom: '-20px' }}>
-                    <button className='buttonStyle'>&lt; Chương trước</button>
+                    <button
+                        className='buttonStyle'
+                        onClick={() => handleGoToChapterNumber(-1)}
+                        disabled={currentNumber <= 1}
+                    >
+                        &lt; Chương trước
+                    </button>
                     <button className='buttonStyle'>Mục lục</button>
-                    <button className='buttonStyle'>Chương sau &gt;</button>
+                    <button
+                        className='buttonStyle'
+                        onClick={() => handleGoToChapterNumber(1)}
+                        disabled={currentNumber >= (chapterList?.length ?? 1)}
+                    >
+                        Chương sau &gt;
+                    </button>
                 </div>
             </div>
 
