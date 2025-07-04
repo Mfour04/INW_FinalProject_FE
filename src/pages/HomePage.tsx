@@ -11,6 +11,7 @@ import BookMark from '@mui/icons-material/Bookmark'
 import { useQuery } from "@tanstack/react-query"
 import { GetNovels } from "../api/Novels/novel.api"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 export const SORT_BY_FIELDS = {
   CREATED_AT: 'created_at',
@@ -25,6 +26,8 @@ export const SORT_DIRECTIONS = {
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
+
+  const navigate = useNavigate();
 
   const useSortedNovels = (sortBy: string, direction: string, page: number = 0, limit: number = 10) =>
     useQuery({
@@ -72,7 +75,7 @@ export const HomePage = () => {
         <Typography variant="h4" size="large" className="mb-4">
               Truyện Vừa Ra Mắt
         </Typography>
-        <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
+        <div onClick={() => navigate(`/novels/${trendingData?.[nNovelsIndex].novelId}`)} className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
             src={trendingData?.[nNovelsIndex].novelImage || undefined}
             className="w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
@@ -96,7 +99,7 @@ export const HomePage = () => {
             </div>
             <Typography variant="p" size="small" className="mb-4 line-clamp-2 lg:line-clamp-7">
               {isTrendingLoading ? 
-              'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse ng elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse' : 
+              'Loading...' : 
               trendingData?.[nNovelsIndex].description}
             </Typography>
 
@@ -126,9 +129,9 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ) : (
               mostViewed?.map((novel) => (
-                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div onClick={() => navigate(`/novels/${novel.novelId}`)} key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
                     <div className="text-[15px] py-[1px] truncate">{novel.title}</div>
@@ -149,9 +152,9 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ): (
               trendingData?.map((novel) => (
-                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div onClick={() => navigate(`/novels/${novel.novelId}`)} key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
                     <div className="text-[15px] py-[1px]">
@@ -180,9 +183,9 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ): (
               topRated?.map((novel) => (
-                <div key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div onClick={() => navigate(`/novels/${novel.novelId}`)} key={novel.novelId} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-[60px] object-cover rounded-[10px]" />}
                   </div>
                   <div className="mx-2.5 mt-1">
                     <div className="text-[15px] py-[1px]">

@@ -1,38 +1,27 @@
 import { useEffect, useState } from 'react'
 import BookSolid from '../../assets/svg/WritingRoom/clarity_book-solid.svg'
 import ModeEdit from '@mui/icons-material/ModeEdit'
-import ArrowLeft02 from '../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg'
+import ModeDelete from '@mui/icons-material/Delete'
 import Add from '@mui/icons-material/Add'
-import type { CreateNovelRequest } from '../../api/Novels/novel.type'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { getTags } from '../../api/Tags/tag.api'
-import { useAuth } from '../../hooks/useAuth'
-import { CreateNovels, GetAuthorNovels, GetNovelById } from '../../api/Novels/novel.api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { DeleteNovel, GetAuthorNovels } from '../../api/Novels/novel.api'
 import { formatTicksToDateString } from '../../utils/date_format'
-import Button from '../../components/ButtonComponent'
-import { urlToFile } from '../../utils/img'
+import { useNavigate } from 'react-router-dom'
+import { useToast } from '../../context/ToastContext/toast-context'
+import { ConfirmModal } from '../../components/ConfirmModal/ConfirmModal'
 
-const initialCreateNovelForms: CreateNovelRequest = {
-    title: '',
-    description: '',
-    authorId: '',
-    novelImage: null,
-    tags: ['256D3E460C401085FE2F4EF5', '256DA37C123346EB93C0E5F4'],
-    status: 1,
-    isPublic: true,
-    isPaid: false,
-    isLock: false,
-    purchaseType: 0,
-    price: 0
-}
+
 
 export const WritingRoom = () => {
-    const [isNull, setIsNull] = useState<boolean>(false)
-    const [createNovel, setCreateNovel] = useState<boolean>(false)
-    const [selectedNovelId, setSelectedNovelId] = useState<string | null>(null);
-    const [createNovelForm, setCreateNovelForm] = useState<CreateNovelRequest>(initialCreateNovelForms);
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const { auth } = useAuth();
+    const [isNull, setIsNull] = useState<boolean>(false)  
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [novelIdToDelete, setNovelIdToDelete] = useState<string | null>(null)
+
+    
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
+    const toast = useToast();
 
     // const { data, isLoading, isSuccess } = useQuery({
     //     queryKey: ['novel', selectedNovelId],
@@ -40,68 +29,39 @@ export const WritingRoom = () => {
     //     enabled: !!selectedNovelId,
     // });
 
-    
-    const { data: tagData } = useQuery({
-        queryKey: ['tags'],
-        queryFn: () => getTags().then(res => res.data.data)
-    })
-
     const {data: novelsData } = useQuery({
         queryKey: ['authorNovels'],
         queryFn: () => GetAuthorNovels().then(res => res.data.data)
     })
 
-
-    const createNovelMutation = useMutation({
-        mutationFn: (formData: FormData) => CreateNovels(formData),
+    const deleteNovelMutation = useMutation({
+        mutationFn: (id: string) => DeleteNovel(id),
+        onSuccess: () => {
+            toast?.onOpen('Xóa truyện thành công!')
+            queryClient.invalidateQueries({ queryKey: ['authorNovels'] })
+        }
     })
 
     const handleIsCreateNovelClick = () => {
-        setCreateNovel(true)
-    }
-
-    const handleCreateNovelClick = () => {
-        const formData = new FormData()
-        formData.append("title", createNovelForm.title)
-        formData.append("description", createNovelForm.description)
-
-        if (auth?.user?.userId) {
-            formData.append("authorId", auth.user.userId)
-        }
-
-        if (createNovelForm.novelImage) {
-            formData.append("novelImage", createNovelForm.novelImage)
-        }
-
-        createNovelForm.tags.forEach(tag =>
-            formData.append("tags", tag)
-        )
-
-        formData.append("status", createNovelForm.status.toString())
-        formData.append("isPublic", createNovelForm.isPublic.toString())
-        formData.append("isPaid", createNovelForm.isPaid.toString())
-        formData.append("isLock", createNovelForm.isLock.toString())
-        formData.append("purchaseType", createNovelForm.purchaseType.toString())
-        formData.append("price", createNovelForm.price.toString())
-
-        createNovelMutation.mutate(formData);
+        navigate(`upsert-novel`)
     }
 
     const handleEditNovelButtonClick = (novelId: string) => {
-        setSelectedNovelId(novelId);
-        setCreateNovel(true);
+        navigate(`upsert-novel/${novelId}`)
     }
 
-    useEffect(() => {
-        if (createNovelForm.novelImage) {
-            const url = URL.createObjectURL(createNovelForm.novelImage)
-            setImagePreview(url)
+    const handleDeleteNovelClick = (novelId: string) => {
+        setNovelIdToDelete(novelId)
+        setShowConfirmModal(true)
+    }
 
-            return () => URL.revokeObjectURL(url)
-        } else {
-            setImagePreview(null)
+    const confirmDelete = () => {
+        if (novelIdToDelete) {
+            deleteNovelMutation.mutate(novelIdToDelete)
         }
-    }, [createNovelForm.novelImage])
+        setShowConfirmModal(false)
+        setNovelIdToDelete(null)
+    }
 
     useEffect(() => {
         if (novelsData) {
@@ -138,136 +98,6 @@ export const WritingRoom = () => {
     return (
         <div className="bg-[#0f0f11] min-h-screen text-white px-4 py-6">
             {
-                createNovel? (
-                    <div className="min-h-screen bg-[#1e1e21] text-white px-6 py-8 rounded-[10px] mx-[50px]">
-                        <div className="relative flex items-center justify-center mb-8 h-[40px]">
-                            <button onClick={() => setCreateNovel(false)} className="absolute left-0">
-                                <img src={ArrowLeft02} />
-                            </button>
-
-                            <h1 className="text-xl font-semibold text-center w-full">Tạo truyện mới</h1>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-xl mb-1">
-                                Tên truyện <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={createNovelForm.title}
-                                onChange={(e) => setCreateNovelForm(
-                                    prev => ({
-                                        ...prev,
-                                        title: e.target.value
-                                    }
-                                    )
-                                )}
-                                className="w-full bg-[#1e1e21] border border-gray-600 rounded px-3 py-2 text-sm"
-                                placeholder="Nhập tên truyện"
-                            />
-                            <p className="text-right text-xs text-gray-400 mt-1">{createNovelForm.title.length}/100</p>
-                        </div>
-
-                        {/* <div className="mb-4">
-                            <label className="block text-xl mb-1">URL</label>
-                            <div className="flex items-center bg-[#1e1e21] border border-gray-600 rounded overflow-hidden">
-                            <span className="px-3 text-gray-500 text-sm bg-[#2a2a2d]">🔗 https://linkwave.io/</span>
-                            <input
-                                type="text"
-                                className="flex-1 bg-transparent px-2 py-2 text-sm text-white"
-                                placeholder="ten-truyen"
-                            />
-                            </div>
-                            <p className="text-right text-xs text-gray-400 mt-1">0/100</p>
-                        </div> */}
-
-                        <div className="mb-6">
-                            <label className="block text-sm mb-1">Mô tả <span className="text-red-500">*</span></label>
-                            <textarea
-                                rows={4}
-                                value={createNovelForm.description}
-                                onChange={(e) => setCreateNovelForm(
-                                    prev => ({
-                                        ...prev,
-                                        description: e.target.value
-                                    })
-                                )}
-                                className="w-full bg-[#1e1e21] border border-gray-600 rounded px-3 py-2 text-sm resize-none"
-                                placeholder="Nhập mô tả truyện..."
-                            />
-                            <p className="text-right text-xs text-gray-400 mt-1">{createNovelForm.description.length}/1000</p>
-                        </div>
-
-                        <div className="grid grid-cols-10 gap-6 mb-6">
-                            <div className="col-span-3">
-                                <label className="block text-xl mb-1">
-                                Bìa truyện <span className="text-red-500">*</span>
-                                </label>
-                                <label className="border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] w-[150px] cursor-pointer">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        
-                                        onChange={(e) => {
-                                        const file = e.target.files?.[0]
-                                        if (file) {
-                                            setCreateNovelForm(prev => ({
-                                                ...prev,
-                                                novelImage: file
-                                            })
-                                            )
-                                        }
-                                        }}
-                                    />
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Bìa truyện" className="h-full object-cover" />
-                                    ) : (
-                                        <span className="text-sm text-gray-400">+ Thêm bìa</span>
-                                    )}
-                                </label>
-
-                            </div>
-
-                            {/* <div className="col-span-7">
-                                <label className="block text-xl mb-1">
-                                Banner
-                                </label>
-                                <div className="border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] text-center px-4">
-                                <span className="text-sm text-gray-400">
-                                    + Thêm bìa
-                                    <br />
-                                    <span className="text-[10px] block mt-1 text-orange-300">
-                                    Nếu không có ảnh banner truyện, hệ thống sẽ dùng ảnh mặc định.
-                                    </span>
-                                </span>
-                                </div>
-                            </div> */}
-                        </div>
-
-
-                        <div className="mb-6">
-                            <label className="block text-sm mb-2">
-                            Chủ đề <span className="text-orange-300 text-xs ml-1">⚠️ Tối đa 3 thẻ</span>
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                            {tagData?.map((tag) => (
-                                <button
-                                key={tag.name}
-                                className="px-3 py-1 bg-[#1e1e21] border border-gray-600 rounded-full text-sm hover:bg-[#2e2e2e] transition"
-                                >
-                                {tag.name}
-                                </button>
-                            ))}
-                            </div>
-                        </div>
-
-                        <Button isLoading={createNovelMutation.isPending} onClick={handleCreateNovelClick} className="bg-[#ff6740] hover:bg-[#e14b2e] text-white px-5 py-2 rounded-md text-sm font-semibold">
-                            Tạo truyện mới
-                        </Button>
-                    </div>
-
-                ): ( 
                     !isNull ? (
                         <div className="bg-[#1e1e21] h-[244px] rounded-[10px] mx-[50px] flex flex-col justify-center items-center">
                                     <img src={BookSolid} />
@@ -281,7 +111,7 @@ export const WritingRoom = () => {
                                     <h1 className="text-left text-sm font-semibold mb-6">Tổng quan</h1>
                                     <div className="grid grid-cols-3 h-[125px] gap-4 mb-6 max-w mx-auto center">
                                         <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
-                                            <p className="text-2xl font-bold">6</p>
+                                            <p className="text-2xl font-bold">0</p>
                                             <p className="text-sm text-gray-300">Tổng lượt xem</p>
                                         </div>
                                         <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
@@ -289,7 +119,7 @@ export const WritingRoom = () => {
                                             <p className="text-sm text-gray-300">Tổng lượt like</p>
                                         </div>
                                         <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
-                                            <p className="text-2xl font-bold">1</p>
+                                            <p className="text-2xl font-bold">0</p>
                                             <p className="text-sm text-gray-300">Tổng lượt bình luận</p>
                                         </div>
                                     </div>
@@ -319,6 +149,7 @@ export const WritingRoom = () => {
                                                             <div className="flex gap-[25px]">
                                                                 <button onClick={() => handleEditNovelButtonClick(novel.id)} className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"><ModeEdit sx={{ height: '20px', width: '20px'}}/></button>
                                                                 <button className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"><Add sx={{ height: '20px', width: '20px'}}/></button>
+                                                                <button onClick={() => handleDeleteNovelClick(novel.id)} className="bg-red-700 h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-red-500"><ModeDelete sx={{ height: '20px', width: '20px'}}/></button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -364,8 +195,15 @@ export const WritingRoom = () => {
                                 </div>
                             </div>
                         )
-                )
             }
+
+        <ConfirmModal
+            isOpen={showConfirmModal}
+            title="Xóa truyện"
+            message="Bạn có chắc chắn muốn xóa truyện này không? Thao tác này không thể hoàn tác."
+            onConfirm={confirmDelete}
+            onCancel={() => setShowConfirmModal(false)}
+        />
         </div>
     )
 }
