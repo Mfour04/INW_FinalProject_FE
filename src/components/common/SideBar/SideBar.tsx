@@ -9,7 +9,7 @@ import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-ro
 import type { MenuItem } from "./type";
 
 interface SidebarProps {
-  isOpen: boolean;   
+  isOpen: boolean;
   onClose?: () => void;
 }
 
@@ -38,7 +38,6 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/novels",
       isHeader: true,
       subItems: [
-        { label: "Tìm kiếm nâng cao", path: "/novels/advanced-search" },
         { label: "Phòng sáng tác", path: "/novels/writing-room" }
       ]
     },
@@ -84,17 +83,17 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     }>
       <div className="p-5 flex items-center justify-between">
         <div className="max-h-[50px] w-[150px] overflow-hidden flex items-center justify-center">
-            <img 
-                src={logo}
-                alt="InkWave Logo"
-                className="h-full w-auto object-contain "
-            />
+          <img
+            src={logo}
+            alt="InkWave Logo"
+            className="h-full w-auto object-contain "
+          />
         </div>
         <button className="cursor-pointer lg" onClick={onClose}>
           <img src={MenuClose} alt="Close" className="w-6 h-6" />
         </button>
       </div>
-      
+
       <div className="border-t border-[#3d3d3d] mt-2"></div>
       <div className="flex flex-col flex-1 py-4">
         {menuItems.map((item, index) => (
@@ -105,7 +104,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                   to={item.path}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-1.5 mx-1.5 rounded-md ${isActive ? 'bg-[#ff6740]' : 'hover:bg-[#2c2c2c]'}`
-                }
+                  }
                   end
                 >
                   {item.icon && <img src={item.icon} alt={item.label} className="w-[25px] h-[25px] mr-5" />}
@@ -113,14 +112,13 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 </NavLink>
               </div>
             )}
-            
+
             {item.subItems && item.subItems.map((subItem, subIndex) => (
               <NavLink
                 key={`${index}-${subIndex}`}
                 to={subItem.path}
                 className={({ isActive }) =>
-                  `flex items-center px-5 py-2 ml-4 mt-1 mr-1.5 rounded-md ${
-                    isActive ? 'bg-[#ff6740]' : 'hover:bg-[#2c2c2c]'
+                  `flex items-center px-5 py-2 ml-4 mt-1 mr-1.5 rounded-md ${isActive ? 'bg-[#ff6740]' : 'hover:bg-[#2c2c2c]'
                   }`
                 }
               >
