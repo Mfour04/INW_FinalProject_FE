@@ -5,6 +5,7 @@ import { GetChapter } from '../../api/Chapters/chapter.api';
 import { GetChapters } from '../../api/Chapters/chapter.api';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ChapterByNovel } from '../../api/Chapters/chapter.type';
+import { useToast } from '../../context/ToastContext/toast-context';
 // import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
@@ -12,6 +13,7 @@ export const NovelRead = () => {
     const { novelId, chapterId } = useParams()
 
     const navigate = useNavigate()
+    const toast = useToast()
 
     const { data } = useQuery({
         queryKey: ['chapters', chapterId],
@@ -42,6 +44,11 @@ export const NovelRead = () => {
             chap => chap.chapter_number === currentNumber + offset
         );
 
+        if (nextChapter?.is_paid) {
+            toast?.onOpen('Bạn không sở hữu chương này');
+            return;
+        }
+
         if (nextChapter) {
             navigate(`/novels/${nextChapter.novel_id}/${nextChapter.id}`);
         }
@@ -51,8 +58,8 @@ export const NovelRead = () => {
         <div style={{ border: '1px', padding: '20px', borderRadius: '8px', marginTop: '-10px' }}>
             <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '50px', fontFamily: 'Arial, sans-serif', borderRadius: '10px' }}>
                 <div>
-                    <h1 style={{ color: '#ff4500', marginTop: '-30px' }}>{novelData.chapterName}</h1>
-                    <h2>{novelData.chapterTitle}</h2>
+                    <h1 style={{ color: '#ff4500', marginTop: '-30px' }}>{data?.chapterNumber}</h1>
+                    <h2>{data?.title}</h2>
                 </div>
 
                 <div style={{ lineHeight: '4' }}>

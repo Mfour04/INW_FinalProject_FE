@@ -15,6 +15,7 @@ import { GetChapters } from '../../api/Chapters/chapter.api'
 import { formatTicksToRelativeTime } from '../../utils/date_format'
 import { GetNovelById } from '../../api/Novels/novel.api'
 import { useToast } from '../../context/ToastContext/toast-context'
+import { useAuth } from '../../hooks/useAuth'
 
 type Tabs = 'Chapter' | 'Comment'
 
@@ -25,6 +26,7 @@ export const Chapters = () => {
   const navigate = useNavigate();
 
   const toast = useToast();
+  const { auth } = useAuth();
 
   const { data: chapterData, isLoading: isLoadingChapter } = useQuery({
     queryKey: ['Chapters', novelId],
@@ -42,8 +44,10 @@ export const Chapters = () => {
   });
 
   const handleClickChapter = (chapterId: string, isPaid: boolean) => {
-    if (isPaid) toast?.onOpen('Bạn không sở hữu tập truyện này!')
-    else navigate(`/novels/${novelId}/${chapterId}`);
+    if (isPaid){
+      if (!auth?.user) toast?.onOpen('Bạn cần đăng nhập để có thể tiếp tục với các chương bị khóa');
+      else toast?.onOpen('Bạn không sở hữu chương này!');
+    } else navigate(`/novels/${novelId}/${chapterId}`);
   }
 
   return (
@@ -94,8 +98,8 @@ export const Chapters = () => {
           </div>
 
           <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
+            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Trường học </div>
+            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Phiêu lưu </div>
             <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
           </div>
         </div>

@@ -32,6 +32,7 @@ const CreateChapters = () => {
         queryFn: () => GetNovelById(novelId!).then(res => res.data.data.novelInfo),
         enabled: !!novelId,
     });
+    
 
     return (
         <div className="max-w-6xl mx-[50px] p-4 text-white">
@@ -52,19 +53,19 @@ const CreateChapters = () => {
                     <div className="flex items-center gap-1 text-[20px]">
                         <StarRate sx={{height: '20px', width: '20px'}} />
                         <div className='flex items-center'>
-                        4.9
+                        0
                         </div>
                     </div>
                     <div className="flex items-center gap-1 text-[20px]">
                         <BookMark sx={{ height: '20px', width: '20px' }} />
                         <div className='flex items-center'>
-                        11K
+                        0
                         </div>
                     </div>
                     <div className="flex items-center gap-1 text-[20px]">
                         <Comment sx={{ height: '20px', width: '20px' }} /> 
                         <div className='flex items-center'>
-                        123
+                        0
                         </div>
                     </div>
                     <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
@@ -81,9 +82,9 @@ const CreateChapters = () => {
                 </div>
 
                 <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
-                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
-                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
-                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Hài hước </div>
+                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Phiêu lưu </div>
+                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Huyền huyễn </div>
+                    <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">Tiên hiệp</div>
                 </div>
                 </div>
             </div>

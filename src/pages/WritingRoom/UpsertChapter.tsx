@@ -10,7 +10,7 @@ const initialCreateChapterForm: CreateChapterRequest = {
     novelId: '',
     title: '',
     content: '',
-    isPaid: true,
+    isPaid: false,
     price: 0,
     isDraft: false,
     isPublic: true,
@@ -21,7 +21,7 @@ const initialUpdateChapterForm: UpdateChapterRequest = {
     title: '',
     content: '',
     chapterNumber: 0,
-    isPaid: true,
+    isPaid: false,
     price: 0,
     scheduledAt: new Date(),
     isDraft: false,
@@ -47,6 +47,7 @@ export const UpsertChapter = () => {
         },
         enabled: !!chapterId
     });
+
 
   const createChapterMutation = useMutation({
     mutationFn: (request: CreateChapterRequest) => CreateChapter(request),
@@ -96,7 +97,12 @@ export const UpsertChapter = () => {
         scheduledAt: new Date()
       })
     }
+    console.log(isUpdate)
   }, [data])
+
+  useEffect(() => {
+    console.log(updateChapterForm)
+  }, [updateChapterForm])
 
   return (
     <div className="min-h-screen bg-[#1e1e21] text-white px-6 py-8">
@@ -116,7 +122,7 @@ export const UpsertChapter = () => {
           type="text"
           maxLength={100}
           placeholder="Nhập tên truyện"
-          value={!isUpdate? createChapterForm.title: updateChapterForm.title}
+          value={!isUpdate? createChapterForm.title ?? "": updateChapterForm.title ?? ""}
           onChange={
             (e) => {
               !isUpdate ?
@@ -154,7 +160,7 @@ export const UpsertChapter = () => {
         <textarea
           rows={10}
           maxLength={15000}
-          value={!isUpdate ?createChapterForm.content: updateChapterForm.content}
+          value={!isUpdate ?createChapterForm.content ?? "": updateChapterForm.content ?? ""}
           onChange={
             (e) => {
               !isUpdate ?
