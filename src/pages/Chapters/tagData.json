@@ -1,0 +1,80 @@
+[{
+  "id": "256D94733206E84BB68981F1",
+  "name": "romance"
+},
+{
+  "id": "256D3E460C401085FE2F4EF5",
+  "name": "fantasy"
+},
+{
+  "id": "256DA37C123346EB93C0E5F4",
+  "name": "adventure"
+},
+{
+  "id": "256D84EE8680E98F42F29333",
+  "name": "mystery"
+},
+{
+  "id": "256DB6EC534A7DAD6F467FC5",
+  "name": "thriller"
+},
+{
+  "id": "256D698DC27144876B529BBA",
+  "name": "sci-fi"
+},
+{
+  "id": "256DDD5197358FDC48A395E5",
+  "name": "dystopia"
+},
+{
+  "id": "256DDE57CAC4E13B42266007",
+  "name": "historical"
+},
+{
+  "id": "256DC28EFE8634C7F903B902",
+  "name": "supernatural"
+},
+{
+  "id": "256DFF5C417F42B0958C80FE",
+  "name": "horror"
+},
+{
+  "id": "256DC8802C488D45B1B67EA2",
+  "name": "comedy"
+},
+{
+  "id": "256D97A6FB4498A47F70F04B",
+  "name": "drama"
+},
+{
+  "id": "256DF7BBEDD99514AC4ACBFB",
+  "name": "slice-of-life"
+},
+{
+  "id": "256DCCE904CA24E65AFED985",
+  "name": "psychological"
+},
+{
+  "id": "256DAC6873DF40A8A3EA1C5B",
+  "name": "action"
+},
+{
+  "id": "256D304785AFF4D1B769B8EC",
+  "name": "martial-arts"
+},
+{
+  "id": "256D60F09E2910124119A6B4",
+  "name": "isekai"
+},
+{
+  "id": "256D4D9C7917F4B979046971",
+  "name": "game"
+},
+{
+  "id": "256D1F46918DE6EF2F600500",
+  "name": "school-life"
+},
+{
+  "id": "256DCAEB8F46E880CC3B4D0F",
+  "name": "tragedy"
+}]

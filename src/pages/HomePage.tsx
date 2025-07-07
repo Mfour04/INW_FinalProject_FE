@@ -85,7 +85,7 @@ export const HomePage = () => {
           <div className="p-4 flex flex-col flex-1 min-w-0">
            
             <Typography variant="h3" size="large" className="mb-2 line-clamp-1">
-              {isTrendingLoading ? 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore, at facere. Ab vero excepturi nemo. Id iure expedita ratione iusto vel corporis! Officia amet nisi suscipit, voluptas laborum odio mollitia.' : trendingData?.[nNovelsIndex].title}
+              {isTrendingLoading ? 'Đang tải...' : trendingData?.[nNovelsIndex].title}
             </Typography>
 
             <div className="flex flex-wrap gap-2 mb-4">
@@ -100,7 +100,7 @@ export const HomePage = () => {
             </div>
             <Typography variant="p" size="small" className="mb-4 line-clamp-2 lg:line-clamp-7">
               {isTrendingLoading ? 
-              'Loading...' : 
+              'Đang tải...' : 
               trendingData?.[nNovelsIndex].description}
             </Typography>
 

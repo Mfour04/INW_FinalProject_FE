@@ -61,7 +61,7 @@ export const Novels = () => {
                 return (
                     <>
                         {novels.map((novel) => (
-                            <div key={novel.novelId} onClick={() => navigate(`novels/${novel.novelId}`)} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
+                            <div key={novel.novelId} onClick={() => navigate(`/novels/${novel.novelId}`)} className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full">
                                 <img
                                     src={novel.novelImage || undefined}
                                     className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"

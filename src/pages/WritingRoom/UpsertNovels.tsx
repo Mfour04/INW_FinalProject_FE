@@ -15,7 +15,7 @@ const initialCreateNovelForms: CreateNovelRequest = {
     description: '',
     authorId: '',
     novelImage: null,
-    tags: ['256D3E460C401085FE2F4EF5', '256DA37C123346EB93C0E5F4'],
+    tags: [],
     status: 1,
     isPublic: true,
     isPaid: false,
@@ -26,6 +26,7 @@ const initialCreateNovelForms: CreateNovelRequest = {
 
 export const UpsertNovels = () => {
     const [createNovelForm, setCreateNovelForm] = useState<CreateNovelRequest>(initialCreateNovelForms);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [imagePreview, setImagePreview] = useState<string | null>(null)
 
     const navigate = useNavigate();
@@ -53,6 +54,14 @@ export const UpsertNovels = () => {
         }
     })
 
+    const toggleTag = (tagId: string) => {
+        setSelectedTags(prev =>
+        prev.includes(tagId)
+            ? prev.filter(id => id !== tagId)
+            : [...prev, tagId]
+            );
+    };
+
     const updateNovelMutation = useMutation({
         mutationFn: (formData: FormData) => UpdateNovels(formData),
         onSuccess: () => {
@@ -68,6 +77,7 @@ export const UpsertNovels = () => {
         queryKey: ['tags'],
         queryFn: () => getTags().then(res => res.data.data)
     })
+
 
     const handleUpsertNovelClick = () => {
         const formData = new FormData()
@@ -99,6 +109,13 @@ export const UpsertNovels = () => {
         }
         else createNovelMutation.mutate(formData);
     }
+
+    useEffect(() => {
+        setCreateNovelForm(prev => ({
+            ...prev,
+            tags: selectedTags
+        }))
+    }, [selectedTags])
     
     useEffect(() => {
         if (createNovelForm.novelImage) {
@@ -133,6 +150,8 @@ export const UpsertNovels = () => {
                 const url = URL.createObjectURL(file)
                 setImagePreview(url)
             }
+
+            setSelectedTags(novel.tags)
 
             fetchFile()
         }
@@ -248,14 +267,20 @@ export const UpsertNovels = () => {
             Chủ đề <span className="text-orange-300 text-xs ml-1">⚠️ Tối đa 3 thẻ</span>
             </label>
             <div className="flex flex-wrap gap-2">
-                {tagData?.map((tag) => (
-                    <button
-                    key={tag.name}
-                    className="px-3 py-1 bg-[#1e1e21] border border-gray-600 rounded-full text-sm hover:bg-[#2e2e2e] transition"
-                    >
-                    {tag.name}
-                    </button>
-                ))}
+                {tagData?.map((tag) => {
+                    const isSelected = selectedTags.includes(tag.tagId);
+                    return (
+                        <button
+                            key={tag.tagId}
+                            onClick={() => toggleTag(tag.tagId)}
+                            className={`px-3 py-1 rounded-full text-sm border transition
+                                ${isSelected ? 'bg-[#ff6740] border-blue-400 text-white hover:bg-orange-600' 
+                            : 'bg-[#1e1e21] border-gray-600 text-white hover:bg-[#2e2e2e]'}`}
+                            >
+                            {tag.name}
+                        </button>
+                    )
+                })}
             </div>
         </div>
 
