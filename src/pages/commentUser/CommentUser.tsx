@@ -3,10 +3,11 @@ import type { Comment } from "../commentUser/Comment";
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
-import more_horiz from "../../assets/svg/CommentUser/more_horiz.svg";
 import favorite from "../../assets/svg/CommentUser/favorite.svg";
 import CommentAdd01Icon from "../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
 import avatarImage from '../../assets/img/th.png';
+import { MoreButton } from "../../pages/commentUser/MoreButton";
+import { Reply } from "../../pages/commentUser/Reply";
 
 const initialComments: Comment[] = [
     {
@@ -54,6 +55,9 @@ const initialComments: Comment[] = [
 export const CommentUser = () => {
     const [comments, setComments] = useState<Comment[]>(initialComments);
     const [newComment, setNewComment] = useState('');
+    const [replyingToId, setReplyingToId] = useState<number | null>(null);
+    const [replyValue, setReplyValue] = useState('');
+
 
     const handlePostComment = () => {
         if (newComment.trim()) {
@@ -72,6 +76,26 @@ export const CommentUser = () => {
         }
     };
 
+    const currentUser = {
+        name: 'Lộc',
+        user: '@locnguyen',
+    };
+
+    const handleReplyClick = (id: number) => {
+        setReplyingToId(prev => (prev === id ? null : id));
+        setReplyValue(''); // reset nội dung mỗi lần mở
+    };
+
+    const handleReplySubmit = () => {
+        if (replyValue.trim()) {
+            // xử lý gửi reply nếu bạn muốn
+            alert(`Reply: ${replyValue}`);
+            setReplyValue('');
+            setReplyingToId(null);
+        }
+    };
+
+
     return (
         <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
             <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '30px' }}>
@@ -79,28 +103,37 @@ export const CommentUser = () => {
                 <hr style={{ marginLeft: '-50px', marginRight: '-50px', marginTop: '20px', width: 'calc(100% + 100px)', borderTop: '1px solid #4B5563' }} />
             </div>
 
-            <div className="flex gap-3 items-center mb-2">
-                <img src={avatarImage} className="w-10 h-10 rounded-full" />
-                <input
-                    className="comment flex-grow"
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Viết bình luận..."
-                />
-            </div>
-
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-5">
-                    <img src={ImageAdd02Icon} className="w-6 h-6" />
-                    <img src={SmileIcon} className="w-6 h-6" />
-                </div>
-                <button onClick={handlePostComment} className="buttonPost">
-                    <div className="flex gap-2 items-center">
-                        Đăng
-                        <img src={SentIcon} alt="Gửi" className="w-4 h-4" />
+            <div className="p-3">
+                <div className="flex gap-3 items-center mb-2">
+                    <img src={avatarImage} className="w-10 h-10 rounded-full" />
+                    <div>
+                        <p className="font-semibold">{currentUser.name}</p>
+                        <p className="text-xs text-gray-400">{currentUser.user}</p>
                     </div>
-                </button>
+                </div>
+
+                <div className="flex flex-col gap-3 mb-4 px-13">
+                    <input
+                        className="comment w-full"
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Viết bình luận..."
+                    />
+
+                    <div className="flex justify-between items-center">
+                        <div className="flex gap-5">
+                            <img src={ImageAdd02Icon} className="w-6 h-6" />
+                            <img src={SmileIcon} className="w-6 h-6" />
+                        </div>
+                        <button onClick={handlePostComment} className="buttonPost">
+                            <div className="flex gap-2 items-center">
+                                Đăng
+                                <img src={SentIcon} alt="Gửi" className="w-4 h-4" />
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {comments.map((comment) => (
@@ -108,27 +141,45 @@ export const CommentUser = () => {
                     key={comment.id}
                     className="mb-3 p-3 rounded-md"
                 >
-                    <div className="flex items-center space-x-4">
-                        <img src={avatarImage} alt="Avatar" className="w-10 h-10 rounded-full" />
-                        <div>
-                            <p className="font-semibold">{comment.name}</p>
-                            <p className="text-xs text-gray-400">{comment.user} • {comment.timestamp}</p>
+                    <div className="flex justify-between items-start space-x-4">
+                        <div className="flex items-center space-x-4">
+                            <img src={avatarImage} className="w-10 h-10 rounded-full" />
+                            <div>
+                                <p className="font-semibold">{comment.name}</p>
+                                <p className="text-xs text-gray-400">{comment.user} • {comment.timestamp}</p>
+                            </div>
                         </div>
+                        <MoreButton />
                     </div>
 
                     <div className="ml-14">
                         <p className="mb-1">{comment.content}</p>
+
+                        {/* Icon like & reply */}
                         <div className="mt-4 flex space-x-6">
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id)}>
                                 <img src={favorite} />
                                 {comment.likes}
                             </span>
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id)}>
                                 <img src={CommentAdd01Icon} />
                                 {comment.replies}
                             </span>
                         </div>
+
+                        {/* ✅ Reply form hiển thị bên dưới, gọn, không ảnh hưởng đến layout icon */}
+                        {replyingToId === comment.id && (
+                            <div className="mt-4 max-w-2xl">
+                                <Reply
+                                    currentUser={currentUser}
+                                    replyValue={replyValue}
+                                    onReplyChange={(e) => setReplyValue(e.target.value)}
+                                    onReplySubmit={handleReplySubmit}
+                                />
+                            </div>
+                        )}
                     </div>
+
                 </div>
             ))}
         </div>
