@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GetNovels } from "../api/Novels/novel.api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TagView } from "../components/TagComponent";
 
 export const SORT_BY_FIELDS = {
   CREATED_AT: "created_at",
@@ -115,12 +116,7 @@ export const HomePage = () => {
 
             <div className="flex flex-wrap gap-2 mb-4">
               {trendingData?.[nNovelsIndex].tags.map((tag) => (
-                <div
-                  key={tag.tagId}
-                  className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm"
-                >
-                  {tag.name}
-                </div>
+                <TagView key={tag.tagId} tag={tag} />
               ))}
             </div>
             <Typography

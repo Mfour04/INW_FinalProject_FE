@@ -1,20 +1,19 @@
-// components/ConfirmModal.tsx
 interface ConfirmModalProps {
-  isOpen: boolean
-  title?: string
-  message: string
-  onConfirm: () => void
-  onCancel: () => void
+  isOpen: boolean;
+  title?: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 export const ConfirmModal = ({
   isOpen,
-  title = 'Xác nhận',
+  title = "Xác nhận",
   message,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) => {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
@@ -37,6 +36,5 @@ export const ConfirmModal = ({
         </div>
       </div>
     </div>
-  )
-}
-
+  );
+};
