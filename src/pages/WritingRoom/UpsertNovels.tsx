@@ -13,6 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getTags } from "../../api/Tags/tag.api";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { urlToFile } from "../../utils/img";
+import { TagView } from "../../components/TagComponent";
 
 const initialCreateNovelForms: CreateNovelRequest = {
   title: "",
@@ -284,14 +285,20 @@ export const UpsertNovels = () => {
               <button
                 key={tag.tagId}
                 onClick={() => toggleTag(tag.tagId)}
-                className={`px-3 py-1 rounded-full text-sm border transition
-                                ${
-                                  isSelected
-                                    ? "bg-[#ff6740] border-blue-400 text-white hover:bg-orange-600"
-                                    : "bg-[#1e1e21] border-gray-600 text-white hover:bg-[#2e2e2e]"
-                                }`}
+                // className={`px-3 py-1 rounded-full text-sm border transition
+                //                 ${
+                //                   isSelected
+                //                     ? "bg-[#ff6740] border-blue-400 text-white hover:bg-orange-600"
+                //                     : "bg-[#1e1e21] border-gray-600 text-white hover:bg-[#2e2e2e]"
+                //                 }`}
               >
-                {tag.name}
+                <TagView
+                  key={tag.tagId}
+                  tag={tag}
+                  className={`${
+                    isSelected && "bg-[#ff6740] text-white hover:bg-orange-600"
+                  }`}
+                />
               </button>
             );
           })}

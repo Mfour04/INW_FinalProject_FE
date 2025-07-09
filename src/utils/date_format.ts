@@ -21,17 +21,31 @@ moment.updateLocale("vi", {
 
 moment.locale("vi");
 
-export const convertTicksToMoment = (ticks: number): moment.Moment => {
+export const convertTicksToMoment = (
+  ticks: number | null | undefined
+): moment.Moment | null => {
+  if (!ticks || typeof ticks !== "number") return null;
+
   const epochTicks = 621355968000000000;
   const ticksPerMillisecond = 10000;
   const millisecondsSinceEpoch = (ticks - epochTicks) / ticksPerMillisecond;
-  return moment(millisecondsSinceEpoch);
+  const m = moment(millisecondsSinceEpoch);
+
+  return m.isValid() ? m : null;
 };
 
 // 'dd/mm/yyyy'
-export const formatTicksToDateString = (ticks: number): string =>
-  convertTicksToMoment(ticks).format("DD/MM/YYYY");
+export const formatTicksToDateString = (
+  ticks: number | null | undefined
+): string => {
+  const m = convertTicksToMoment(ticks);
+  return m ? m.format("DD/MM/YYYY") : "Không có dữ liệu";
+};
 
 // ... ago
-export const formatTicksToRelativeTime = (ticks: number): string =>
-  convertTicksToMoment(ticks).fromNow();
+export const formatTicksToRelativeTime = (
+  ticks: number | null | undefined
+): string => {
+  const m = convertTicksToMoment(ticks);
+  return m ? m.fromNow() : "Không có dữ liệu";
+};
