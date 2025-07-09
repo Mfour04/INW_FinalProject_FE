@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GetNovels } from "../../api/Novels/novel.api";
+import { TagView } from "../../components/TagComponent";
 
 type ViewAction = "Grid" | "List";
 
@@ -84,12 +85,7 @@ export const Novels = () => {
                     </h2>
                     <div className="flex flex-wrap gap-2 my-1">
                       {novel.tags.map((tag) => (
-                        <div
-                          key={tag.tagId}
-                          className="h-[24px] border-2 rounded-[5px] px-2 bg-black text-white text-sm"
-                        >
-                          {tag.name}
-                        </div>
+                        <TagView key={tag.tagId} tag={tag} />
                       ))}
                     </div>
                   </div>
