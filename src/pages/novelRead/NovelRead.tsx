@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import '../../pages/novelRead/NovelRead.css';
 import { novelData } from "../../pages/novelRead/Content";
 import { useQuery } from '@tanstack/react-query';
@@ -6,6 +7,7 @@ import { GetChapters } from '../../api/Chapters/chapter.api';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ChapterByNovel } from '../../api/Chapters/chapter.type';
 import { useToast } from '../../context/ToastContext/toast-context';
+import { ChapterListModal } from "../../pages/novelRead/ChapterListModal";
 // import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
@@ -54,8 +56,20 @@ export const NovelRead = () => {
         }
     };
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     return (
         <div style={{ border: '1px', padding: '20px', borderRadius: '8px', marginTop: '-10px' }}>
+
+            {chapterList && (
+                <ChapterListModal
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    chapters={chapterList}
+                    novelId={novelId!}
+                />
+            )}
+
             <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '50px', fontFamily: 'Arial, sans-serif', borderRadius: '10px' }}>
                 <div>
                     <h1 style={{ color: '#ff4500', marginTop: '-30px' }}>{data?.chapterNumber}</h1>
@@ -77,7 +91,11 @@ export const NovelRead = () => {
                     >
                         &lt; Chương trước
                     </button>
-                    <button className='buttonStyle'>Mục lục</button>
+
+                    <button className="buttonStyle" onClick={() => setIsModalOpen(true)}>
+                        Mục lục
+                    </button>
+
                     <button
                         className='buttonStyle'
                         onClick={() => handleGoToChapterNumber(1)}
