@@ -43,7 +43,7 @@ export const HomePage = () => {
           page: page,
           limit: limit,
           sortBy: `${sortBy}:${direction}`,
-        }).then((res) => res.data.data),
+        }).then((res) => res.data.data.novels),
     });
 
   const { isLoading: isTrendingLoading, data: trendingData } = useSortedNovels(
@@ -52,6 +52,7 @@ export const HomePage = () => {
     0,
     5
   );
+
   const { isLoading: isMostViewedLoading, data: mostViewed } = useSortedNovels(
     SORT_BY_FIELDS.TOTAL_VIEWS,
     SORT_DIRECTIONS.DESC,
@@ -64,17 +65,6 @@ export const HomePage = () => {
     0,
     5
   );
-  // const { isLoading, data } = useQuery({
-  //   queryKey: ['novels', { page: 0, limit: 10, sortBy: 'created_at:desc' }],
-  //   queryFn: async () => {
-  //     const res = await GetNovels({
-  //       page: 0,
-  //       limit: 10,
-  //       sortBy: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
-  //     })
-  //     return res.data.data as Novel[]
-  //   },
-  // })
 
   const handleNextNovels = () => {
     if (trendingData && nNovelsIndex < trendingData.length - 1) {
