@@ -1,16 +1,18 @@
-import Typography from "../components/TypographyComponent"
-import ArrowLeftIcon from "../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg"
-import BubbleChat from "../assets/svg/HomePage/bubble-chat-stroke-rounded.svg"
-import PencilEdit from "../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg"
-import ArrowRightIcon from "../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg"
-import TrendingUp from '@mui/icons-material/TrendingUp'
-import StarRate from '@mui/icons-material/StarRate'
-import MenuBook from '@mui/icons-material/MenuBook'
-import RemoveRedEye from '@mui/icons-material/RemoveRedEye'
-import BookMark from '@mui/icons-material/Bookmark'
-import { useQuery } from "@tanstack/react-query"
-import { GetNovels } from "../api/Novels/novel.api"
-import { useState } from "react"
+import Typography from "../components/TypographyComponent";
+import ArrowLeftIcon from "../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg";
+import BubbleChat from "../assets/svg/HomePage/bubble-chat-stroke-rounded.svg";
+import PencilEdit from "../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
+import ArrowRightIcon from "../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg";
+import TrendingUp from "@mui/icons-material/TrendingUp";
+import StarRate from "@mui/icons-material/StarRate";
+import MenuBook from "@mui/icons-material/MenuBook";
+import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
+import BookMark from "@mui/icons-material/Bookmark";
+import { useQuery } from "@tanstack/react-query";
+import { GetNovels } from "../api/Novels/novel.api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TagView } from "../components/TagComponent";
 
 export const SORT_BY_FIELDS = {
   CREATED_AT: 'created_at',
@@ -30,24 +32,32 @@ export const HomePage = () => {
     useQuery({
       queryKey: ['novels', sortBy, direction],
       queryFn: () =>
-        GetNovels({ page: page, limit: limit, sortBy: `${sortBy}:${direction}` })
-          .then(res => res.data.data)
-    })
-  
-  const { isLoading: isTrendingLoading, data: trendingData } = useSortedNovels(SORT_BY_FIELDS.CREATED_AT, SORT_DIRECTIONS.DESC, 0, 5)
-  const { isLoading: isMostViewedLoading, data: mostViewed } = useSortedNovels(SORT_BY_FIELDS.TOTAL_VIEWS,  SORT_DIRECTIONS.DESC, 0, 5)
-  const { isLoading: isTopRatedLoading, data: topRated } = useSortedNovels(SORT_BY_FIELDS.RATING_AVG, SORT_DIRECTIONS.DESC, 0, 5)
-  // const { isLoading, data } = useQuery({
-  //   queryKey: ['novels', { page: 0, limit: 10, sortBy: 'created_at:desc' }],
-  //   queryFn: async () => {
-  //     const res = await GetNovels({
-  //       page: 0,
-  //       limit: 10,
-  //       sortBy: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
-  //     })
-  //     return res.data.data as Novel[]
-  //   },
-  // })
+        GetNovels({
+          page: page,
+          limit: limit,
+          sortBy: `${sortBy}:${direction}`,
+        }).then((res) => res.data.data.novels),
+    });
+
+  const { isLoading: isTrendingLoading, data: trendingData } = useSortedNovels(
+    SORT_BY_FIELDS.CREATED_AT,
+    SORT_DIRECTIONS.DESC,
+    0,
+    5
+  );
+
+  const { isLoading: isMostViewedLoading, data: mostViewed } = useSortedNovels(
+    SORT_BY_FIELDS.TOTAL_VIEWS,
+    SORT_DIRECTIONS.DESC,
+    0,
+    5
+  );
+  const { isLoading: isTopRatedLoading, data: topRated } = useSortedNovels(
+    SORT_BY_FIELDS.RATING_AVG,
+    SORT_DIRECTIONS.DESC,
+    0,
+    5
+  );
 
   const handleNextNovels = () => {
     if (trendingData && nNovelsIndex < trendingData.length - 1) {
@@ -70,7 +80,7 @@ export const HomePage = () => {
     <div>
       <div className="flex-col items-center px-[50px] bg-white dark:text-white dark:bg-[#0f0f11] justify-between">
         <Typography variant="h4" size="large" className="mb-4">
-              Truyện Vừa Ra Mắt
+          Truyện Vừa Ra Mắt
         </Typography>
         <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
@@ -79,25 +89,20 @@ export const HomePage = () => {
           />
 
           <div className="p-4 flex flex-col flex-1 min-w-0">
-           
+
             <Typography variant="h3" size="large" className="mb-2 line-clamp-1">
               {isTrendingLoading ? 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore, at facere. Ab vero excepturi nemo. Id iure expedita ratione iusto vel corporis! Officia amet nisi suscipit, voluptas laborum odio mollitia.' : trendingData?.[nNovelsIndex].title}
             </Typography>
 
             <div className="flex flex-wrap gap-2 mb-4">
               {trendingData?.[nNovelsIndex].tags.map((tag) => (
-                <div
-                  key={tag.tagId}
-                  className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm"
-                >
-                  {tag.name}
-                </div>
+                <TagView key={tag.tagId} tag={tag} />
               ))}
             </div>
             <Typography variant="p" size="small" className="mb-4 line-clamp-2 lg:line-clamp-7">
-              {isTrendingLoading ? 
-              'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse ng elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse' : 
-              trendingData?.[nNovelsIndex].description}
+              {isTrendingLoading ?
+                'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse ng elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse' :
+                trendingData?.[nNovelsIndex].description}
             </Typography>
 
             <div className="flex justify-between items-center mt-auto pt-2 text-white">
@@ -132,8 +137,8 @@ export const HomePage = () => {
                   </div>
                   <div className="mx-2.5 mt-1">
                     <div className="text-[15px] py-[1px] truncate">{novel.title}</div>
-                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate"><RemoveRedEye sx={{ height: '20px'}}/>{novel.totalViews}</div>
-                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate w-full"><BookMark sx={{ height: '20px'}}/> {novel.ratingCount}</div>
+                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate"><RemoveRedEye sx={{ height: '20px' }} />{novel.totalViews}</div>
+                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate w-full"><BookMark sx={{ height: '20px' }} /> {novel.ratingCount}</div>
                   </div>
                 </div>
               ))
@@ -147,7 +152,7 @@ export const HomePage = () => {
             </div>
             {isTrendingLoading ? (
               <div className="text-white px-5 mt-4">Đang tải...</div>
-            ): (
+            ) : (
               trendingData?.map((novel) => (
                 <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
@@ -178,7 +183,7 @@ export const HomePage = () => {
             </div>
             {isTopRatedLoading ? (
               <div className="text-white px-5 mt-4">Đang tải...</div>
-            ): (
+            ) : (
               topRated?.map((novel) => (
                 <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
@@ -189,7 +194,7 @@ export const HomePage = () => {
                       {novel.title}
                     </div>
                     <div className="text-[13px] py-[1px] flex items-center gap-1">
-                      <StarRate sx={{ height: '20px'}} />
+                      <StarRate sx={{ height: '20px' }} />
                       {novel.ratingCount}
                     </div>
                     <div className="text-[13px] py-[1px] flex items-center gap-1">
