@@ -41,8 +41,6 @@ export const Novels = () => {
     ? data.data.data.novels
     : [];
 
-  console.log(data?.data.data);
-
   const view = useMemo(() => {
     switch (actionState) {
       case "Grid":

@@ -6,9 +6,8 @@ import ModeEdit from "@mui/icons-material/ModeEdit";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { GetChapters } from "../../api/Chapters/chapter.api";
-import { GetNovelById } from "../../api/Novels/novel.api";
-import { formatTicksToRelativeTime } from "../../utils/date_format";
+import { GetNovelById } from "../../../api/Novels/novel.api";
+import { formatTicksToRelativeTime } from "../../../utils/date_format";
 
 type Tabs = "Chapter" | "Draft";
 
@@ -18,33 +17,27 @@ const CreateChapters = () => {
   const { novelId } = useParams();
   const navigate = useNavigate();
 
-  const { data: chapterData, isLoading: isLoadingChapter } = useQuery({
-    queryKey: ["Chapters", novelId],
-    queryFn: () => GetChapters(novelId!),
-    enabled: !!novelId,
-    select: (res) => res.data.data,
-  });
-
-  const lastChapter = chapterData?.[chapterData?.length - 1];
-
-  const { data: novelData, isLoading: isLoadingNovel } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["novel", novelId],
-    queryFn: () =>
-      GetNovelById(novelId!).then((res) => res.data.data.novelInfo),
+    queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
   });
+
+  const novel = data?.novelInfo;
+  const chapters = data?.allChapters;
+  const lastChapter = chapters?.[chapters?.length - 1];
 
   return (
     <div className="max-w-6xl mx-[50px] p-4 text-white">
       <div className="flex flex-col md:flex-row gap-4 ">
         <img
-          src={novelData?.novel_image}
+          src={novel?.novelImage || undefined}
           alt="Novel Cover"
           className="w-[200px] h-[320px] rounded-lg shadow-md"
         />
 
         <div className="flex-1 space-y-2">
-          <h1 className="text-[44px] font-bold">{novelData?.title}</h1>
+          <h1 className="text-[44px] font-bold">{novel?.title}</h1>
           <div className="flex justify-between h-[40px]">
             <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
               Shimonitsuki Setsu
@@ -103,7 +96,7 @@ const CreateChapters = () => {
       </div>
 
       <div className="text-[18px] text-white mt-7 h-[130px] line-clamp-5 overflow-hidden">
-        {novelData?.description}
+        {novel?.description}
       </div>
 
       {/* Tabs */}
@@ -138,7 +131,7 @@ const CreateChapters = () => {
 
       {/* Chapter List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
-        {chapterData
+        {chapters
           ?.filter((chapter) =>
             tab === "Draft" ? chapter.is_draft : !chapter.is_draft
           )

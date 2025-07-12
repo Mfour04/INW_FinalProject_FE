@@ -1,4 +1,3 @@
-import TempImg from "../../assets/img/th.png";
 import StarRate from "@mui/icons-material/StarRate";
 import BookMark from "@mui/icons-material/Bookmark";
 import Comment from "@mui/icons-material/Comment";
@@ -6,12 +5,10 @@ import Share from "@mui/icons-material/Share";
 import ModeEdit from "@mui/icons-material/ModeEdit";
 import Add from "@mui/icons-material/Add";
 import Lock from "@mui/icons-material/Lock";
-import RateReview from "@mui/icons-material/RateReview";
 import Report from "@mui/icons-material/Report";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
-import { GetChapters } from "../../api/Chapters/chapter.api";
+import { useNavigate, useParams } from "react-router-dom";
 import { formatTicksToRelativeTime } from "../../utils/date_format";
 import { GetNovelById } from "../../api/Novels/novel.api";
 import { useToast } from "../../context/ToastContext/toast-context";
@@ -28,25 +25,15 @@ export const Chapters = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const { data: chapterData, isLoading: isLoadingChapter } = useQuery({
-    queryKey: ["Chapters", novelId],
-    queryFn: () => GetChapters(novelId!),
-    enabled: !!novelId,
-    select: (res) => res.data.data,
-  });
-
-  console.log(chapterData);
-
-  const lastChapter = chapterData?.[chapterData?.length - 1];
-
   const { data: novelData, isLoading: isLoadingNovel } = useQuery({
     queryKey: ["novel", novelId],
-    queryFn: () =>
-      GetNovelById(novelId!).then((res) => res.data.data.novelInfo),
+    queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
   });
 
-  console.log(novelData);
+  const novelInfo = novelData?.novelInfo;
+  const chapters = novelData?.allChapters;
+  const lastChapter = chapters?.[chapters?.length - 1];
 
   const handleClickChapter = (chapterId: string, isPaid: boolean) => {
     if (isPaid) {
@@ -62,14 +49,14 @@ export const Chapters = () => {
     <div className="max-w-6xl mx-[50px] p-4 text-white">
       <div className="flex flex-col md:flex-row gap-4 ">
         <img
-          src={novelData?.novel_image}
+          src={novelInfo?.novelImage || undefined}
           alt="Novel Cover"
           className="w-[200px] h-[320px] rounded-lg shadow-md"
         />
 
         <div className="flex-1 space-y-2">
           <h1 className="text-[44px] font-bold h-[130px]">
-            {novelData?.title}
+            {novelInfo?.title}
           </h1>
           <div className="flex justify-between h-[40px]">
             <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
@@ -128,7 +115,7 @@ export const Chapters = () => {
       </div>
 
       <div className="text-[18px] text-white mt-7 h-[130px] line-clamp-5 overflow-hidden">
-        {novelData?.description}
+        {novelInfo?.description}
       </div>
 
       {/* Tabs */}
@@ -163,7 +150,7 @@ export const Chapters = () => {
 
       {/* Chapter List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
-        {chapterData?.map((chapter) => (
+        {chapters?.map((chapter) => (
           <div
             onClick={() => handleClickChapter(chapter.id, chapter.is_paid)}
             key={chapter.id}
@@ -175,7 +162,9 @@ export const Chapters = () => {
                   {chapter.chapter_number}
                 </h1>
                 <div className="ml-2">
-                  <p className="text-[18px] font-normal">{chapter.title}</p>
+                  <p className="text-[18px] font-normal line-clamp-1">
+                    {chapter.title}
+                  </p>
                   <p className="text-sm text-gray-400">
                     {formatTicksToRelativeTime(chapter.created_at)}
                   </p>

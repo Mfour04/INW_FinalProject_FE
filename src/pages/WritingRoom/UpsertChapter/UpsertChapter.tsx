@@ -1,18 +1,17 @@
-import ArrowLeft02 from "../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
+import ArrowLeft02 from "../../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
-  Chapter,
   CreateChapterRequest,
   UpdateChapterRequest,
-} from "../../api/Chapters/chapter.type";
+} from "../../../api/Chapters/chapter.type";
 import {
   CreateChapter,
   GetChapter,
   UpdateChapter,
-} from "../../api/Chapters/chapter.api";
-import { useToast } from "../../context/ToastContext/toast-context";
+} from "../../../api/Chapters/chapter.api";
+import { useToast } from "../../../context/ToastContext/toast-context";
 
 const initialCreateChapterForm: CreateChapterRequest = {
   novelId: "",
@@ -97,22 +96,17 @@ export const UpsertChapter = () => {
     if (data) {
       setUpdateChapterForm({
         chapterId: chapterId!,
-        title: data.title,
-        content: data.content,
-        chapterNumber: data.chapterNumber,
-        isDraft: data.isDraft,
-        isPaid: data.isPaid,
-        isPublic: data.isPublic,
-        price: data.price,
+        title: data.chapter.title,
+        content: data.chapter.content,
+        chapterNumber: data.chapter.chapterNumber,
+        isDraft: data.chapter.isDraft,
+        isPaid: data.chapter.isPaid,
+        isPublic: data.chapter.isPublic,
+        price: data.chapter.price,
         scheduledAt: new Date(),
       });
     }
-    console.log(isUpdate);
   }, [data]);
-
-  useEffect(() => {
-    console.log(updateChapterForm);
-  }, [updateChapterForm]);
 
   return (
     <div className="min-h-screen bg-[#1e1e21] text-white px-6 py-8">
