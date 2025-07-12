@@ -10,9 +10,9 @@ import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelRead } from "../pages/novelRead/NovelRead";
 import { Chapters } from "../pages/Chapters/Chapters";
-import CreateChapters from "../pages/WritingRoom/CreateChapters";
-import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels";
-import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter";
+import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
+import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
+import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 
 export const Router = () => {
   return (
