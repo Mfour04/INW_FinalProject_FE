@@ -37,8 +37,11 @@ export const Novels = () => {
       }),
   });
 
-  const novels = Array.isArray(data?.data?.data) ? data.data.data : [];
-  // const totalPage = Math.ceil((data?.data.data.length ?? 0) / limit);
+  const novels = Array.isArray(data?.data?.data.novels)
+    ? data.data.data.novels
+    : [];
+
+  console.log(data?.data.data);
 
   const view = useMemo(() => {
     switch (actionState) {
@@ -187,11 +190,12 @@ export const Novels = () => {
           <span className="text-sm">
             Trang{" "}
             <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> /
-            2
+            {data?.data.data.totalPages}
           </span>
         </div>
         <button
           onClick={() => setPage(page + 1)}
+          disabled={page === (data?.data.data.totalPages ?? 1) - 1}
           className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
         >
           <img src={ArrowRight02} />

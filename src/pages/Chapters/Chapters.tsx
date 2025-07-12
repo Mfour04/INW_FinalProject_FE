@@ -35,6 +35,8 @@ export const Chapters = () => {
     select: (res) => res.data.data,
   });
 
+  console.log(chapterData);
+
   const lastChapter = chapterData?.[chapterData?.length - 1];
 
   const { data: novelData, isLoading: isLoadingNovel } = useQuery({
@@ -43,6 +45,8 @@ export const Chapters = () => {
       GetNovelById(novelId!).then((res) => res.data.data.novelInfo),
     enabled: !!novelId,
   });
+
+  console.log(novelData);
 
   const handleClickChapter = (chapterId: string, isPaid: boolean) => {
     if (isPaid) {

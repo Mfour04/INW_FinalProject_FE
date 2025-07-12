@@ -1,18 +1,18 @@
 export interface CreateNovelRequest {
-  title: string
-  description: string
-  authorId: string
-  novelImage: File | null
-  tags: string[]
-  status: number
-  isPublic: boolean
-  isPaid: boolean
-  isLock: boolean
-  purchaseType: number
-  price: number
+  title: string;
+  description: string;
+  authorId: string;
+  novelImage: File | null;
+  tags: string[];
+  status: number;
+  isPublic: boolean;
+  isPaid: boolean;
+  isLock: boolean;
+  purchaseType: number;
+  price: number;
 }
 
-export interface NovelReponse {
+export interface Novel {
   novelId: string;
   title: string;
   description: string;
@@ -30,6 +30,12 @@ export interface NovelReponse {
   followers: number;
   ratingAvg: number;
   ratingCount: number;
+}
+
+export interface NovelReponse {
+  novels: Novel[];
+  totalNovels: number;
+  totalPages: number;
 }
 
 export type NovelByAuthorResponse = {
@@ -58,28 +64,28 @@ export type NovelByAuthorResponse = {
 export interface Tag {
   tagId: string;
   name: string;
-};
+}
 
 export type Novels = {
-    success: boolean,
-    message: string,
-    data: NovelReponse[]
-}
+  success: boolean;
+  message: string;
+  data: NovelReponse;
+};
 
 export type NovelsByAuthor = {
-    success: boolean,
-    message: string,
-    data: NovelByAuthorResponse[]
-}
+  success: boolean;
+  message: string;
+  data: NovelByAuthorResponse[];
+};
 
 export type NovelUpdate = {
-  success: boolean,
-  message: string,
-  data: NovelById
-}
+  success: boolean;
+  message: string;
+  data: NovelById;
+};
 
 type NovelById = {
-  allChapters: [],
-  novelInfo: NovelByAuthorResponse,
-  purchasedChapterIds: []
-}
+  allChapters: [];
+  novelInfo: NovelByAuthorResponse;
+  purchasedChapterIds: [];
+};
