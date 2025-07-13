@@ -8,5 +8,5 @@ export type TagName = Omit<Tag, 'tagId'>
 export type Tags = {
     success: boolean,
     message: string,
-    data: TagName[]
+    data: Tag[]
 }
