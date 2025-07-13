@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRef } from 'react';
 import type { Comment } from "../commentUser/Comment";
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
@@ -7,7 +8,9 @@ import favorite from "../../assets/svg/CommentUser/favorite.svg";
 import CommentAdd01Icon from "../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
 import avatarImage from '../../assets/img/th.png';
 import { MoreButton } from "../../pages/commentUser/MoreButton";
+import { MoreUser } from "../../pages/commentUser/MoreUser";
 import { Reply } from "../../pages/commentUser/Reply";
+import { NestedReply } from "../../pages/commentUser/NestedReply";
 
 const initialComments: Comment[] = [
     {
@@ -55,9 +58,6 @@ const initialComments: Comment[] = [
 export const CommentUser = () => {
     const [comments, setComments] = useState<Comment[]>(initialComments);
     const [newComment, setNewComment] = useState('');
-    const [replyingToId, setReplyingToId] = useState<number | null>(null);
-    const [replyValue, setReplyValue] = useState('');
-
 
     const handlePostComment = () => {
         if (newComment.trim()) {
@@ -81,20 +81,55 @@ export const CommentUser = () => {
         user: '@locnguyen',
     };
 
-    const handleReplyClick = (id: number) => {
-        setReplyingToId(prev => (prev === id ? null : id));
-        setReplyValue(''); // reset nội dung mỗi lần mở
+    const handleReplyClick = (id: number, name: string) => {
+        setReplyInputs((prev) => ({
+            ...prev,
+            [id]: true,
+        }));
+
+        setReplyValues((prev) => ({
+            ...prev,
+            [id]: `${name} `,
+        }));
+
+        setTimeout(() => {
+            inputRefs.current[id]?.focus();
+        }, 0);
     };
 
-    const handleReplySubmit = () => {
-        if (replyValue.trim()) {
-            // xử lý gửi reply nếu bạn muốn
-            alert(`Reply: ${replyValue}`);
-            setReplyValue('');
-            setReplyingToId(null);
+    const handleReplySubmit = (parentId: number) => {
+        const content = replyValues[parentId];
+        if (content?.trim()) {
+            const newReply: Comment = {
+                id: comments.length + replyComments.length + 1,
+                parentId,
+                avatar: avatarImage,
+                name: currentUser.name,
+                user: currentUser.user,
+                timestamp: 'Vừa phản hồi',
+                content,
+                likes: 0,
+                replies: 0,
+            };
+
+            setReplyComments((prev) => [...prev, newReply]);
+            setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
+            setReplyValues((prev) => ({ ...prev, [parentId]: '' }));
         }
     };
 
+    const [replyComments, setReplyComments] = useState<Comment[]>([]);
+    const [replyInputs, setReplyInputs] = useState<{ [id: number]: boolean }>({});
+    const [replyValues, setReplyValues] = useState<{ [id: number]: string }>({});
+
+    const handleReplyChange = (id: number, value: string) => {
+        setReplyValues((prev) => ({
+            ...prev,
+            [id]: value,
+        }));
+    };
+
+    const inputRefs = useRef<{ [id: number]: HTMLInputElement | null }>({});
 
     return (
         <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
@@ -104,11 +139,13 @@ export const CommentUser = () => {
             </div>
 
             <div className="p-3">
-                <div className="flex gap-3 items-center mb-2">
-                    <img src={avatarImage} className="w-10 h-10 rounded-full" />
-                    <div>
-                        <p className="font-semibold">{currentUser.name}</p>
-                        <p className="text-xs text-gray-400">{currentUser.user}</p>
+                <div className="flex justify-between items-start space-x-4">
+                    <div className="flex items-center space-x-4">
+                        <img src={avatarImage} className="w-10 h-10 rounded-full" />
+                        <div>
+                            <p className="font-semibold">{currentUser.name}</p>
+                            <p className="text-xs text-gray-400">{currentUser.user}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -137,10 +174,7 @@ export const CommentUser = () => {
             </div>
 
             {comments.map((comment) => (
-                <div
-                    key={comment.id}
-                    className="mb-3 p-3 rounded-md"
-                >
+                <div key={comment.id} className="mb-3 p-3 rounded-md">
                     <div className="flex justify-between items-start space-x-4">
                         <div className="flex items-center space-x-4">
                             <img src={avatarImage} className="w-10 h-10 rounded-full" />
@@ -149,37 +183,54 @@ export const CommentUser = () => {
                                 <p className="text-xs text-gray-400">{comment.user} • {comment.timestamp}</p>
                             </div>
                         </div>
-                        <MoreButton />
+                        {comment.user === currentUser.user ? <MoreUser /> : <MoreButton />}
                     </div>
 
                     <div className="ml-14">
                         <p className="mb-1">{comment.content}</p>
 
-                        {/* Icon like & reply */}
                         <div className="mt-4 flex space-x-6">
-                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id)}>
+                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id, comment.name)}>
                                 <img src={favorite} />
                                 {comment.likes}
                             </span>
-                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id)}>
+                            <span
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => handleReplyClick(comment.id, comment.name)}
+                            >
                                 <img src={CommentAdd01Icon} />
                                 {comment.replies}
                             </span>
                         </div>
 
-                        {/* ✅ Reply form hiển thị bên dưới, gọn, không ảnh hưởng đến layout icon */}
-                        {replyingToId === comment.id && (
+                        {replyInputs[comment.id] && (
                             <div className="mt-4 max-w-2xl">
                                 <Reply
                                     currentUser={currentUser}
-                                    replyValue={replyValue}
-                                    onReplyChange={(e) => setReplyValue(e.target.value)}
-                                    onReplySubmit={handleReplySubmit}
+                                    replyValue={replyValues[comment.id] || ''}
+                                    onReplyChange={(e) => handleReplyChange(comment.id, e.target.value)}
+                                    onReplySubmit={() => handleReplySubmit(comment.id)}
+                                    inputRef={(el) => (inputRefs.current[comment.id] = el)}
                                 />
                             </div>
                         )}
-                    </div>
 
+                        {replyComments
+                            .filter(reply => reply.parentId === comment.id)
+                            .map(reply => (
+                                <NestedReply
+                                    key={reply.id}
+                                    parent={reply}
+                                    currentUser={currentUser}
+                                    replies={replyComments}
+                                    replyInputs={replyInputs}
+                                    replyValues={replyValues}
+                                    onReplyClick={handleReplyClick}
+                                    onReplyChange={handleReplyChange}
+                                    onReplySubmit={handleReplySubmit}
+                                />
+                            ))}
+                    </div>
                 </div>
             ))}
         </div>

@@ -1,4 +1,3 @@
-// Reply.tsx
 import React from 'react';
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
@@ -6,13 +5,11 @@ import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import avatarImage from "../../assets/img/th.png";
 
 interface ReplyProps {
-    currentUser: {
-        name: string;
-        user: string;
-    };
+    currentUser: { name: string; user: string };
     replyValue: string;
     onReplyChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onReplySubmit: () => void;
+    inputRef?: (el: HTMLInputElement | null) => void;
 }
 
 export const Reply: React.FC<ReplyProps> = ({
@@ -20,6 +17,7 @@ export const Reply: React.FC<ReplyProps> = ({
     replyValue,
     onReplyChange,
     onReplySubmit,
+    inputRef,
 }) => {
     return (
         <div className="p-3 w-[1000px]">
@@ -33,11 +31,11 @@ export const Reply: React.FC<ReplyProps> = ({
 
             <div className="flex flex-col gap-3 mb-4 px-4">
                 <input
-                    className="comment w-full"
-                    type="text"
+                    ref={inputRef}
                     value={replyValue}
                     onChange={onReplyChange}
-                    placeholder="Phản hồi bình luận này..."
+                    placeholder="Phản hồi bình luận..."
+                    className="comment w-full"
                 />
 
                 <div className="flex justify-between items-center">

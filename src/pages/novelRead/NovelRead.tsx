@@ -8,7 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { ChapterListModal } from "../../pages/novelRead/ChapterListModal";
-// import { CommentUser } from "../../pages/commentUser/CommentUser";
+import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 export const NovelRead = () => {
   const { novelId, chapterId } = useParams();
@@ -145,7 +145,7 @@ export const NovelRead = () => {
         </div>
       </div>
 
-      {/* <CommentUser /> */}
+      <CommentUser />
     </div>
   );
 };
