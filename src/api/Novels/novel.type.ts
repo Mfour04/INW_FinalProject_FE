@@ -1,3 +1,7 @@
+import type { Chapter } from "../../entity/chapter";
+import type { Novel } from "../../entity/novel";
+import type { ApiResponse } from "../../entity/response";
+
 export interface CreateNovelRequest {
   title: string;
   description: string;
@@ -12,33 +16,13 @@ export interface CreateNovelRequest {
   price: number;
 }
 
-export interface Novel {
-  novelId: string;
-  title: string;
-  description: string;
-  authorId: string;
-  novelImage: string | null;
-  tags: Tag[];
-  status: number;
-  isPublic: boolean;
-  isPaid: boolean;
-  isLock: boolean;
-  purchaseType: number;
-  price: number;
-  totalChapters: number;
-  totalViews: number;
-  followers: number;
-  ratingAvg: number;
-  ratingCount: number;
-}
-
-export interface NovelReponse {
+interface NovelReponse {
   novels: Novel[];
   totalNovels: number;
   totalPages: number;
 }
 
-export type NovelByAuthorResponse = {
+type NovelByAuthorResponse = {
   id: string;
   title: string;
   title_unsigned: string;
@@ -61,31 +45,15 @@ export type NovelByAuthorResponse = {
   updated_at: number;
 };
 
-export interface Tag {
-  tagId: string;
-  name: string;
-}
-
-export type Novels = {
-  success: boolean;
-  message: string;
-  data: NovelReponse;
+type NovelChaptersResponse = {
+  novelInfo: Novel;
+  allChapters: Chapter[];
+  freeChapters: string[];
+  totalChapters: number;
+  totalPages: number;
+  purchasedChapterIds: string[];
 };
 
-export type NovelsByAuthor = {
-  success: boolean;
-  message: string;
-  data: NovelByAuthorResponse[];
-};
-
-export type NovelUpdate = {
-  success: boolean;
-  message: string;
-  data: NovelById;
-};
-
-type NovelById = {
-  allChapters: [];
-  novelInfo: NovelByAuthorResponse;
-  purchasedChapterIds: [];
-};
+export type NovelsApiResponse = ApiResponse<NovelReponse>;
+export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse[]>;
+export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;

@@ -1,14 +1,18 @@
-import { Route, Routes } from 'react-router-dom';
-import { HomePage } from '../pages/HomePage';
-import { NotFound } from '../pages/NotFound';
-import { UserProfile } from '../pages/userProfile/UserProfile';
-import { ProtectedRoutes } from './ProtectedRoutes';
-import { Unauthorized } from '../pages/Unauthorized';
-import { Roles } from '../context/AuthContext/AuthProvider';
-import { Novels } from '../pages/Novels/Novels';
-import { LoginNeeded } from '../pages/LoginNeeded';
-import { WritingRoom } from '../pages/WritingRoom/WritingRoom';
-import { NovelRead } from '../pages/novelRead/NovelRead';
+import { Route, Routes } from "react-router-dom";
+import { HomePage } from "../pages/HomePage";
+import { NotFound } from "../pages/NotFound";
+import { UserProfile } from "../pages/userProfile/UserProfile";
+import { ProtectedRoutes } from "./ProtectedRoutes";
+import { Unauthorized } from "../pages/Unauthorized";
+import { Roles } from "../context/AuthContext/AuthProvider";
+import { Novels } from "../pages/Novels/Novels";
+import { LoginNeeded } from "../pages/LoginNeeded";
+import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
+import { NovelRead } from "../pages/novelRead/NovelRead";
+import { Chapters } from "../pages/Chapters/Chapters";
+import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
+import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
+import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 
 export const Router = () => {
   return (

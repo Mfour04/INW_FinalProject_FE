@@ -1,19 +1,19 @@
 import { useNavigate, useParams } from "react-router-dom";
-import ArrowLeft02 from "../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
-import Button from "../../components/ButtonComponent";
-import type { CreateNovelRequest } from "../../api/Novels/novel.type";
+import ArrowLeft02 from "../../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
+import Button from "../../../components/ButtonComponent";
+import type { CreateNovelRequest } from "../../../api/Novels/novel.type";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CreateNovels,
   GetNovelById,
   UpdateNovels,
-} from "../../api/Novels/novel.api";
-import { useAuth } from "../../hooks/useAuth";
-import { getTags } from "../../api/Tags/tag.api";
-import { useToast } from "../../context/ToastContext/toast-context";
-import { urlToFile } from "../../utils/img";
-import { TagView } from "../../components/TagComponent";
+} from "../../../api/Novels/novel.api";
+import { useAuth } from "../../../hooks/useAuth";
+import { getTags } from "../../../api/Tags/tag.api";
+import { useToast } from "../../../context/ToastContext/toast-context";
+import { urlToFile } from "../../../utils/img";
+import { TagView } from "../../../components/TagComponent";
 
 const initialCreateNovelForms: CreateNovelRequest = {
   title: "",
@@ -135,26 +135,35 @@ export const UpsertNovels = () => {
     if (isSuccess && novelData) {
       const novel = novelData.data.data.novelInfo;
 
+      const tags = novel.tags.map((tag) => tag.tagId);
+
       const fetchFile = async () => {
-        const file = await urlToFile(novel.novel_image, "novel-image.jpg");
+        let file: File | null = null;
+        if (novel.novelImage) {
+          file = await urlToFile(novel.novelImage, "novel-image.jpg");
+        }
         setCreateNovelForm({
           title: novel.title,
           description: novel.description,
-          authorId: novel.author_id,
+          authorId: novel.authorId,
           novelImage: file,
-          tags: novel.tags,
+          tags: tags,
           status: novel.status,
-          isPublic: novel.is_public,
-          isPaid: novel.is_paid,
-          isLock: novel.is_lock,
-          purchaseType: novel.purchase_type,
+          isPublic: novel.isPublic,
+          isPaid: novel.isPaid,
+          isLock: novel.isLock,
+          purchaseType: novel.purchaseType,
           price: novel.price,
         });
-        const url = URL.createObjectURL(file);
-        setImagePreview(url);
+        let objectUrl: string | null = null;
+
+        if (file) {
+          objectUrl = URL.createObjectURL(file);
+        }
+        setImagePreview(objectUrl);
       };
 
-      setSelectedTags(novel.tags);
+      setSelectedTags(tags);
 
       fetchFile();
     }

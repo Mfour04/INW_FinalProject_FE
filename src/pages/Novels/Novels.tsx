@@ -41,69 +41,79 @@ export const Novels = () => {
 
     console.log(data?.data.data);
 
-    console.log(data?.data.data);
-
-    <div className="flex flex-col flex-1 overflow-hidden justify-between">
-        <div>
-            <h2 className="text-[18px] font-medium truncate">
-                {novel.title}
-            </h2>
-            <div className="flex flex-wrap gap-2 my-1">
-                {novel.tags.map((tag) => (
-                    <TagView key={tag.tagId} tag={tag} />
-                ))}
-            </div>
-        </div>
-
-        <div className="flex flex-col flex-1 overflow-hidden justify-between">
-            <div>
-                <h2 className="text-[18px] font-medium truncate">
-                    {novel.title}
-                </h2>
-                <div className="flex flex-wrap gap-2 my-1">
-                    {novel.tags.map((tag) => (
-                        <div
-                            key={tag.tagId}
-                            className="h-[24px] border-2 rounded-[5px] px-2 bg-black text-white text-sm"
-                        >
-                            {tag.name}
+    const view = useMemo(() => {
+        switch (actionState) {
+            case "Grid":
+                return (
+                    <>
+                        <div className="grid grid-cols-6 gap-4 mb-6">
+                            {novels.map((novel) => (
+                                <div
+                                    key={novel.novelId}
+                                    onClick={() => navigate(`/novels/${novel.novelId}`)}
+                                    className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
+                                >
+                                    <img
+                                        src={novel.novelImage || undefined}
+                                        className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
+                                    />
+                                    <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">
+                                        {novel.title}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </div >
 
-            <div className='flex justify-between w-full'>
-                <p className="italic text-[16px] text-white">Iris Cavana</p>
-                <div className="h-9 flex items-center gap-4 text-xs text-white mt-1">
-                    <div className='flex gap-2.5'>
-                        <div className="flex items-center gap-1 text-sm">
-                            <StarRate sx={{ height: '20px', width: '20px' }} />
-                            <div className='flex items-center'>
-                                {novel.ratingAvg}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm ">
-                            <BookMark sx={{ height: '20px', width: '20px' }} />
-                            <div className='flex items-center'>
-                                11K
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm ">
-                            <Comment sx={{ height: '20px', width: '20px' }} />
+                        <div className="flex flex-col flex-1 overflow-hidden justify-between">
                             <div>
-                                {novel.totalViews}
+                                <h2 className="text-[18px] font-medium truncate">
+                                    {novel.title}
+                                </h2>
+                                <div className="flex flex-wrap gap-2 my-1">
+                                    {novel.tags.map((tag) => (
+                                        <div
+                                            key={tag.tagId}
+                                            className="h-[24px] border-2 rounded-[5px] px-2 bg-black text-white text-sm"
+                                        >
+                                            {tag.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className='flex justify-between w-full'>
+                                <p className="italic text-[16px] text-white">Iris Cavana</p>
+                                <div className="h-9 flex items-center gap-4 text-xs text-white mt-1">
+                                    <div className='flex gap-2.5'>
+                                        <div className="flex items-center gap-1 text-sm">
+                                            <StarRate sx={{ height: '20px', width: '20px' }} />
+                                            <div className='flex items-center'>
+                                                {novel.ratingAvg}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-sm ">
+                                            <BookMark sx={{ height: '20px', width: '20px' }} />
+                                            <div className='flex items-center'>
+                                                11K
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-sm ">
+                                            <Comment sx={{ height: '20px', width: '20px' }} />
+                                            <div>
+                                                {novel.totalViews}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
+                                        <span className={`h-2 w-2 rounded-full inline-block ${novel.status === 1 ? 'bg-gray-400' : 'bg-green-400'
+                                            }`} />
+                                        {novel.status === 1 ? 'Hoàn thành' : 'Đang diễn ra'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                        <span className={`h-2 w-2 rounded-full inline-block ${novel.status === 1 ? 'bg-gray-400' : 'bg-green-400'
-                            }`} />
-                        {novel.status === 1 ? 'Hoàn thành' : 'Đang diễn ra'}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div >
                         ))}
                     </>
                 )
