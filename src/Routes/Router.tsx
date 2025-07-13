@@ -13,7 +13,7 @@ import { Chapters } from "../pages/Chapters/Chapters";
 import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
-
+import { Blogs } from "../pages/Blogs/Blogs";
 export const Router = () => {
   return (
     <Routes>
@@ -49,6 +49,7 @@ export const Router = () => {
       ></Route>
       {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/profile" element={<UserProfile />} />
+      <Route path="/blogs" element={<Blogs />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
       <Route path="/*" element={<NotFound />} />
