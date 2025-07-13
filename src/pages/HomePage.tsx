@@ -15,22 +15,29 @@ import { useNavigate } from "react-router-dom";
 import { TagView } from "../components/TagComponent";
 
 export const SORT_BY_FIELDS = {
-  CREATED_AT: 'created_at',
-  TOTAL_VIEWS: 'total_views',
-  RATING_AVG: 'rating_avg'
-}
+  CREATED_AT: "created_at",
+  TOTAL_VIEWS: "total_views",
+  RATING_AVG: "rating_avg",
+};
 
 export const SORT_DIRECTIONS = {
-  ASC: 'asc',
-  DESC: 'desc'
-}
+  ASC: "asc",
+  DESC: "desc",
+};
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
 
-  const useSortedNovels = (sortBy: string, direction: string, page: number = 0, limit: number = 10) =>
+  const navigate = useNavigate();
+
+  const useSortedNovels = (
+    sortBy: string,
+    direction: string,
+    page: number = 0,
+    limit: number = 10
+  ) =>
     useQuery({
-      queryKey: ['novels', sortBy, direction],
+      queryKey: ["novels", sortBy, direction],
       queryFn: () =>
         GetNovels({
           page: page,
@@ -61,7 +68,7 @@ export const HomePage = () => {
 
   const handleNextNovels = () => {
     if (trendingData && nNovelsIndex < trendingData.length - 1) {
-      setNNovelsIndex(prev => prev + 1);
+      setNNovelsIndex((prev) => prev + 1);
     } else if (trendingData && nNovelsIndex == trendingData.length - 1) {
       setNNovelsIndex(0);
     }
@@ -69,12 +76,11 @@ export const HomePage = () => {
 
   const handlePrevNovels = () => {
     if (nNovelsIndex > 0) {
-      setNNovelsIndex(prev => prev - 1);
+      setNNovelsIndex((prev) => prev - 1);
     } else if (trendingData && nNovelsIndex == 0) {
       setNNovelsIndex(trendingData?.length - 1);
     }
   };
-
 
   return (
     <div>
@@ -84,14 +90,18 @@ export const HomePage = () => {
         </Typography>
         <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
+            onClick={() =>
+              navigate(`/novels/${trendingData?.[nNovelsIndex].novelId}`)
+            }
             src={trendingData?.[nNovelsIndex].novelImage || undefined}
-            className="w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
+            className="cursor-pointer w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
           />
 
           <div className="p-4 flex flex-col flex-1 min-w-0">
-
             <Typography variant="h3" size="large" className="mb-2 line-clamp-1">
-              {isTrendingLoading ? 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore, at facere. Ab vero excepturi nemo. Id iure expedita ratione iusto vel corporis! Officia amet nisi suscipit, voluptas laborum odio mollitia.' : trendingData?.[nNovelsIndex].title}
+              {isTrendingLoading
+                ? "Đang tải..."
+                : trendingData?.[nNovelsIndex].title}
             </Typography>
 
             <div className="flex flex-wrap gap-2 mb-4">
@@ -99,20 +109,24 @@ export const HomePage = () => {
                 <TagView key={tag.tagId} tag={tag} />
               ))}
             </div>
-            <Typography variant="p" size="small" className="mb-4 line-clamp-2 lg:line-clamp-7">
-              {isTrendingLoading ?
-                'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse ng elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum, reiciendis distinctio? Vel eos magni fugit fugiat dignissimos exercitationem harum optio voluptatum tempora molestias inventore dolorum eligendi officiis, minus facere esse? um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse um eligendi officiis, minus facere esse' :
-                trendingData?.[nNovelsIndex].description}
+            <Typography
+              variant="p"
+              size="small"
+              className="mb-4 line-clamp-2 lg:line-clamp-7"
+            >
+              {isTrendingLoading
+                ? "Đang tải..."
+                : trendingData?.[nNovelsIndex].description}
             </Typography>
 
             <div className="flex justify-between items-center mt-auto pt-2 text-white">
               <div className="italic text-lg">Iris Cavana</div>
               <div className="flex items-center gap-4">
                 <div className="text-[#ff6740]">NO.{nNovelsIndex + 1}</div>
-                <button className='cursor-pointer' onClick={handlePrevNovels} >
+                <button className="cursor-pointer" onClick={handlePrevNovels}>
                   <img src={ArrowLeftIcon} alt="left" />
                 </button>
-                <button className='cursor-pointer' onClick={handleNextNovels} >
+                <button className="cursor-pointer" onClick={handleNextNovels}>
                   <img src={ArrowRightIcon} alt="right" />
                 </button>
               </div>
@@ -131,14 +145,31 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ) : (
               mostViewed?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div
+                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  key={novel.novelId}
+                  className="h-[88px] mt-[15px] px-5 py-1 flex"
+                >
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && (
+                      <img
+                        src={novel.novelImage}
+                        alt={novel.title}
+                        className="h-full w-[60px] object-cover rounded-[10px]"
+                      />
+                    )}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px] truncate">{novel.title}</div>
-                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate"><RemoveRedEye sx={{ height: '20px' }} />{novel.totalViews}</div>
-                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate w-full"><BookMark sx={{ height: '20px' }} /> {novel.ratingCount}</div>
+                    <div className="text-[15px] py-[1px] line-clamp-1">
+                      {novel.title}
+                    </div>
+                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate">
+                      <RemoveRedEye sx={{ height: "20px" }} />
+                      {novel.totalViews}
+                    </div>
+                    <div className="text-[12px] py-[1px] flex items-center gap-1 truncate w-full">
+                      <BookMark sx={{ height: "20px" }} /> {novel.ratingCount}
+                    </div>
                   </div>
                 </div>
               ))
@@ -154,12 +185,22 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ) : (
               trendingData?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div
+                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  key={novel.novelId}
+                  className="h-[88px] mt-[15px] px-5 py-1 flex"
+                >
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && (
+                      <img
+                        src={novel.novelImage}
+                        alt={novel.title}
+                        className="h-full w-[60px] object-cover rounded-[10px]"
+                      />
+                    )}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px]">
+                    <div className="text-[15px] py-[1px] line-clamp-1">
                       {novel.title}
                     </div>
                     <div className="text-[12px] py-[1px] flex items-center gap-1">
@@ -185,16 +226,26 @@ export const HomePage = () => {
               <div className="text-white px-5 mt-4">Đang tải...</div>
             ) : (
               topRated?.map((novel) => (
-                <div key={novel.title} className="h-[88px] mt-[15px] px-5 py-1 flex">
+                <div
+                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  key={novel.novelId}
+                  className="h-[88px] mt-[15px] px-5 py-1 flex"
+                >
                   <div className="bg-[#d9d9d9] h-[80px] min-w-[60px] rounded-[10px] overflow-hidden">
-                    {novel.novelImage && <img src={novel.novelImage} alt={novel.title} className="h-full w-full object-cover rounded-[10px]" />}
+                    {novel.novelImage && (
+                      <img
+                        src={novel.novelImage}
+                        alt={novel.title}
+                        className="h-full w-[60px] object-cover rounded-[10px]"
+                      />
+                    )}
                   </div>
                   <div className="mx-2.5 mt-1">
-                    <div className="text-[15px] py-[1px]">
+                    <div className="text-[15px] py-[1px] line-clamp-1">
                       {novel.title}
                     </div>
                     <div className="text-[13px] py-[1px] flex items-center gap-1">
-                      <StarRate sx={{ height: '20px' }} />
+                      <StarRate sx={{ height: "20px" }} />
                       {novel.ratingCount}
                     </div>
                     <div className="text-[13px] py-[1px] flex items-center gap-1">
@@ -247,5 +298,5 @@ export const HomePage = () => {
         </div> */}
       </div>
     </div>
-  )
-}
+  );
+};
