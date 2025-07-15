@@ -11,8 +11,9 @@ interface AppearReplyProps {
     currentUser: {
         name: string;
         user: string;
+        avatarUrl?: string | null;
     };
-    onReplyClick: (id: number, name: string) => void;
+    onReplyClick: (id: string, name: string) => void;
 }
 
 export const AppearReply: React.FC<AppearReplyProps> = ({
@@ -22,14 +23,25 @@ export const AppearReply: React.FC<AppearReplyProps> = ({
 }) => {
     const isCurrentUser = reply.user === currentUser.user;
 
+    const displayName = reply.name || "Người dùng";
+    const displayUser = reply.user || "@anonymous";
+    const displayTime = reply.timestamp || "Vừa xong";
+    const avatar = reply.avatarUrl || avatarImage;
+
     return (
         <div key={reply.id} className="p-3 mr-10 rounded-md">
             <div className="flex justify-between items-start space-x-4">
                 <div className="flex items-center space-x-4">
-                    <img src={avatarImage} className="w-10 h-10 rounded-full" />
+                    <img
+                        src={avatar}
+                        alt={displayName}
+                        className="w-10 h-10 rounded-full"
+                    />
                     <div>
-                        <p className="font-semibold">{reply.name}</p>
-                        <p className="text-xs text-gray-400">{reply.user} • {reply.timestamp}</p>
+                        <p className="font-semibold">{displayName}</p>
+                        <p className="text-xs text-gray-400">
+                            {displayUser} • {displayTime}
+                        </p>
                     </div>
                 </div>
                 {isCurrentUser ? <MoreUser /> : <MoreButton />}
@@ -38,14 +50,17 @@ export const AppearReply: React.FC<AppearReplyProps> = ({
             <div className="ml-14">
                 <p className="mb-1">{reply.content}</p>
                 <div className="mt-4 flex space-x-6">
-                    <span className="flex items-center gap-2 cursor-pointer" onClick={() => onReplyClick(reply.id, reply.name)}>
+                    <span
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => onReplyClick(reply.id, displayName)}
+                    >
                         <img src={favorite} />
                         {reply.likes}
                     </span>
 
                     <span
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => onReplyClick(reply.id, reply.name)}
+                        onClick={() => onReplyClick(reply.id, displayName)}
                     >
                         <img src={CommentAdd01Icon} />
                         {reply.replies}

@@ -1,151 +1,166 @@
-import { useState } from 'react';
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import type { Comment } from "../commentUser/Comment";
+import {
+    GetCommentsByChapter,
+    CreateComment,
+    ReplyComment,
+} from "../../api/Comment/comment.api";
+import { useAuth } from "../../api/Comment/useAuth.ts";
+import { GetUserById } from "../../api/Comment/user.api.ts";
+
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import favorite from "../../assets/svg/CommentUser/favorite.svg";
 import CommentAdd01Icon from "../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
-import avatarImage from '../../assets/img/th.png';
+import defaultAvatar from "../../assets/img/th.png";
+
 import { MoreButton } from "../../pages/commentUser/MoreButton";
 import { MoreUser } from "../../pages/commentUser/MoreUser";
 import { Reply } from "../../pages/commentUser/Reply";
 import { NestedReply } from "../../pages/commentUser/NestedReply";
 
-const initialComments: Comment[] = [
-    {
-        id: 1,
-        avatar: avatarImage,
-        name: 'finn712',
-        user: '@iamfinn7',
-        content: 'Truyện hay quá thật cảm xúc!!',
-        timestamp: '39 giây trước',
-        likes: 0,
-        replies: 0,
-    },
-    {
-        id: 2,
-        avatar: avatarImage,
-        name: 'August B',
-        user: '@thaibinhnguyen',
-        content: 'Câu văn dài dòng quá',
-        timestamp: '1 ngày trước',
-        likes: 0,
-        replies: 0,
-    },
-    {
-        id: 3,
-        avatar: avatarImage,
-        name: 'Nguyen Dinh',
-        user: '@dinhvanbaonguyen',
-        content: 'Ừm cũng tạm',
-        timestamp: '6 tháng trước',
-        likes: 1,
-        replies: 0,
-    },
-    {
-        id: 4,
-        avatar: avatarImage,
-        name: 'Lộc',
-        user: '@locnguyen',
-        timestamp: '2 năm trước',
-        content: 'Khi nào ra chapter mới vậy?',
-        likes: 1,
-        replies: 0,
-    },
-];
+interface CommentUserProps {
+    novelId: string;
+    chapterId: string;
+}
 
-export const CommentUser = () => {
-    const [comments, setComments] = useState<Comment[]>(initialComments);
-    const [newComment, setNewComment] = useState('');
-
-    const handlePostComment = () => {
-        if (newComment.trim()) {
-            const newCommentData: Comment = {
-                id: comments.length + 1,
-                avatar: avatarImage,
-                name: 'Lộc',
-                user: '@locnguyen',
-                timestamp: 'Vừa xong',
-                content: newComment,
-                likes: 0,
-                replies: 0,
-            };
-            setComments([newCommentData, ...comments]);
-            setNewComment('');
-        }
-    };
+export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) => {
+    const { auth } = useAuth();
 
     const currentUser = {
-        name: 'Lộc',
-        user: '@locnguyen',
+        name: auth?.user.username || "",
+        user: "@" + (auth?.user.username || "user"),
+        avatarUrl: auth?.user.avatarUrl,
     };
 
-    const handleReplyClick = (id: number, name: string) => {
-        setReplyInputs((prev) => ({
-            ...prev,
-            [id]: true,
-        }));
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [replyComments, setReplyComments] = useState<Comment[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [replyInputs, setReplyInputs] = useState<{ [id: string]: boolean }>({});
+    const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
+    const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
-        setReplyValues((prev) => ({
-            ...prev,
-            [id]: `${name} `,
-        }));
+    const enrichComment = async (raw: any): Promise<Comment> => {
+        const timestamp = new Date(Number(raw.createdAt || raw.created_at)).toLocaleString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
 
-        setTimeout(() => {
-            inputRefs.current[id]?.focus();
-        }, 0);
+        return {
+            id: raw.id,
+            content: raw.content,
+            parentId: raw.parentCommentId || null,
+            likes: raw.likes || 0,
+            replies: raw.replies?.length || 0,
+            name: auth?.user?.fullName || auth?.user?.username || "Ẩn danh",
+            user: "@" + (auth?.user?.username || "unknown"),
+            avatarUrl: auth?.user?.avatarUrl || null,
+            timestamp,
+        };
     };
 
-    const handleReplySubmit = (parentId: number) => {
-        const content = replyValues[parentId];
-        if (content?.trim()) {
-            const newReply: Comment = {
-                id: comments.length + replyComments.length + 1,
-                parentId,
-                avatar: avatarImage,
-                name: currentUser.name,
-                user: currentUser.user,
-                timestamp: 'Vừa phản hồi',
-                content,
-                likes: 0,
-                replies: 0,
-            };
+    const fetchComments = async () => {
+        try {
+            const res = await GetCommentsByChapter(chapterId, novelId, {
+                page: 0,
+                limit: 50,
+                includeReplies: true,
+            });
 
-            setReplyComments((prev) => [...prev, newReply]);
-            setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
-            setReplyValues((prev) => ({ ...prev, [parentId]: '' }));
+            const rawComments = res.data.data;
+            const enriched = await Promise.all(rawComments.map(enrichComment));
+
+            setComments(enriched.filter((c) => !c.parentId));
+            setReplyComments(enriched.filter((c) => c.parentId));
+        } catch (error) {
+            console.error("Lỗi khi lấy bình luận:", error);
         }
     };
 
-    const [replyComments, setReplyComments] = useState<Comment[]>([]);
-    const [replyInputs, setReplyInputs] = useState<{ [id: number]: boolean }>({});
-    const [replyValues, setReplyValues] = useState<{ [id: number]: string }>({});
+    useEffect(() => {
+        fetchComments();
+    }, [chapterId, novelId]);
 
-    const handleReplyChange = (id: number, value: string) => {
-        setReplyValues((prev) => ({
-            ...prev,
-            [id]: value,
-        }));
+    const handlePostComment = async () => {
+        if (!newComment.trim()) return;
+
+        try {
+            const res = await CreateComment({
+                content: newComment,
+                novelId,
+                chapterId,
+            });
+
+            const raw = res.data?.data?.comment;
+            if (!raw) throw new Error("Không nhận được bình luận vừa tạo");
+
+            // 🛠 Trường hợp backend không trả kèm userId, ta dùng user đang đăng nhập
+            const enriched = await enrichComment({
+                ...raw,
+                userId: auth?.user?.id, // ép userId để đảm bảo enrichComment hoạt động
+                createdAt: raw.createdAt || raw.created_at,
+            });
+
+            setComments((prev) => [enriched, ...prev]);
+            setNewComment("");
+        } catch (error) {
+            console.error("Gửi bình luận thất bại:", error);
+        }
     };
 
-    const inputRefs = useRef<{ [id: number]: HTMLInputElement | null }>({});
+    const handleReplyClick = (id: string, name: string) => {
+        setReplyInputs((prev) => ({ ...prev, [id]: true }));
+        setReplyValues((prev) => ({ ...prev, [id]: `${name} ` }));
+        setTimeout(() => inputRefs.current[id]?.focus(), 0);
+    };
+
+    const handleReplyChange = (id: string, value: string) => {
+        setReplyValues((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const handleReplySubmit = async (parentId: string) => {
+        const content = replyValues[parentId];
+        if (!content.trim()) return;
+
+        try {
+            const response = await ReplyComment(parentId, { content });
+            const rawReply = response.data?.data?.comment;
+            if (!rawReply) throw new Error("Không nhận được phản hồi vừa tạo");
+
+            const enriched = await enrichComment(rawReply);
+
+            setReplyComments((prev) => [...prev, enriched]);
+            setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
+            setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
+        } catch (error) {
+            console.error("Phản hồi thất bại:", error);
+        }
+    };
 
     return (
         <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
-            <div style={{ backgroundColor: '#1e1e1e', color: '#ffffff', padding: '30px' }}>
+            <div style={{ backgroundColor: "#1e1e1e", color: "#ffffff", padding: "30px" }}>
                 <h3 className="font-semibold">Bình luận ({comments.length})</h3>
-                <hr style={{ marginLeft: '-50px', marginRight: '-50px', marginTop: '20px', width: 'calc(100% + 100px)', borderTop: '1px solid #4B5563' }} />
+                <hr style={{
+                    marginLeft: "-50px",
+                    marginRight: "-50px",
+                    marginTop: "20px",
+                    width: "calc(100% + 100px)",
+                    borderTop: "1px solid #4B5563",
+                }} />
             </div>
 
+            {/* Form đăng comment */}
             <div className="p-3">
-                <div className="flex justify-between items-start space-x-4">
-                    <div className="flex items-center space-x-4">
-                        <img src={avatarImage} className="w-10 h-10 rounded-full" />
-                        <div>
-                            <p className="font-semibold">{currentUser.name}</p>
-                            <p className="text-xs text-gray-400">{currentUser.user}</p>
-                        </div>
+                <div className="flex items-center space-x-4">
+                    <img src={currentUser.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
+                    <div>
+                        <p className="font-semibold">{currentUser.name}</p>
+                        <p className="text-xs text-gray-400">{currentUser.user}</p>
                     </div>
                 </div>
 
@@ -163,7 +178,7 @@ export const CommentUser = () => {
                             <img src={ImageAdd02Icon} className="w-6 h-6" />
                             <img src={SmileIcon} className="w-6 h-6" />
                         </div>
-                        <button onClick={handlePostComment} className="buttonPost">
+                        <button type="button" onClick={handlePostComment} className="buttonPost">
                             <div className="flex gap-2 items-center">
                                 Đăng
                                 <img src={SentIcon} alt="Gửi" className="w-4 h-4" />
@@ -173,14 +188,17 @@ export const CommentUser = () => {
                 </div>
             </div>
 
+            {/* Comment + Reply hiển thị */}
             {comments.map((comment) => (
                 <div key={comment.id} className="mb-3 p-3 rounded-md">
                     <div className="flex justify-between items-start space-x-4">
                         <div className="flex items-center space-x-4">
-                            <img src={avatarImage} className="w-10 h-10 rounded-full" />
+                            <img src={comment.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
                             <div>
                                 <p className="font-semibold">{comment.name}</p>
-                                <p className="text-xs text-gray-400">{comment.user} • {comment.timestamp}</p>
+                                <p className="text-xs text-gray-400">
+                                    {comment.user} • {comment.timestamp}
+                                </p>
                             </div>
                         </div>
                         {comment.user === currentUser.user ? <MoreUser /> : <MoreButton />}
@@ -194,10 +212,7 @@ export const CommentUser = () => {
                                 <img src={favorite} />
                                 {comment.likes}
                             </span>
-                            <span
-                                className="flex items-center gap-2 cursor-pointer"
-                                onClick={() => handleReplyClick(comment.id, comment.name)}
-                            >
+                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id, comment.name)}>
                                 <img src={CommentAdd01Icon} />
                                 {comment.replies}
                             </span>
@@ -207,7 +222,7 @@ export const CommentUser = () => {
                             <div className="mt-4 max-w-2xl">
                                 <Reply
                                     currentUser={currentUser}
-                                    replyValue={replyValues[comment.id] || ''}
+                                    replyValue={replyValues[comment.id] || ""}
                                     onReplyChange={(e) => handleReplyChange(comment.id, e.target.value)}
                                     onReplySubmit={() => handleReplySubmit(comment.id)}
                                     inputRef={(el) => (inputRefs.current[comment.id] = el)}
@@ -216,11 +231,11 @@ export const CommentUser = () => {
                         )}
 
                         {replyComments
-                            .filter(reply => reply.parentId === comment.id)
-                            .map(reply => (
+                            .filter((reply) => reply.parentId === comment.id)
+                            .map((reply) => (
                                 <NestedReply
                                     key={reply.id}
-                                    parent={reply}
+                                    comment={reply}
                                     currentUser={currentUser}
                                     replies={replyComments}
                                     replyInputs={replyInputs}

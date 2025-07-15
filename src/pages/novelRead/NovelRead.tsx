@@ -145,7 +145,9 @@ export const NovelRead = () => {
         </div>
       </div>
 
-      <CommentUser />
+      {novelId && chapterId && (
+        <CommentUser novelId={novelId} chapterId={chapterId} />
+      )}
     </div>
   );
 };

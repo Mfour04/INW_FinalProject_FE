@@ -1,11 +1,13 @@
 export interface Comment {
-    id: number;
-    avatar?: string;
+    id: string;
+    avatarUrl?: string | null;
     name: string;
     user: string;
     timestamp: string;
     content: string;
     likes: number;
     replies: number;
-    parentId?: number;
+    parentId?: string;
+    novelId?: string;
+    chapterId?: string;
 }
