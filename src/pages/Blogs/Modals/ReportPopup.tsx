@@ -4,7 +4,7 @@ interface ReportPopupProps {
   setReportId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const ReportPopup: React.FC<ReportPopupProps> = ({ type, id, setReportId }) => (
+const ReportPopup = ({ type, id, setReportId }: ReportPopupProps) => (
   <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.3)] backdrop-blur-sm flex items-center justify-center">
     <div className="bg-[#1e1e21] text-white rounded-lg p-6 w-[90%] max-w-md">
       <h3 className="text-lg font-bold mb-4">

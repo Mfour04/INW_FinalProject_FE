@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { type Tabs } from "../types";
 
@@ -6,7 +7,7 @@ interface BlogHeaderProps {
   handleTabChange: (newTab: Tabs) => void;
 }
 
-const BlogHeader: React.FC<BlogHeaderProps> = ({ tab, handleTabChange }) => (
+const BlogHeader = ({ tab, handleTabChange }: BlogHeaderProps) => (
   <div className="bg-[#1e1e21] rounded-[10px] p-4 mb-5">
     <div className="flex justify-between">
       {(["all", "following"] as Tabs[]).map((t) => (

@@ -3,9 +3,9 @@ import { useToast } from "../../context/ToastContext/toast-context";
 import BlogHeader from "../Blogs/Post/BlogHeader";
 import PostForm from "../Blogs/Post/PostForm";
 import PostItem from "../Blogs/Post/PostItem";
-import DeleteConfirmPopup from "../Blogs/Modals/DeleteConfirmPopup";
 import ReportPopup from "../Blogs/Modals/ReportPopup";
 import ProfileSidebar from "../Blogs/Sidebar/ProfileSidebar";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { type Post, type Tabs } from "./types";
 
 const posts: Post[] = [
@@ -123,9 +123,11 @@ export const Blogs = () => {
   const inputFileRef = useRef<HTMLInputElement | null>(null);
   const [menuOpenPostId, setMenuOpenPostId] = useState<string | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [confirmDeletePostId, setConfirmDeletePostId] = useState<string | null>(
-    null
-  );
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<{
+    type: "post" | "comment";
+    id: string;
+  } | null>(null);
   const [reportPostId, setReportPostId] = useState<string | null>(null);
   const [openComments, setOpenComments] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
@@ -135,9 +137,6 @@ export const Blogs = () => {
   );
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
-  const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState<
-    string | null
-  >(null);
   const [reportCommentId, setReportCommentId] = useState<string | null>(null);
   const [visibleRootComments, setVisibleRootComments] = useState<{
     [postId: string]: number;
@@ -145,8 +144,8 @@ export const Blogs = () => {
   const [replyingTo, setReplyingTo] = useState<{
     commentId: string;
     username: string;
-  } | null>(null); // Added replyingTo state
-  const [commentInput, setCommentInput] = useState<string>(""); // Added commentInput state
+  } | null>(null);
+  const [commentInput, setCommentInput] = useState<string>("");
 
   const toast = useToast();
 
@@ -201,6 +200,25 @@ export const Blogs = () => {
     }, 200);
   };
 
+  const handleDelete = () => {
+    if (deleteAction) {
+      console.log(`Deleting ${deleteAction.type}:`, deleteAction.id);
+      // Thay bằng API call, ví dụ:
+      // if (deleteAction.type === "post") {
+      //   deletePostMutation.mutate(deleteAction.id);
+      // } else {
+      //   deleteCommentMutation.mutate(deleteAction.id);
+      // }
+    }
+    setShowConfirmModal(false);
+    setDeleteAction(null);
+  };
+
+  const handleRequestDelete = (type: "post" | "comment", id: string) => {
+    setDeleteAction({ type, id });
+    setShowConfirmModal(true);
+  };
+
   const renderTabContent = () => {
     const data = tab === "all" ? posts : postsFollowing;
     return (
@@ -225,7 +243,6 @@ export const Blogs = () => {
             setMenuOpenPostId={setMenuOpenPostId}
             editingPostId={editingPostId}
             setEditingPostId={setEditingPostId}
-            setConfirmDeletePostId={setConfirmDeletePostId}
             setReportPostId={setReportPostId}
             openComments={openComments}
             setOpenComments={setOpenComments}
@@ -240,12 +257,12 @@ export const Blogs = () => {
             setEditingCommentId={setEditingCommentId}
             editedContent={editedContent}
             setEditedContent={setEditedContent}
-            setConfirmDeleteCommentId={setConfirmDeleteCommentId}
             setReportCommentId={setReportCommentId}
             commentInput={commentInput}
             setCommentInput={setCommentInput}
             replyingTo={replyingTo}
             setReplyingTo={setReplyingTo}
+            onRequestDelete={handleRequestDelete}
           />
         ))}
       </div>
@@ -257,7 +274,7 @@ export const Blogs = () => {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <BlogHeader tab={tab} handleTabChange={handleTabChange} />
-          <div className="flex-1 overflow-y-auto min-h-screen">
+          <div className="flex-1-auto min-h-screen">
             <div
               className={`transition-all duration-300 ${
                 transitioning
@@ -269,25 +286,11 @@ export const Blogs = () => {
             </div>
           </div>
         </div>
-        {confirmDeleteCommentId && (
-          <DeleteConfirmPopup
-            type="comment"
-            id={confirmDeleteCommentId}
-            setConfirmDeleteId={setConfirmDeleteCommentId}
-          />
-        )}
         {reportCommentId && (
           <ReportPopup
             type="comment"
             id={reportCommentId}
             setReportId={setReportCommentId}
-          />
-        )}
-        {confirmDeletePostId && (
-          <DeleteConfirmPopup
-            type="post"
-            id={confirmDeletePostId}
-            setConfirmDeleteId={setConfirmDeletePostId}
           />
         )}
         {reportPostId && (
@@ -297,6 +300,18 @@ export const Blogs = () => {
             setReportId={setReportPostId}
           />
         )}
+        <ConfirmModal
+          isOpen={showConfirmModal}
+          title={
+            deleteAction?.type === "post" ? "Xóa bài viết" : "Xóa bình luận"
+          }
+          message="Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác."
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setShowConfirmModal(false);
+            setDeleteAction(null);
+          }}
+        />
         <ProfileSidebar />
       </div>
     </div>

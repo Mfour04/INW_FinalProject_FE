@@ -3,6 +3,7 @@ import { useRef, useEffect } from "react";
 import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
 import CommentItem from "./CommentItem";
 import { type Comment } from "../types";
+import Button from "../../../components/ButtonComponent";
 
 const forumComments: Comment[] = [
   {
@@ -31,7 +32,7 @@ const forumComments: Comment[] = [
     id: "cmt_003",
     post_id: "1",
     user_id: "user_003",
-    content: "@Nguyễn Văn A cảm ơn bạn nhé 😄",
+    content: "@Ng wallpapers có thể được sử dụng để làm gì vậy? 😄",
     parent_comment_id: "cmt_001",
     like_count: 2,
     reply_count: 0,
@@ -134,21 +135,19 @@ interface CommentSectionProps {
   setEditingCommentId: React.Dispatch<React.SetStateAction<string | null>>;
   editedContent: string;
   setEditedContent: React.Dispatch<React.SetStateAction<string>>;
-  setConfirmDeleteCommentId: React.Dispatch<
-    React.SetStateAction<string | null>
-  >;
   setReportCommentId: React.Dispatch<React.SetStateAction<string | null>>;
-  replyingTo: { commentId: string; username: string } | null; // Added replyingTo prop
+  replyingTo: { commentId: string; username: string } | null;
   setReplyingTo: React.Dispatch<
     React.SetStateAction<{ commentId: string; username: string } | null>
-  >; // Added setReplyingTo prop
-  commentInput: string; // Added commentInput prop
-  setCommentInput: React.Dispatch<React.SetStateAction<string>>; // Added setCommentInput prop
+  >;
+  commentInput: string;
+  setCommentInput: React.Dispatch<React.SetStateAction<string>>;
+  onRequestDelete: (type: "post" | "comment", id: string) => void;
 }
 
 const INITIAL_VISIBLE_COMMENTS = 3;
 
-const CommentSection: React.FC<CommentSectionProps> = ({
+const CommentSection = ({
   postId,
   isMobile,
   openComments,
@@ -163,13 +162,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   setEditingCommentId,
   editedContent,
   setEditedContent,
-  setConfirmDeleteCommentId,
   setReportCommentId,
   replyingTo,
   setReplyingTo,
   commentInput,
   setCommentInput,
-}) => {
+  onRequestDelete,
+}: CommentSectionProps) => {
   const rootComments = forumComments.filter(
     (c) => c.parent_comment_id === null
   );
@@ -184,14 +183,25 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       [postId]: INITIAL_VISIBLE_COMMENTS,
     }));
   };
-  const inputRef = useRef<HTMLInputElement>(null); // Ref for focusing input
+  const inputRef = useRef<HTMLInputElement>(null);
+  const commentSectionRef = useRef<HTMLDivElement>(null);
 
-  // Focus input when replyingTo changes
+  // Focus input when replying
   useEffect(() => {
     if (replyingTo && inputRef.current) {
       inputRef.current.focus();
     }
   }, [replyingTo]);
+
+  // Debug log
+  useEffect(() => {
+    console.log("CommentSection props:", {
+      postId,
+      isMobile,
+      openComments: Array.from(openComments),
+      shouldRender: openComments.has(postId),
+    });
+  }, [postId, isMobile, openComments]);
 
   const handleCommentSubmit = () => {
     if (!commentInput.trim()) return;
@@ -200,117 +210,104 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       content: commentInput,
       parent_comment_id: replyingTo?.commentId || null,
     });
-    // Reset input and replyingTo state after submission
     setCommentInput("");
     setReplyingTo(null);
   };
 
   return (
     <AnimatePresence initial={false}>
-      {openComments.has(postId) &&
-        (isMobile ? (
+      {openComments.has(postId) && (
+        <motion.div
+          ref={commentSectionRef}
+          key={`comment-${postId}`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className={`mt-4 ${isMobile ? "px-2" : "px-4"}`}
+        >
           <motion.div
-            key={`comment-mobile-${postId}`}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-sm flex flex-col p-4"
+            className={`bg-[#2b2b2c] rounded-lg ${
+              isMobile ? "p-3" : "p-4"
+            } text-white`}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white text-lg font-bold">Bình luận</h2>
-              <button
-                onClick={() => {
-                  setOpenComments((prev) => {
-                    const newSet = new Set(prev);
-                    newSet.delete(postId);
-                    return newSet;
-                  });
-                  setReplyingTo(null); // Reset replyingTo when closing
-                }}
-                className="text-white text-2xl font-bold px-2"
-                aria-label="Đóng bình luận"
-              >
-                ×
-              </button>
-            </div>
-            <motion.div
-              className="flex-1 overflow-y-auto text-white"
-              initial={{ opacity: 0, y: -15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25 }}
-            >
-              {(() => {
-                const postRootComments = rootComments.filter(
-                  (c) => c.post_id === postId
-                );
-                const visibleCount =
-                  visibleRootComments[postId] || INITIAL_VISIBLE_COMMENTS;
-                const commentsToShow = postRootComments.slice(0, visibleCount);
-                if (postRootComments.length === 0) {
-                  return (
-                    <p className="text-sm text-[#aaa] italic">
+            {(() => {
+              const postRootComments = rootComments.filter(
+                (c) => c.post_id === postId
+              );
+              const visibleCount =
+                visibleRootComments[postId] || INITIAL_VISIBLE_COMMENTS;
+              const commentsToShow = postRootComments.slice(0, visibleCount);
+              return (
+                <>
+                  {postRootComments.length === 0 && (
+                    <p
+                      className={`text-sm mb-2 text-[#aaa] italic ${
+                        isMobile ? "text-xs" : ""
+                      }`}
+                    >
                       Chưa có bình luận nào
                     </p>
-                  );
-                }
-                return (
-                  <>
-                    {commentsToShow.map((comment) => (
-                      <CommentItem
-                        key={comment.id}
-                        comment={comment}
-                        replies={getReplies(comment.id)}
-                        isOpenReply={openReplyId === comment.id}
-                        onToggleReply={handleToggleReply}
-                        menuOpenCommentId={menuOpenCommentId}
-                        setMenuOpenCommentId={setMenuOpenCommentId}
-                        editingCommentId={editingCommentId}
-                        setEditingCommentId={setEditingCommentId}
-                        editedContent={editedContent}
-                        setEditedContent={setEditedContent}
-                        setConfirmDeleteCommentId={setConfirmDeleteCommentId}
-                        setReportCommentId={setReportCommentId}
-                        onReply={(commentId, username) => {
-                          setReplyingTo({ commentId, username });
-                          setCommentInput(`@${username} `);
-                        }}
-                      />
-                    ))}
-                    <div className="mt-3">
-                      {postRootComments.length > visibleCount && (
-                        <button
-                          onClick={() =>
-                            setVisibleRootComments((prev) => ({
-                              ...prev,
-                              [postId]: visibleCount + 3,
-                            }))
-                          }
-                          className="text-sm text-[#ff6740] hover:underline font-medium mr-4"
-                        >
-                          Xem thêm bình luận...
-                        </button>
-                      )}
-                      {visibleCount > INITIAL_VISIBLE_COMMENTS && (
-                        <button
-                          onClick={handleHideComments}
-                          className="text-sm text-[#ff6740] hover:underline font-medium"
-                        >
-                          Ẩn bớt bình luận
-                        </button>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4 flex items-center gap-2"
+                  )}
+                  {commentsToShow.map((comment) => (
+                    <CommentItem
+                      key={comment.id}
+                      comment={comment}
+                      replies={getReplies(comment.id)}
+                      isOpenReply={openReplyId === comment.id}
+                      onToggleReply={handleToggleReply}
+                      menuOpenCommentId={menuOpenCommentId}
+                      setMenuOpenCommentId={setMenuOpenCommentId}
+                      editingCommentId={editingCommentId}
+                      setEditingCommentId={setEditingCommentId}
+                      editedContent={editedContent}
+                      setEditedContent={setEditedContent}
+                      setReportCommentId={setReportCommentId}
+                      onReply={(commentId, username) => {
+                        setReplyingTo({ commentId, username });
+                        setCommentInput(`@${username} `);
+                      }}
+                      onRequestDelete={onRequestDelete}
+                    />
+                  ))}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {postRootComments.length > visibleCount && (
+                      <button
+                        onClick={() =>
+                          setVisibleRootComments((prev) => ({
+                            ...prev,
+                            [postId]: visibleCount + 3,
+                          }))
+                        }
+                        className={`text-sm text-[#ff6740] hover:underline font-medium ${
+                          isMobile ? "text-xs" : ""
+                        }`}
+                      >
+                        Xem thêm bình luận...
+                      </button>
+                    )}
+                    {visibleCount > INITIAL_VISIBLE_COMMENTS && (
+                      <button
+                        onClick={handleHideComments}
+                        className={`text-sm text-[#ff6740] hover:underline font-medium ${
+                          isMobile ? "text-xs" : ""
+                        }`}
+                      >
+                        Ẩn bớt bình luận
+                      </button>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+            <div
+              className={`mt-4 flex items-center gap-2 ${
+                isMobile ? "sticky bottom-0 bg-[#2b2b2c] py-2" : ""
+              }`}
             >
               <input
                 ref={inputRef}
@@ -321,119 +318,29 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 onKeyPress={(e) => {
                   if (e.key === "Enter") handleCommentSubmit();
                 }}
-                className="flex-1 bg-[#2b2b2c] text-white px-4 py-2 rounded-full outline-none"
+                className={`flex-1 ${
+                  isMobile ? "text-sm px-3 py-1" : "text-base px-4 py-2"
+                } bg-[#1e1e21] text-white rounded-full outline-none`}
               />
-              <button
+              <Button
+                isLoading={false}
                 onClick={handleCommentSubmit}
                 disabled={!commentInput.trim()}
-                className="bg-[#ff6740] text-white px-4 py-2 rounded-full disabled:bg-gray-600 disabled:cursor-not-allowed"
+                className={`bg-[#ff6740] text-white ${
+                  isMobile ? "px-3 py-1" : "px-4 py-2"
+                } rounded-full disabled:bg-gray-600 disabled:cursor-not-allowed`}
                 aria-label="Gửi bình luận"
               >
-                <img src={SentHugeIcon} alt="Sent icon" />
-              </button>
-            </motion.div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`comment-desktop-${postId}`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden mt-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: -15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="bg-[#2b2b2c] rounded-lg p-4 text-white"
-            >
-              {(() => {
-                const postRootComments = rootComments.filter(
-                  (c) => c.post_id === postId
-                );
-                const visibleCount =
-                  visibleRootComments[postId] || INITIAL_VISIBLE_COMMENTS;
-                const commentsToShow = postRootComments.slice(0, visibleCount);
-                return (
-                  <>
-                    {postRootComments.length === 0 && (
-                      <p className="text-sm mb-2 text-[#aaa] italic">
-                        Chưa có bình luận nào
-                      </p>
-                    )}
-                    {commentsToShow.map((comment) => (
-                      <CommentItem
-                        key={comment.id}
-                        comment={comment}
-                        replies={getReplies(comment.id)}
-                        isOpenReply={openReplyId === comment.id}
-                        onToggleReply={handleToggleReply}
-                        menuOpenCommentId={menuOpenCommentId}
-                        setMenuOpenCommentId={setMenuOpenCommentId}
-                        editingCommentId={editingCommentId}
-                        setEditingCommentId={setEditingCommentId}
-                        editedContent={editedContent}
-                        setEditedContent={setEditedContent}
-                        setConfirmDeleteCommentId={setConfirmDeleteCommentId}
-                        setReportCommentId={setReportCommentId}
-                        onReply={(commentId, username) => {
-                          setReplyingTo({ commentId, username });
-                          setCommentInput(`@${username} `);
-                        }}
-                      />
-                    ))}
-                    <div className="mt-3">
-                      {postRootComments.length > visibleCount && (
-                        <button
-                          onClick={() =>
-                            setVisibleRootComments((prev) => ({
-                              ...prev,
-                              [postId]: visibleCount + 3,
-                            }))
-                          }
-                          className="text-sm text-[#ff6740] hover:underline font-medium mr-4"
-                        >
-                          Xem thêm bình luận...
-                        </button>
-                      )}
-                      {visibleCount > INITIAL_VISIBLE_COMMENTS && (
-                        <button
-                          onClick={handleHideComments}
-                          className="text-sm text-[#ff6740] hover:underline font-medium"
-                        >
-                          Ẩn bớt bình luận
-                        </button>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
-              <div className="mt-4 flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Viết bình luận..."
-                  value={commentInput}
-                  onChange={(e) => setCommentInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") handleCommentSubmit();
-                  }}
-                  className="flex-1 bg-[#1e1e21] px-4 py-2 rounded-full outline-none"
+                <img
+                  src={SentHugeIcon}
+                  alt="Sent icon"
+                  className={isMobile ? "w-5 h-5" : ""}
                 />
-                <button
-                  onClick={handleCommentSubmit}
-                  disabled={!commentInput.trim()}
-                  className="bg-[#ff6740] text-white px-4 py-2 rounded-full disabled:bg-gray-600 disabled:cursor-not-allowed"
-                  aria-label="Gửi bình luận"
-                >
-                  <img src={SentHugeIcon} alt="Sent icon" />
-                </button>
-              </div>
-            </motion.div>
+              </Button>
+            </div>
           </motion.div>
-        ))}
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 };
