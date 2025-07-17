@@ -55,10 +55,7 @@ export const CreateComment = (data: CreateCommentRequest) =>
     http.privateHttp.post<CommentApiResponse>("Comments/created", data);
 
 export const ReplyComment = (parentId: string, data: ReplyCommentRequest) =>
-    http.privateHttp.post<CommentApiResponse>(
-        `Comments/${parentId}/reply`,
-        data
-    );
+    http.privateHttp.post<CommentApiResponse>(`Comments/${parentId}/reply`, data);
 
 export const LikeComment = (commentId: string, userId: string) =>
     http.privateHttp.post(`Comments/${commentId}/likes`, { userId });

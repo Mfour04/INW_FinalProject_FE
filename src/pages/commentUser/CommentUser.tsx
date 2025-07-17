@@ -29,9 +29,10 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
     const { auth } = useAuth();
 
     const currentUser = {
-        name: auth?.user.username || "",
-        user: "@" + (auth?.user.username || "user"),
-        avatarUrl: auth?.user.avatarUrl,
+        id: (auth?.user as any)?.id || "",
+        name: (auth?.user as any)?.fullName || (auth?.user as any)?.username || "Ẩn danh",
+        user: "@" + ((auth?.user as any)?.username || "user"),
+        avatarUrl: (auth?.user as any)?.avatarUrl || null,
     };
 
     const [comments, setComments] = useState<Comment[]>([]);
@@ -41,24 +42,41 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
     const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
     const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
-    const enrichComment = async (raw: any): Promise<Comment> => {
-        const timestamp = new Date(Number(raw.createdAt || raw.created_at)).toLocaleString("vi-VN", {
+    const formatVietnamTimeFromTicks = (ticks: number): string => {
+        const epochTicks = 621355968000000000;
+        const ticksPerMs = 10000;
+        const jsUtcMs = (ticks - epochTicks) / ticksPerMs;
+        const utcDate = new Date(jsUtcMs);
+        const vietnamMs = utcDate.getTime() - 7 * 60 * 60 * 1000;
+        const vietnamDate = new Date(vietnamMs);
+
+        return vietnamDate.toLocaleString("vi-VN", {
             hour: "2-digit",
             minute: "2-digit",
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
         });
+    };
+
+    const enrichComment = async (raw: any): Promise<Comment> => {
+        const ticks = Number(raw.created_at || raw.createdAt);
+        const timestamp =
+            !isNaN(ticks) && ticks > 621355968000000000
+                ? formatVietnamTimeFromTicks(ticks)
+                : "Không xác định";
+
+        const user = auth?.user as any;
 
         return {
             id: raw.id,
             content: raw.content,
-            parentId: raw.parentCommentId || null,
+            parentId: raw.parent_comment_id || null,
             likes: raw.likes || 0,
             replies: raw.replies?.length || 0,
-            name: auth?.user?.fullName || auth?.user?.username || "Ẩn danh",
-            user: "@" + (auth?.user?.username || "unknown"),
-            avatarUrl: auth?.user?.avatarUrl || null,
+            name: user.fullName || user.username || "Ẩn danh",
+            user: "@" + (user.username || "unknown"),
+            avatarUrl: user.avatarUrl || null,
             timestamp,
         };
     };
@@ -98,12 +116,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
             const raw = res.data?.data?.comment;
             if (!raw) throw new Error("Không nhận được bình luận vừa tạo");
 
-            // 🛠 Trường hợp backend không trả kèm userId, ta dùng user đang đăng nhập
-            const enriched = await enrichComment({
-                ...raw,
-                userId: auth?.user?.id, // ép userId để đảm bảo enrichComment hoạt động
-                createdAt: raw.createdAt || raw.created_at,
-            });
+            const enriched = await enrichComment(raw);
 
             setComments((prev) => [enriched, ...prev]);
             setNewComment("");
@@ -154,7 +167,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                 }} />
             </div>
 
-            {/* Form đăng comment */}
+
             <div className="p-3">
                 <div className="flex items-center space-x-4">
                     <img src={currentUser.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
@@ -188,7 +201,6 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                 </div>
             </div>
 
-            {/* Comment + Reply hiển thị */}
             {comments.map((comment) => (
                 <div key={comment.id} className="mb-3 p-3 rounded-md">
                     <div className="flex justify-between items-start space-x-4">
