@@ -1,16 +1,16 @@
 export interface Chapter {
-  id: string;
-  novel_id: string;
+  chapterId: string;
+  novelId: string;
   title: string;
   content: string;
-  chapter_number: number;
-  is_paid: boolean;
+  chapterNumber: number;
+  isPaid: boolean;
   price: number;
-  scheduled_at: number;
-  is_lock: boolean;
-  is_draft: boolean;
-  is_public: boolean;
-  comment_count: number | null;
-  created_at: number;
-  updated_at: number;
+  scheduledAt: number;
+  isLock: boolean;
+  isDraft: boolean;
+  isPublic: boolean;
+  commentCount: number | null;
+  createAt: number;
+  updateAt: number;
 }
