@@ -1,12 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import type { Comment } from "../commentUser/Comment";
-import {
-    GetCommentsByChapter,
-    CreateComment,
-    ReplyComment,
-} from "../../api/Comment/comment.api";
+import { ReplyComment } from "../../api/Comment/comment.api";
 import { useAuth } from "../../api/Comment/useAuth.ts";
-import { GetUserById } from "../../api/Comment/user.api.ts";
 
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
@@ -20,6 +15,11 @@ import { MoreUser } from "../../pages/commentUser/MoreUser";
 import { Reply } from "../../pages/commentUser/Reply";
 import { NestedReply } from "../../pages/commentUser/NestedReply";
 
+import { UseComments } from "../../pages/commentUser/UseComments";
+import { UseCreateComment } from "../../pages/commentUser/UseCreateComment";
+import { UseUpdateComment } from "../../pages/commentUser/UseUpdateComment";
+import { UseDeleteComment } from "../../pages/commentUser/UseDeleteComment";
+
 interface CommentUserProps {
     novelId: string;
     chapterId: string;
@@ -28,6 +28,15 @@ interface CommentUserProps {
 export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) => {
     const { auth } = useAuth();
 
+    const [editedComments, setEditedComments] = useState<{
+        [id: string]: { content: string; timestamp: string };
+    }>({});
+
+    const getCurrentTicks = (): number => {
+        const utcMs = Date.now() + 7 * 60 * 60 * 1000;
+        return utcMs * 10000 + 621355968000000000;
+    };
+
     const currentUser = {
         id: (auth?.user as any)?.id || "",
         name: (auth?.user as any)?.fullName || (auth?.user as any)?.username || "Ẩn danh",
@@ -35,8 +44,6 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
         avatarUrl: (auth?.user as any)?.avatarUrl || null,
     };
 
-    const [comments, setComments] = useState<Comment[]>([]);
-    const [replyComments, setReplyComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
     const [replyInputs, setReplyInputs] = useState<{ [id: string]: boolean }>({});
     const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
@@ -59,70 +66,46 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
         });
     };
 
-    const enrichComment = async (raw: any): Promise<Comment> => {
-        const ticks = Number(raw.created_at || raw.createdAt);
-        const timestamp =
-            !isNaN(ticks) && ticks > 621355968000000000
-                ? formatVietnamTimeFromTicks(ticks)
-                : "Không xác định";
+    const { data: rawComments = [], isLoading } = UseComments(chapterId, novelId);
+    const { mutate: postComment } = UseCreateComment(chapterId, novelId);
+    const { mutate: deleteComment } = UseDeleteComment(chapterId, novelId);
+    const { mutate: updateComment } = UseUpdateComment(chapterId, novelId);
 
-        const user = auth?.user as any;
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState<string>("");
+    const [originalTimestamp, setOriginalTimestamp] = useState<{ [id: string]: string }>({});
 
-        return {
-            id: raw.id,
-            content: raw.content,
-            parentId: raw.parent_comment_id || null,
-            likes: raw.likes || 0,
-            replies: raw.replies?.length || 0,
-            name: user.fullName || user.username || "Ẩn danh",
-            user: "@" + (user.username || "unknown"),
-            avatarUrl: user.avatarUrl || null,
-            timestamp,
-        };
-    };
+    const enrichedComments = useMemo(() => {
+        return rawComments.map((c: any) => {
+            const rawTicks = c.created_at ?? c.createdAt;
+            const ticks = typeof rawTicks === "string" ? Number(rawTicks) : rawTicks;
 
-    const fetchComments = async () => {
-        try {
-            const res = await GetCommentsByChapter(chapterId, novelId, {
-                page: 0,
-                limit: 50,
-                includeReplies: true,
-            });
+            const timestamp =
+                ticks && !isNaN(ticks) && ticks > 621355968000000000
+                    ? formatVietnamTimeFromTicks(ticks)
+                    : "Vừa xong";
 
-            const rawComments = res.data.data;
-            const enriched = await Promise.all(rawComments.map(enrichComment));
+            return {
+                id: c.id,
+                content: c.content,
+                parentId: c.parent_comment_id || null,
+                likes: c.likes || 0,
+                replies: c.replies?.length || 0,
+                name: currentUser.name,
+                user: currentUser.user,
+                avatarUrl: currentUser.avatarUrl,
+                timestamp,
+            };
+        });
+    }, [rawComments]);
 
-            setComments(enriched.filter((c) => !c.parentId));
-            setReplyComments(enriched.filter((c) => c.parentId));
-        } catch (error) {
-            console.error("Lỗi khi lấy bình luận:", error);
-        }
-    };
+    const topLevelComments = enrichedComments.filter((c) => !c.parentId);
+    const nestedReplies = enrichedComments.filter((c) => c.parentId);
 
-    useEffect(() => {
-        fetchComments();
-    }, [chapterId, novelId]);
-
-    const handlePostComment = async () => {
+    const handlePostComment = () => {
         if (!newComment.trim()) return;
-
-        try {
-            const res = await CreateComment({
-                content: newComment,
-                novelId,
-                chapterId,
-            });
-
-            const raw = res.data?.data?.comment;
-            if (!raw) throw new Error("Không nhận được bình luận vừa tạo");
-
-            const enriched = await enrichComment(raw);
-
-            setComments((prev) => [enriched, ...prev]);
-            setNewComment("");
-        } catch (error) {
-            console.error("Gửi bình luận thất bại:", error);
-        }
+        postComment(newComment);
+        setNewComment("");
     };
 
     const handleReplyClick = (id: string, name: string) => {
@@ -144,9 +127,19 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
             const rawReply = response.data?.data?.comment;
             if (!rawReply) throw new Error("Không nhận được phản hồi vừa tạo");
 
-            const enriched = await enrichComment(rawReply);
+            const reply = {
+                id: rawReply.id,
+                content: rawReply.content,
+                parentId: rawReply.parent_comment_id || null,
+                likes: rawReply.likes || 0,
+                replies: rawReply.replies?.length || 0,
+                name: currentUser.name,
+                user: currentUser.user,
+                avatarUrl: currentUser.avatarUrl,
+                timestamp: formatVietnamTimeFromTicks(Number(rawReply.created_at)),
+            };
 
-            setReplyComments((prev) => [...prev, enriched]);
+            nestedReplies.push(reply);
             setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
             setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
         } catch (error) {
@@ -157,16 +150,17 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
     return (
         <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
             <div style={{ backgroundColor: "#1e1e1e", color: "#ffffff", padding: "30px" }}>
-                <h3 className="font-semibold">Bình luận ({comments.length})</h3>
-                <hr style={{
-                    marginLeft: "-50px",
-                    marginRight: "-50px",
-                    marginTop: "20px",
-                    width: "calc(100% + 100px)",
-                    borderTop: "1px solid #4B5563",
-                }} />
+                <h3 className="font-semibold">Bình luận ({topLevelComments.length})</h3>
+                <hr
+                    style={{
+                        marginLeft: "-50px",
+                        marginRight: "-50px",
+                        marginTop: "20px",
+                        width: "calc(100% + 100px)",
+                        borderTop: "1px solid #4B5563",
+                    }}
+                />
             </div>
-
 
             <div className="p-3">
                 <div className="flex items-center space-x-4">
@@ -201,7 +195,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                 </div>
             </div>
 
-            {comments.map((comment) => (
+            {topLevelComments.map((comment: Comment) => (
                 <div key={comment.id} className="mb-3 p-3 rounded-md">
                     <div className="flex justify-between items-start space-x-4">
                         <div className="flex items-center space-x-4">
@@ -209,22 +203,91 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                             <div>
                                 <p className="font-semibold">{comment.name}</p>
                                 <p className="text-xs text-gray-400">
-                                    {comment.user} • {comment.timestamp}
+                                    {comment.user} • {editedComments[comment.id]?.timestamp || comment.timestamp}
+                                    {editedComments[comment.id] && (
+                                        <span className="italic text-gray-500 ml-1"></span>
+                                    )}
                                 </p>
                             </div>
                         </div>
-                        {comment.user === currentUser.user ? <MoreUser /> : <MoreButton />}
+                        {comment.user === currentUser.user ? <MoreUser
+                            commentId={comment.id}
+                            onDelete={deleteComment}
+                            onEdit={() => {
+                                setEditingCommentId(comment.id);
+                                setEditValue(comment.content);
+                                setOriginalTimestamp((prev) => ({ ...prev, [comment.id]: comment.timestamp }));
+                            }}
+                        />
+                            : <MoreButton />}
                     </div>
 
                     <div className="ml-14">
-                        <p className="mb-1">{comment.content}</p>
+                        {editingCommentId === comment.id ? (
+                            <div className="flex flex-col gap-2 mt-2">
+                                <input
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="comment w-[1570px]"
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            updateComment(
+                                                { commentId: comment.id, content: editValue },
+                                                {
+                                                    onSuccess: () => {
+                                                        const currentTicks = getCurrentTicks();
+                                                        const newFormattedTime = formatVietnamTimeFromTicks(currentTicks);
+
+                                                        setEditedComments((prev) => ({
+                                                            ...prev,
+                                                            [comment.id]: {
+                                                                content: editValue,
+                                                                timestamp: newFormattedTime,
+                                                            },
+                                                        }));
+
+                                                        setEditingCommentId(null);
+                                                        setEditValue("");
+                                                    },
+                                                }
+                                            );
+                                        }}
+                                        className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                                    >
+                                        Lưu
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setEditingCommentId(null);
+                                            setEditValue("");
+                                        }}
+                                        className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                                    >
+                                        Hủy
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="mb-1">
+                                {editedComments[comment.id]?.content || comment.content}
+                            </p>
+                        )}
 
                         <div className="mt-4 flex space-x-6">
-                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id, comment.name)}>
+                            <span
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => handleReplyClick(comment.id, comment.name)}
+                            >
                                 <img src={favorite} />
                                 {comment.likes}
                             </span>
-                            <span className="flex items-center gap-2 cursor-pointer" onClick={() => handleReplyClick(comment.id, comment.name)}>
+                            <span
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => handleReplyClick(comment.id, comment.name)}
+                            >
                                 <img src={CommentAdd01Icon} />
                                 {comment.replies}
                             </span>
@@ -242,14 +305,14 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                             </div>
                         )}
 
-                        {replyComments
-                            .filter((reply) => reply.parentId === comment.id)
-                            .map((reply) => (
+                        {nestedReplies
+                            .filter((reply: Comment) => reply.parentId === comment.id)
+                            .map((reply: Comment) => (
                                 <NestedReply
                                     key={reply.id}
                                     comment={reply}
                                     currentUser={currentUser}
-                                    replies={replyComments}
+                                    replies={nestedReplies}
                                     replyInputs={replyInputs}
                                     replyValues={replyValues}
                                     onReplyClick={handleReplyClick}

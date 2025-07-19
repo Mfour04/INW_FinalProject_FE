@@ -1,14 +1,27 @@
-import { useState } from 'react';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import { useState } from "react";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
 import block from "../../assets/svg/CommentUser/block.svg";
 import more_horiz from "../../assets/svg/CommentUser/more_horiz.svg";
-import EditIcon from '@mui/icons-material/Edit';
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "../../assets/svg/CommentUser/delete.svg";
 
-export const MoreUser = () => {
+interface MoreUserProps {
+    commentId: string;
+    onEdit: () => void;
+    onDelete: (id: string) => void;
+}
+
+export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const open = Boolean(anchorEl);
+    const openMenu = Boolean(anchorEl);
+
+    const [openDialog, setOpenDialog] = useState(false);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
         setAnchorEl(event.currentTarget);
@@ -16,6 +29,16 @@ export const MoreUser = () => {
 
     const handleMenuClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleOpenDialog = () => {
+        handleMenuClose();
+        setOpenDialog(true);
+    };
+
+    const handleConfirmDelete = () => {
+        onDelete(commentId);
+        setOpenDialog(false);
     };
 
     return (
@@ -29,16 +52,15 @@ export const MoreUser = () => {
 
             <Menu
                 anchorEl={anchorEl}
-                open={open}
+                open={openMenu}
                 onClose={handleMenuClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
                 slotProps={{
                     paper: {
                         sx: {
-                            bgcolor: '#1f1f1f',
-                            color: '#fff',
+                            bgcolor: "#1f1f1f",
+                            color: "#fff",
                             borderRadius: 2,
                             minWidth: 200,
                             boxShadow: 4,
@@ -47,21 +69,37 @@ export const MoreUser = () => {
                 }}
             >
                 <MenuItem
-                    onClick={() => alert('Báo cáo người dùng')}
-                    sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+                    onClick={() => {
+                        handleMenuClose();
+                        onEdit();
+                    }}
+                    sx={{ fontSize: 14, display: "flex", alignItems: "center", gap: 1, "&:hover": { bgcolor: "#333" } }}
                 >
                     <EditIcon className="w-6 h-6" />
                     Chỉnh sửa
                 </MenuItem>
 
                 <MenuItem
-                    onClick={() => alert('Đã chặn người dùng')}
-                    sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+                    onClick={handleOpenDialog}
+                    sx={{ fontSize: 14, display: "flex", alignItems: "center", gap: 1, "&:hover": { bgcolor: "#333" } }}
                 >
                     <img src={DeleteIcon} className="w-6 h-6" />
                     Xóa
                 </MenuItem>
             </Menu>
+
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+                <DialogTitle>Xác nhận xóa</DialogTitle>
+                <DialogContent>Bạn có chắc muốn xóa bình luận này?</DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDialog(false)} color="primary">
+                        Hủy
+                    </Button>
+                    <Button onClick={handleConfirmDelete} color="error">
+                        Xóa
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };

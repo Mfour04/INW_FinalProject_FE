@@ -51,6 +51,17 @@ export const GetCommentsByChapter = (
         params: { novelId, ...params },
     });
 
+export interface UpdateCommentPayload {
+    commentId: string;
+    content: string;
+}
+
+export interface UpdateCommentResponse {
+    commentId: string;
+    content: string;
+    updatedAt: number;
+}
+
 export const CreateComment = (data: CreateCommentRequest) =>
     http.privateHttp.post<CommentApiResponse>("Comments/created", data);
 
@@ -68,5 +79,7 @@ export const UnlikeComment = (commentId: string, userId: string) =>
 export const DeleteComment = (commentId: string) =>
     http.privateHttp.delete(`Comments/${commentId}`);
 
-export const UpdateComment = (comment: Comment) =>
-    http.privateHttp.put("Comments/update", comment);
+export const UpdateComment = (data: UpdateCommentPayload) =>
+    http.privateHttp.put("Comments/update", { updateComment: data });
+
+
