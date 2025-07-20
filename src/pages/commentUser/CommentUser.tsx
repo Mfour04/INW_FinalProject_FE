@@ -1,7 +1,9 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useContext } from "react";
 import type { Comment } from "../commentUser/Comment";
 import { ReplyComment } from "../../api/Comment/comment.api";
-import { useAuth } from "../../api/Comment/useAuth.ts";
+import { AuthContext } from "../../context/AuthContext/AuthProvider";
+import { formatVietnamTimeFromTicks } from "../../utils/date_format.ts";
+import { getCurrentTicks } from "../../utils/date_format.ts";
 
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
@@ -26,16 +28,11 @@ interface CommentUserProps {
 }
 
 export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) => {
-    const { auth } = useAuth();
+    const { auth } = useContext(AuthContext);
 
     const [editedComments, setEditedComments] = useState<{
         [id: string]: { content: string; timestamp: string };
     }>({});
-
-    const getCurrentTicks = (): number => {
-        const utcMs = Date.now() + 7 * 60 * 60 * 1000;
-        return utcMs * 10000 + 621355968000000000;
-    };
 
     const currentUser = {
         id: (auth?.user as any)?.id || "",
@@ -49,48 +46,37 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
     const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
     const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
-    const formatVietnamTimeFromTicks = (ticks: number): string => {
-        const epochTicks = 621355968000000000;
-        const ticksPerMs = 10000;
-        const jsUtcMs = (ticks - epochTicks) / ticksPerMs;
-        const utcDate = new Date(jsUtcMs);
-        const vietnamMs = utcDate.getTime() - 7 * 60 * 60 * 1000;
-        const vietnamDate = new Date(vietnamMs);
-
-        return vietnamDate.toLocaleString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
-    };
-
-    const { data: rawComments = [], isLoading } = UseComments(chapterId, novelId);
+    const { data: rawComments = [] } = UseComments(chapterId, novelId);
     const { mutate: postComment } = UseCreateComment(chapterId, novelId);
     const { mutate: deleteComment } = UseDeleteComment(chapterId, novelId);
     const { mutate: updateComment } = UseUpdateComment(chapterId, novelId);
 
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState<string>("");
-    const [originalTimestamp, setOriginalTimestamp] = useState<{ [id: string]: string }>({});
 
     const enrichedComments = useMemo(() => {
         return rawComments.map((c: any) => {
-            const rawTicks = c.created_at ?? c.createdAt;
-            const ticks = typeof rawTicks === "string" ? Number(rawTicks) : rawTicks;
+            const localTick = Number(localStorage.getItem(`updatedAt_${c.id}`));
+            const apiUpdatedAt = Number(c.updatedAt);
+            const createdAt = Number(c.createdAt);
 
-            const timestamp =
-                ticks && !isNaN(ticks) && ticks > 621355968000000000
-                    ? formatVietnamTimeFromTicks(ticks)
-                    : "Vừa xong";
+            const rawTicks =
+                localTick > apiUpdatedAt && localTick > createdAt
+                    ? localTick
+                    : apiUpdatedAt > createdAt
+                        ? apiUpdatedAt
+                        : createdAt;
+
+            const timestamp = !isNaN(rawTicks)
+                ? formatVietnamTimeFromTicks(rawTicks)
+                : "Không rõ thời gian";
 
             return {
                 id: c.id,
                 content: c.content,
-                parentId: c.parent_comment_id || null,
-                likes: c.likes || 0,
-                replies: c.replies?.length || 0,
+                parentId: c.parentCommentId ?? null,
+                likes: c.likeCount ?? 0,
+                replies: c.replies?.length ?? 0,
                 name: currentUser.name,
                 user: currentUser.user,
                 avatarUrl: currentUser.avatarUrl,
@@ -98,6 +84,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
             };
         });
     }, [rawComments]);
+
 
     const topLevelComments = enrichedComments.filter((c) => !c.parentId);
     const nestedReplies = enrichedComments.filter((c) => c.parentId);
@@ -216,7 +203,6 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                             onEdit={() => {
                                 setEditingCommentId(comment.id);
                                 setEditValue(comment.content);
-                                setOriginalTimestamp((prev) => ({ ...prev, [comment.id]: comment.timestamp }));
                             }}
                         />
                             : <MoreButton />}
@@ -237,17 +223,17 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                                                 { commentId: comment.id, content: editValue },
                                                 {
                                                     onSuccess: () => {
-                                                        const currentTicks = getCurrentTicks();
-                                                        const newFormattedTime = formatVietnamTimeFromTicks(currentTicks);
+                                                        const ticks = getCurrentTicks();
+                                                        const formattedTime = formatVietnamTimeFromTicks(ticks);
 
                                                         setEditedComments((prev) => ({
                                                             ...prev,
                                                             [comment.id]: {
                                                                 content: editValue,
-                                                                timestamp: newFormattedTime,
+                                                                timestamp: formattedTime,
                                                             },
                                                         }));
-
+                                                        localStorage.setItem(`updatedAt_${comment.id}`, String(ticks));
                                                         setEditingCommentId(null);
                                                         setEditValue("");
                                                     },

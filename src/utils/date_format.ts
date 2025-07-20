@@ -49,3 +49,24 @@ export const formatTicksToRelativeTime = (
   const m = convertTicksToMoment(ticks);
   return m ? m.fromNow() : "Không có dữ liệu";
 };
+
+export const formatVietnamTimeFromTicks = (ticks: number): string => {
+  const epochTicks = 621355968000000000;
+  const ticksPerMs = 10000;
+  const jsUtcMs = (ticks - epochTicks) / ticksPerMs;
+  const utcDate = new Date(jsUtcMs);
+  const vietnamMs = utcDate.getTime() - 7 * 60 * 60 * 1000;
+  const vietnamDate = new Date(vietnamMs);
+  return vietnamDate.toLocaleString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+export const getCurrentTicks = (): number => {
+  const utcMs = Date.now() + 7 * 60 * 60 * 1000;
+  return utcMs * 10000 + 621355968000000000;
+};
