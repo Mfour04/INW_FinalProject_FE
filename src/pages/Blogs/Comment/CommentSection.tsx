@@ -4,6 +4,7 @@ import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
 import CommentItem from "./CommentItem";
 import { type Comment } from "../types";
 import Button from "../../../components/ButtonComponent";
+import CloseIcon from "@mui/icons-material/Close";
 
 const forumComments: Comment[] = [
   {
@@ -32,7 +33,7 @@ const forumComments: Comment[] = [
     id: "cmt_003",
     post_id: "1",
     user_id: "user_003",
-    content: "@Ng wallpapers có thể được sử dụng để làm gì vậy? 😄",
+    content: "Wallpapers có thể được sử dụng để làm gì vậy? 😄",
     parent_comment_id: "cmt_001",
     like_count: 2,
     reply_count: 0,
@@ -143,6 +144,7 @@ interface CommentSectionProps {
   commentInput: string;
   setCommentInput: React.Dispatch<React.SetStateAction<string>>;
   onRequestDelete: (type: "post" | "comment", id: string) => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 const INITIAL_VISIBLE_COMMENTS = 3;
@@ -168,6 +170,7 @@ const CommentSection = ({
   commentInput,
   setCommentInput,
   onRequestDelete,
+  inputRef,
 }: CommentSectionProps) => {
   const rootComments = forumComments.filter(
     (c) => c.parent_comment_id === null
@@ -183,15 +186,24 @@ const CommentSection = ({
       [postId]: INITIAL_VISIBLE_COMMENTS,
     }));
   };
-  const inputRef = useRef<HTMLInputElement>(null);
   const commentSectionRef = useRef<HTMLDivElement>(null);
 
   // Focus input when replying
   useEffect(() => {
-    if (replyingTo && inputRef.current) {
+    if (replyingTo && inputRef && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [replyingTo]);
+  }, [replyingTo, inputRef]);
+
+  // Adjust scroll when keyboard opens
+  useEffect(() => {
+    if (!isMobile || !inputRef || !inputRef.current) return;
+    const handleKeyboard = () => {
+      inputRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    };
+    window.addEventListener("resize", handleKeyboard);
+    return () => window.removeEventListener("resize", handleKeyboard);
+  }, [isMobile, inputRef]);
 
   // Debug log
   useEffect(() => {
@@ -224,16 +236,14 @@ const CommentSection = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`mt-4 ${isMobile ? "px-2" : "px-4"}`}
+          className="px-4"
         >
           <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`bg-[#2b2b2c] rounded-lg ${
-              isMobile ? "p-3" : "p-4"
-            } text-white`}
+            className={`bg-[#2b2b2c] rounded-lg p-4 overscroll-contain`}
           >
             {(() => {
               const postRootComments = rootComments.filter(
@@ -245,11 +255,7 @@ const CommentSection = ({
               return (
                 <>
                   {postRootComments.length === 0 && (
-                    <p
-                      className={`text-sm mb-2 text-[#aaa] italic ${
-                        isMobile ? "text-xs" : ""
-                      }`}
-                    >
+                    <p className="text-[14px] sm:text-sm mb-2 text-[#aaa] italic">
                       Chưa có bình luận nào
                     </p>
                   )}
@@ -276,68 +282,98 @@ const CommentSection = ({
                   ))}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {postRootComments.length > visibleCount && (
-                      <button
+                      <motion.button
                         onClick={() =>
                           setVisibleRootComments((prev) => ({
                             ...prev,
                             [postId]: visibleCount + 3,
                           }))
                         }
-                        className={`text-sm text-[#ff6740] hover:underline font-medium ${
-                          isMobile ? "text-xs" : ""
-                        }`}
+                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         Xem thêm bình luận...
-                      </button>
+                      </motion.button>
                     )}
                     {visibleCount > INITIAL_VISIBLE_COMMENTS && (
-                      <button
+                      <motion.button
                         onClick={handleHideComments}
-                        className={`text-sm text-[#ff6740] hover:underline font-medium ${
-                          isMobile ? "text-xs" : ""
-                        }`}
+                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         Ẩn bớt bình luận
-                      </button>
+                      </motion.button>
                     )}
                   </div>
                 </>
               );
             })()}
-            <div
-              className={`mt-4 flex items-center gap-2 ${
-                isMobile ? "sticky bottom-0 bg-[#2b2b2c] py-2" : ""
-              }`}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`mt-4 flex flex-col gap-2 sticky bottom-4 bg-[#1e1e21] py-3 px-3 rounded-lg shadow-sm`}
             >
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Viết bình luận..."
-                value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") handleCommentSubmit();
-                }}
-                className={`flex-1 ${
-                  isMobile ? "text-sm px-3 py-1" : "text-base px-4 py-2"
-                } bg-[#1e1e21] text-white rounded-full outline-none`}
-              />
-              <Button
-                isLoading={false}
-                onClick={handleCommentSubmit}
-                disabled={!commentInput.trim()}
-                className={`bg-[#ff6740] text-white ${
-                  isMobile ? "px-3 py-1" : "px-4 py-2"
-                } rounded-full disabled:bg-gray-600 disabled:cursor-not-allowed`}
-                aria-label="Gửi bình luận"
-              >
-                <img
-                  src={SentHugeIcon}
-                  alt="Sent icon"
-                  className={isMobile ? "w-5 h-5" : ""}
+              {replyingTo && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] sm:text-sm text-[#999] truncate max-w-[50%]">
+                    Đang trả lời {replyingTo.username}
+                  </span>
+                  <motion.button
+                    onClick={() => {
+                      setReplyingTo(null);
+                      setCommentInput("");
+                    }}
+                    className="text-[#aaa] hover:text-white p-1 rounded-full hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label="Hủy trả lời"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </motion.button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder={
+                    replyingTo
+                      ? `Trả lời ${replyingTo.username}...`
+                      : "Viết bình luận..."
+                  }
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleCommentSubmit();
+                    }
+                  }}
+                  className="min-w-0 flex-[3] text-[15px] sm:text-base px-4 py-2 bg-[#1e1e21] text-white rounded-full border border-[#444] focus:border-[#ff6740] focus:ring-2 focus:ring-[#ff6740]/30 focus:outline-none transition-all duration-200 shadow-sm"
                 />
-              </Button>
-            </div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    isLoading={false}
+                    onClick={handleCommentSubmit}
+                    disabled={!commentInput.trim()}
+                    className={`flex-[1] min-w-[48px] bg-[#ff6740] text-white px-4 py-2 rounded-full disabled:bg-[#4a4a4a] disabled:cursor-not-allowed transition-colors duration-200`}
+                    aria-label="Gửi bình luận"
+                  >
+                    <img
+                      src={SentHugeIcon}
+                      alt="Sent icon"
+                      className="w-6 h-6 sm:w-6 sm:h-6"
+                    />
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

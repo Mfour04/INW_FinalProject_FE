@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import AddCommentOutlinedIcon from "@mui/icons-material/AddCommentOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import CommentSection from "../Comment/CommentSection";
+import Button from "../../../components/ButtonComponent";
+import ReactPicker from "../Modals/ReactPicker";
+import CommentPopup from "../Comment/CommentPopup";
 import { type Post } from "../types";
 
 interface PostItemProps {
@@ -66,6 +69,30 @@ const PostItem = ({
   onRequestDelete,
 }: PostItemProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [showCommentPopup, setShowCommentPopup] = useState(false);
+  const hoverTimeoutRef = useRef<number | null>(null);
+
+  // Emoji to text mapping
+  const emojiTextMap: { [key: string]: string } = {
+    "👍": "Thích",
+    "❤️": "Yêu thích",
+    "😂": "Haha",
+    "😮": "Ê nha",
+    "😢": "Sầu",
+    "😣": "Thương thương",
+  };
+
+  // Emoji to color mapping
+  const emojiColorMap: { [key: string]: string } = {
+    "👍": "#3b82f6",
+    "❤️": "#ef4444",
+    "😂": "#eab308",
+    "😮": "#8b5cf6",
+    "😢": "#06b6d4",
+    "😣": "#ec4899",
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,32 +110,67 @@ const PostItem = ({
     };
   }, [menuOpenPostId, post.id, setMenuOpenPostId]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Debug log
   useEffect(() => {
     console.log("PostItem props:", {
       postId: post.id,
       openComments: Array.from(openComments),
+      showCommentPopup,
       isMobile,
     });
-  }, [post.id, openComments, isMobile]);
+  }, [post.id, openComments, showCommentPopup, isMobile]);
 
   const handleToggleComments = () => {
-    setOpenComments((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(post.id)) {
-        newSet.delete(post.id);
-        console.log(`Closed comments for post ${post.id}`);
-      } else {
-        newSet.add(post.id);
-        console.log(`Opened comments for post ${post.id}`);
+    setShowCommentPopup((prev) => {
+      const newState = !prev;
+      console.log(
+        newState
+          ? `Opened comment popup for post ${post.id}`
+          : `Closed comment popup for post ${post.id}`
+      );
+      if (newState) {
+        setOpenComments((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(post.id);
+          return newSet;
+        });
         setVisibleRootComments((prevVisible) => ({
           ...prevVisible,
           [post.id]: 3,
         }));
       }
-      console.log("openComments:", Array.from(newSet));
-      return newSet;
+      return newState;
     });
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    setSelectedEmoji(emoji);
+    console.log(`Selected emoji ${emoji} for post ${post.id}`);
+    setShowEmojiPicker(false);
+  };
+
+  const handleMouseEnter = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowEmojiPicker(true);
+      console.log("Show emoji picker for post", post.id);
+    }, 1000);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setShowEmojiPicker(false);
+    console.log("Hide emoji picker for post", post.id);
   };
 
   return (
@@ -248,13 +310,17 @@ const PostItem = ({
               >
                 Hủy
               </motion.button>
-              <motion.button
-                className="bg-[#ff6740] text-white px-3 py-1 rounded-lg transition-colors duration-200 hover:bg-[#ff5722]"
+              <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Lưu
-              </motion.button>
+                <Button
+                  isLoading={false}
+                  className="bg-[#ff6740] text-white px-3 py-1 rounded-lg transition-colors duration-200 hover:bg-[#ff5722]"
+                >
+                  Lưu
+                </Button>
+              </motion.div>
             </motion.div>
           </motion.div>
         ) : (
@@ -274,88 +340,108 @@ const PostItem = ({
 
       <div className="border-t border-[#656565] pt-4">
         <div className="flex items-center gap-6">
-          <motion.button
-            className="flex items-center gap-1 group hover:text-[#ff6740] transition-colors duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <div
+            className="relative"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
-            <FavoriteBorderOutlinedIcon className="w-5 h-5 text-white group-hover:text-[#ff6740] transition-colors duration-200" />
-            <span className="text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
-              Yêu thích
-            </span>
-          </motion.button>
-          <motion.button
-            onClick={handleToggleComments}
-            className={`flex items-center gap-1 group hover:text-[#ff6740] transition-colors duration-200 ${
-              openComments.has(post.id) ? "text-[#ff6740]" : ""
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <AddCommentOutlinedIcon
-              className={`w-5 h-5 text-white group-hover:text-[#ff6740] transition-colors duration-200 ${
-                openComments.has(post.id) ? "text-[#ff6740]" : ""
-              }`}
-            />
-            <span
-              className={`text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200 ${
-                openComments.has(post.id) ? "text-[#ff6740]" : ""
-              }`}
-            >
-              Bình luận
-            </span>
-          </motion.button>
-          {isMobile && openComments.has(post.id) && (
-            <motion.button
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                isLoading={false}
+                onClick={() => {
+                  if (selectedEmoji) {
+                    setSelectedEmoji(null);
+                    console.log(`Unliked post ${post.id}`);
+                  } else {
+                    setSelectedEmoji("❤️");
+                    console.log(
+                      `Selected default emoji ❤️ for post ${post.id}`
+                    );
+                  }
+                }}
+                className="flex items-center gap-1 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
+                aria-label={
+                  selectedEmoji
+                    ? `Hủy ${emojiTextMap[selectedEmoji]}`
+                    : "Yêu thích bài viết"
+                }
+              >
+                {selectedEmoji ? (
+                  <span
+                    className="text-[20px]"
+                    style={{
+                      color: selectedEmoji
+                        ? emojiColorMap[selectedEmoji]
+                        : "#ffffff",
+                    }}
+                  >
+                    {selectedEmoji}
+                  </span>
+                ) : (
+                  <FavoriteBorderOutlinedIcon className="w-5 h-5 text-white group-hover:text-[#ff6740] transition-colors duration-200" />
+                )}
+                <span
+                  className="text-sm sm:text-base font-medium"
+                  style={{
+                    color: selectedEmoji
+                      ? emojiColorMap[selectedEmoji]
+                      : "#ffffff",
+                  }}
+                  onMouseEnter={(e) =>
+                    !selectedEmoji && (e.currentTarget.style.color = "#ff6740")
+                  }
+                  onMouseLeave={(e) =>
+                    !selectedEmoji && (e.currentTarget.style.color = "#ffffff")
+                  }
+                >
+                  {selectedEmoji ? emojiTextMap[selectedEmoji] : "Yêu thích"}
+                </span>
+              </Button>
+            </motion.div>
+            <ReactPicker show={showEmojiPicker} onSelect={handleEmojiClick} />
+          </div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
               onClick={handleToggleComments}
-              className="flex items-center gap-1 group text-[#ff6740]"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-1 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
+              aria-label={showCommentPopup ? "Đóng bình luận" : "Mở bình luận"}
             >
-              <span className="text-sm font-medium">Đóng</span>
-            </motion.button>
-          )}
+              <AddCommentOutlinedIcon className="w-5 h-5 text-white group-hover:text-[#ff6740] transition-colors duration-200" />
+              <span className="text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
+                Bình luận
+              </span>
+            </Button>
+          </motion.div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {openComments.has(post.id) && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <CommentSection
-              postId={post.id}
-              isMobile={isMobile}
-              openComments={openComments}
-              setOpenComments={setOpenComments}
-              visibleRootComments={visibleRootComments}
-              setVisibleRootComments={setVisibleRootComments}
-              openReplyId={openReplyId}
-              setOpenReplyId={setOpenReplyId}
-              menuOpenCommentId={menuOpenCommentId}
-              setMenuOpenCommentId={setMenuOpenCommentId}
-              editingCommentId={editingCommentId}
-              setEditingCommentId={setEditingCommentId}
-              editedContent={editedContent}
-              setEditedContent={setEditedContent}
-              setReportCommentId={setReportCommentId}
-              replyingTo={replyingTo}
-              setReplyingTo={setReplyingTo}
-              commentInput={commentInput}
-              setCommentInput={setCommentInput}
-              onRequestDelete={onRequestDelete}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <CommentPopup
+        post={post}
+        show={showCommentPopup}
+        onClose={() => {
+          setShowCommentPopup(false);
+          console.log(`Closed comment popup for post ${post.id}`);
+        }}
+        openComments={openComments}
+        setOpenComments={setOpenComments}
+        visibleRootComments={visibleRootComments}
+        setVisibleRootComments={setVisibleRootComments}
+        isMobile={isMobile}
+        openReplyId={openReplyId}
+        setOpenReplyId={setOpenReplyId}
+        menuOpenCommentId={menuOpenCommentId}
+        setMenuOpenCommentId={setMenuOpenCommentId}
+        editingCommentId={editingCommentId}
+        setEditingCommentId={setEditingCommentId}
+        editedContent={editedContent}
+        setEditedContent={setEditedContent}
+        setReportCommentId={setReportCommentId}
+        replyingTo={replyingTo}
+        setReplyingTo={setReplyingTo}
+        commentInput={commentInput}
+        setCommentInput={setCommentInput}
+        onRequestDelete={onRequestDelete}
+      />
     </motion.div>
   );
 };
