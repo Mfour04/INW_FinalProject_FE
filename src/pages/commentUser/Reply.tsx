@@ -28,7 +28,7 @@ export const Reply: React.FC<ReplyProps> = ({
     const avatarSrc = currentUser.avatarUrl || avatarImage;
 
     return (
-        <div className="p-3 w-[1000px]">
+        <div className="p-3 w-[1500px]">
             <div className="flex gap-3 items-center mb-2">
                 <img
                     src={avatarSrc}

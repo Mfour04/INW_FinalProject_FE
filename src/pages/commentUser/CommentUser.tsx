@@ -9,6 +9,7 @@ import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rou
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import favorite from "../../assets/svg/CommentUser/favorite.svg";
+import red_favorite from "../../assets/svg/CommentUser/red_favorite.svg";
 import CommentAdd01Icon from "../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
 import defaultAvatar from "../../assets/img/th.png";
 
@@ -22,6 +23,8 @@ import { UseCreateComment } from "../../pages/commentUser/UseCreateComment";
 import { UseUpdateComment } from "../../pages/commentUser/UseUpdateComment";
 import { UseDeleteComment } from "../../pages/commentUser/UseDeleteComment";
 
+import { LikeComment, UnlikeComment } from "../../api/Comment/comment.api";
+
 interface CommentUserProps {
     novelId: string;
     chapterId: string;
@@ -31,7 +34,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
     const { auth } = useContext(AuthContext);
 
     const [editedComments, setEditedComments] = useState<{
-        [id: string]: { content: string; timestamp: string };
+        [id: string]: { content: string; timestamp: string; likes?: number };
     }>({});
 
     const currentUser = {
@@ -53,6 +56,19 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
 
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState<string>("");
+
+    const [likedComments, setLikedComments] = useState<{ [id: string]: boolean }>(() => {
+        const map: { [id: string]: boolean } = {};
+
+        for (const key in localStorage) {
+            if (key.startsWith("liked_")) {
+                const commentId = key.replace("liked_", "");
+                map[commentId] = true;
+            }
+        }
+
+        return map;
+    });
 
     const enrichedComments = useMemo(() => {
         return rawComments.map((c: any) => {
@@ -84,7 +100,6 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
             };
         });
     }, [rawComments]);
-
 
     const topLevelComments = enrichedComments.filter((c) => !c.parentId);
     const nestedReplies = enrichedComments.filter((c) => c.parentId);
@@ -131,6 +146,65 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
             setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
         } catch (error) {
             console.error("Phản hồi thất bại:", error);
+        }
+    };
+
+    const handleToggleLike = async (commentId: string) => {
+        const userId = currentUser.id;
+        const hasLiked = likedComments[commentId];
+        const type = 1;
+        try {
+            const originalComment = enrichedComments.find((c) => c.id === commentId);
+            const currentLikes =
+                editedComments[commentId]?.likes ??
+                originalComment?.likes ??
+                0;
+
+            if (hasLiked) {
+                const response = await UnlikeComment(commentId, userId);
+                if (response.data.success) {
+                    const newLikes = Math.max(0, currentLikes - 1);
+
+                    setLikedComments((prev) => ({
+                        ...prev,
+                        [commentId]: false,
+                    }));
+
+                    localStorage.removeItem(`liked_${commentId}`);
+                    localStorage.setItem(`likes_${commentId}`, String(newLikes));
+
+                    setEditedComments((prev) => ({
+                        ...prev,
+                        [commentId]: {
+                            ...(prev[commentId] || {}),
+                            likes: newLikes,
+                        },
+                    }));
+                }
+            } else {
+                const response = await LikeComment(commentId, userId, type);
+                if (response.data.success) {
+                    const newLikes = currentLikes + 1;
+
+                    setLikedComments((prev) => ({
+                        ...prev,
+                        [commentId]: true,
+                    }));
+
+                    localStorage.setItem(`liked_${commentId}`, "true");
+                    localStorage.setItem(`likes_${commentId}`, String(newLikes));
+
+                    setEditedComments((prev) => ({
+                        ...prev,
+                        [commentId]: {
+                            ...(prev[commentId] || {}),
+                            likes: newLikes,
+                        },
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error("❌ Lỗi khi like/unlike:", error);
         }
     };
 
@@ -264,12 +338,14 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
 
                         <div className="mt-4 flex space-x-6">
                             <span
-                                className="flex items-center gap-2 cursor-pointer"
-                                onClick={() => handleReplyClick(comment.id, comment.name)}
+                                className={`flex items-center gap-2 cursor-pointer ${likedComments[comment.id] ? "text-red-500" : "text-white"
+                                    }`}
+                                onClick={() => handleToggleLike(comment.id)}
                             >
-                                <img src={favorite} />
-                                {comment.likes}
+                                <img src={likedComments[comment.id] ? red_favorite : favorite} className="w-5 h-5" />
+                                {editedComments[comment.id]?.likes ?? Number(localStorage.getItem(`likes_${comment.id}`)) ?? comment.likes}
                             </span>
+
                             <span
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() => handleReplyClick(comment.id, comment.name)}
