@@ -1,6 +1,6 @@
 import abc from "../../../assets/img/th.png";
 
-const ProfileSidebar: React.FC = () => (
+const ProfileSidebar = () => (
   <div className="w-full lg:w-[28%] mt-6 lg:mt-0 px-4 sm:px-6 lg:px-0">
     <div className="bg-[#2b2b2c] rounded-[10px] overflow-hidden">
       <div className="h-[74px] bg-[#d9d9d9] relative">
@@ -27,9 +27,6 @@ const ProfileSidebar: React.FC = () => (
             <span className="text-sm text-white">Người theo dõi</span>
           </div>
         </div>
-        <button className="w-full bg-[#ff6740] hover:bg-[#e55a36] text-white font-bold py-2 px-8 rounded-[18px] transition-colors">
-          Tạo bài viết
-        </button>
       </div>
     </div>
   </div>

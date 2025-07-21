@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface ReportPopupProps {
   type: "post" | "comment";
   id: string;
-  setReportId: React.Dispatch<React.SetStateAction<string | null>>;
+  setReportId: (value: string | null) => void;
 }
 
 const ReportPopup = ({ type, id, setReportId }: ReportPopupProps) => (

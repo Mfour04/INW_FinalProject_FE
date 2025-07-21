@@ -5,6 +5,7 @@ import CommentItem from "./CommentItem";
 import { type Comment } from "../types";
 import Button from "../../../components/ButtonComponent";
 import CloseIcon from "@mui/icons-material/Close";
+import { type VisibleRootComments } from "../types";
 
 const forumComments: Comment[] = [
   {
@@ -123,26 +124,24 @@ interface CommentSectionProps {
   postId: string;
   isMobile: boolean;
   openComments: Set<string>;
-  setOpenComments: React.Dispatch<React.SetStateAction<Set<string>>>;
-  visibleRootComments: { [postId: string]: number };
-  setVisibleRootComments: React.Dispatch<
-    React.SetStateAction<{ [postId: string]: number }>
-  >;
+  setOpenComments: (value: Set<string>) => void;
+  visibleRootComments: VisibleRootComments;
+  setVisibleRootComments: (value: VisibleRootComments) => void;
   openReplyId: string | null;
-  setOpenReplyId: React.Dispatch<React.SetStateAction<string | null>>;
+  setOpenReplyId: (value: string | null) => void;
   menuOpenCommentId: string | null;
-  setMenuOpenCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMenuOpenCommentId: (value: string | null) => void;
   editingCommentId: string | null;
-  setEditingCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingCommentId: (value: string | null) => void;
   editedContent: string;
-  setEditedContent: React.Dispatch<React.SetStateAction<string>>;
-  setReportCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditedContent: (value: string) => void;
+  setReportCommentId: (value: string | null) => void;
   replyingTo: { commentId: string; username: string } | null;
-  setReplyingTo: React.Dispatch<
-    React.SetStateAction<{ commentId: string; username: string } | null>
-  >;
+  setReplyingTo: (
+    value: { commentId: string; username: string } | null
+  ) => void;
   commentInput: string;
-  setCommentInput: React.Dispatch<React.SetStateAction<string>>;
+  setCommentInput: (value: string) => void;
   onRequestDelete: (type: "post" | "comment", id: string) => void;
   inputRef?: React.RefObject<HTMLInputElement | null>;
 }
@@ -178,13 +177,13 @@ const CommentSection = ({
   const getReplies = (parentId: string) =>
     forumComments.filter((c) => c.parent_comment_id === parentId);
   const handleToggleReply = (commentId: string) => {
-    setOpenReplyId((prev) => (prev === commentId ? null : commentId));
+    setOpenReplyId(openReplyId === commentId ? null : commentId);
   };
   const handleHideComments = () => {
-    setVisibleRootComments((prev) => ({
-      ...prev,
+    setVisibleRootComments({
+      ...visibleRootComments,
       [postId]: INITIAL_VISIBLE_COMMENTS,
-    }));
+    });
   };
   const commentSectionRef = useRef<HTMLDivElement>(null);
 
@@ -284,12 +283,12 @@ const CommentSection = ({
                     {postRootComments.length > visibleCount && (
                       <motion.button
                         onClick={() =>
-                          setVisibleRootComments((prev) => ({
-                            ...prev,
+                          setVisibleRootComments({
+                            ...visibleRootComments,
                             [postId]: visibleCount + 3,
-                          }))
+                          })
                         }
-                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-transparent active:bg-[#3a3a3a] transition-colors duration-200"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -299,7 +298,7 @@ const CommentSection = ({
                     {visibleCount > INITIAL_VISIBLE_COMMENTS && (
                       <motion.button
                         onClick={handleHideComments}
-                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                        className="text-[14px] sm:text-sm text-[#ff6740] hover:underline font-medium p-2 rounded-[4px] hover:bg-transparent active:bg-[#3a3a3a] transition-colors duration-200"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -322,10 +321,7 @@ const CommentSection = ({
                     Đang trả lời {replyingTo.username}
                   </span>
                   <motion.button
-                    onClick={() => {
-                      setReplyingTo(null);
-                      setCommentInput("");
-                    }}
+                    onClick={() => setReplyingTo(null)}
                     className="text-[#aaa] hover:text-white p-1 rounded-full hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}

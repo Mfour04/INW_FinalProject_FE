@@ -8,9 +8,9 @@ import EmojiPicker from "./EmojiPicker";
 
 interface PostFormProps {
   content: string;
-  setContent: React.Dispatch<React.SetStateAction<string>>;
+  setContent: (value: string) => void;
   images: File[];
-  setImages: React.Dispatch<React.SetStateAction<File[]>>;
+  setImages: (value: File[]) => void;
   isPosting: boolean;
   handlePost: () => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;

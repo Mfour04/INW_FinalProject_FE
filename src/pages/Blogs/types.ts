@@ -1,5 +1,5 @@
 export type Tabs = "all" | "following";
-
+export type VisibleRootComments = { [postId: string]: number };
 export interface User {
   name: string;
   username: string;

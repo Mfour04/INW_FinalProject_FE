@@ -36,12 +36,12 @@ interface CommentItemProps {
   isOpenReply: boolean;
   onToggleReply: (commentId: string) => void;
   menuOpenCommentId: string | null;
-  setMenuOpenCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMenuOpenCommentId: (value: string | null) => void;
   editingCommentId: string | null;
-  setEditingCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingCommentId: (value: string | null) => void;
   editedContent: string;
-  setEditedContent: React.Dispatch<React.SetStateAction<string>>;
-  setReportCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditedContent: (value: string) => void;
+  setReportCommentId: (value: string | null) => void;
   onReply: (commentId: string, username: string) => void;
   onRequestDelete: (type: "post" | "comment", id: string) => void;
 }
@@ -150,8 +150,8 @@ const CommentItem = ({
           <div className="absolute top-0 right-0 z-10">
             <button
               onClick={() => {
-                setMenuOpenCommentId((prev) =>
-                  prev === comment.id ? null : comment.id
+                setMenuOpenCommentId(
+                  menuOpenCommentId === comment.id ? null : comment.id
                 );
               }}
               className="text-[#aaa] hover:text-white p-1 transition-colors duration-200 rounded-full hover:bg-[#3a3a3a]"

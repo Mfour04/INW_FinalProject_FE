@@ -4,33 +4,32 @@ import { type Post } from "../types";
 import CommentSection from "../Comment/CommentSection";
 import CloseIcon from "@mui/icons-material/Close";
 import { createPortal } from "react-dom";
+import { type VisibleRootComments } from "../types";
 
 interface CommentPopupProps {
   post: Post;
   show: boolean;
   onClose: () => void;
   openComments: Set<string>;
-  setOpenComments: React.Dispatch<React.SetStateAction<Set<string>>>;
-  visibleRootComments: { [postId: string]: number };
-  setVisibleRootComments: React.Dispatch<
-    React.SetStateAction<{ [postId: string]: number }>
-  >;
+  setOpenComments: (value: Set<string>) => void;
+  visibleRootComments: VisibleRootComments;
+  setVisibleRootComments: (value: VisibleRootComments) => void;
   isMobile: boolean;
   openReplyId: string | null;
-  setOpenReplyId: React.Dispatch<React.SetStateAction<string | null>>;
+  setOpenReplyId: (value: string | null) => void;
   menuOpenCommentId: string | null;
-  setMenuOpenCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMenuOpenCommentId: (value: string | null) => void;
   editingCommentId: string | null;
-  setEditingCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingCommentId: (value: string | null) => void;
   editedContent: string;
-  setEditedContent: React.Dispatch<React.SetStateAction<string>>;
-  setReportCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditedContent: (value: string) => void;
+  setReportCommentId: (value: string | null) => void;
   replyingTo: { commentId: string; username: string } | null;
-  setReplyingTo: React.Dispatch<
-    React.SetStateAction<{ commentId: string; username: string } | null>
-  >;
+  setReplyingTo: (
+    value: { commentId: string; username: string } | null
+  ) => void;
   commentInput: string;
-  setCommentInput: React.Dispatch<React.SetStateAction<string>>;
+  setCommentInput: (value: string) => void;
   onRequestDelete: (type: "post" | "comment", id: string) => void;
 }
 

@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface EmojiPickerProps {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: (value: boolean) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   content: string;
-  setContent: React.Dispatch<React.SetStateAction<string>>;
+  setContent: (value: string) => void;
 }
 
 const EmojiPicker = ({

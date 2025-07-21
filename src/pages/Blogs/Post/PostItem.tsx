@@ -3,41 +3,38 @@ import { useState, useRef, useEffect } from "react";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import AddCommentOutlinedIcon from "@mui/icons-material/AddCommentOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
-import CommentSection from "../Comment/CommentSection";
 import Button from "../../../components/ButtonComponent";
 import ReactPicker from "../Modals/ReactPicker";
 import CommentPopup from "../Comment/CommentPopup";
-import { type Post } from "../types";
+import { type Post, type VisibleRootComments } from "../types";
 
 interface PostItemProps {
   post: Post;
   menuOpenPostId: string | null;
-  setMenuOpenPostId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMenuOpenPostId: (value: string | null) => void;
   editingPostId: string | null;
-  setEditingPostId: React.Dispatch<React.SetStateAction<string | null>>;
-  setReportPostId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingPostId: (value: string | null) => void;
+  setReportPostId: (value: string | null) => void;
   openComments: Set<string>;
-  setOpenComments: React.Dispatch<React.SetStateAction<Set<string>>>;
-  visibleRootComments: { [postId: string]: number };
-  setVisibleRootComments: React.Dispatch<
-    React.SetStateAction<{ [postId: string]: number }>
-  >;
+  setOpenComments: (value: Set<string>) => void;
+  visibleRootComments: VisibleRootComments;
+  setVisibleRootComments: (value: VisibleRootComments) => void;
   isMobile: boolean;
   openReplyId: string | null;
-  setOpenReplyId: React.Dispatch<React.SetStateAction<string | null>>;
+  setOpenReplyId: (value: string | null) => void;
   menuOpenCommentId: string | null;
-  setMenuOpenCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMenuOpenCommentId: (value: string | null) => void;
   editingCommentId: string | null;
-  setEditingCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditingCommentId: (value: string | null) => void;
   editedContent: string;
-  setEditedContent: React.Dispatch<React.SetStateAction<string>>;
-  setReportCommentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditedContent: (value: string) => void;
+  setReportCommentId: (value: string | null) => void;
   replyingTo: { commentId: string; username: string } | null;
-  setReplyingTo: React.Dispatch<
-    React.SetStateAction<{ commentId: string; username: string } | null>
-  >;
+  setReplyingTo: (
+    value: { commentId: string; username: string } | null
+  ) => void;
   commentInput: string;
-  setCommentInput: React.Dispatch<React.SetStateAction<string>>;
+  setCommentInput: (value: string) => void;
   onRequestDelete: (type: "post" | "comment", id: string) => void;
 }
 
@@ -130,26 +127,18 @@ const PostItem = ({
   }, [post.id, openComments, showCommentPopup, isMobile]);
 
   const handleToggleComments = () => {
-    setShowCommentPopup((prev) => {
-      const newState = !prev;
-      console.log(
-        newState
-          ? `Opened comment popup for post ${post.id}`
-          : `Closed comment popup for post ${post.id}`
-      );
-      if (newState) {
-        setOpenComments((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(post.id);
-          return newSet;
-        });
-        setVisibleRootComments((prevVisible) => ({
-          ...prevVisible,
-          [post.id]: 3,
-        }));
-      }
-      return newState;
-    });
+    setShowCommentPopup(!showCommentPopup);
+    console.log(
+      !showCommentPopup
+        ? `Opened comment popup for post ${post.id}`
+        : `Closed comment popup for post ${post.id}`
+    );
+    if (!showCommentPopup) {
+      const newSet = new Set(openComments);
+      newSet.add(post.id);
+      setOpenComments(newSet);
+      setVisibleRootComments({ ...visibleRootComments, [post.id]: 3 });
+    }
   };
 
   const handleEmojiClick = (emoji: string) => {
@@ -200,9 +189,9 @@ const PostItem = ({
         </div>
         <div className="relative">
           <button
-            onClick={() => {
-              setMenuOpenPostId((prev) => (prev === post.id ? null : post.id));
-            }}
+            onClick={() =>
+              setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
+            }
             className="p-1 hover:bg-gray-700 rounded-full transition-colors duration-200"
           >
             <MoreHorizOutlinedIcon />
