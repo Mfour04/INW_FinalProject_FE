@@ -13,37 +13,29 @@ import {
 } from "../../../api/Chapters/chapter.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { TEXT } from "./constants";
-import { TitleAndSchedule } from "./UpsertStep/TitleAndSchedule";
+import { Title } from "./UpsertStep/Title";
 import { Content } from "./UpsertStep/Content";
 import Button from "../../../components/ButtonComponent";
+import { ScheduleAndPrice } from "./UpsertStep/ScheduleAndPrice";
 
-const initialCreateChapterForm: CreateChapterRequest = {
+export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
+
+const initialChapterForm: ChapterForm = {
   novelId: "",
   title: "",
   content: "",
   isPaid: false,
   price: 0,
-  isDraft: false,
-  isPublic: true,
-};
-
-const initialUpdateChapterForm: UpdateChapterRequest = {
+  isDraft: true,
+  isPublic: false,
   chapterId: "",
-  title: "",
-  content: "",
   chapterNumber: 0,
-  isPaid: false,
-  price: 0,
   scheduledAt: new Date(),
-  isDraft: false,
-  isPublic: true,
 };
 
 export const UpsertChapter = () => {
-  const [createChapterForm, setCreateChapterForm] =
-    useState<CreateChapterRequest>(initialCreateChapterForm);
-  const [updateChapterForm, setUpdateChapterForm] =
-    useState<UpdateChapterRequest>(initialUpdateChapterForm);
+  const [chapterForm, setChapterForm] =
+    useState<ChapterForm>(initialChapterForm);
   const [step, setStep] = useState<number>(1);
 
   const toast = useToast();
@@ -93,24 +85,34 @@ export const UpsertChapter = () => {
   };
 
   const handleUpsertButtonClick = () => {
-    if (isUpdate) updateChapterMutation.mutate(updateChapterForm);
-    else createChapterMutation.mutate(createChapterForm);
+    if (isUpdate)
+      updateChapterMutation.mutate(chapterForm as UpdateChapterRequest);
+    else createChapterMutation.mutate(chapterForm as CreateChapterRequest);
   };
 
   const content = useMemo(() => {
-    console.log(step);
     switch (step) {
       case 1:
-        return <TitleAndSchedule />;
+        return (
+          <Title chapterForm={chapterForm} setChapterForm={setChapterForm} />
+        );
       case 2:
-        return <Content />;
+        return (
+          <Content chapterForm={chapterForm} setChapterForm={setChapterForm} />
+        );
       case 3:
+        return (
+          <ScheduleAndPrice
+            chapterForm={chapterForm}
+            setChapterForm={setChapterForm}
+          />
+        );
     }
-  }, [step]);
+  }, [step, chapterForm, setChapterForm]);
 
   useEffect(() => {
     if (novelId)
-      setCreateChapterForm((prev) => ({
+      setChapterForm((prev) => ({
         ...prev,
         novelId: novelId,
       }));
@@ -118,8 +120,9 @@ export const UpsertChapter = () => {
 
   useEffect(() => {
     if (data) {
-      setUpdateChapterForm({
+      setChapterForm({
         chapterId: chapterId!,
+        novelId: data.chapter.novelId,
         title: data.chapter.title,
         content: data.chapter.content,
         chapterNumber: data.chapter.chapterNumber,
@@ -157,11 +160,11 @@ export const UpsertChapter = () => {
             Previous
           </Button>
           <Button
-            onClick={handleNextStep}
-            disabled={step === 3}
+            onClick={step < 3 ? handleNextStep : handleUpsertButtonClick}
+            disabled={step > 3}
             className="cursor-pointer bg-[#ff6740] hover:bg-orange-600"
           >
-            Next
+            {step < 3 ? "Next" : "Submit"}
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 export interface Chapter {
+  scheduledAt: Date | null;
   novelId: string;
   title: string;
   content: string;
@@ -18,7 +19,7 @@ export interface UpdateChapterRequest {
   chapterNumber: number;
   isPaid: boolean;
   price: number;
-  scheduledAt: Date;
+  scheduledAt: Date | null;
   isDraft: boolean;
   isPublic: boolean;
 }
