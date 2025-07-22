@@ -6,7 +6,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
-import block from "../../assets/svg/CommentUser/block.svg";
 import more_horiz from "../../assets/svg/CommentUser/more_horiz.svg";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "../../assets/svg/CommentUser/delete.svg";

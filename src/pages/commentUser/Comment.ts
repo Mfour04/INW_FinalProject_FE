@@ -7,7 +7,7 @@ export interface Comment {
     content: string;
     likes: number;
     replies: number;
-    parentId?: string;
+    parentId?: string | null;
     novelId?: string;
     chapterId?: string;
 }

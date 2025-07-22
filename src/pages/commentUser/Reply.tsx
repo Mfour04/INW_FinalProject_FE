@@ -30,11 +30,7 @@ export const Reply: React.FC<ReplyProps> = ({
     return (
         <div className="p-3 w-[1500px]">
             <div className="flex gap-3 items-center mb-2">
-                <img
-                    src={avatarSrc}
-                    alt={displayName}
-                    className="w-10 h-10 rounded-full"
-                />
+                <img src={avatarSrc} alt={displayName} className="w-10 h-10 rounded-full" />
                 <div>
                     <p className="font-semibold">{displayName}</p>
                     <p className="text-xs text-gray-400">{displayUser}</p>
@@ -55,11 +51,7 @@ export const Reply: React.FC<ReplyProps> = ({
                         <img src={ImageAdd02Icon} className="w-6 h-6" alt="Thêm ảnh" />
                         <img src={SmileIcon} className="w-6 h-6" alt="Biểu cảm" />
                     </div>
-                    <button
-                        type="button"
-                        onClick={onReplySubmit}
-                        className="buttonPost"
-                    >
+                    <button type="button" onClick={onReplySubmit} className="buttonPost">
                         <div className="flex gap-2 items-center">
                             Đăng
                             <img src={SentIcon} alt="Gửi" className="w-4 h-4" />

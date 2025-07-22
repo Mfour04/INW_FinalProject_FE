@@ -1,9 +1,7 @@
 import http from "../../utils/http";
 import type {
-    Comment,
     CommentResponse,
     CreateCommentRequest,
-    ReplyCommentRequest,
 } from "./comment.type";
 
 interface CommentApiResponse {
@@ -64,9 +62,6 @@ export interface UpdateCommentResponse {
 
 export const CreateComment = (data: CreateCommentRequest) =>
     http.privateHttp.post<CommentApiResponse>("Comments/created", data);
-
-export const ReplyComment = (parentId: string, data: ReplyCommentRequest) =>
-    http.privateHttp.post<CommentApiResponse>(`Comments/${parentId}/reply`, data);
 
 export const LikeComment = (
     commentId: string,

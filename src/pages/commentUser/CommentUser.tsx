@@ -1,9 +1,9 @@
-import { useState, useRef, useMemo, useContext } from "react";
+import { useState, useRef, useContext } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 import type { Comment } from "../commentUser/Comment";
-import { ReplyComment } from "../../api/Comment/comment.api";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
-import { formatVietnamTimeFromTicks } from "../../utils/date_format.ts";
-import { getCurrentTicks } from "../../utils/date_format.ts";
+import { formatVietnamTimeFromTicks, getCurrentTicks } from "../../utils/date_format.ts";
 
 import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
@@ -30,11 +30,24 @@ interface CommentUserProps {
     chapterId: string;
 }
 
-export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) => {
+export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
     const { auth } = useContext(AuthContext);
+    const queryClient = useQueryClient();
+    const [newComment, setNewComment] = useState("");
+    const [replyInputs, setReplyInputs] = useState<{ [id: string]: boolean }>({});
+    const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
+    const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
+    const [renderKey, setRenderKey] = useState(0);
+    const { data: rawComments = [] } = UseComments(chapterId, novelId);
+    const [tempComments, setTempComments] = useState<Comment[]>([]);
+    const { mutate: postComment } = UseCreateComment(chapterId, novelId);
+    const { mutate: deleteComment } = UseDeleteComment(chapterId, novelId);
+    const { mutate: updateComment } = UseUpdateComment(chapterId, novelId);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState<string>("");
 
     const [editedComments, setEditedComments] = useState<{
-        [id: string]: { content: string; timestamp: string; likes?: number };
+        [id: string]: { content: string; timestamp: string; likes?: number; replies?: number };
     }>({});
 
     const currentUser = {
@@ -44,18 +57,9 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
         avatarUrl: (auth?.user as any)?.avatarUrl || null,
     };
 
-    const [newComment, setNewComment] = useState("");
-    const [replyInputs, setReplyInputs] = useState<{ [id: string]: boolean }>({});
-    const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
-    const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
-
-    const { data: rawComments = [] } = UseComments(chapterId, novelId);
-    const { mutate: postComment } = UseCreateComment(chapterId, novelId);
-    const { mutate: deleteComment } = UseDeleteComment(chapterId, novelId);
-    const { mutate: updateComment } = UseUpdateComment(chapterId, novelId);
-
-    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState<string>("");
+    const closeReplyPopup = (id: string) => {
+        setReplyInputs((prev) => ({ ...prev, [id]: false }));
+    };
 
     const [likedComments, setLikedComments] = useState<{ [id: string]: boolean }>(() => {
         const map: { [id: string]: boolean } = {};
@@ -70,148 +74,204 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
         return map;
     });
 
-    const enrichedComments = useMemo(() => {
-        return rawComments.map((c: any) => {
-            const localTick = Number(localStorage.getItem(`updatedAt_${c.id}`));
-            const apiUpdatedAt = Number(c.updatedAt);
-            const createdAt = Number(c.createdAt);
+    const enrichedComments = (() => {
+        const flatten: Comment[] = [];
 
-            const rawTicks =
-                localTick > apiUpdatedAt && localTick > createdAt
-                    ? localTick
-                    : apiUpdatedAt > createdAt
-                        ? apiUpdatedAt
-                        : createdAt;
-
-            const timestamp = !isNaN(rawTicks)
-                ? formatVietnamTimeFromTicks(rawTicks)
-                : "Không rõ thời gian";
-
-            return {
-                id: c.id,
-                content: c.content,
-                parentId: c.parentCommentId ?? null,
-                likes: c.likeCount ?? 0,
-                replies: c.replies?.length ?? 0,
+        const collectComments = (comment: any) => {
+            flatten.push({
+                id: comment.id,
+                content: comment.content,
+                parentId:
+                    comment.parent_comment_id ??
+                    comment.parentCommentId ??
+                    null,
+                likes: comment.likeCount ?? 0,
+                replies: Array.isArray(comment.replies) ? comment.replies.length : 0,
                 name: currentUser.name,
                 user: currentUser.user,
                 avatarUrl: currentUser.avatarUrl,
-                timestamp,
-            };
-        });
-    }, [rawComments]);
+                timestamp:
+                    localStorage.getItem(`updatedAt_${comment.id}`) !== null
+                        ? formatVietnamTimeFromTicks(Number(localStorage.getItem(`updatedAt_${comment.id}`)))
+                        : formatVietnamTimeFromTicks(Number(comment.createdAt)),
+            });
+
+            if (Array.isArray(comment.replies)) {
+                comment.replies.forEach(collectComments);
+            }
+        };
+
+        rawComments.forEach(collectComments);
+        flatten.push(...tempComments);
+
+        return flatten;
+    })();
 
     const topLevelComments = enrichedComments.filter((c) => !c.parentId);
-    const nestedReplies = enrichedComments.filter((c) => c.parentId);
 
     const handlePostComment = () => {
         if (!newComment.trim()) return;
-        postComment(newComment);
+
+        postComment({ content: newComment });
         setNewComment("");
     };
 
     const handleReplyClick = (id: string, name: string) => {
-        setReplyInputs((prev) => ({ ...prev, [id]: true }));
-        setReplyValues((prev) => ({ ...prev, [id]: `${name} ` }));
-        setTimeout(() => inputRefs.current[id]?.focus(), 0);
+        setReplyInputs((prev) => {
+            const next = !prev[id];
+            if (next) {
+                setReplyValues((prevVal) => ({ ...prevVal, [id]: `${name} ` }));
+                setTimeout(() => inputRefs.current[id]?.focus(), 0);
+            }
+            return { ...prev, [id]: next };
+        });
     };
 
     const handleReplyChange = (id: string, value: string) => {
         setReplyValues((prev) => ({ ...prev, [id]: value }));
     };
 
-    const handleReplySubmit = async (parentId: string) => {
+    const handleReplySubmit = (parentId: string) => {
         const content = replyValues[parentId];
+        closeReplyPopup(parentId);
+
         if (!content.trim()) return;
 
-        try {
-            const response = await ReplyComment(parentId, { content });
-            const rawReply = response.data?.data?.comment;
-            if (!rawReply) throw new Error("Không nhận được phản hồi vừa tạo");
+        postComment(
+            { content, parentCommentId: parentId },
+            {
+                onSuccess: (response: any) => {
+                    const rawReply = response?.data?.comment;
+                    if (!rawReply) return;
 
-            const reply = {
-                id: rawReply.id,
-                content: rawReply.content,
-                parentId: rawReply.parent_comment_id || null,
-                likes: rawReply.likes || 0,
-                replies: rawReply.replies?.length || 0,
-                name: currentUser.name,
-                user: currentUser.user,
-                avatarUrl: currentUser.avatarUrl,
-                timestamp: formatVietnamTimeFromTicks(Number(rawReply.created_at)),
-            };
+                    const tempReply: Comment = {
+                        id: rawReply.id,
+                        content: rawReply.content,
+                        parentId: parentId,
+                        likes: rawReply.likeCount ?? 0,
+                        replies: 0,
+                        name: currentUser.name,
+                        user: currentUser.user,
+                        avatarUrl: currentUser.avatarUrl,
+                        timestamp: formatVietnamTimeFromTicks(Number(rawReply.createdAt ?? Date.now())),
+                    };
 
-            nestedReplies.push(reply);
-            setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
-            setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
-        } catch (error) {
-            console.error("Phản hồi thất bại:", error);
-        }
+                    const parentRaw = rawComments
+                        .flatMap((c: any) => [c, ...(c.replies ?? [])])
+                        .find((r: any) => r.id === parentId);
+
+                    const tempParent: Comment | null = parentRaw
+                        ? {
+                            id: parentRaw.id,
+                            content: parentRaw.content,
+                            parentId: parentRaw.parentCommentId ?? null,
+                            likes: parentRaw.likeCount ?? 0,
+                            replies: 1,
+                            name: currentUser.name,
+                            user: currentUser.user,
+                            avatarUrl: currentUser.avatarUrl,
+                            timestamp: formatVietnamTimeFromTicks(Number(parentRaw.createdAt)),
+                        }
+                        : null;
+
+                    setTempComments((prev) => {
+                        const hasParent = prev.some((c) => c.id === parentId);
+                        const updated = [...prev, tempReply];
+                        const result = !hasParent && tempParent ? [...updated, tempParent] : updated;
+                        return result;
+                    });
+
+                    setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
+                    setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
+
+                    const parentChain = [parentRaw?.parentCommentId, parentId].filter(
+                        (id): id is string => typeof id === "string"
+                    );
+
+                    parentChain.forEach((id) => {
+                        setEditedComments((prev) => ({
+                            ...prev,
+                            [id]: {
+                                ...(prev[id] || {}),
+                                replies:
+                                    ((prev[id]?.replies ??
+                                        enrichedComments.find((c) => c.id === id)?.replies ?? 0) + 1),
+                            },
+                        }));
+                    });
+
+                    setRenderKey((prev) => prev + 1);
+
+                    queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+                },
+            }
+        );
     };
 
     const handleToggleLike = async (commentId: string) => {
         const userId = currentUser.id;
         const hasLiked = likedComments[commentId];
         const type = 1;
-        try {
-            const originalComment = enrichedComments.find((c) => c.id === commentId);
-            const currentLikes =
-                editedComments[commentId]?.likes ??
-                originalComment?.likes ??
-                0;
+        const originalComment = enrichedComments.find((c) => c.id === commentId);
 
-            if (hasLiked) {
-                const response = await UnlikeComment(commentId, userId);
-                if (response.data.success) {
-                    const newLikes = Math.max(0, currentLikes - 1);
+        const currentLikes =
+            editedComments[commentId]?.likes ??
+            originalComment?.likes ??
+            0;
 
-                    setLikedComments((prev) => ({
-                        ...prev,
-                        [commentId]: false,
-                    }));
+        if (hasLiked) {
+            const response = await UnlikeComment(commentId, userId);
+            if (response.data.success) {
+                const newLikes = Math.max(0, currentLikes - 1);
 
-                    localStorage.removeItem(`liked_${commentId}`);
-                    localStorage.setItem(`likes_${commentId}`, String(newLikes));
+                setLikedComments((prev) => ({
+                    ...prev,
+                    [commentId]: false,
+                }));
 
-                    setEditedComments((prev) => ({
-                        ...prev,
-                        [commentId]: {
-                            ...(prev[commentId] || {}),
-                            likes: newLikes,
-                        },
-                    }));
-                }
-            } else {
-                const response = await LikeComment(commentId, userId, type);
-                if (response.data.success) {
-                    const newLikes = currentLikes + 1;
+                localStorage.removeItem(`liked_${commentId}`);
+                localStorage.setItem(`likes_${commentId}`, String(newLikes));
 
-                    setLikedComments((prev) => ({
-                        ...prev,
-                        [commentId]: true,
-                    }));
-
-                    localStorage.setItem(`liked_${commentId}`, "true");
-                    localStorage.setItem(`likes_${commentId}`, String(newLikes));
-
-                    setEditedComments((prev) => ({
-                        ...prev,
-                        [commentId]: {
-                            ...(prev[commentId] || {}),
-                            likes: newLikes,
-                        },
-                    }));
-                }
+                setEditedComments((prev) => ({
+                    ...prev,
+                    [commentId]: {
+                        ...(prev[commentId] || {}),
+                        likes: newLikes,
+                    },
+                }));
             }
-        } catch (error) {
-            console.error("❌ Lỗi khi like/unlike:", error);
+        } else {
+            const response = await LikeComment(commentId, userId, type);
+
+            if (response.data.success) {
+                const newLikes = currentLikes + 1;
+
+                setLikedComments((prev) => ({
+                    ...prev,
+                    [commentId]: true,
+                }));
+
+                localStorage.setItem(`liked_${commentId}`, "true");
+                localStorage.setItem(`likes_${commentId}`, String(newLikes));
+
+                setEditedComments((prev) => ({
+                    ...prev,
+                    [commentId]: {
+                        ...(prev[commentId] || {}),
+                        likes: newLikes,
+                    },
+                }));
+            }
         }
     };
 
     return (
         <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
             <div style={{ backgroundColor: "#1e1e1e", color: "#ffffff", padding: "30px" }}>
-                <h3 className="font-semibold">Bình luận ({topLevelComments.length})</h3>
+                <h3 className="font-semibold">
+                    Bình luận ({enrichedComments.length})
+                </h3>
+
                 <hr
                     style={{
                         marginLeft: "-50px",
@@ -246,6 +306,7 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                             <img src={ImageAdd02Icon} className="w-6 h-6" />
                             <img src={SmileIcon} className="w-6 h-6" />
                         </div>
+
                         <button type="button" onClick={handlePostComment} className="buttonPost">
                             <div className="flex gap-2 items-center">
                                 Đăng
@@ -351,12 +412,14 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                                 onClick={() => handleReplyClick(comment.id, comment.name)}
                             >
                                 <img src={CommentAdd01Icon} />
-                                {comment.replies}
+                                {editedComments[comment.id]?.replies ?? comment.replies}
                             </span>
                         </div>
 
                         {replyInputs[comment.id] && (
-                            <div className="mt-4 max-w-2xl">
+                            <div
+                                className="mt-4 max-w-2xl"
+                            >
                                 <Reply
                                     currentUser={currentUser}
                                     replyValue={replyValues[comment.id] || ""}
@@ -367,19 +430,30 @@ export const CommentUser: React.FC<CommentUserProps> = ({ novelId, chapterId }) 
                             </div>
                         )}
 
-                        {nestedReplies
+                        {enrichedComments
                             .filter((reply: Comment) => reply.parentId === comment.id)
                             .map((reply: Comment) => (
                                 <NestedReply
-                                    key={reply.id}
+                                    key={`${reply.id}-${renderKey}`}
                                     comment={reply}
                                     currentUser={currentUser}
-                                    replies={nestedReplies}
+                                    replies={enrichedComments}
                                     replyInputs={replyInputs}
                                     replyValues={replyValues}
+                                    editedComments={editedComments}
+                                    editingCommentId={editingCommentId}
+                                    editValue={editValue}
+                                    setEditValue={setEditValue}
+                                    setEditedComments={setEditedComments}
+                                    setEditingCommentId={setEditingCommentId}
+                                    updateComment={updateComment}
                                     onReplyClick={handleReplyClick}
                                     onReplyChange={handleReplyChange}
                                     onReplySubmit={handleReplySubmit}
+                                    likedComments={likedComments}
+                                    deleteComment={deleteComment}
+                                    handleToggleLike={handleToggleLike}
+                                    renderKey={renderKey}
                                 />
                             ))}
                     </div>
