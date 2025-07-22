@@ -20,7 +20,7 @@ export const Router = () => {
       <Route path="/" element={<HomePage />} />
       <Route
         path="/following"
-        element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}
+        element={<ProtectedRoutes role={[Roles.User]} />}
       >
         <Route index element={<></>} />
         <Route path=":id" element={<></>} />
@@ -32,7 +32,7 @@ export const Router = () => {
         <Route path=":novelId/:chapterId" element={<NovelRead />} />
         <Route
           path="writing-room"
-          element={<ProtectedRoutes role={[Roles.Reader, Roles.Author]} />}
+          element={<ProtectedRoutes role={[Roles.User]} />}
         >
           <Route index element={<WritingRoom />} />
           <Route path="upsert-novel/:id?" element={<UpsertNovels />} />

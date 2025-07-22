@@ -142,12 +142,12 @@ export const WritingRoom = () => {
           <div className="flex flex-col gap-5">
             {novelsData?.map((novel) => (
               <div
-                key={novel.id}
+                key={novel.novelId}
                 className="h-[200px] bg-[#1e1e21] rounded-[10px] p-4 max-w-5xl "
               >
                 <div className="flex gap-4">
                   <img
-                    src={novel.novel_image || undefined}
+                    src={novel.novelImage || undefined}
                     className="w-[120px] h-[150px] bg-[#d9d9d9] my-[10px] ml-[10px] rounded-[10px]"
                   />
 
@@ -166,19 +166,23 @@ export const WritingRoom = () => {
                         </div>
                         <div className="flex gap-[25px]">
                           <button
-                            onClick={() => handleEditNovelButtonClick(novel.id)}
+                            onClick={() =>
+                              handleEditNovelButtonClick(novel.novelId)
+                            }
                             className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"
                           >
                             <ModeEdit sx={{ height: "20px", width: "20px" }} />
                           </button>
                           <button
-                            onClick={() => navigate(`${novel.id}`)}
+                            onClick={() => navigate(`${novel.novelId}`)}
                             className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"
                           >
                             <Add sx={{ height: "20px", width: "20px" }} />
                           </button>
                           <button
-                            onClick={() => handleDeleteNovelClick(novel.id)}
+                            onClick={() =>
+                              handleDeleteNovelClick(novel.novelId)
+                            }
                             className="bg-red-700 h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-red-500"
                           >
                             <ModeDelete
@@ -203,7 +207,7 @@ export const WritingRoom = () => {
                           </p>
                           <p className="text-[15px]">
                             <strong>
-                              {formatTicksToDateString(novel.created_at)}
+                              {formatTicksToDateString(novel.createAt)}
                             </strong>
                           </p>
                         </div>
@@ -215,7 +219,7 @@ export const WritingRoom = () => {
                         </div>
                         <div className="flex flex-col gap-y-5">
                           <p className="text-[15px]">
-                            <strong>{novel.total_views}</strong>
+                            <strong>{novel.totalViews}</strong>
                           </p>
                           <p className="text-[15px]">
                             <strong>{novel.followers}</strong>
