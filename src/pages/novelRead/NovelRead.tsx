@@ -91,7 +91,7 @@ export const NovelRead = () => {
           <h2>{data?.chapter.title}</h2>
         </div>
 
-        <div style={{ lineHeight: "4" }}>
+        <div>
           <hr
             style={{
               marginLeft: "-50px",
@@ -101,7 +101,10 @@ export const NovelRead = () => {
               borderTop: "1px solid #4B5563",
             }}
           />
-          {data?.chapter.content}
+          <div
+            className="space-y-6 mt-4"
+            dangerouslySetInnerHTML={{ __html: data?.chapter.content || "" }}
+          />
         </div>
 
         <hr
