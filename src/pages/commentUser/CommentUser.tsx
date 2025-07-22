@@ -266,199 +266,203 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
     };
 
     return (
-        <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
-            <div style={{ backgroundColor: "#1e1e1e", color: "#ffffff", padding: "30px" }}>
-                <h3 className="font-semibold">
-                    Bình luận ({enrichedComments.length})
-                </h3>
+        <>
+            {auth?.user && (
+                <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
+                    <div style={{ backgroundColor: "#1e1e1e", color: "#ffffff", padding: "30px" }}>
+                        <h3 className="font-semibold">
+                            Bình luận ({enrichedComments.length})
+                        </h3>
 
-                <hr
-                    style={{
-                        marginLeft: "-50px",
-                        marginRight: "-50px",
-                        marginTop: "20px",
-                        width: "calc(100% + 100px)",
-                        borderTop: "1px solid #4B5563",
-                    }}
-                />
-            </div>
-
-            <div className="p-3">
-                <div className="flex items-center space-x-4">
-                    <img src={currentUser.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
-                    <div>
-                        <p className="font-semibold">{currentUser.name}</p>
-                        <p className="text-xs text-gray-400">{currentUser.user}</p>
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-3 mb-4 px-13">
-                    <input
-                        className="comment w-full"
-                        type="text"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Viết bình luận..."
-                    />
-
-                    <div className="flex justify-between items-center">
-                        <div className="flex gap-5">
-                            <img src={ImageAdd02Icon} className="w-6 h-6" />
-                            <img src={SmileIcon} className="w-6 h-6" />
-                        </div>
-
-                        <button type="button" onClick={handlePostComment} className="buttonPost">
-                            <div className="flex gap-2 items-center">
-                                Đăng
-                                <img src={SentIcon} alt="Gửi" className="w-4 h-4" />
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {topLevelComments.map((comment: Comment) => (
-                <div key={comment.id} className="mb-3 p-3 rounded-md">
-                    <div className="flex justify-between items-start space-x-4">
-                        <div className="flex items-center space-x-4">
-                            <img src={comment.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
-                            <div>
-                                <p className="font-semibold">{comment.name}</p>
-                                <p className="text-xs text-gray-400">
-                                    {comment.user} • {editedComments[comment.id]?.timestamp || comment.timestamp}
-                                    {editedComments[comment.id] && (
-                                        <span className="italic text-gray-500 ml-1"></span>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                        {comment.user === currentUser.user ? <MoreUser
-                            commentId={comment.id}
-                            onDelete={deleteComment}
-                            onEdit={() => {
-                                setEditingCommentId(comment.id);
-                                setEditValue(comment.content);
+                        <hr
+                            style={{
+                                marginLeft: "-50px",
+                                marginRight: "-50px",
+                                marginTop: "20px",
+                                width: "calc(100% + 100px)",
+                                borderTop: "1px solid #4B5563",
                             }}
                         />
-                            : <MoreButton />}
                     </div>
 
-                    <div className="ml-14">
-                        {editingCommentId === comment.id ? (
-                            <div className="flex flex-col gap-2 mt-2">
-                                <input
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="comment w-[1570px]"
-                                />
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => {
-                                            updateComment(
-                                                { commentId: comment.id, content: editValue },
-                                                {
-                                                    onSuccess: () => {
-                                                        const ticks = getCurrentTicks();
-                                                        const formattedTime = formatVietnamTimeFromTicks(ticks);
-
-                                                        setEditedComments((prev) => ({
-                                                            ...prev,
-                                                            [comment.id]: {
-                                                                content: editValue,
-                                                                timestamp: formattedTime,
-                                                            },
-                                                        }));
-                                                        localStorage.setItem(`updatedAt_${comment.id}`, String(ticks));
-                                                        setEditingCommentId(null);
-                                                        setEditValue("");
-                                                    },
-                                                }
-                                            );
-                                        }}
-                                        className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
-                                    >
-                                        Lưu
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setEditingCommentId(null);
-                                            setEditValue("");
-                                        }}
-                                        className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                                    >
-                                        Hủy
-                                    </button>
-                                </div>
+                    <div className="p-3">
+                        <div className="flex items-center space-x-4">
+                            <img src={currentUser.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
+                            <div>
+                                <p className="font-semibold">{currentUser.name}</p>
+                                <p className="text-xs text-gray-400">{currentUser.user}</p>
                             </div>
-                        ) : (
-                            <p className="mb-1">
-                                {editedComments[comment.id]?.content || comment.content}
-                            </p>
-                        )}
-
-                        <div className="mt-4 flex space-x-6">
-                            <span
-                                className={`flex items-center gap-2 cursor-pointer ${likedComments[comment.id] ? "text-red-500" : "text-white"
-                                    }`}
-                                onClick={() => handleToggleLike(comment.id)}
-                            >
-                                <img src={likedComments[comment.id] ? red_favorite : favorite} className="w-5 h-5" />
-                                {editedComments[comment.id]?.likes ?? Number(localStorage.getItem(`likes_${comment.id}`)) ?? comment.likes}
-                            </span>
-
-                            <span
-                                className="flex items-center gap-2 cursor-pointer"
-                                onClick={() => handleReplyClick(comment.id, comment.name)}
-                            >
-                                <img src={CommentAdd01Icon} />
-                                {editedComments[comment.id]?.replies ?? comment.replies}
-                            </span>
                         </div>
 
-                        {replyInputs[comment.id] && (
-                            <div
-                                className="mt-4 max-w-2xl"
-                            >
-                                <Reply
-                                    currentUser={currentUser}
-                                    replyValue={replyValues[comment.id] || ""}
-                                    onReplyChange={(e) => handleReplyChange(comment.id, e.target.value)}
-                                    onReplySubmit={() => handleReplySubmit(comment.id)}
-                                    inputRef={(el) => (inputRefs.current[comment.id] = el)}
-                                />
-                            </div>
-                        )}
+                        <div className="flex flex-col gap-3 mb-4 px-13">
+                            <input
+                                className="comment w-full"
+                                type="text"
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Viết bình luận..."
+                            />
 
-                        {enrichedComments
-                            .filter((reply: Comment) => reply.parentId === comment.id)
-                            .map((reply: Comment) => (
-                                <NestedReply
-                                    key={`${reply.id}-${renderKey}`}
-                                    comment={reply}
-                                    currentUser={currentUser}
-                                    replies={enrichedComments}
-                                    replyInputs={replyInputs}
-                                    replyValues={replyValues}
-                                    editedComments={editedComments}
-                                    editingCommentId={editingCommentId}
-                                    editValue={editValue}
-                                    setEditValue={setEditValue}
-                                    setEditedComments={setEditedComments}
-                                    setEditingCommentId={setEditingCommentId}
-                                    updateComment={updateComment}
-                                    onReplyClick={handleReplyClick}
-                                    onReplyChange={handleReplyChange}
-                                    onReplySubmit={handleReplySubmit}
-                                    likedComments={likedComments}
-                                    deleteComment={deleteComment}
-                                    handleToggleLike={handleToggleLike}
-                                    renderKey={renderKey}
-                                />
-                            ))}
+                            <div className="flex justify-between items-center">
+                                <div className="flex gap-5">
+                                    <img src={ImageAdd02Icon} className="w-6 h-6" />
+                                    <img src={SmileIcon} className="w-6 h-6" />
+                                </div>
+
+                                <button type="button" onClick={handlePostComment} className="buttonPost">
+                                    <div className="flex gap-2 items-center">
+                                        Đăng
+                                        <img src={SentIcon} alt="Gửi" className="w-4 h-4" />
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+
+                    {topLevelComments.map((comment: Comment) => (
+                        <div key={comment.id} className="mb-3 p-3 rounded-md">
+                            <div className="flex justify-between items-start space-x-4">
+                                <div className="flex items-center space-x-4">
+                                    <img src={comment.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
+                                    <div>
+                                        <p className="font-semibold">{comment.name}</p>
+                                        <p className="text-xs text-gray-400">
+                                            {comment.user} • {editedComments[comment.id]?.timestamp || comment.timestamp}
+                                            {editedComments[comment.id] && (
+                                                <span className="italic text-gray-500 ml-1"></span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                                {comment.user === currentUser.user ? <MoreUser
+                                    commentId={comment.id}
+                                    onDelete={deleteComment}
+                                    onEdit={() => {
+                                        setEditingCommentId(comment.id);
+                                        setEditValue(comment.content);
+                                    }}
+                                />
+                                    : <MoreButton />}
+                            </div>
+
+                            <div className="ml-14">
+                                {editingCommentId === comment.id ? (
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <input
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            className="comment w-[1570px]"
+                                        />
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    updateComment(
+                                                        { commentId: comment.id, content: editValue },
+                                                        {
+                                                            onSuccess: () => {
+                                                                const ticks = getCurrentTicks();
+                                                                const formattedTime = formatVietnamTimeFromTicks(ticks);
+
+                                                                setEditedComments((prev) => ({
+                                                                    ...prev,
+                                                                    [comment.id]: {
+                                                                        content: editValue,
+                                                                        timestamp: formattedTime,
+                                                                    },
+                                                                }));
+                                                                localStorage.setItem(`updatedAt_${comment.id}`, String(ticks));
+                                                                setEditingCommentId(null);
+                                                                setEditValue("");
+                                                            },
+                                                        }
+                                                    );
+                                                }}
+                                                className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                                            >
+                                                Lưu
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    setEditingCommentId(null);
+                                                    setEditValue("");
+                                                }}
+                                                className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                                            >
+                                                Hủy
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="mb-1">
+                                        {editedComments[comment.id]?.content || comment.content}
+                                    </p>
+                                )}
+
+                                <div className="mt-4 flex space-x-6">
+                                    <span
+                                        className={`flex items-center gap-2 cursor-pointer ${likedComments[comment.id] ? "text-red-500" : "text-white"
+                                            }`}
+                                        onClick={() => handleToggleLike(comment.id)}
+                                    >
+                                        <img src={likedComments[comment.id] ? red_favorite : favorite} className="w-5 h-5" />
+                                        {editedComments[comment.id]?.likes ?? Number(localStorage.getItem(`likes_${comment.id}`)) ?? comment.likes}
+                                    </span>
+
+                                    <span
+                                        className="flex items-center gap-2 cursor-pointer"
+                                        onClick={() => handleReplyClick(comment.id, comment.name)}
+                                    >
+                                        <img src={CommentAdd01Icon} />
+                                        {editedComments[comment.id]?.replies ?? comment.replies}
+                                    </span>
+                                </div>
+
+                                {replyInputs[comment.id] && (
+                                    <div
+                                        className="mt-4 max-w-2xl"
+                                    >
+                                        <Reply
+                                            currentUser={currentUser}
+                                            replyValue={replyValues[comment.id] || ""}
+                                            onReplyChange={(e) => handleReplyChange(comment.id, e.target.value)}
+                                            onReplySubmit={() => handleReplySubmit(comment.id)}
+                                            inputRef={(el) => (inputRefs.current[comment.id] = el)}
+                                        />
+                                    </div>
+                                )}
+
+                                {enrichedComments
+                                    .filter((reply: Comment) => reply.parentId === comment.id)
+                                    .map((reply: Comment) => (
+                                        <NestedReply
+                                            key={`${reply.id}-${renderKey}`}
+                                            comment={reply}
+                                            currentUser={currentUser}
+                                            replies={enrichedComments}
+                                            replyInputs={replyInputs}
+                                            replyValues={replyValues}
+                                            editedComments={editedComments}
+                                            editingCommentId={editingCommentId}
+                                            editValue={editValue}
+                                            setEditValue={setEditValue}
+                                            setEditedComments={setEditedComments}
+                                            setEditingCommentId={setEditingCommentId}
+                                            updateComment={updateComment}
+                                            onReplyClick={handleReplyClick}
+                                            onReplyChange={handleReplyChange}
+                                            onReplySubmit={handleReplySubmit}
+                                            likedComments={likedComments}
+                                            deleteComment={deleteComment}
+                                            handleToggleLike={handleToggleLike}
+                                            renderKey={renderKey}
+                                        />
+                                    ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            ))}
-        </div>
+            )}
+        </>
     );
 };
