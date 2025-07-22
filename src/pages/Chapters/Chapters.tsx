@@ -31,6 +31,8 @@ export const Chapters = () => {
     enabled: !!novelId,
   });
 
+  console.log(novelData);
+
   const novelInfo = novelData?.novelInfo;
   const chapters = novelData?.allChapters;
   const lastChapter = chapters?.[chapters?.length - 1];
