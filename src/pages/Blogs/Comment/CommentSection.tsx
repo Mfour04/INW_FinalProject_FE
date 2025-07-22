@@ -235,14 +235,14 @@ const CommentSection = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="px-4"
+          className="px-4 h-full"
         >
           <motion.div
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`bg-[#2b2b2c] rounded-lg p-4 overscroll-contain`}
+            className="bg-[#2b2b2c] rounded-lg p-4 pb-0 mb-4 overflow-y-auto overflow-x-hidden max-h-[calc(85vh-96px)] min-h-[100px] relative scroll-pb-4"
           >
             {(() => {
               const postRootComments = rootComments.filter(
@@ -279,7 +279,7 @@ const CommentSection = ({
                       onRequestDelete={onRequestDelete}
                     />
                   ))}
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {postRootComments.length > visibleCount && (
                       <motion.button
                         onClick={() =>
@@ -306,70 +306,70 @@ const CommentSection = ({
                       </motion.button>
                     )}
                   </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="sticky bottom-0 bg-[#2b2b2c] z-20 pb-2"
+                  >
+                    {replyingTo && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[14px] sm:text-sm text-[#999] truncate max-w-[60%]">
+                          Đang trả lời {replyingTo.username}
+                        </span>
+                        <motion.button
+                          onClick={() => setReplyingTo(null)}
+                          className="text-[#aaa] hover:text-white p-1 rounded-full hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="Hủy trả lời"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </motion.button>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder={
+                          replyingTo
+                            ? `Trả lời ${replyingTo.username}...`
+                            : "Viết bình luận..."
+                        }
+                        value={commentInput}
+                        onChange={(e) => setCommentInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleCommentSubmit();
+                          }
+                        }}
+                        className="min-w-0 flex-[3] text-[15px] sm:text-base px-4 py-2 bg-[#2b2b2c] text-white rounded-full border border-[#444] focus:border-[#ff6740] focus:ring-2 focus:ring-[#ff6740]/30 focus:outline-none transition-all duration-200"
+                      />
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button
+                          isLoading={false}
+                          onClick={handleCommentSubmit}
+                          disabled={!commentInput.trim()}
+                          className="flex-[1] min-w-[48px] bg-[#ff6740] text-white px-4 py-2 rounded-full disabled:bg-[#4a4a4a] disabled:cursor-not-allowed transition-colors duration-200"
+                          aria-label="Gửi bình luận"
+                        >
+                          <img
+                            src={SentHugeIcon}
+                            alt="Sent icon"
+                            className="w-6 h-6 sm:w-6 sm:h-6"
+                          />
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </motion.div>
                 </>
               );
             })()}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`mt-4 flex flex-col gap-2 sticky bottom-4 bg-[#1e1e21] py-3 px-3 rounded-lg shadow-sm`}
-            >
-              {replyingTo && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] sm:text-sm text-[#999] truncate max-w-[50%]">
-                    Đang trả lời {replyingTo.username}
-                  </span>
-                  <motion.button
-                    onClick={() => setReplyingTo(null)}
-                    className="text-[#aaa] hover:text-white p-1 rounded-full hover:bg-[#3a3a3a] active:bg-[#3a3a3a] transition-colors duration-200"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label="Hủy trả lời"
-                  >
-                    <CloseIcon fontSize="small" />
-                  </motion.button>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder={
-                    replyingTo
-                      ? `Trả lời ${replyingTo.username}...`
-                      : "Viết bình luận..."
-                  }
-                  value={commentInput}
-                  onChange={(e) => setCommentInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleCommentSubmit();
-                    }
-                  }}
-                  className="min-w-0 flex-[3] text-[15px] sm:text-base px-4 py-2 bg-[#1e1e21] text-white rounded-full border border-[#444] focus:border-[#ff6740] focus:ring-2 focus:ring-[#ff6740]/30 focus:outline-none transition-all duration-200 shadow-sm"
-                />
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    isLoading={false}
-                    onClick={handleCommentSubmit}
-                    disabled={!commentInput.trim()}
-                    className={`flex-[1] min-w-[48px] bg-[#ff6740] text-white px-4 py-2 rounded-full disabled:bg-[#4a4a4a] disabled:cursor-not-allowed transition-colors duration-200`}
-                    aria-label="Gửi bình luận"
-                  >
-                    <img
-                      src={SentHugeIcon}
-                      alt="Sent icon"
-                      className="w-6 h-6 sm:w-6 sm:h-6"
-                    />
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
           </motion.div>
         </motion.div>
       )}
