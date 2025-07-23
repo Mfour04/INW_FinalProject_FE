@@ -1,9 +1,9 @@
 import React, { createContext, useState } from "react";
 
 export const Roles = {
-  Reader: "Reader",
-  Author: "Author",
+  User: "User",
   Admin: "Admin",
+  System: "System",
 } as const;
 
 export type Role = (typeof Roles)[keyof typeof Roles];

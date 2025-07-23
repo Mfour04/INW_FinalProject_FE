@@ -1,6 +1,7 @@
 import type { Chapter } from "../../entity/chapter";
 import type { Novel } from "../../entity/novel";
 import type { ApiResponse } from "../../entity/response";
+import type { Tags } from "../Tags/tag.type";
 
 export interface CreateNovelRequest {
   title: string;
@@ -23,26 +24,26 @@ interface NovelReponse {
 }
 
 type NovelByAuthorResponse = {
-  id: string;
+  novelId: string;
   title: string;
-  title_unsigned: string;
   description: string;
-  author_id: string;
-  novel_image: string;
-  tags: string[];
+  authorId: string;
+  authorName: string;
+  novelImage: string;
+  novelBanner: string | null;
+  tags: Tags[];
   status: number;
-  is_public: boolean;
-  is_lock: boolean;
-  is_paid: boolean;
-  purchase_type: number;
+  isPublic: boolean;
+  isPaid: boolean;
+  isLock: boolean;
   price: number;
-  total_chapters: number;
-  total_views: number;
+  totalChapters: number;
+  totalViews: number;
   followers: number;
-  rating_avg: number;
-  rating_count: number;
-  created_at: number;
-  updated_at: number;
+  ratingAvg: number;
+  ratingCount: number;
+  createAt: number;
+  updateAt: number;
 };
 
 type NovelChaptersResponse = {

@@ -122,10 +122,10 @@ const CreateChapters = () => {
       <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
         <p className="flex items-center">Cập nhật gần nhất:</p>
         <p className="flex items-center text-[#ff6740]">
-          Chương {lastChapter?.chapter_number}: {lastChapter?.title}
+          Chương {lastChapter?.chapterNumber}: {lastChapter?.title}
         </p>
         <p className="flex items-center text-[#cfcfcf]">
-          {formatTicksToRelativeTime(lastChapter?.created_at!)}
+          {formatTicksToRelativeTime(lastChapter?.createAt!)}
         </p>
       </div>
 
@@ -133,31 +133,31 @@ const CreateChapters = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
         {chapters
           ?.filter((chapter) =>
-            tab === "Draft" ? chapter.is_draft : !chapter.is_draft
+            tab === "Draft" ? chapter.isDraft : !chapter.isDraft
           )
           .map((chapter) => (
             <div
-              key={chapter.id}
+              key={chapter.chapterId}
               className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
             >
               <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-10 justify-between">
                 <div className="flex items-center">
-                  {chapter.chapter_number ? (
+                  {chapter.chapterNumber ? (
                     <h1 className="w-[60px] text-[20px]">
-                      {chapter.chapter_number}
+                      {chapter.chapterNumber}
                     </h1>
                   ) : undefined}
                   <div className="ml-2">
                     <p className="text-[18px] font-normal">{chapter.title}</p>
                     <p className="text-sm text-gray-400">
-                      {formatTicksToRelativeTime(chapter.created_at)}
+                      {formatTicksToRelativeTime(chapter.createAt)}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() =>
                     navigate(
-                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.id}`
+                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
                     )
                   }
                   className="cursor-pointer"
