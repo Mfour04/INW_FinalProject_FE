@@ -1,4 +1,4 @@
-import { useState, useRef, useContext } from "react";
+import { useState, useRef, useContext, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { Comment } from "../commentUser/Comment";
@@ -74,26 +74,41 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
         return map;
     });
 
-    const enrichedComments = (() => {
+    const serverComments: Comment[] = useMemo(() => {
         const flatten: Comment[] = [];
 
         const collectComments = (comment: any) => {
+            const createdTicks = Number(comment.createdAt) || 0;
+            const updatedTicks = Number(comment.updatedAt) || 0;
+            const localTicks = Number(localStorage.getItem(`updatedAt_${comment.id}`)) || 0;
+            const latestTicks = Math.max(createdTicks, updatedTicks, localTicks);
+            const timestamp = latestTicks
+                ? formatVietnamTimeFromTicks(latestTicks)
+                : "Không rõ thời gian";
+
+            const nameKey = `comment_authorName_${comment.id}`;
+            const handleKey = `comment_authorHandle_${comment.id}`;
+
+            const name = localStorage.getItem(nameKey) ?? currentUser.name;
+            const user = localStorage.getItem(handleKey) ?? currentUser.user;
+
+            if (localStorage.getItem(nameKey) === null) {
+                localStorage.setItem(nameKey, currentUser.name);
+            }
+            if (localStorage.getItem(handleKey) === null) {
+                localStorage.setItem(handleKey, currentUser.user);
+            }
+
             flatten.push({
                 id: comment.id,
                 content: comment.content,
-                parentId:
-                    comment.parent_comment_id ??
-                    comment.parentCommentId ??
-                    null,
+                parentId: comment.parent_comment_id ?? comment.parentCommentId ?? null,
                 likes: comment.likeCount ?? 0,
                 replies: Array.isArray(comment.replies) ? comment.replies.length : 0,
-                name: currentUser.name,
-                user: currentUser.user,
-                avatarUrl: currentUser.avatarUrl,
-                timestamp:
-                    localStorage.getItem(`updatedAt_${comment.id}`) !== null
-                        ? formatVietnamTimeFromTicks(Number(localStorage.getItem(`updatedAt_${comment.id}`)))
-                        : formatVietnamTimeFromTicks(Number(comment.createdAt)),
+                name,
+                user,
+                avatarUrl: defaultAvatar,
+                timestamp,
             });
 
             if (Array.isArray(comment.replies)) {
@@ -102,10 +117,33 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
         };
 
         rawComments.forEach(collectComments);
-        flatten.push(...tempComments);
 
         return flatten;
-    })();
+    }, [rawComments]);
+
+    const localComments: Comment[] = tempComments.map((c) => {
+        const nameKey = `comment_authorName_${c.id}`;
+        const handleKey = `comment_authorHandle_${c.id}`;
+
+        if (localStorage.getItem(nameKey) === null) {
+            localStorage.setItem(nameKey, currentUser.name);
+        }
+        if (localStorage.getItem(handleKey) === null) {
+            localStorage.setItem(handleKey, currentUser.user);
+        }
+
+        return {
+            ...c,
+            name: currentUser.name,
+            user: currentUser.user,
+            avatarUrl: currentUser.avatarUrl,
+        };
+    });
+
+    const enrichedComments: Comment[] = [
+        ...serverComments,
+        ...localComments,
+    ];
 
     const topLevelComments = enrichedComments.filter((c) => !c.parentId);
 
