@@ -2,14 +2,20 @@ import type { Role } from "../../context/AuthContext/AuthProvider";
 
 export interface User {
   userId: string;
-  username: string;
+  userName: string;
+  displayName: string;
   email: string;
-  role: Role;
   avatarUrl: string | null;
   bio: string | null;
+  role: Role;
+  isVerified: boolean;
+  isBanned: boolean;
   coin: number;
+  blockCoin: number;
+  novelFollowCount: number;
   badgeId: string[];
-  createdAt: string;
+  lastLogin: number;
+  favouriteType: string[];
 }
 
 export interface RegisterUser {
@@ -32,7 +38,6 @@ export interface RegisterUser {
   updated_at: number;
 }
 
-
 export interface Token {
   accessToken: string;
   refreshToken: string;
@@ -50,14 +55,13 @@ export interface RegisterResponse {
   data: RegisterUser;
 }
 
-
 export interface LoginParams {
-  username: string,
-  password: string
+  username: string;
+  password: string;
 }
 
 export interface RegisterParams {
-  username: string,
-  email: string,
-  password: string
+  username: string;
+  email: string;
+  password: string;
 }

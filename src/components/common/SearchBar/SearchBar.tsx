@@ -484,7 +484,7 @@ export const SearchBar = () => {
       {isPopupOpen && (
         <>
           {auth?.user ? (
-            <div className="absolute right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
+            <div className="absolute top-20 right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
               <div className="flex items-center gap-4">
                 <img
                   src={auth.user.avatarUrl || DefaultAvatar}
@@ -492,9 +492,11 @@ export const SearchBar = () => {
                   className="w-15 h-15 rounded-full object-cover bg-white"
                 />
                 <div className="flex flex-col gap-0.5">
-                  <div className="font-bold text-sm">{auth.user.username}</div>
+                  <div className="font-bold text-sm">
+                    {auth.user.displayName}
+                  </div>
                   <div className="text-xs text-gray-400">
-                    @{auth.user.username}
+                    @{auth.user.displayName}
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">

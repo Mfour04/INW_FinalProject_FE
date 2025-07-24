@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import type { User } from "../../api/Auth/auth.type";
 
 export const Roles = {
   User: "User",
@@ -7,17 +8,6 @@ export const Roles = {
 } as const;
 
 export type Role = (typeof Roles)[keyof typeof Roles];
-interface User {
-  userId: string;
-  username: string;
-  email: string;
-  role: Role;
-  avatarUrl: string | null;
-  bio: string | null;
-  coin: number;
-  badgeId: string[];
-  createdAt: string;
-}
 
 interface AuthState {
   accessToken: string;
