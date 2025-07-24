@@ -4,6 +4,7 @@ import type {
   NovelChaptersApiResponse,
   NovelsApiResponse,
   NovelsAuthorApiResponse,
+  NovelSlugCheckingApiResponse,
 } from "./novel.type";
 
 interface GetNovelsParams {
@@ -31,3 +32,6 @@ export const GetAuthorNovels = () =>
 
 export const GetNovelById = (id: string) =>
   http.http.get<NovelChaptersApiResponse>(`Novels/${id}`);
+
+export const GetUrlChecked = (slug: string) =>
+  http.http.get<NovelSlugCheckingApiResponse>(`Novels/slug/${slug}`);

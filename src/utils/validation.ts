@@ -3,6 +3,8 @@ export type PasswordValidationResult = {
   errors: string[];
 };
 
+export const urlRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export const validatePassword = (
   password: string
 ): PasswordValidationResult => {
@@ -38,3 +40,7 @@ export const validatePassword = (
     errors,
   };
 };
+
+export function isValidUrl(url: string): boolean {
+  return urlRegex.test(url);
+}
