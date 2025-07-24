@@ -8,12 +8,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { ChapterListModal } from "../../pages/novelRead/ChapterListModal";
+import { CommentUser } from "../../pages/commentUser/CommentUser";
 import { useSpeech } from "react-text-to-speech";
 import Play from "../../assets/svg/NovelRead/play-stroke-rounded.svg";
 import Pause from "../../assets/svg/NovelRead/pause-stroke-rounded.svg";
 import Stop from "../../assets/svg/NovelRead/stop-stroke-rounded.svg";
 import { htmlToPlainText } from "../../utils/text-speech";
-// import { CommentUser } from "../../pages/commentUser/CommentUser";
 
 type SpeechState = "started" | "paused" | "stopped";
 
@@ -223,7 +223,9 @@ export const NovelRead = () => {
         </div>
       </div>
 
-      {/* <CommentUser /> */}
+      {novelId && chapterId && (
+        <CommentUser novelId={novelId} chapterId={chapterId} />
+      )}
     </div>
   );
 };
