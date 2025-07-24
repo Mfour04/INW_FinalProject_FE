@@ -5,15 +5,17 @@ import type { Tags } from "../Tags/tag.type";
 
 export interface CreateNovelRequest {
   title: string;
+  slug: string;
   description: string;
   authorId: string;
   novelImage: File | null;
+  novelBanner?: File | null;
   tags: string[];
   status: number;
   isPublic: boolean;
   isPaid: boolean;
   isLock: boolean;
-  purchaseType: number;
+  allowComment: boolean;
   price: number;
 }
 
@@ -55,6 +57,12 @@ type NovelChaptersResponse = {
   purchasedChapterIds: string[];
 };
 
+type NovelSlugCheckingResponse = {
+  exists: boolean;
+};
+
 export type NovelsApiResponse = ApiResponse<NovelReponse>;
 export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse[]>;
 export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;
+export type NovelSlugCheckingApiResponse =
+  ApiResponse<NovelSlugCheckingResponse>;
