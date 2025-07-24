@@ -171,6 +171,11 @@ export const SearchBar = () => {
     navigate("/deposite");
   };
 
+  const handleTransactionHistoryClick = () => {
+    setIsPopupOpen(false);
+    navigate("/transaction-history");
+  };
+
   const handleLogoutClick = () => {
     logout();
     setIsPopupOpen(false);
@@ -529,7 +534,10 @@ export const SearchBar = () => {
                 <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
                   <Person /> <span>Trang cá nhân</span>
                 </div>
-                <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                <div
+                  onClick={handleTransactionHistoryClick}
+                  className="flex items-center gap-2 cursor-pointer hover:text-orange-400"
+                >
                   <History /> <span>Lịch sử giao dịch</span>
                 </div>
                 <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
