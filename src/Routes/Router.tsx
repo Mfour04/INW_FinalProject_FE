@@ -14,6 +14,7 @@ import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 import { Blogs } from "../pages/Blogs/Blogs";
+import { Deposite } from "../pages/Deposite/Deposite";
 export const Router = () => {
   return (
     <Routes>
@@ -48,6 +49,7 @@ export const Router = () => {
         element={<ProtectedRoutes role={Roles.Admin} />}
       ></Route>
       {/* <Route path="/novelRead" element={<NovelRead />} /> */}
+      <Route path="/deposite" element={<Deposite />} />
       <Route path="/profile" element={<UserProfile />} />
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/unauthorized" element={<Unauthorized />} />

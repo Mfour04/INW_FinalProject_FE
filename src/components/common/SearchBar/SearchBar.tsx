@@ -88,7 +88,6 @@ export const SearchBar = () => {
   const [selectedTag, setSelectedTag] = useState<string>("");
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   const validationPassword: PasswordValidationResult = validatePassword(
     registerForm.password
@@ -165,6 +164,11 @@ export const SearchBar = () => {
         toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
       },
     });
+  };
+
+  const handleDepositClick = () => {
+    setIsPopupOpen(false);
+    navigate("/deposite");
   };
 
   const handleLogoutClick = () => {
@@ -513,7 +517,10 @@ export const SearchBar = () => {
                 <div className="text-yellow-300 font-bold text-sm">
                   🪙 {auth.user.coin}
                 </div>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold">
+                <button
+                  onClick={handleDepositClick}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold"
+                >
                   Nạp thêm
                 </button>
               </div>
