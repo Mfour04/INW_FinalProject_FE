@@ -16,6 +16,7 @@ import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter"
 import { Blogs } from "../pages/Blogs/Blogs";
 import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
+import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
 export const Router = () => {
   return (
     <Routes>
@@ -25,8 +26,8 @@ export const Router = () => {
         element={<ProtectedRoutes role={[Roles.User]} />}
       >
         <Route index element={<></>} />
-        <Route path=":id" element={<></>} />
-        <Route path="new" element={<></>} />
+        <Route path="library" element={<NovelLib />} />
+        <Route path="history" element={<></>} />
       </Route>
       <Route path="/novels">
         <Route index element={<Novels />} />

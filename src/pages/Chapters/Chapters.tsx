@@ -6,18 +6,32 @@ import ModeEdit from "@mui/icons-material/ModeEdit";
 import Add from "@mui/icons-material/Add";
 import Lock from "@mui/icons-material/Lock";
 import Report from "@mui/icons-material/Report";
+import NotificationActive from "@mui/icons-material/NotificationsActive";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatTicksToRelativeTime } from "../../utils/date_format";
 import { GetNovelById } from "../../api/Novels/novel.api";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useAuth } from "../../hooks/useAuth";
+import type {
+  NovelFollowerRequest,
+  NovelFollowRequest,
+} from "../../api/NovelFollow/novel-follow.type";
+import {
+  FollowNovel,
+  GetNovelFollowers,
+  UnfollowNovel,
+} from "../../api/NovelFollow/novel-follow.api";
+import { FollowPopup } from "./FollowPopup";
+import Button from "../../components/ButtonComponent";
 
 type Tabs = "Chapter" | "Comment";
 
 export const Chapters = () => {
   const [tab, setTab] = useState<Tabs>("Chapter");
+  const [showFollowPopup, setShowFollowPopup] = useState(false);
 
   const { novelId } = useParams();
   const navigate = useNavigate();
@@ -31,9 +45,38 @@ export const Chapters = () => {
     enabled: !!novelId,
   });
 
+  const { data: novelFollowers, refetch: refetchNovelFollowers } = useQuery({
+    queryKey: ["novelFollower", novelId],
+    queryFn: () =>
+      GetNovelFollowers({ novelId: novelId! }).then((res) => res.data.data),
+    enabled: !!novelId,
+  });
+
+  const NovelFollowMutation = useMutation({
+    mutationFn: (request: NovelFollowRequest) => FollowNovel(request),
+    onSuccess: () => {
+      toast?.onOpen("Bạn đã theo dõi tiểu thuyết!");
+      refetchNovelFollowers();
+    },
+  });
+
+  const UnfollowNovelMutaion = useMutation({
+    mutationFn: (request: NovelFollowerRequest) => UnfollowNovel(request),
+    onSuccess: () => {
+      toast?.onOpen("Bạn đã hủy theo dõi tiểu thuyết!");
+      refetchNovelFollowers();
+    },
+  });
+
   const novelInfo = novelData?.novelInfo;
   const chapters = novelData?.allChapters;
   const lastChapter = chapters?.[chapters?.length - 1];
+
+  const follower = Array.isArray(novelFollowers?.followers)
+    ? novelFollowers.followers.find(
+        (follower) => follower.userId === auth?.user.userId
+      )
+    : undefined;
 
   const handleClickChapter = (chapterId: string, isPaid: boolean) => {
     if (isPaid) {
@@ -43,6 +86,17 @@ export const Chapters = () => {
         );
       else toast?.onOpen("Bạn không sở hữu chương này!");
     } else navigate(`/novels/${novelId}/${chapterId}`);
+  };
+
+  const handleFollowNovel = (novelId: string) => {
+    if (novelId) NovelFollowMutation.mutate({ novelId });
+  };
+
+  const handleUnfollowNovel = (novelFollowId: string) => {
+    if (novelFollowId) {
+      setShowFollowPopup(false);
+      UnfollowNovelMutaion.mutate({ novelFollowId });
+    }
   };
 
   return (
@@ -85,10 +139,57 @@ export const Chapters = () => {
           </div>
 
           <div className="flex flex-wrap gap-7 mt-10 h-[37px]">
-            <button className="flex items-center justify-center gap-2.5 bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]">
-              <ModeEdit sx={{ height: "20px", width: "20px" }} />
-              <p>Theo dõi</p>
-            </button>
+            {!follower ? (
+              <Button
+                onClick={() => handleFollowNovel(novelId!)}
+                isLoading={NovelFollowMutation.isPending}
+                className="bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
+              >
+                <div className="flex items-center justify-center gap-2.5">
+                  {!NovelFollowMutation.isPending && (
+                    <>
+                      <ModeEdit sx={{ height: "20px", width: "20px" }} />
+                      <p>Theo dõi</p>
+                    </>
+                  )}
+                </div>
+              </Button>
+            ) : (
+              <div className="relative inline-block">
+                <Button
+                  onClick={() => setShowFollowPopup((prev) => !prev)}
+                  isLoading={UnfollowNovelMutaion.isPending}
+                  className="bg-[#45454e] w-[228px] hover:bg-gray-700 px-4 py-1 rounded text-[18px]"
+                >
+                  <div className="flex items-center justify-center gap-2.5">
+                    {!UnfollowNovelMutaion.isPending && (
+                      <>
+                        <NotificationActive
+                          sx={{ height: "20px", width: "20px" }}
+                        />
+                        <p>Đang theo dõi</p>
+                        <KeyboardArrowDown
+                          sx={{ height: "20px", width: "20px" }}
+                        />
+                      </>
+                    )}
+                  </div>
+                </Button>
+
+                {showFollowPopup && (
+                  <div className="absolute left-57 top-[-15px] z-50 mt-2">
+                    <FollowPopup
+                      notify={false}
+                      status="Đang đọc"
+                      onUnfollow={() =>
+                        handleUnfollowNovel(follower.followerId)
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
               <Share sx={{ height: "20px", width: "20px" }} />
               <Add sx={{ height: "20px", width: "20px" }} />
