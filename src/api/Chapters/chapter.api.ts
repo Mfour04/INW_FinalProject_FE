@@ -8,7 +8,7 @@ import type {
 } from "./chapter.type";
 
 export const GetChapter = (id: string) => {
-  return http.http.get<Chapters>(`Chapters/${id}`);
+  return http.privateHttp.get<Chapters>(`Chapters/${id}`);
 };
 
 export const GetChapters = (novelId: string) =>

@@ -60,7 +60,7 @@ export const Chapters = () => {
           </h1>
           <div className="flex justify-between h-[40px]">
             <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
-              tinwinvn
+              {novelInfo?.authorName}
             </p>
             <div className="flex gap-2.5">
               <div className="flex items-center gap-1 text-[20px]">

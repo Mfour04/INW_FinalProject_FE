@@ -40,7 +40,7 @@ const CreateChapters = () => {
           <h1 className="text-[44px] font-bold">{novel?.title}</h1>
           <div className="flex justify-between h-[40px]">
             <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
-              Shimonitsuki Setsu
+              {novel?.authorName}
             </p>
             <div className="flex gap-2.5">
               <div className="flex items-center gap-1 text-[20px]">
