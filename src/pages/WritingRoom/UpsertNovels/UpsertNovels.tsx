@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CreateNovels,
   GetNovelById,
+  GetUrlChecked,
   UpdateNovels,
 } from "../../../api/Novels/novel.api";
 import { useAuth } from "../../../hooks/useAuth";
@@ -14,18 +15,21 @@ import { getTags } from "../../../api/Tags/tag.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { urlToFile } from "../../../utils/img";
 import { TagView } from "../../../components/TagComponent";
+import { isValidUrl } from "../../../utils/validation";
 
 const initialCreateNovelForms: CreateNovelRequest = {
   title: "",
+  slug: "",
   description: "",
   authorId: "",
   novelImage: null,
+  novelBanner: null,
   tags: [],
   status: 1,
   isPublic: true,
   isPaid: false,
   isLock: false,
-  purchaseType: 0,
+  allowComment: true,
   price: 0,
 };
 
@@ -35,6 +39,8 @@ export const UpsertNovels = () => {
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string>("");
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -48,6 +54,17 @@ export const UpsertNovels = () => {
     queryKey: ["novel", id],
     queryFn: () => GetNovelById(id!),
     enabled: !!id,
+  });
+
+  const {
+    data: slugChecked,
+    refetch: checkSlug,
+    isFetching: isChecking,
+  } = useQuery({
+    queryKey: ["check-slug", createNovelForm.slug],
+    queryFn: () =>
+      GetUrlChecked(createNovelForm.slug).then((res) => res.data.data),
+    enabled: false,
   });
 
   const createNovelMutation = useMutation({
@@ -85,10 +102,21 @@ export const UpsertNovels = () => {
     queryFn: () => getTags().then((res) => res.data.data),
   });
 
+  const handleCheckSlug = () => {
+    if (!isValidUrl(createNovelForm.slug)) {
+      setUrlError(
+        "Slug không hợp lệ. Chỉ dùng chữ thường, số, và dấu gạch ngang."
+      );
+      return;
+    }
+    checkSlug();
+  };
+
   const handleUpsertNovelClick = () => {
     const formData = new FormData();
     formData.append("title", createNovelForm.title);
     formData.append("description", createNovelForm.description);
+    formData.append("slug", createNovelForm.slug);
 
     if (auth?.user?.userId) {
       formData.append("authorId", auth.user.userId);
@@ -98,13 +126,16 @@ export const UpsertNovels = () => {
       formData.append("novelImage", createNovelForm.novelImage);
     }
 
+    if (createNovelForm.novelBanner) {
+      formData.append("novelBanner", createNovelForm.novelBanner);
+    }
+
     createNovelForm.tags.forEach((tag) => formData.append("tags", tag));
 
     formData.append("status", createNovelForm.status.toString());
     formData.append("isPublic", createNovelForm.isPublic.toString());
     formData.append("isPaid", createNovelForm.isPaid.toString());
     formData.append("isLock", createNovelForm.isLock.toString());
-    formData.append("purchaseType", createNovelForm.purchaseType.toString());
     formData.append("price", createNovelForm.price.toString());
 
     if (isUpdate && id) {
@@ -112,6 +143,11 @@ export const UpsertNovels = () => {
       updateNovelMutation.mutate(formData);
     } else createNovelMutation.mutate(formData);
   };
+
+  useEffect(() => {
+    if (slugChecked?.exists) setUrlError("Đã tồn lại Url này!");
+    else setUrlError("");
+  }, [slugChecked]);
 
   useEffect(() => {
     setCreateNovelForm((prev) => ({
@@ -132,6 +168,17 @@ export const UpsertNovels = () => {
   }, [createNovelForm.novelImage]);
 
   useEffect(() => {
+    if (createNovelForm.novelBanner) {
+      const url = URL.createObjectURL(createNovelForm.novelBanner);
+      setBannerPreview(url);
+
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setBannerPreview(null);
+    }
+  }, [createNovelForm.novelBanner]);
+
+  useEffect(() => {
     if (isSuccess && novelData) {
       const novel = novelData.data.data.novelInfo;
 
@@ -139,20 +186,26 @@ export const UpsertNovels = () => {
 
       const fetchFile = async () => {
         let file: File | null = null;
+        let banner: File | null = null;
         if (novel.novelImage) {
           file = await urlToFile(novel.novelImage, "novel-image.jpg");
+        }
+        if (novel.novelBanner) {
+          banner = await urlToFile(novel.novelBanner, "banner.jpg");
         }
         setCreateNovelForm({
           title: novel.title,
           description: novel.description,
+          slug: novel.slug,
           authorId: novel.authorId,
           novelImage: file,
+          novelBanner: banner,
           tags: tags,
           status: novel.status,
           isPublic: novel.isPublic,
           isPaid: novel.isPaid,
           isLock: novel.isLock,
-          purchaseType: novel.purchaseType,
+          allowComment: novel.allowComment,
           price: novel.price,
         });
         let objectUrl: string | null = null;
@@ -200,18 +253,44 @@ export const UpsertNovels = () => {
         </p>
       </div>
 
-      {/* <div className="mb-4">
-            <label className="block text-xl mb-1">URL</label>
-            <div className="flex items-center bg-[#1e1e21] border border-gray-600 rounded overflow-hidden">
-            <span className="px-3 text-gray-500 text-sm bg-[#2a2a2d]">🔗 https://linkwave.io/</span>
-            <input
-                type="text"
-                className="flex-1 bg-transparent px-2 py-2 text-sm text-white"
-                placeholder="ten-truyen"
-            />
-            </div>
-            <p className="text-right text-xs text-gray-400 mt-1">0/100</p>
-        </div> */}
+      <div className="mb-4">
+        <label className="block text-xl mb-1">URL</label>
+        <div className="flex items-center bg-[#1e1e21] border border-gray-600 rounded overflow-hidden h-10">
+          <span className="h-full flex items-center px-3 text-gray-500 text-sm bg-[#2a2a2d]">
+            🔗 https://Inkwave.io/Novels/
+          </span>
+          <input
+            type="text"
+            className="flex-1 bg-transparent px-2 py-2 text-sm text-white"
+            placeholder="ten-truyen"
+            value={createNovelForm.slug}
+            onChange={(e) =>
+              setCreateNovelForm((prev) => ({
+                ...prev,
+                slug: e.target.value,
+              }))
+            }
+          />
+          <button
+            onClick={handleCheckSlug}
+            disabled={isChecking || !createNovelForm.slug.trim()}
+            className="h-full px-4 bg-[#ff6740] text-white text-sm hover:bg-orange-600 disabled:opacity-50"
+          >
+            {isChecking ? "Đang kiểm tra..." : "Kiểm tra"}
+          </button>
+        </div>
+
+        <div className="flex justify-between mt-1">
+          <p
+            className={`text-xs ${urlError ? `text-red-700` : `text-gray-400`}`}
+          >
+            {urlError ?? urlError}
+          </p>
+          <p className="text-xs text-gray-400">
+            {createNovelForm.slug.length}/30
+          </p>
+        </div>
+      </div>
 
       <div className="mb-6">
         <label className="block text-sm mb-1">
@@ -266,20 +345,49 @@ export const UpsertNovels = () => {
           </label>
         </div>
 
-        {/* <div className="col-span-7">
-                <label className="block text-xl mb-1">
-                Banner
-                </label>
-                <div className="border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] text-center px-4">
-                <span className="text-sm text-gray-400">
-                    + Thêm bìa
-                    <br />
-                    <span className="text-[10px] block mt-1 text-orange-300">
-                    Nếu không có ảnh banner truyện, hệ thống sẽ dùng ảnh mặc định.
-                    </span>
+        <div className="col-span-7">
+          <label className="block text-xl mb-1">Banner</label>
+          <label
+            htmlFor="banner-upload"
+            className="cursor-pointer border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] text-center px-4 hover:border-blue-400 transition"
+          >
+            {bannerPreview ? (
+              <img
+                src={bannerPreview}
+                alt="Banner preview"
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : (
+              <span className="text-sm text-gray-400">
+                + Thêm bìa
+                <br />
+                <span className="text-[10px] block mt-1 text-orange-300">
+                  Nếu không có ảnh banner truyện, hệ thống sẽ dùng ảnh mặc định.
                 </span>
-                </div>
-            </div> */}
+              </span>
+            )}
+          </label>
+          <input
+            id="banner-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setCreateNovelForm((prev) => ({
+                ...prev,
+                banner: file,
+              }));
+
+              if (file) {
+                const previewUrl = URL.createObjectURL(file);
+                setBannerPreview(previewUrl);
+              } else {
+                setBannerPreview(null);
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="mb-6">
