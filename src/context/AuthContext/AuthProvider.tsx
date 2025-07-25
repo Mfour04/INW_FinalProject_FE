@@ -1,23 +1,13 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState } from "react";
+import type { User } from "../../api/Auth/auth.type";
 
 export const Roles = {
-  Reader: 'Reader',
-  Author: 'Author',
-  Admin: 'Admin',
+  User: "User",
+  Admin: "Admin",
+  System: "System",
 } as const;
 
 export type Role = (typeof Roles)[keyof typeof Roles];
-interface User {
-  userId: string;
-  username: string;
-  email: string;
-  role: Role;
-  avatarUrl: string | null;
-  bio: string | null;
-  coin: number;
-  badgeId: string[];
-  createdAt: string;
-}
 
 interface AuthState {
   accessToken: string;
@@ -43,17 +33,17 @@ type AuthProviderProps = {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [auth, setAuth] = useState<AuthState | null>(() => {
-    const stored = localStorage.getItem('auth');
+    const stored = localStorage.getItem("auth");
     return stored ? JSON.parse(stored) : null;
   });
 
   const saveAuth = (authData: AuthState | null) => {
-    localStorage.setItem('auth', JSON.stringify(authData));
+    localStorage.setItem("auth", JSON.stringify(authData));
     setAuth(authData);
   };
 
   const logout = () => {
-    localStorage.removeItem('auth');
+    localStorage.removeItem("auth");
     setAuth(null);
   };
 

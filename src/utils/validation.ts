@@ -3,33 +3,36 @@ export type PasswordValidationResult = {
   errors: string[];
 };
 
+export const urlRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export const validatePassword = (
   password: string
 ): PasswordValidationResult => {
   const errors: string[] = [];
-  if (password.length == 0) return {
-    isValid: true,
-    errors,
-  }  
+  if (password.length == 0)
+    return {
+      isValid: true,
+      errors,
+    };
 
   if (password.length < 8 || password.length > 32) {
-    errors.push('Mật khẩu phải dài từ 8 đến 32 ký tự.');
+    errors.push("Mật khẩu phải dài từ 8 đến 32 ký tự.");
   }
 
   if (!/[a-z]/.test(password)) {
-    errors.push('Mật khẩu phải chứa ít nhất một chữ thường.');
+    errors.push("Mật khẩu phải chứa ít nhất một chữ thường.");
   }
 
   if (!/[A-Z]/.test(password)) {
-    errors.push('Mật khẩu phải chứa ít nhất một chữ hoa.');
+    errors.push("Mật khẩu phải chứa ít nhất một chữ hoa.");
   }
 
   if (!/\d/.test(password)) {
-    errors.push('Mật khẩu phải chứa ít nhất một số.');
+    errors.push("Mật khẩu phải chứa ít nhất một số.");
   }
 
   if (!/[^A-Za-z0-9]/.test(password)) {
-    errors.push('Mật khẩu phải chứa ít nhất một ký tự đặc biệt.');
+    errors.push("Mật khẩu phải chứa ít nhất một ký tự đặc biệt.");
   }
 
   return {
@@ -38,3 +41,6 @@ export const validatePassword = (
   };
 };
 
+export function isValidUrl(url: string): boolean {
+  return urlRegex.test(url);
+}
