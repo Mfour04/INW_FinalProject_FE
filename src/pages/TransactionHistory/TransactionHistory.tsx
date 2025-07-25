@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { GetUserHistory } from "../../api/Transaction/transaction.api";
 import { TransactionCard } from "./TransactionCard";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { GetUserHistoryParams } from "../../api/Transaction/transaction.type";
+import ArrowLeft02 from "../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
+import ArrowRight02 from "../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
 
 const typeOptions = [
   { label: "Tất cả", value: undefined },
@@ -13,28 +15,32 @@ const typeOptions = [
 ];
 
 const sortOptions = [
-  { label: "Mới nhất", value: "created_at:desc" },
-  { label: "Số coin", value: "created_at:asc" },
+  { label: "Mới nhất", value: "completed_at:desc" },
+  { label: "Lâu nhất", value: "completed_at:asc" },
+  { label: "Nhiều coin nhất", value: "amount:asc" },
+  { label: "Ít coin nhất", value: "amount:asc" },
 ];
 
 export const TransactionHistory = () => {
+  const [page, setPage] = useState<number>(0);
   const [params, setParams] = useState<GetUserHistoryParams>({
     page: 0,
     limit: 10,
+    type: undefined,
     sortBy: "created_at:desc",
   });
 
-  const finalParams: GetUserHistoryParams = useMemo(() => {
-    const { type, ...rest } = params;
-    return {
-      ...rest,
-      ...(type !== undefined ? { type } : {}),
-    };
-  }, [params]);
+  const limit = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["userHistory", finalParams],
-    queryFn: () => GetUserHistory(finalParams).then((res) => res.data.data),
+    queryKey: ["userHistory", params],
+    queryFn: () =>
+      GetUserHistory({
+        page: page,
+        limit: limit,
+        ...(params.type ? { type: params.type } : {}),
+        sortBy: params.sortBy,
+      }).then((res) => res.data),
   });
 
   return (
@@ -73,8 +79,8 @@ export const TransactionHistory = () => {
       </div>
 
       <div className="flex flex-col gap-5">
-        {Array.isArray(data) ? (
-          data.map((transaction) => (
+        {Array.isArray(data?.data) ? (
+          data.data.map((transaction) => (
             <TransactionCard key={transaction.id} transaction={transaction} />
           ))
         ) : isLoading ? (
@@ -82,6 +88,34 @@ export const TransactionHistory = () => {
         ) : (
           <div className="text-white">Không có dữ liệu</div>
         )}
+      </div>
+      <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
+        <button
+          onClick={() =>
+            setParams((prev) => ({
+              ...prev,
+              page: (prev.page ?? 0) - 1,
+            }))
+          }
+          disabled={page === 0}
+          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
+        >
+          <img src={ArrowLeft02} />
+        </button>
+        <div className="w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]">
+          <span className="text-sm">
+            Trang{" "}
+            <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> /
+            {data?.totalPage}
+          </span>
+        </div>
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={page === (data?.totalPage ?? 1) - 1}
+          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
+        >
+          <img src={ArrowRight02} />
+        </button>
       </div>
     </div>
   );
