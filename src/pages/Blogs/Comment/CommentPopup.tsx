@@ -103,7 +103,7 @@ const CommentPopup = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[#1e1e21] rounded-[8px] w-full sm:max-w-[800px] max-h-[85vh] mx-0 sm:mx-2 shadow-xl flex flex-col"
+            className="bg-[#1e1e21] rounded-[8px] w-[calc(100%-24px)] sm:max-w-[800px] max-h-[85vh] mx-3 sm:mx-2 shadow-xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -127,7 +127,7 @@ const CommentPopup = ({
             </div>
 
             {/* Comment section */}
-            <div className="p-4 sm:p-5 flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="p-4 pb-3 sm:p-5 sm:pb-4 flex-1 max-h-full ">
               <CommentSection
                 postId={post.id}
                 isMobile={isMobile}
