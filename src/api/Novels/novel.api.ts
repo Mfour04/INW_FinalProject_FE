@@ -33,7 +33,7 @@ export const GetAuthorNovels = () =>
   http.privateHttp.get<NovelsAuthorApiResponse>("Novels/get-by-authorid");
 
 export const GetNovelById = (id: string) =>
-  http.http.get<NovelChaptersApiResponse>(`Novels/${id}`);
+  http.privateHttp.get<NovelChaptersApiResponse>(`Novels/${id}`);
 
 export const GetUrlChecked = (slug: string) =>
   http.http.get<NovelSlugCheckingApiResponse>(`Novels/slug/${slug}`);
