@@ -1,4 +1,4 @@
-import type { PaginatedApiResponse } from "../../entity/response";
+import type { ApiResponse } from "../../entity/response";
 
 export type RechargeRequest = {
   coinAmount: number;
@@ -8,13 +8,19 @@ export type RechargeResponse = {
   checkoutUrl: string;
 };
 
-export type TransactionResponse = {
+export type TransactionItem = {
   paymentMethod: string;
   id: string;
   type: number;
   amount: number;
   status: number;
   completedAt: number;
+};
+
+export type TransactionResponse = {
+  items: TransactionItem[];
+  totalPage: number;
+  totalResult: number;
 };
 
 export type GetUserHistoryParams = {
@@ -44,6 +50,4 @@ const typeMap: Record<number, string> = {
 
 export const getTypeLabel = (status: number) => typeMap[status] ?? "Unknown";
 
-export type TransactionApiResponse = PaginatedApiResponse<
-  TransactionResponse[]
->;
+export type TransactionApiResponse = ApiResponse<TransactionResponse>;

@@ -1,6 +1,8 @@
 import type { Chapter } from "../../entity/chapter";
 import type { Novel } from "../../entity/novel";
+import type { Purchaser } from "../../entity/purchaser";
 import type { ApiResponse } from "../../entity/response";
+import type { Transaction } from "../../entity/transaction";
 import type { Tags } from "../Tags/tag.type";
 
 export interface CreateNovelRequest {
@@ -61,8 +63,18 @@ type NovelSlugCheckingResponse = {
   exists: boolean;
 };
 
+export type BuyNovelRequest = {
+  coinCost: number;
+};
+
+export type BuyNovelResponse = {
+  purchaser: Purchaser;
+  transaction: Transaction;
+};
+
 export type NovelsApiResponse = ApiResponse<NovelReponse>;
 export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse[]>;
 export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;
 export type NovelSlugCheckingApiResponse =
   ApiResponse<NovelSlugCheckingResponse>;
+export type BuyNovelApiResponse = ApiResponse<BuyNovelResponse>;

@@ -25,7 +25,7 @@ const initialCreateNovelForms: CreateNovelRequest = {
   novelImage: null,
   novelBanner: null,
   tags: [],
-  status: 1,
+  status: 0,
   isPublic: true,
   isPaid: false,
   isLock: false,

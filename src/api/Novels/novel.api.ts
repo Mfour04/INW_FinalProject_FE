@@ -1,6 +1,8 @@
 import http from "../../utils/http";
 
 import type {
+  BuyNovelApiResponse,
+  BuyNovelRequest,
   NovelChaptersApiResponse,
   NovelsApiResponse,
   NovelsAuthorApiResponse,
@@ -35,3 +37,6 @@ export const GetNovelById = (id: string) =>
 
 export const GetUrlChecked = (slug: string) =>
   http.http.get<NovelSlugCheckingApiResponse>(`Novels/slug/${slug}`);
+
+export const BuyNovel = (novelId: string, request: BuyNovelRequest) =>
+  http.privateHttp.post<BuyNovelApiResponse>(`Novels/${novelId}/buy`, request);

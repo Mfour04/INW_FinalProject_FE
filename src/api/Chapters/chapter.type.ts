@@ -1,3 +1,5 @@
+import type { ApiResponse } from "../../entity/response";
+
 export interface Chapter {
   scheduledAt: Date | null;
   novelId: string;
@@ -66,8 +68,18 @@ export interface CreateChapterResponse {
   data: Chapter;
 }
 
+export type BuyChapterRequest = {
+  coinCost: number;
+};
+
+export type BuyChapterResponse = {
+  coin: number;
+};
+
 export interface PublishStatus {
   Draft: "DRAFT";
   Private: "PRIVATE";
   Public: "PUBLIC";
 }
+
+export type BuyChapterApiResponse = ApiResponse<BuyChapterResponse>;
