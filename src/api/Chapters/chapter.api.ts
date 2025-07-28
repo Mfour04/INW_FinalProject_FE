@@ -1,5 +1,7 @@
 import http from "../../utils/http";
 import type {
+  BuyChapterApiResponse,
+  BuyChapterRequest,
   Chapters,
   CreateChapterRequest,
   CreateChapterResponse,
@@ -21,3 +23,9 @@ export const CreateChapter = (request: CreateChapterRequest) =>
 
 export const UpdateChapter = (request: UpdateChapterRequest) =>
   http.privateHttp.put<UpdateChapterRequest>("Chapters/updated", request);
+
+export const BuyChapter = (chapterId: string, request: BuyChapterRequest) =>
+  http.privateHttp.post<BuyChapterApiResponse>(
+    `Chapters/${chapterId}/buy`,
+    request
+  );
