@@ -45,13 +45,14 @@ export const GetCommentsByChapter = (
         includeReplies?: boolean;
     }
 ) =>
-    http.http.get<CommentResponse>(`Comments/chapter/${chapterId}`, {
+    http.http.get<CommentResponse>(`Chapters/${chapterId}/comments`, {
         params: { novelId, ...params },
     });
 
 export interface UpdateCommentPayload {
     commentId: string;
     content: string;
+    userId?: string;
 }
 
 export interface UpdateCommentResponse {
@@ -61,7 +62,7 @@ export interface UpdateCommentResponse {
 }
 
 export const CreateComment = (data: CreateCommentRequest) =>
-    http.privateHttp.post<CommentApiResponse>("Comments/created", data);
+    http.privateHttp.post<CommentApiResponse>("Comments", data);
 
 export const LikeComment = (
     commentId: string,
@@ -82,6 +83,18 @@ export const DeleteComment = (commentId: string) =>
     http.privateHttp.delete(`Comments/${commentId}`);
 
 export const UpdateComment = (data: UpdateCommentPayload) =>
-    http.privateHttp.put("Comments/update", { updateComment: data });
+    http.privateHttp.put(`Comments/${data.commentId}`, data);
+
+export const GetRepliesByComment = (
+    commentId: string,
+    params?: {
+        page?: number;
+        limit?: number;
+        sortBy?: string;
+    }
+) =>
+    http.http.get<CommentResponse>(`Comments/${commentId}/reply`, {
+        params,
+    });
 
 

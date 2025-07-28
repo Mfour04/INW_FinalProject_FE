@@ -3,7 +3,10 @@ import { CreateComment } from "../../api/Comment/comment.api";
 
 type CreateCommentPayload = {
     content: string;
+    novelId?: string;
+    chapterId?: string;
     parentCommentId?: string;
+    userId?: string;
 };
 
 export const UseCreateComment = (chapterId: string, novelId: string) => {
@@ -11,15 +14,10 @@ export const UseCreateComment = (chapterId: string, novelId: string) => {
 
     return useMutation({
         mutationFn: async (payload: CreateCommentPayload) => {
-            const res = await CreateComment({
-                ...payload,
-                chapterId,
-                novelId,
-            });
-            return res.data?.data?.comment;
+            const res = await CreateComment(payload);
+            return res;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
         },
     });
 };
