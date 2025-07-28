@@ -27,7 +27,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/following",
       isHeader: true,
       subItems: [
-        { label: "Cập nhập", path: "/following/updates" },
+        { label: "Cập nhật", path: "/following/updates" },
         { label: "Thư viện", path: "/following/library" },
         { label: "Lịch sử", path: "/following/history" },
       ],
