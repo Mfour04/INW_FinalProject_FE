@@ -1,11 +1,11 @@
 import {
   getStatusLabel,
   getTypeLabel,
-  type TransactionResponse,
+  type TransactionItem,
 } from "../../api/Transaction/transaction.type";
 
 type Props = {
-  transaction?: TransactionResponse;
+  transaction?: TransactionItem;
 };
 
 export const TransactionCard = ({ transaction }: Props) => {

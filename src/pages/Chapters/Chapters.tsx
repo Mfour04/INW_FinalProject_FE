@@ -12,7 +12,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatTicksToRelativeTime } from "../../utils/date_format";
-import { GetNovelById } from "../../api/Novels/novel.api";
+import { BuyNovel, GetNovelById } from "../../api/Novels/novel.api";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useAuth } from "../../hooks/useAuth";
 import type {
@@ -26,12 +26,21 @@ import {
 } from "../../api/NovelFollow/novel-follow.api";
 import { FollowPopup } from "./FollowPopup";
 import Button from "../../components/ButtonComponent";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
+import ShoppingCart from "@mui/icons-material/ShoppingCart";
+import { BuyChapter } from "../../api/Chapters/chapter.api";
+import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
+import type { BuyNovelRequest } from "../../api/Novels/novel.type";
 
 type Tabs = "Chapter" | "Comment";
 
 export const Chapters = () => {
   const [tab, setTab] = useState<Tabs>("Chapter");
   const [showFollowPopup, setShowFollowPopup] = useState(false);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [isBuyNovelOpen, setIsBuyNovelOpen] = useState(false);
+  const [chapterPrice, setChapterPrice] = useState(0);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
 
   const { novelId } = useParams();
   const navigate = useNavigate();
@@ -44,6 +53,8 @@ export const Chapters = () => {
     queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
   });
+
+  console.log(novelData);
 
   const { data: novelFollowers, refetch: refetchNovelFollowers } = useQuery({
     queryKey: ["novelFollower", novelId],
@@ -67,6 +78,33 @@ export const Chapters = () => {
       refetchNovelFollowers();
     },
   });
+  const BuyChapterMutation = useMutation({
+    mutationFn: ({
+      chapterId,
+      request,
+    }: {
+      chapterId: string;
+      request: BuyChapterRequest;
+    }) => BuyChapter(chapterId, request),
+    onSuccess: (res) => {
+      console.log(res);
+      toast?.onOpen("Mua thành công");
+    },
+  });
+
+  const BuyNovelMutation = useMutation({
+    mutationFn: ({
+      novelId,
+      request,
+    }: {
+      novelId: string;
+      request: BuyNovelRequest;
+    }) => BuyNovel(novelId, request),
+    onSuccess: (res) => {
+      console.log(res);
+      toast?.onOpen("Mua thành công");
+    },
+  });
 
   const novelInfo = novelData?.novelInfo;
   const chapters = novelData?.allChapters;
@@ -78,13 +116,19 @@ export const Chapters = () => {
       )
     : undefined;
 
-  const handleClickChapter = (chapterId: string, isPaid: boolean) => {
+  const handleClickChapter = (
+    chapterId: string,
+    isPaid: boolean,
+    price: number
+  ) => {
+    setSelectedChapterId(chapterId);
     if (isPaid) {
+      setChapterPrice(price);
       if (!auth?.user)
         toast?.onOpen(
           "Bạn cần đăng nhập để có thể tiếp tục với các chương bị khóa"
         );
-      else toast?.onOpen("Bạn không sở hữu chương này!");
+      else setIsBuyModalOpen(true);
     } else navigate(`/novels/${novelId}/${chapterId}`);
   };
 
@@ -97,6 +141,24 @@ export const Chapters = () => {
       setShowFollowPopup(false);
       UnfollowNovelMutaion.mutate({ novelFollowId });
     }
+  };
+
+  const confirmBuy = () => {
+    if (selectedChapterId)
+      BuyChapterMutation.mutate({
+        chapterId: selectedChapterId,
+        request: { coinCost: chapterPrice },
+      });
+    setIsBuyModalOpen(false);
+  };
+
+  const confirmBuyNovel = () => {
+    if (novelId && novelInfo)
+      BuyNovelMutation.mutate({
+        novelId: novelId,
+        request: { coinCost: novelInfo?.price },
+      });
+    setIsBuyNovelOpen(false);
   };
 
   return (
@@ -131,9 +193,11 @@ export const Chapters = () => {
               </div>
               <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
                 <span
-                  className={`h-2 w-2 rounded-full inline-block bg-green-400`}
+                  className={`h-2 w-2 rounded-full inline-block ${
+                    novelInfo?.status === 1 ? "bg-gray-400" : "bg-green-400"
+                  }`}
                 />
-                Đang diễn ra
+                {novelInfo?.status === 1 ? "Hoàn thành" : "Đang diễn ra"}
               </div>
             </div>
           </div>
@@ -190,8 +254,20 @@ export const Chapters = () => {
               </div>
             )}
 
+            {novelInfo?.status === 1 && (
+              <Button
+                onClick={() => setIsBuyNovelOpen(true)}
+                className=" bg-[#ff6740] w-[100px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
+              >
+                <div className="flex items-center justify-center gap-2.5">
+                  <ShoppingCart sx={{ height: "20px", width: "20px" }} />
+                  <p>Mua</p>
+                </div>
+              </Button>
+            )}
+
             <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
-              <Share sx={{ height: "20px", width: "20px" }} />
+              {/* <Share sx={{ height: "20px", width: "20px" }} /> */}
               <Add sx={{ height: "20px", width: "20px" }} />
               <p>Chia sẻ</p>
             </button>
@@ -254,7 +330,11 @@ export const Chapters = () => {
         {chapters?.map((chapter) => (
           <div
             onClick={() =>
-              handleClickChapter(chapter.chapterId, chapter.isPaid)
+              handleClickChapter(
+                chapter.chapterId,
+                chapter.isPaid,
+                chapter.price
+              )
             }
             key={chapter.chapterId}
             className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
@@ -278,6 +358,21 @@ export const Chapters = () => {
           </div>
         ))}
       </div>
+      <ConfirmModal
+        isOpen={isBuyModalOpen}
+        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        message={`Chương truyện này có giá ${chapterPrice} coin. Bạn có muốn mua không?`}
+        onConfirm={confirmBuy}
+        onCancel={() => setIsBuyModalOpen(false)}
+      />
+
+      <ConfirmModal
+        isOpen={isBuyNovelOpen}
+        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        message={`Tiểu thuyết này có giá ${novelInfo?.price} coin. Bạn có muốn mua không?`}
+        onConfirm={confirmBuyNovel}
+        onCancel={() => setIsBuyNovelOpen(false)}
+      />
     </div>
   );
 };

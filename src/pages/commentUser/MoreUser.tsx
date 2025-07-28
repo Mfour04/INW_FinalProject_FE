@@ -41,12 +41,12 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
     };
 
     return (
-        <div className="mr-10">
+        <div className="flex-shrink-0">
             <div
                 onClick={handleMenuOpen}
-                className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
+                className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded flex-shrink-0"
             >
-                <img src={more_horiz} className="w-6 h-6" />
+                <img src={more_horiz} className="w-6 h-6 flex-shrink-0" />
             </div>
 
             <Menu
