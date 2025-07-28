@@ -1,5 +1,5 @@
-import { useState, useRef, useContext, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useRef, useContext, useMemo, useEffect } from "react";
+import { useQueryClient, useQueries } from "@tanstack/react-query";
 
 import type { Comment } from "../commentUser/Comment";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
@@ -16,14 +16,13 @@ import defaultAvatar from "../../assets/img/th.png";
 import { MoreButton } from "../../pages/commentUser/MoreButton";
 import { MoreUser } from "../../pages/commentUser/MoreUser";
 import { Reply } from "../../pages/commentUser/Reply";
-import { NestedReply } from "../../pages/commentUser/NestedReply";
 
 import { UseComments } from "../../pages/commentUser/UseComments";
 import { UseCreateComment } from "../../pages/commentUser/UseCreateComment";
 import { UseUpdateComment } from "../../pages/commentUser/UseUpdateComment";
 import { UseDeleteComment } from "../../pages/commentUser/UseDeleteComment";
 
-import { LikeComment, UnlikeComment } from "../../api/Comment/comment.api";
+import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api";
 
 interface CommentUserProps {
     novelId: string;
@@ -37,8 +36,27 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
     const [replyInputs, setReplyInputs] = useState<{ [id: string]: boolean }>({});
     const [replyValues, setReplyValues] = useState<{ [id: string]: string }>({});
     const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
-    const [renderKey, setRenderKey] = useState(0);
-    const { data: rawComments = [] } = UseComments(chapterId, novelId);
+    const [renderKey] = useState(0);
+    const { data: rawComments } = UseComments(chapterId, novelId);
+
+    const commentIds = rawComments?.map(c => c.id).filter(Boolean) || [];
+    const repliesQueries = useQueries({
+        queries: commentIds.map(commentId => ({
+            queryKey: ["replies", commentId],
+            queryFn: async () => {
+                const res = await GetRepliesByComment(commentId, {
+                    page: 0,
+                    limit: 50,
+                    sortBy: "created_at:desc",
+                });
+                return res.data.data;
+            },
+            enabled: !!commentId,
+            staleTime: 1000 * 60,
+        }))
+    });
+
+    const repliesData = repliesQueries.map(query => query.data).filter(Boolean);
     const [tempComments, setTempComments] = useState<Comment[]>([]);
     const { mutate: postComment } = UseCreateComment(chapterId, novelId);
     const { mutate: deleteComment } = UseDeleteComment(chapterId, novelId);
@@ -50,12 +68,18 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
         [id: string]: { content: string; timestamp: string; likes?: number; replies?: number };
     }>({});
 
+
+
     const currentUser = {
-        id: (auth?.user as any)?.id || "",
-        name: (auth?.user as any)?.fullName || (auth?.user as any)?.username || "Ẩn danh",
-        user: "@" + ((auth?.user as any)?.username || "user"),
-        avatarUrl: (auth?.user as any)?.avatarUrl || null,
+        id: auth?.user?.userId || "",
+        name: auth?.user?.displayName || auth?.user?.userName || "Ẩn danh",
+        user: "@" + (auth?.user?.userName || "user"),
+        avatarUrl: auth?.user?.avatarUrl || null,
     };
+
+    useEffect(() => {
+        setTempComments([]);
+    }, []);
 
     const closeReplyPopup = (id: string) => {
         setReplyInputs((prev) => ({ ...prev, [id]: false }));
@@ -78,25 +102,36 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
         const flatten: Comment[] = [];
 
         const collectComments = (comment: any) => {
+
+            if (!comment.id) {
+                console.warn("Comment without ID found:", comment);
+                return;
+            }
+
             const createdTicks = Number(comment.createdAt) || 0;
             const updatedTicks = Number(comment.updatedAt) || 0;
             const localTicks = Number(localStorage.getItem(`updatedAt_${comment.id}`)) || 0;
+
+            if (createdTicks <= 0 && updatedTicks <= 0) {
+                console.warn("Invalid timestamp for comment:", comment.id, "createdAt:", comment.createdAt, "updatedAt:", comment.updatedAt);
+            }
+
             const latestTicks = Math.max(createdTicks, updatedTicks, localTicks);
-            const timestamp = latestTicks
+            const timestamp = latestTicks > 0
                 ? formatVietnamTimeFromTicks(latestTicks)
                 : "Không rõ thời gian";
 
             const nameKey = `comment_authorName_${comment.id}`;
             const handleKey = `comment_authorHandle_${comment.id}`;
 
-            const name = localStorage.getItem(nameKey) ?? currentUser.name;
-            const user = localStorage.getItem(handleKey) ?? currentUser.user;
+            const name = comment.author?.displayName || comment.author?.userName || comment.authorName || comment.userName || comment.displayName || localStorage.getItem(nameKey) || "Ẩn danh";
+            const user = comment.author?.userName ? `@${comment.author.userName}` : comment.userName ? `@${comment.userName}` : localStorage.getItem(handleKey) || "@user";
 
-            if (localStorage.getItem(nameKey) === null) {
-                localStorage.setItem(nameKey, currentUser.name);
+            if (!localStorage.getItem(nameKey)) {
+                localStorage.setItem(nameKey, name);
             }
-            if (localStorage.getItem(handleKey) === null) {
-                localStorage.setItem(handleKey, currentUser.user);
+            if (!localStorage.getItem(handleKey)) {
+                localStorage.setItem(handleKey, user);
             }
 
             flatten.push({
@@ -116,10 +151,20 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
             }
         };
 
-        rawComments.forEach(collectComments);
+        if (rawComments && Array.isArray(rawComments)) {
+            rawComments.forEach(collectComments);
+        }
+
+        if (repliesData && Array.isArray(repliesData)) {
+            repliesData.forEach((repliesForComment: any, index: number) => {
+                if (Array.isArray(repliesForComment)) {
+                    repliesForComment.forEach(collectComments);
+                }
+            });
+        }
 
         return flatten;
-    }, [rawComments]);
+    }, [rawComments, repliesData]);
 
     const localComments: Comment[] = tempComments.map((c) => {
         const nameKey = `comment_authorName_${c.id}`;
@@ -141,17 +186,86 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
     });
 
     const enrichedComments: Comment[] = [
-        ...serverComments,
         ...localComments,
+        ...serverComments,
     ];
 
-    const topLevelComments = enrichedComments.filter((c) => !c.parentId);
+    const topLevelComments = enrichedComments.filter((c) => !c.parentId && c.id);
 
     const handlePostComment = () => {
         if (!newComment.trim()) return;
 
-        postComment({ content: newComment });
+        const tempComment: Comment = {
+            id: `temp_${Date.now()}`,
+            content: newComment,
+            parentId: null,
+            likes: 0,
+            replies: 0,
+            name: currentUser.name,
+            user: currentUser.user,
+            avatarUrl: currentUser.avatarUrl,
+            timestamp: formatVietnamTimeFromTicks(Date.now()),
+        };
+
+        setTempComments((prev) => [tempComment, ...prev]);
         setNewComment("");
+
+        const timeoutId = setTimeout(() => {
+            setTempComments((prev) => prev.filter(c => c.id !== tempComment.id));
+        }, 5000);
+
+        postComment(
+            { content: newComment, novelId, chapterId },
+            {
+                onSuccess: (response: any) => {
+                    clearTimeout(timeoutId);
+
+                    if (response?.data?.success === false) {
+                        setTempComments((prev) => prev.filter(c => c.id !== tempComment.id));
+
+                        if (response?.data?.message?.includes('Duplicate')) {
+                            alert("Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác.");
+                        }
+                        return;
+                    }
+
+                    const rawComment = response?.data?.comment ||
+                        response?.data?.data?.comment ||
+                        response?.data;
+
+                    if (!rawComment) {
+                        console.error("No comment data in response");
+
+                        setTempComments((prev) =>
+                            prev.map(c =>
+                                c.id === tempComment.id
+                                    ? {
+                                        ...c,
+                                        timestamp: formatVietnamTimeFromTicks(Date.now()),
+                                    }
+                                    : c
+                            )
+                        );
+                        return;
+                    }
+
+                    setTempComments((prev) => prev.filter(c => c.id !== tempComment.id));
+
+                    queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+                },
+                onError: (error: any) => {
+                    console.error("Error posting comment:", error);
+                    console.error("Error details:", {
+                        message: error?.message,
+                        response: error?.response?.data,
+                        status: error?.response?.status,
+                        statusText: error?.response?.statusText
+                    });
+                    clearTimeout(timeoutId);
+                    setTempComments((prev) => prev.filter(c => c.id !== tempComment.id));
+                }
+            }
+        );
     };
 
     const handleReplyClick = (id: string, name: string) => {
@@ -175,73 +289,68 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
 
         if (!content.trim()) return;
 
+        const tempReply: Comment = {
+            id: `temp_reply_${Date.now()}`,
+            content: content,
+            parentId: parentId,
+            likes: 0,
+            replies: 0,
+            name: currentUser.name,
+            user: currentUser.user,
+            avatarUrl: currentUser.avatarUrl,
+            timestamp: formatVietnamTimeFromTicks(Date.now()),
+        };
+
+        setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
+        setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
+
         postComment(
-            { content, parentCommentId: parentId },
+            { content: content, novelId, chapterId, parentCommentId: parentId },
             {
                 onSuccess: (response: any) => {
-                    const rawReply = response?.data?.comment;
-                    if (!rawReply) return;
 
-                    const tempReply: Comment = {
-                        id: rawReply.id,
-                        content: rawReply.content,
-                        parentId: parentId,
-                        likes: rawReply.likeCount ?? 0,
-                        replies: 0,
-                        name: currentUser.name,
-                        user: currentUser.user,
-                        avatarUrl: currentUser.avatarUrl,
-                        timestamp: formatVietnamTimeFromTicks(Number(rawReply.createdAt ?? Date.now())),
-                    };
+                    if (response?.data?.success === false) {
+                        setTempComments((prev) => prev.filter(c => c.id !== tempReply.id));
 
-                    const parentRaw = rawComments
-                        .flatMap((c: any) => [c, ...(c.replies ?? [])])
-                        .find((r: any) => r.id === parentId);
-
-                    const tempParent: Comment | null = parentRaw
-                        ? {
-                            id: parentRaw.id,
-                            content: parentRaw.content,
-                            parentId: parentRaw.parentCommentId ?? null,
-                            likes: parentRaw.likeCount ?? 0,
-                            replies: 1,
-                            name: currentUser.name,
-                            user: currentUser.user,
-                            avatarUrl: currentUser.avatarUrl,
-                            timestamp: formatVietnamTimeFromTicks(Number(parentRaw.createdAt)),
+                        if (response?.data?.message?.includes('Duplicate')) {
+                            alert("Bạn đã reply nội dung này rồi. Vui lòng đợi 5 phút hoặc reply nội dung khác.");
                         }
-                        : null;
+                        return;
+                    }
 
-                    setTempComments((prev) => {
-                        const hasParent = prev.some((c) => c.id === parentId);
-                        const updated = [...prev, tempReply];
-                        const result = !hasParent && tempParent ? [...updated, tempParent] : updated;
-                        return result;
-                    });
+                    const rawReply = response?.data?.comment ||
+                        response?.data?.data?.comment ||
+                        response?.data;
 
-                    setReplyInputs((prev) => ({ ...prev, [parentId]: false }));
-                    setReplyValues((prev) => ({ ...prev, [parentId]: "" }));
+                    if (!rawReply) {
+                        console.error("No reply data in response");
 
-                    const parentChain = [parentRaw?.parentCommentId, parentId].filter(
-                        (id): id is string => typeof id === "string"
-                    );
-
-                    parentChain.forEach((id) => {
-                        setEditedComments((prev) => ({
-                            ...prev,
-                            [id]: {
-                                ...(prev[id] || {}),
-                                replies:
-                                    ((prev[id]?.replies ??
-                                        enrichedComments.find((c) => c.id === id)?.replies ?? 0) + 1),
-                            },
-                        }));
-                    });
-
-                    setRenderKey((prev) => prev + 1);
+                        setTempComments((prev) =>
+                            prev.map(c =>
+                                c.id === tempReply.id
+                                    ? {
+                                        ...c,
+                                        timestamp: formatVietnamTimeFromTicks(Date.now()),
+                                    }
+                                    : c
+                            )
+                        );
+                        return;
+                    }
 
                     queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+
+                    queryClient.invalidateQueries({ queryKey: ["replies", parentId] });
                 },
+                onError: (error: any) => {
+                    console.error("Error posting reply:", error);
+                    console.error("Error details:", {
+                        message: error?.message,
+                        response: error?.response?.data,
+                        status: error?.response?.status,
+                        statusText: error?.response?.statusText
+                    });
+                }
             }
         );
     };
@@ -365,14 +474,18 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                                     <div>
                                         <p className="font-semibold">{comment.name}</p>
                                         <p className="text-xs text-gray-400">
-                                            {comment.user} • {editedComments[comment.id]?.timestamp || comment.timestamp}
+                                            {comment.user} • {
+                                                comment.id && comment.id.startsWith('temp_')
+                                                    ? "Đang gửi..."
+                                                    : (editedComments[comment.id]?.timestamp || comment.timestamp)
+                                            }
                                             {editedComments[comment.id] && (
                                                 <span className="italic text-gray-500 ml-1"></span>
                                             )}
                                         </p>
                                     </div>
                                 </div>
-                                {comment.user === currentUser.user ? <MoreUser
+                                {comment.user === currentUser.user || comment.name === currentUser.name ? <MoreUser
                                     commentId={comment.id}
                                     onDelete={deleteComment}
                                     onEdit={() => {
@@ -444,7 +557,7 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                                         onClick={() => handleToggleLike(comment.id)}
                                     >
                                         <img src={likedComments[comment.id] ? red_favorite : favorite} className="w-5 h-5" />
-                                        {editedComments[comment.id]?.likes ?? Number(localStorage.getItem(`likes_${comment.id}`)) ?? comment.likes}
+                                        {editedComments[comment.id]?.likes ?? (Number(localStorage.getItem(`likes_${comment.id}`)) || comment.likes)}
                                     </span>
 
                                     <span
@@ -473,28 +586,102 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                                 {enrichedComments
                                     .filter((reply: Comment) => reply.parentId === comment.id)
                                     .map((reply: Comment) => (
-                                        <NestedReply
-                                            key={`${reply.id}-${renderKey}`}
-                                            comment={reply}
-                                            currentUser={currentUser}
-                                            replies={enrichedComments}
-                                            replyInputs={replyInputs}
-                                            replyValues={replyValues}
-                                            editedComments={editedComments}
-                                            editingCommentId={editingCommentId}
-                                            editValue={editValue}
-                                            setEditValue={setEditValue}
-                                            setEditedComments={setEditedComments}
-                                            setEditingCommentId={setEditingCommentId}
-                                            updateComment={updateComment}
-                                            onReplyClick={handleReplyClick}
-                                            onReplyChange={handleReplyChange}
-                                            onReplySubmit={handleReplySubmit}
-                                            likedComments={likedComments}
-                                            deleteComment={deleteComment}
-                                            handleToggleLike={handleToggleLike}
-                                            renderKey={renderKey}
-                                        />
+                                        <div key={`${reply.id}-${renderKey}`} className="ml-6 mt-2">
+                                            <div className="p-3 mr-10 rounded-md">
+                                                <div className="flex justify-between items-start space-x-4">
+                                                    <div className="flex items-center space-x-4">
+                                                        <img src={reply.avatarUrl || defaultAvatar} className="w-10 h-10 rounded-full" />
+                                                        <div>
+                                                            <p className="font-semibold">{reply.name}</p>
+                                                            <p className="text-xs text-gray-400">
+                                                                {reply.user} • {
+                                                                    reply.id && reply.id.startsWith('temp_')
+                                                                        ? "Đang gửi..."
+                                                                        : (editedComments[reply.id]?.timestamp || reply.timestamp)
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    {reply.user === currentUser.user || reply.name === currentUser.name ? <MoreUser
+                                                        commentId={reply.id}
+                                                        onDelete={deleteComment}
+                                                        onEdit={() => {
+                                                            setEditingCommentId(reply.id);
+                                                            setEditValue(reply.content);
+                                                        }}
+                                                    />
+                                                        : <MoreButton />}
+                                                </div>
+
+                                                <div className="ml-14">
+                                                    {editingCommentId === reply.id ? (
+                                                        <div className="flex flex-col gap-2 mt-2">
+                                                            <input
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                className="comment w-[1570px]"
+                                                            />
+                                                            <div className="flex gap-3">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        updateComment(
+                                                                            { commentId: reply.id, content: editValue },
+                                                                            {
+                                                                                onSuccess: () => {
+                                                                                    const ticks = getCurrentTicks();
+                                                                                    const formattedTime = formatVietnamTimeFromTicks(ticks);
+
+                                                                                    setEditedComments((prev) => ({
+                                                                                        ...prev,
+                                                                                        [reply.id]: {
+                                                                                            content: editValue,
+                                                                                            timestamp: formattedTime,
+                                                                                        },
+                                                                                    }));
+                                                                                    localStorage.setItem(`updatedAt_${reply.id}`, String(ticks));
+                                                                                    setEditingCommentId(null);
+                                                                                    setEditValue("");
+                                                                                },
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                                                                >
+                                                                    Lưu
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingCommentId(null);
+                                                                        setEditValue("");
+                                                                    }}
+                                                                    className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                                                                >
+                                                                    Hủy
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="mb-1">
+                                                            {editedComments[reply.id]?.content || reply.content}
+                                                        </p>
+                                                    )}
+
+                                                    <div className="mt-4 flex space-x-6">
+                                                        <span
+                                                            className={`flex items-center gap-2 cursor-pointer ${likedComments[reply.id] ? "text-red-500" : "text-white"
+                                                                }`}
+                                                            onClick={() => handleToggleLike(reply.id)}
+                                                        >
+                                                            <img src={likedComments[reply.id] ? red_favorite : favorite} className="w-5 h-5" />
+                                                            {editedComments[reply.id]?.likes ?? (Number(localStorage.getItem(`likes_${reply.id}`)) || reply.likes)}
+                                                        </span>
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
                             </div>
                         </div>
