@@ -25,7 +25,7 @@ interface NovelReponse {
   totalPages: number;
 }
 
-type NovelByAuthorResponse = {
+export type NovelByAuthorResponse = {
   novelId: string;
   title: string;
   description: string;
