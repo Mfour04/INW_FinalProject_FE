@@ -21,7 +21,7 @@ import {
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useLocation, useNavigate } from "react-router-dom";
-import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/HomePage";
+import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/HomePage";
 import { getTags } from "../../../api/Tags/tag.api";
 
 const initialLoginForm: LoginParams = {
