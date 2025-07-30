@@ -12,7 +12,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatTicksToRelativeTime } from "../../utils/date_format";
-import { BuyNovel, GetNovelById } from "../../api/Novels/novel.api";
+import { BuyNovel, GetNovelByUrl } from "../../api/Novels/novel.api";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useAuth } from "../../hooks/useAuth";
 import type {
@@ -50,11 +50,9 @@ export const Chapters = () => {
 
   const { data: novelData, isLoading: isLoadingNovel } = useQuery({
     queryKey: ["novel", novelId],
-    queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
+    queryFn: () => GetNovelByUrl(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
   });
-
-  console.log(novelData);
 
   const { data: novelFollowers, refetch: refetchNovelFollowers } = useQuery({
     queryKey: ["novelFollower", novelId],
@@ -87,7 +85,6 @@ export const Chapters = () => {
       request: BuyChapterRequest;
     }) => BuyChapter(chapterId, request),
     onSuccess: (res) => {
-      console.log(res);
       toast?.onOpen("Mua thành công");
     },
   });
@@ -101,7 +98,6 @@ export const Chapters = () => {
       request: BuyNovelRequest;
     }) => BuyNovel(novelId, request),
     onSuccess: (res) => {
-      console.log(res);
       toast?.onOpen("Mua thành công");
     },
   });

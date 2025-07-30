@@ -96,10 +96,6 @@ export const NovelRead = () => {
     stop();
   };
 
-  useEffect(() => {
-    console.log(speechStatus);
-  }, [speechStatus]);
-
   return (
     <div
       style={{

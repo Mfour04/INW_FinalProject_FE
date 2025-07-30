@@ -12,7 +12,6 @@ export const Deposite = () => {
     mutationFn: QRCheckIn,
     onSuccess: (data) => {
       window.open(data.data.checkoutUrl, "_self");
-      //   console.log(data.data.checkoutUrl);
     },
   });
 

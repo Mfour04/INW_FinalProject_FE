@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CreateNovels,
-  GetNovelById,
+  GetNovelByUrl,
   GetUrlChecked,
   UpdateNovels,
 } from "../../../api/Novels/novel.api";
@@ -52,9 +52,11 @@ export const UpsertNovels = () => {
 
   const { data: novelData, isSuccess } = useQuery({
     queryKey: ["novel", id],
-    queryFn: () => GetNovelById(id!),
+    queryFn: () => GetNovelByUrl(id!),
     enabled: !!id,
   });
+
+  console.log(novelData);
 
   const {
     data: slugChecked,
@@ -181,7 +183,7 @@ export const UpsertNovels = () => {
   useEffect(() => {
     if (isSuccess && novelData) {
       const novel = novelData.data.data.novelInfo;
-
+      console.log(novel);
       const tags = novel.tags.map((tag) => tag.tagId);
 
       const fetchFile = async () => {

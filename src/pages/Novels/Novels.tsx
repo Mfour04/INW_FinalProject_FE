@@ -50,7 +50,7 @@ export const Novels = () => {
               {novels.map((novel) => (
                 <div
                   key={novel.novelId}
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() => navigate(`/novels/${novel.slug}`)}
                   className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
                 >
                   <img
@@ -71,7 +71,7 @@ export const Novels = () => {
             {novels.map((novel) => (
               <div
                 key={novel.novelId}
-                onClick={() => navigate(`/novels/${novel.novelId}`)}
+                onClick={() => navigate(`/novels/${novel.slug}`)}
                 className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full"
               >
                 <img

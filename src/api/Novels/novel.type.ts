@@ -28,31 +28,15 @@ interface NovelReponse {
 }
 
 type NovelByAuthorResponse = {
-  novelId: string;
-  title: string;
-  description: string;
-  authorId: string;
-  authorName: string;
-  novelImage: string;
-  novelBanner: string | null;
-  tags: Tags[];
-  status: number;
-  isPublic: boolean;
-  isPaid: boolean;
-  isLock: boolean;
-  price: number;
-  totalChapters: number;
-  totalViews: number;
-  followers: number;
-  ratingAvg: number;
-  ratingCount: number;
-  createAt: number;
-  updateAt: number;
+  novels: Novel[];
+  totalComments: number;
+  totalNovelViews: number;
 };
 
 type NovelChaptersResponse = {
   novelInfo: Novel;
   allChapters: Chapter[];
+  isAccessFull: boolean;
   freeChapters: string[];
   totalChapters: number;
   totalPages: number;
@@ -73,7 +57,7 @@ export type BuyNovelResponse = {
 };
 
 export type NovelsApiResponse = ApiResponse<NovelReponse>;
-export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse[]>;
+export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse>;
 export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;
 export type NovelSlugCheckingApiResponse =
   ApiResponse<NovelSlugCheckingResponse>;

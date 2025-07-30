@@ -61,7 +61,7 @@ export const WritingRoom = () => {
   };
 
   useEffect(() => {
-    if (!novelsData || novelsData.length === 0) {
+    if (!novelsData?.novels || novelsData.novels.length === 0) {
       setIsNull(false);
     } else {
       setIsNull(true);
@@ -130,7 +130,7 @@ export const WritingRoom = () => {
 
           <div className="flex items-center justify-between max-w-5xl mx-auto mb-4">
             <h2 className="text-lg font-semibold">
-              Tủ truyện ({novelsData?.length})
+              Tủ truyện ({novelsData?.novels.length})
             </h2>
             <button
               onClick={handleIsCreateNovelClick}
@@ -140,7 +140,7 @@ export const WritingRoom = () => {
             </button>
           </div>
           <div className="flex flex-col gap-5">
-            {novelsData?.map((novel) => (
+            {novelsData?.novels.map((novel) => (
               <div
                 key={novel.novelId}
                 className="h-[200px] bg-[#1e1e21] rounded-[10px] p-4 max-w-5xl "
@@ -167,7 +167,7 @@ export const WritingRoom = () => {
                         <div className="flex gap-[25px]">
                           <button
                             onClick={() =>
-                              handleEditNovelButtonClick(novel.novelId)
+                              handleEditNovelButtonClick(novel.slug)
                             }
                             className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"
                           >
