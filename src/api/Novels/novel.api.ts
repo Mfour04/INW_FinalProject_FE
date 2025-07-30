@@ -17,6 +17,10 @@ interface GetNovelsParams {
   searchTagTerm?: string;
 }
 
+interface GetRecommendNovelsParams {
+  topN: number;
+}
+
 export const GetNovels = (params?: GetNovelsParams) =>
   http.http.get<NovelsApiResponse>("Novels", { params });
 
@@ -43,3 +47,8 @@ export const GetUrlChecked = (slug: string) =>
 
 export const BuyNovel = (novelId: string, request: BuyNovelRequest) =>
   http.privateHttp.post<BuyNovelApiResponse>(`Novels/${novelId}/buy`, request);
+
+export const GetRecommendedNovels = (params: GetRecommendNovelsParams) =>
+  http.privateHttp.get<NovelsApiResponse>("Novels/recommendNovel-user", {
+    params,
+  });

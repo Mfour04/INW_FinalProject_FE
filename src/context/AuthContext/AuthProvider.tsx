@@ -1,5 +1,5 @@
 import React, { createContext, useState } from "react";
-import type { User } from "../../api/Auth/auth.type";
+import type { User } from "../../entity/user";
 
 export const Roles = {
   User: "User",
