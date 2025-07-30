@@ -30,7 +30,7 @@ const initialChapterForm: ChapterForm = {
   isPublic: false,
   chapterId: "",
   chapterNumber: 0,
-  scheduledAt: new Date(),
+  scheduledAt: null,
 };
 
 export const UpsertChapter = () => {
@@ -73,6 +73,23 @@ export const UpsertChapter = () => {
     },
     onError: () => {
       toast?.onOpen(TEXT.TOAST_UPDATE_ERROR);
+    },
+  });
+
+  const autoSaveMutation = useMutation({
+    mutationFn: async (
+      request: CreateChapterRequest | UpdateChapterRequest
+    ) => {
+      if (isUpdate) {
+        return UpdateChapter(request as UpdateChapterRequest);
+      } else {
+        return CreateChapter(request as CreateChapterRequest);
+      }
+    },
+    onSuccess: () => {
+      if (!isUpdate)
+        toast?.onOpen("Tự động lưu tiến trình hiện tại dưới dạng bản nháp");
+      else toast?.onOpen("Tự động lưu tiến trình chỉnh sửa hiện tại!");
     },
   });
 
@@ -130,10 +147,22 @@ export const UpsertChapter = () => {
         isPaid: data.chapter.isPaid,
         isPublic: data.chapter.isPublic,
         price: data.chapter.price,
-        scheduledAt: new Date(),
+        scheduledAt: data.chapter.scheduledAt,
       });
     }
   }, [data]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (chapterForm.title || chapterForm.content) {
+        autoSaveMutation.mutate(chapterForm);
+      }
+    }, 10 * 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [chapterForm, isUpdate]);
 
   // <div className="flex gap-3">
   //         {/* <button>Đã lưu</button> */}
