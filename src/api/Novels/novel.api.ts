@@ -35,8 +35,11 @@ export const GetAuthorNovels = () =>
 export const GetNovelById = (id: string) =>
   http.privateHttp.get<NovelChaptersApiResponse>(`Novels/${id}`);
 
+export const GetNovelByUrl = (url: string) =>
+  http.privateHttp.get<NovelChaptersApiResponse>(`Novels/slug/${url}`);
+
 export const GetUrlChecked = (slug: string) =>
-  http.http.get<NovelSlugCheckingApiResponse>(`Novels/slug/${slug}`);
+  http.http.get<NovelSlugCheckingApiResponse>(`Novels/${slug}/check`);
 
 export const BuyNovel = (novelId: string, request: BuyNovelRequest) =>
   http.privateHttp.post<BuyNovelApiResponse>(`Novels/${novelId}/buy`, request);
