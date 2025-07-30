@@ -1,5 +1,4 @@
 import React from "react";
-import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import avatarImage from "../../assets/img/th.png";
@@ -28,7 +27,7 @@ export const Reply: React.FC<ReplyProps> = ({
     const avatarSrc = currentUser.avatarUrl || avatarImage;
 
     return (
-        <div className="inputReply p-3 w-full px-13">
+        <div className="inputReply p-3 w-full">
             <div className="flex gap-3 items-center mb-2">
                 <img src={avatarSrc} alt={displayName} className="w-10 h-10 rounded-full flex-shrink-0" />
                 <div className="min-w-0 flex-1">
@@ -48,7 +47,6 @@ export const Reply: React.FC<ReplyProps> = ({
 
                 <div className="flex justify-between items-center">
                     <div className="flex gap-5 flex-shrink-0">
-                        <img src={ImageAdd02Icon} className="w-6 h-6" alt="Thêm ảnh" />
                         <img src={SmileIcon} className="w-6 h-6" alt="Biểu cảm" />
                     </div>
                     <button type="button" onClick={onReplySubmit} className="buttonPost flex-shrink-0">

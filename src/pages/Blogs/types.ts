@@ -14,10 +14,10 @@ export interface Post {
   likes: number;
   comments: number;
   isLiked: boolean;
+  imgUrls?: string[];
 }
 
 export interface Comment {
-  id: string;
   post_id: string;
   user_id: string;
   content: string;
@@ -26,4 +26,25 @@ export interface Comment {
   reply_count: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface ForumComment {
+  id: string;
+  content: string;
+  postId?: string;
+  parentId?: string;
+  likeCount: number;
+  replyCount: number;
+  createdAt: number;
+  updatedAt: number;
+  author?: {
+    id: string;
+    username: string;
+    avatar: string | null;
+  };
+  Author?: {
+    Id: string;
+    Username: string;
+    Avatar: string;
+  };
 }

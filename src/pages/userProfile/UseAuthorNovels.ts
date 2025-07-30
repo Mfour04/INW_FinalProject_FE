@@ -9,6 +9,7 @@ export const UseAuthorNovels = () => {
             const res = await GetAuthorNovels();
             return res.data.data;
         },
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60,
+        refetchOnWindowFocus: true,
     });
 }; 

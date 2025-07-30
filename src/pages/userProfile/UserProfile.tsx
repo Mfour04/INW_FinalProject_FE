@@ -11,10 +11,11 @@ import MenuItem from '@mui/material/MenuItem';
 import BlockIcon from '@mui/icons-material/Block';
 import { CalendarUserIcon, Flag02Icon, CommentAdd01Icon } from './UserProfileIcon';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import favorite from '../../assets/svg/CommentUser/favorite.svg';
+import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
 import { useAuth } from '../../hooks/useAuth';
 import { formatVietnamTimeFromTicks } from '../../utils/date_format';
-import { UseAuthorNovels } from './UseAuthorNovels';
-import type { NovelByAuthorResponse } from '../../api/Novels/novel.type';
+import { useUserBlogPosts } from '../../hooks/useBlogs';
 
 export const UserProfile = () => {
 
@@ -24,9 +25,7 @@ export const UserProfile = () => {
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const { auth } = useAuth();
-
-  // Lấy danh sách truyện của tác giả
-  const { data: novels = [], isLoading } = UseAuthorNovels();
+  const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(auth?.user?.userId || "");
 
   const handleFollowClick = () => {
     setIsFollowing(!isFollowing);
@@ -48,54 +47,55 @@ export const UserProfile = () => {
     switch (activeTab) {
       case 'posts':
         return (
-          <div>
-            {isLoading ? (
-              <div className="mt-4 text-center text-gray-400">
-                Đang tải bài đăng...
+          <div className="mt-6">
+            {postsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Đang tải bài đăng...</p>
               </div>
-            ) : novels.length === 0 ? (
-              <div className="mt-4 text-center text-gray-400">
-                Chưa có bài đăng nào.
+            ) : userPosts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Chưa có bài đăng nào.</p>
               </div>
             ) : (
-              novels.map((novel: NovelByAuthorResponse) => (
-                <div
-                  key={novel.novelId}
-                  className="mt-4 bg-gray-900 p-4 rounded-lg border border-gray-700 w-full cursor-pointer hover:bg-gray-800 transition-colors"
-                  onClick={() => handleNovelClick(novel.novelId)}
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={novel.novelImage || bannerImage}
-                      alt="Novel Cover"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold">{novel.title}</p>
-                      <p className="text-xs text-gray-400">
-                        {novel.authorName} • {formatVietnamTimeFromTicks(novel.createAt)}
-                      </p>
+              <div className="space-y-4">
+                {userPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => navigate(`/blogs?post=${post.id}`)}
+                    className="bg-gray-900 p-4 rounded-lg border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3 mb-3">
+                      <img
+                        src={post.author?.avatar || auth?.user?.avatarUrl || "/images/default-avatar.png"}
+                        alt="Avatar"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-semibold text-white">
+                          {post.author?.username || auth?.user?.displayName || auth?.user?.userName || "User"}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          @{post.author?.username || auth?.user?.userName || "user"} • {post.createdAt ? formatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 text-sm line-clamp-3">
+                      {post.content}
+                    </p>
+                    <div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <img src={favorite} className="w-4 h-4" alt="Like" />
+                        {post.likeCount || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <img src={commentIcon} className="w-4 h-4" alt="Comment" />
+                        {post.commentCount || 0}
+                      </span>
                     </div>
                   </div>
-                  <p className="mt-4 text-sm text-gray-300 line-clamp-2">
-                    {novel.description}
-                  </p>
-                  <hr className="my-4 border-t border-gray-700" />
-                  <div className="mt-4 flex space-x-6 text-white">
-                    <span className="flex items-center gap-2">
-                      <FavoriteBorderIcon />
-                      {novel.followers} Yêu thích
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <CommentAdd01Icon />
-                      {novel.totalViews} Lượt xem
-                    </span>
-                    <span className="flex items-center gap-2">
-                      📖 {novel.totalChapters} Chương
-                    </span>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         );
@@ -224,7 +224,7 @@ export const UserProfile = () => {
             <span className="mx-2">•</span>
             <strong className="text-gray-400">2</strong> Người theo dõi
             <span className="mx-2">•</span>
-            <strong className="text-gray-400">{novels.length}</strong> Bài đăng
+            <strong className="text-gray-400">{userPosts.length}</strong> Bài đăng
           </p>
 
           <p className="text-gray-400 flex items-center gap-1">
@@ -239,6 +239,7 @@ export const UserProfile = () => {
         <div onClick={() => setActiveTab('followers')} className={`cursor-pointer ${activeTab === 'followers' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Người theo dõi</div>
         <div onClick={() => setActiveTab('following')} className={`cursor-pointer ${activeTab === 'following' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Đang theo dõi</div>
         <div onClick={() => setActiveTab('achievements')} className={`cursor-pointer ${activeTab === 'achievements' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Thành tựu</div>
+
       </div>
 
       <div className="follow overflow-y-auto px-10">

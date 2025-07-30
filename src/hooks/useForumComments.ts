@@ -1,0 +1,116 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    GetForumComments,
+    CreateForumComment,
+    UpdateForumComment,
+    DeleteForumComment,
+    LikeForumComment,
+    UnlikeForumComment,
+    GetRepliesByForumComment,
+} from "../api/ForumComment/forum-comment.api";
+
+export const UseForumComments = (postId: string) => {
+    return useQuery({
+        queryKey: ["forum-comments", postId],
+        queryFn: async () => {
+            const res = await GetForumComments(postId, {
+                page: 0,
+                limit: 50,
+                includeReplies: true,
+            });
+            return res.data.data;
+        },
+        enabled: !!postId,
+        staleTime: 1000 * 60,
+    });
+};
+
+export const UseCreateForumComment = (postId: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: { content: string; parentCommentId?: string }) => {
+            const res = await CreateForumComment({
+                content: payload.content,
+                postId: postId,
+                parentCommentId: payload.parentCommentId,
+            });
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+        },
+    });
+};
+
+export const UseUpdateForumComment = (postId: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: { commentId: string; content: string }) => {
+            const res = await UpdateForumComment(payload);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+        },
+    });
+};
+
+export const UseDeleteForumComment = (postId: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (commentId: string) => {
+            const res = await DeleteForumComment(commentId);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+        },
+    });
+};
+
+export const UseLikeForumComment = (postId: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: { commentId: string; userId: string; type: number }) => {
+            const res = await LikeForumComment(payload.commentId, payload.userId, payload.type);
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+        },
+    });
+};
+
+export const UseUnlikeForumComment = (postId: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: { commentId: string; userId: string }) => {
+            const res = await UnlikeForumComment(payload.commentId, payload.userId);
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+        },
+    });
+};
+
+export const UseGetRepliesByForumComment = (commentId: string) => {
+    return useQuery({
+        queryKey: ["forum-replies", commentId],
+        queryFn: async () => {
+            const res = await GetRepliesByForumComment(commentId, {
+                page: 0,
+                limit: 50,
+                sortBy: "created_at:desc",
+            });
+            return res.data.data;
+        },
+        enabled: !!commentId,
+        staleTime: 1000 * 60,
+    });
+}; 
