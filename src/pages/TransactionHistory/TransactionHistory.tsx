@@ -41,7 +41,7 @@ export const TransactionHistory = () => {
   });
 
   return (
-    <div className="mx-12 my-5">
+    <div className="min-h-screen my-5 px-6 py-8 rounded-[10px] mx-[50px] bg-[#1e1e21] text-white">
       <div className="flex gap-4 mb-4">
         <select
           value={params.type ?? ""}

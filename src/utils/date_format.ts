@@ -39,7 +39,7 @@ export const formatTicksToDateString = (
   ticks: number | null | undefined
 ): string => {
   const m = convertTicksToMoment(ticks);
-  return m ? m.format("DD/MM/YYYY") : "Không có dữ liệu";
+  return m ? m.format("DD/MM/YYYY") : "Không có dữ liệu thời gian";
 };
 
 // ... ago
@@ -47,7 +47,7 @@ export const formatTicksToRelativeTime = (
   ticks: number | null | undefined
 ): string => {
   const m = convertTicksToMoment(ticks);
-  return m ? m.fromNow() : "Không có dữ liệu";
+  return m ? m.fromNow() : "Không có dữ liệu thời gian";
 };
 
 export const formatVietnamTimeFromTicks = (ticks: number): string => {
