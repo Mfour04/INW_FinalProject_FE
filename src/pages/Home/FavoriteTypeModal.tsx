@@ -33,7 +33,7 @@ export const FavouriteTypeModal = ({
         <h2 className="text-xl text-white font-bold mb-4">
           Chọn thể loại yêu thích
         </h2>
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-3 mb-3">
           {allTypes?.map((tag) => {
             const isSelected = selectedTypes.some((t) => t.tagId === tag.tagId);
             return (
@@ -41,35 +41,26 @@ export const FavouriteTypeModal = ({
                 key={tag.tagId}
                 tag={tag}
                 onClick={() => toggleType(tag)}
-                className={`cursor-pointer ${
-                  isSelected && "bg-[#ff6740] text-white hover:bg-orange-600"
-                }`}
+                className={`cursor-pointer bg-[#1e1e21] border-[1px] text-gray-300
+                            min-w-fit max-w-full flex-initial text-[14px] ${
+                              isSelected &&
+                              " text-white font-medium border-[#ff6740]"
+                            }`}
               />
-              // <button
-              //   key={tag.tagId}
-              //   className={`px-3 py-1 rounded border ${
-              //     isSelected
-              //       ? "bg-blue-500 text-white border-blue-500"
-              //       : "bg-gray-100 text-gray-700 border-gray-300"
-              //   }`}
-              //   onClick={() => toggleType(tag)}
-              // >
-              //   {tag.name}
-              // </button>
             );
           })}
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-between gap-2">
           <button
             onClick={onClose}
-            className="bg-[#ff6740] hover:bg-orange-600 text-white px-4 py-2 rounded"
+            className="bg-none cursor-pointer text-gray-300 hover:text-white py-2 rounded"
           >
-            Chọn sau
+            Để sau nha
           </button>
           <Button
             onClick={() => onConfirm(selectedTypes)}
             isLoading={isLoading}
-            className="bg-[#ff6740] hover:bg-orange-600 text-white px-4 py-2 rounded border-none"
+            className="bg-[#ff6740] h-9 hover:bg-orange-600 text-white px-4 py-2 rounded border-none"
           >
             Xác nhận
           </Button>
