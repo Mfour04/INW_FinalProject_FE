@@ -17,6 +17,15 @@ interface GetNovelsParams {
   searchTagTerm?: string;
 }
 
+type novelChapterSortDirection = "chapter_number:asc" | "chapter_number:desc";
+
+export interface GetNovelChaptersParams {
+  page?: number;
+  limit?: number;
+  sortBy?: novelChapterSortDirection;
+  chapterNumber?: number;
+}
+
 interface GetRecommendNovelsParams {
   topN: number;
 }
@@ -39,8 +48,10 @@ export const GetAuthorNovels = () =>
 export const GetNovelById = (id: string) =>
   http.privateHttp.get<NovelChaptersApiResponse>(`Novels/${id}`);
 
-export const GetNovelByUrl = (url: string) =>
-  http.privateHttp.get<NovelChaptersApiResponse>(`Novels/slug/${url}`);
+export const GetNovelByUrl = (url: string, params?: GetNovelChaptersParams) =>
+  http.privateHttp.get<NovelChaptersApiResponse>(`Novels/slug/${url}`, {
+    params,
+  });
 
 export const GetUrlChecked = (slug: string) =>
   http.http.get<NovelSlugCheckingApiResponse>(`Novels/${slug}/check`);

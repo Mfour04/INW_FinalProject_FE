@@ -4,13 +4,20 @@ import Comment from "@mui/icons-material/Comment";
 import ModeEdit from "@mui/icons-material/ModeEdit";
 import Lock from "@mui/icons-material/Lock";
 import Report from "@mui/icons-material/Report";
+import SwapVert from "@mui/icons-material/SwapVert";
+import ArrowLeft02 from "../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
+import ArrowRight02 from "../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
 import NotificationActive from "@mui/icons-material/NotificationsActive";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatTicksToRelativeTime } from "../../utils/date_format";
-import { BuyNovel, GetNovelByUrl } from "../../api/Novels/novel.api";
+import {
+  BuyNovel,
+  GetNovelByUrl,
+  type GetNovelChaptersParams,
+} from "../../api/Novels/novel.api";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useAuth } from "../../hooks/useAuth";
 import type {
@@ -31,13 +38,18 @@ import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
 import type { BuyNovelRequest } from "../../api/Novels/novel.type";
 import { TagView } from "../../components/TagComponent";
 
-type Tabs = "Chapter" | "Comment";
+type Tabs = "Chapter" | "Comment" | "Rating";
 
 export const Chapters = () => {
   const [tab, setTab] = useState<Tabs>("Chapter");
   const [showFollowPopup, setShowFollowPopup] = useState(false);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isBuyNovelOpen, setIsBuyNovelOpen] = useState(false);
+  const [params, setParams] = useState<GetNovelChaptersParams>({
+    limit: 20,
+    page: 0,
+    sortBy: "chapter_number:asc",
+  });
   const [chapterPrice, setChapterPrice] = useState(0);
   const [selectedChapterId, setSelectedChapterId] = useState<string>("");
 
@@ -47,9 +59,17 @@ export const Chapters = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const { data: novelData, isLoading: isLoadingNovel } = useQuery({
-    queryKey: ["novel", novelId],
-    queryFn: () => GetNovelByUrl(novelId!).then((res) => res.data.data),
+  const { data: novelData } = useQuery({
+    queryKey: ["novel", novelId, params],
+    queryFn: () =>
+      GetNovelByUrl(novelId!, {
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        ...(params.chapterNumber
+          ? { chapterNumber: params.chapterNumber }
+          : {}),
+      }).then((res) => res.data.data),
     enabled: !!novelId,
   });
 
@@ -91,7 +111,7 @@ export const Chapters = () => {
       request: BuyChapterRequest;
     }) => BuyChapter(chapterId, request),
     onSuccess: (res) => {
-      toast?.onOpen("Mua thành công");
+      toast?.onOpen(res.data.message);
     },
   });
 
@@ -104,7 +124,7 @@ export const Chapters = () => {
       request: BuyNovelRequest;
     }) => BuyNovel(novelId, request),
     onSuccess: (res) => {
-      toast?.onOpen("Mua thành công");
+      toast?.onOpen(res.data.message);
     },
   });
 
@@ -135,7 +155,6 @@ export const Chapters = () => {
   };
 
   const handleFollowNovel = (novelId: string) => {
-    console.log(novelId);
     if (novelId) NovelFollowMutation.mutate({ novelId });
   };
 
@@ -165,7 +184,7 @@ export const Chapters = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-[50px] p-4 text-white">
+    <div className=" mx-[50px] p-4 text-white">
       <div className="flex flex-col md:flex-row gap-4 ">
         <img
           src={novelInfo?.novelImage || undefined}
@@ -301,23 +320,49 @@ export const Chapters = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-[20px] h-[44px] mt-6 mb-4">
-        <button
-          onClick={() => setTab("Chapter")}
-          className={`cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
-            tab === "Chapter" ? "bg-[#2e2e2e]" : undefined
-          } w-[263px]`}
-        >
-          Danh sách chương
-        </button>
-        <button
-          onClick={() => setTab("Comment")}
-          className={`cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
-            tab === "Comment" ? "bg-[#2e2e2e]" : undefined
-          } w-[263px]`}
-        >
-          Bình luận (2)
-        </button>
+      <div className="flex gap-6 items-center justify-between text-[20px] h-[44px] mt-6 mb-4">
+        <div className="flex h-full gap-6">
+          <button
+            onClick={() => setTab("Chapter")}
+            className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
+              tab === "Chapter" ? "bg-[#2e2e2e]" : undefined
+            } `}
+          >
+            Danh sách chương
+          </button>
+          <button
+            onClick={() => setTab("Comment")}
+            className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
+              tab === "Comment" ? "bg-[#2e2e2e]" : undefined
+            } `}
+          >
+            Bình luận (2)
+          </button>
+          <button
+            onClick={() => setTab("Rating")}
+            className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
+              tab === "Rating" ? "bg-[#2e2e2e]" : undefined
+            } `}
+          >
+            Đánh giá
+          </button>
+        </div>
+        <div className="flex h-full gap-6 items-center justify-between">
+          <button
+            className="cursor-pointer rounded-[10px] hover:bg-[#2e2e2e] p-2 h-full"
+            onClick={() =>
+              setParams((prev) => ({
+                ...prev,
+                sortBy:
+                  params.sortBy === "chapter_number:desc"
+                    ? "chapter_number:asc"
+                    : "chapter_number:desc",
+              }))
+            }
+          >
+            <SwapVert />
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
@@ -344,9 +389,9 @@ export const Chapters = () => {
             key={chapter.chapterId}
             className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
           >
-            <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-10 justify-between">
+            <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-4 justify-between">
               <div className="flex items-center">
-                <h1 className="w-[60px] text-[20px]">
+                <h1 className="w-[20px] text-[20px]">
                   {chapter.chapterNumber}
                 </h1>
                 <div className="ml-2">
@@ -363,6 +408,40 @@ export const Chapters = () => {
           </div>
         ))}
       </div>
+
+      <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
+        <button
+          onClick={() =>
+            setParams((prev) => ({
+              ...prev,
+              page: (prev.page || 1) - 1,
+            }))
+          }
+          disabled={params.page === 0}
+          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
+        >
+          <img src={ArrowLeft02} />
+        </button>
+        <div className="w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]">
+          <span className="text-sm">
+            Trang <span className="border-1 rounded-[5px] px-2.5">{1}</span> /
+            {novelData?.totalPages}
+          </span>
+        </div>
+        <button
+          onClick={() =>
+            setParams((prev) => ({
+              ...prev,
+              page: (prev.page || 1) + 1,
+            }))
+          }
+          disabled={params.page === (novelData?.totalPages ?? 1) - 1}
+          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
+        >
+          <img src={ArrowRight02} />
+        </button>
+      </div>
+
       <ConfirmModal
         isOpen={isBuyModalOpen}
         title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}

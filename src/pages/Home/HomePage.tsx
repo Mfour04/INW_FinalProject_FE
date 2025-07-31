@@ -140,14 +140,12 @@ export const HomePage = () => {
       formData.append("userId", auth.user.userId);
       formData.append("displayName", auth.user.displayName);
       formData.append("bio", auth.user.bio!);
-      selectedTypes.forEach((type, index) => {
-        formData.append(`FavouriteType[${index}].id_tag`, type.tagId);
-        formData.append(`FavouriteType[${index}].name_tag`, type.name);
+      selectedTypes.forEach((type) => {
+        formData.append("favouriteType", type.tagId);
       });
     }
 
     if (auth?.user.badgeId) {
-      console.log("trigger");
       auth.user.badgeId.forEach((id: string) => {
         formData.append("badgeId", id);
       });
