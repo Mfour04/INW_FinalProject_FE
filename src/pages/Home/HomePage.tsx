@@ -71,7 +71,7 @@ export const HomePage = () => {
 
   const maxIndex = Math.max(
     0,
-    (recommendNovels?.novels.length || 0) - visibleCount
+    (recommendNovels?.novels?.length || 0) - visibleCount
   );
 
   const updateUserMutation = useMutation({
@@ -175,7 +175,7 @@ export const HomePage = () => {
   return (
     <div>
       <div className="flex-col items-center px-[50px] bg-white dark:text-white dark:bg-[#0f0f11] justify-between">
-        <Typography variant="h4" size="large" className="mb-4">
+        <Typography variant="h4" size="large" className="my-4">
           Truyện Vừa Ra Mắt
         </Typography>
         <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
@@ -348,43 +348,46 @@ export const HomePage = () => {
             )}
           </div>
         </div>
-        <div className="h-[490px] w-full flex flex-col relative">
-          <div className="py-6">
-            <Typography variant="h4" size="large">
-              InkWave Đề cử
-            </Typography>
+
+        {maxIndex > 0 && (
+          <div className="h-[490px] w-full flex flex-col relative">
+            <div className="py-6">
+              <Typography variant="h4" size="large">
+                InkWave Đề cử
+              </Typography>
+            </div>
+
+            {/* Nút trái */}
+            <button
+              onClick={() => handleSlide("left")}
+              className="absolute left-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
+            >
+              ◀
+            </button>
+
+            {/* Novel list */}
+            <div className="gap-12 flex overflow-x-hidden max-w-screen transition-all duration-300">
+              {recommendNovels?.novels
+                ?.slice(currentIndex, currentIndex + visibleCount)
+                .map((novel) => (
+                  <img
+                    key={novel.novelId}
+                    src={novel.novelImage || undefined}
+                    onClick={() => navigate(`/novels/${novel.slug}`)}
+                    className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px] shrink-0"
+                  />
+                ))}
+            </div>
+
+            {/* Nút phải */}
+            <button
+              onClick={() => handleSlide("right")}
+              className="absolute right-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
+            >
+              ▶
+            </button>
           </div>
-
-          {/* Nút trái */}
-          <button
-            onClick={() => handleSlide("left")}
-            className="absolute left-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
-          >
-            ◀
-          </button>
-
-          {/* Novel list */}
-          <div className="gap-12 flex overflow-x-hidden max-w-screen transition-all duration-300">
-            {recommendNovels?.novels
-              ?.slice(currentIndex, currentIndex + visibleCount)
-              .map((novel) => (
-                <img
-                  key={novel.novelId}
-                  src={novel.novelImage || undefined}
-                  onClick={() => navigate(`/novels/${novel.slug}`)}
-                  className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px] shrink-0"
-                />
-              ))}
-          </div>
-
-          {/* Nút phải */}
-          <button
-            onClick={() => handleSlide("right")}
-            className="absolute right-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
-          >
-            ▶
-          </button>
-        </div>
+        )}
 
         {/* <div className="h-[625px] w-full flex-col">
           <div className="py-6">
