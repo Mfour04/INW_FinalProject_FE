@@ -1,9 +1,7 @@
 import StarRate from "@mui/icons-material/StarRate";
 import BookMark from "@mui/icons-material/Bookmark";
 import Comment from "@mui/icons-material/Comment";
-import Share from "@mui/icons-material/Share";
 import ModeEdit from "@mui/icons-material/ModeEdit";
-import Add from "@mui/icons-material/Add";
 import Lock from "@mui/icons-material/Lock";
 import Report from "@mui/icons-material/Report";
 import NotificationActive from "@mui/icons-material/NotificationsActive";
@@ -31,6 +29,7 @@ import ShoppingCart from "@mui/icons-material/ShoppingCart";
 import { BuyChapter } from "../../api/Chapters/chapter.api";
 import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
 import type { BuyNovelRequest } from "../../api/Novels/novel.type";
+import { TagView } from "../../components/TagComponent";
 
 type Tabs = "Chapter" | "Comment";
 
@@ -54,17 +53,24 @@ export const Chapters = () => {
     enabled: !!novelId,
   });
 
-  const { data: novelFollowers, refetch: refetchNovelFollowers } = useQuery({
-    queryKey: ["novelFollower", novelId],
+  const {
+    data: novelFollowers,
+    refetch: refetchNovelFollowers,
+    isLoading: isFollowersLoading,
+    isFetching: isFollowersFetching,
+  } = useQuery({
+    queryKey: ["novelFollower", novelData?.novelInfo.novelId],
     queryFn: () =>
-      GetNovelFollowers({ novelId: novelId! }).then((res) => res.data.data),
+      GetNovelFollowers({ novelId: novelData?.novelInfo.novelId! }).then(
+        (res) => res.data.data
+      ),
     enabled: !!novelId,
   });
 
   const NovelFollowMutation = useMutation({
     mutationFn: (request: NovelFollowRequest) => FollowNovel(request),
-    onSuccess: () => {
-      toast?.onOpen("Bạn đã theo dõi tiểu thuyết!");
+    onSuccess: (data) => {
+      toast?.onOpen(data.data.message);
       refetchNovelFollowers();
     },
   });
@@ -118,7 +124,7 @@ export const Chapters = () => {
     price: number
   ) => {
     setSelectedChapterId(chapterId);
-    if (isPaid) {
+    if (isPaid && !novelData?.isAccessFull) {
       setChapterPrice(price);
       if (!auth?.user)
         toast?.onOpen(
@@ -129,6 +135,7 @@ export const Chapters = () => {
   };
 
   const handleFollowNovel = (novelId: string) => {
+    console.log(novelId);
     if (novelId) NovelFollowMutation.mutate({ novelId });
   };
 
@@ -177,15 +184,21 @@ export const Chapters = () => {
             <div className="flex gap-2.5">
               <div className="flex items-center gap-1 text-[20px]">
                 <StarRate sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">4.9</div>
+                <div className="flex items-center">
+                  {novelData?.novelInfo.ratingAvg}
+                </div>
               </div>
               <div className="flex items-center gap-1 text-[20px]">
                 <BookMark sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">11K</div>
+                <div className="flex items-center">
+                  {novelData?.novelInfo.totalViews}
+                </div>
               </div>
               <div className="flex items-center gap-1 text-[20px]">
                 <Comment sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">123</div>
+                <div className="flex items-center">
+                  {novelData?.novelInfo.commentCount}
+                </div>
               </div>
               <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
                 <span
@@ -201,9 +214,13 @@ export const Chapters = () => {
           <div className="flex flex-wrap gap-7 mt-10 h-[37px]">
             {!follower ? (
               <Button
-                onClick={() => handleFollowNovel(novelId!)}
-                isLoading={NovelFollowMutation.isPending}
-                className="bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
+                onClick={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
+                isLoading={
+                  NovelFollowMutation.isPending ||
+                  isFollowersLoading ||
+                  isFollowersFetching
+                }
+                className="bg-[#ff6740] w-[228px] border-none hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
               >
                 <div className="flex items-center justify-center gap-2.5">
                   {!NovelFollowMutation.isPending && (
@@ -218,21 +235,19 @@ export const Chapters = () => {
               <div className="relative inline-block">
                 <Button
                   onClick={() => setShowFollowPopup((prev) => !prev)}
-                  isLoading={UnfollowNovelMutaion.isPending}
-                  className="bg-[#45454e] w-[228px] hover:bg-gray-700 px-4 py-1 rounded text-[18px]"
+                  isLoading={
+                    UnfollowNovelMutaion.isPending ||
+                    isFollowersLoading ||
+                    isFollowersFetching
+                  }
+                  className="bg-[#45454e] w-[228px]  border-none hover:bg-gray-700 px-4 py-1 rounded text-[18px]"
                 >
                   <div className="flex items-center justify-center gap-2.5">
-                    {!UnfollowNovelMutaion.isPending && (
-                      <>
-                        <NotificationActive
-                          sx={{ height: "20px", width: "20px" }}
-                        />
-                        <p>Đang theo dõi</p>
-                        <KeyboardArrowDown
-                          sx={{ height: "20px", width: "20px" }}
-                        />
-                      </>
-                    )}
+                    <NotificationActive
+                      sx={{ height: "20px", width: "20px" }}
+                    />
+                    <p>Đang theo dõi</p>
+                    <KeyboardArrowDown sx={{ height: "20px", width: "20px" }} />
                   </div>
                 </Button>
 
@@ -264,8 +279,8 @@ export const Chapters = () => {
 
             <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
               {/* <Share sx={{ height: "20px", width: "20px" }} /> */}
-              <Add sx={{ height: "20px", width: "20px" }} />
-              <p>Chia sẻ</p>
+              <StarRate sx={{ height: "20px", width: "20px" }} />
+              <p>Đánh giá</p>
             </button>
             <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
               <Report sx={{ height: "20px", width: "20px" }} />
@@ -274,15 +289,9 @@ export const Chapters = () => {
           </div>
 
           <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Trường học{" "}
-            </div>
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Phiêu lưu{" "}
-            </div>
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Hài hước{" "}
-            </div>
+            {novelData?.novelInfo.tags.map((tag) => (
+              <TagView key={tag.tagId} tag={tag} />
+            ))}
           </div>
         </div>
       </div>
@@ -349,7 +358,7 @@ export const Chapters = () => {
                   </p>
                 </div>
               </div>
-              {chapter.isPaid && <Lock />}
+              {chapter.isPaid && !novelData?.isAccessFull && <Lock />}
             </div>
           </div>
         ))}
