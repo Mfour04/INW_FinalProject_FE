@@ -17,6 +17,7 @@ import { Blogs } from "../pages/Blogs/Blogs";
 import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
+import { Setting } from "../pages/setting/Setting";
 export const Router = () => {
   return (
     <Routes>
@@ -57,6 +58,7 @@ export const Router = () => {
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
+      <Route path="/setting" element={<Setting />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>
   );
