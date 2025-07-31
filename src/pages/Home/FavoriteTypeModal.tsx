@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { Tag } from "../../entity/tag";
+import { TagView } from "../../components/TagComponent";
+import Button from "../../components/ButtonComponent";
 
 type Props = {
   allTypes: Tag[];
   selected: Tag[];
   onClose: () => void;
   onConfirm: (selectedTypes: Tag[]) => void;
+  isLoading: boolean;
 };
 
 export const FavouriteTypeModal = ({
@@ -13,6 +16,7 @@ export const FavouriteTypeModal = ({
   selected,
   onClose,
   onConfirm,
+  isLoading,
 }: Props) => {
   const [selectedTypes, setSelectedTypes] = useState<Tag[]>(selected);
 
@@ -25,39 +29,50 @@ export const FavouriteTypeModal = ({
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-transparent">
-      <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
-        <h2 className="text-xl font-bold mb-4">Chọn thể loại yêu thích</h2>
+      <div className="bg-[#1e1e21] rounded-lg p-6 w-[90%] max-w-md">
+        <h2 className="text-xl text-white font-bold mb-4">
+          Chọn thể loại yêu thích
+        </h2>
         <div className="flex flex-wrap gap-2 mb-4">
           {allTypes?.map((tag) => {
             const isSelected = selectedTypes.some((t) => t.tagId === tag.tagId);
             return (
-              <button
+              <TagView
                 key={tag.tagId}
-                className={`px-3 py-1 rounded border ${
-                  isSelected
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-gray-100 text-gray-700 border-gray-300"
-                }`}
+                tag={tag}
                 onClick={() => toggleType(tag)}
-              >
-                {tag.name}
-              </button>
+                className={`cursor-pointer ${
+                  isSelected && "bg-[#ff6740] text-white hover:bg-orange-600"
+                }`}
+              />
+              // <button
+              //   key={tag.tagId}
+              //   className={`px-3 py-1 rounded border ${
+              //     isSelected
+              //       ? "bg-blue-500 text-white border-blue-500"
+              //       : "bg-gray-100 text-gray-700 border-gray-300"
+              //   }`}
+              //   onClick={() => toggleType(tag)}
+              // >
+              //   {tag.name}
+              // </button>
             );
           })}
         </div>
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            className="bg-[#ff6740] hover:bg-orange-600 text-white px-4 py-2 rounded"
           >
             Chọn sau
           </button>
-          <button
+          <Button
             onClick={() => onConfirm(selectedTypes)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            isLoading={isLoading}
+            className="bg-[#ff6740] hover:bg-orange-600 text-white px-4 py-2 rounded border-none"
           >
             Xác nhận
-          </button>
+          </Button>
         </div>
       </div>
     </div>

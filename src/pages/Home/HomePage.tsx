@@ -424,6 +424,7 @@ export const HomePage = () => {
           selected={auth?.user?.favouriteType ?? []}
           onClose={() => setShowModal(false)}
           onConfirm={handleConfirmFavourite}
+          isLoading={updateUserMutation.isPending}
         />
       )}
     </div>
