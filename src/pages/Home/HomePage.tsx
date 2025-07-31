@@ -19,6 +19,7 @@ import { getTags } from "../../api/Tags/tag.api";
 import type { Tag } from "../../entity/tag";
 import { UpdateUser } from "../../api/User/user.api";
 import { urlToFile } from "../../utils/img";
+import { useToast } from "../../context/ToastContext/toast-context";
 
 export const SORT_BY_FIELDS = {
   CREATED_AT: "created_at",
@@ -41,6 +42,7 @@ export const HomePage = () => {
   const navigate = useNavigate();
 
   const { auth } = useAuth();
+  const toast = useToast();
 
   const useSortedNovels = (
     sortBy: string,
@@ -76,8 +78,12 @@ export const HomePage = () => {
 
   const updateUserMutation = useMutation({
     mutationFn: (body: FormData) => UpdateUser(body),
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
+      setShowModal(false);
+      toast?.onOpen("Thêm các thể loại yêu thích thành công");
+    },
+    onError: () => {
+      toast?.onOpen("Có lỗi xảy ra khi thêm thể loại yêu thích");
     },
   });
 
@@ -159,7 +165,6 @@ export const HomePage = () => {
     }
 
     updateUserMutation.mutate(formData);
-    setShowModal(false);
   };
 
   useEffect(() => {
@@ -349,7 +354,7 @@ export const HomePage = () => {
           </div>
         </div>
 
-        {maxIndex > 0 && (
+        {recommendNovels?.novels && (
           <div className="h-[490px] w-full flex flex-col relative">
             <div className="py-6">
               <Typography variant="h4" size="large">
