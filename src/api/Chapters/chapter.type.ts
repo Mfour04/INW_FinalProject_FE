@@ -1,85 +1,64 @@
 import type { ApiResponse } from "../../entity/response";
 
 export interface Chapter {
-  scheduledAt: Date | null;
+  chapterId: string;
   novelId: string;
   title: string;
   content: string;
   chapterNumber: number;
   isPaid: boolean;
   price: number;
+  scheduledAt: number;
+  isLock: boolean;
   isDraft: boolean;
   isPublic: boolean;
+  allowComment: boolean;
+  commentCount: number;
+  totalChapterViews: number;
+  createAt: number;
+  updateAt: number;
 }
 
-export type CreateChapterRequest = Omit<Chapter, "chapterNumber">;
+export interface ChapterResponse {
+  chapter: Chapter;
+  nextChapterId: string;
+  previousChapterId: string;
+}
 
-export interface UpdateChapterRequest {
+export interface Chapters {
+  success: boolean;
+  message: string;
+  data: ChapterResponse;
+}
+
+export interface BackendChapterResponse {
   chapterId: string;
+  novelId: string;
   title: string;
   content: string;
   chapterNumber: number;
   isPaid: boolean;
   price: number;
-  scheduledAt: Date | null;
+  scheduledAt: number;
+  isLock: boolean;
   isDraft: boolean;
   isPublic: boolean;
+  allowComment: boolean;
+  commentCount: number;
+  totalChapterViews: number;
+  createAt: number;
+  updateAt: number;
 }
-
-export interface ChapterByNovel {
-  id: string;
-  novel_id: string;
-  title: string;
-  content: string;
-  chapter_number: number;
-  is_paid: boolean;
-  price: number;
-  scheduled_at: number;
-  is_lock: boolean;
-  is_draft: boolean;
-  is_public: boolean;
-  created_at: number;
-  updated_at: number;
-}
-
-export type ChapterCreatePayload = Omit<Chapter, "novelId">;
-
-export type ChapterResponse = {
-  chapter: Chapter;
-  nextChapterId: string;
-  previousChapterId: string;
-};
-
-export type Chapters = {
-  success: boolean;
-  message: string;
-  data: ChapterResponse;
-};
 
 export type NovelChapters = {
   success: boolean;
   message: string;
-  data: ChapterByNovel[];
+  data: BackendChapterResponse[];
 };
 
-export interface CreateChapterResponse {
+export interface BuyChapterResponse {
   success: boolean;
   message: string;
-  data: Chapter;
-}
-
-export type BuyChapterRequest = {
-  coinCost: number;
-};
-
-export type BuyChapterResponse = {
-  coin: number;
-};
-
-export interface PublishStatus {
-  Draft: "DRAFT";
-  Private: "PRIVATE";
-  Public: "PUBLIC";
 }
 
 export type BuyChapterApiResponse = ApiResponse<BuyChapterResponse>;
