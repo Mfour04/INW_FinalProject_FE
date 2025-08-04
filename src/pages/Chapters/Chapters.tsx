@@ -2,17 +2,14 @@ import StarRate from "@mui/icons-material/StarRate";
 import BookMark from "@mui/icons-material/Bookmark";
 import Comment from "@mui/icons-material/Comment";
 import ModeEdit from "@mui/icons-material/ModeEdit";
-import Lock from "@mui/icons-material/Lock";
 import Report from "@mui/icons-material/Report";
 import SwapVert from "@mui/icons-material/SwapVert";
-import ArrowLeft02 from "../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
-import ArrowRight02 from "../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
+
 import NotificationActive from "@mui/icons-material/NotificationsActive";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { formatTicksToRelativeTime } from "../../utils/date_format";
 import {
   BuyNovel,
   GetNovelByUrl,
@@ -37,6 +34,8 @@ import { BuyChapter } from "../../api/Chapters/chapter.api";
 import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
 import type { BuyNovelRequest } from "../../api/Novels/novel.type";
 import { TagView } from "../../components/TagComponent";
+import { ChapterList } from "./TabContent/ChapterList";
+import RatingSection from "./TabContent/RatingSection";
 
 type Tabs = "Chapter" | "Comment" | "Rating";
 
@@ -72,6 +71,8 @@ export const Chapters = () => {
       }).then((res) => res.data.data),
     enabled: !!novelId,
   });
+
+  const novelInfo = novelData?.novelInfo;
 
   const {
     data: novelFollowers,
@@ -128,10 +129,6 @@ export const Chapters = () => {
     },
   });
 
-  const novelInfo = novelData?.novelInfo;
-  const chapters = novelData?.allChapters;
-  const lastChapter = chapters?.[chapters?.length - 1];
-
   const follower = Array.isArray(novelFollowers?.followers)
     ? novelFollowers.followers.find(
         (follower) => follower.userId === auth?.user.userId
@@ -182,6 +179,42 @@ export const Chapters = () => {
       });
     setIsBuyNovelOpen(false);
   };
+
+  const tabContent = useMemo(() => {
+    switch (tab) {
+      case "Comment":
+        break;
+      case "Rating":
+        return <RatingSection novelInfo={novelInfo!} />;
+        break;
+      case "Chapter":
+        return (
+          <ChapterList
+            handleClickChapter={handleClickChapter}
+            novelData={novelData}
+            params={params}
+            setParams={setParams}
+          />
+        );
+      default:
+        return (
+          <ChapterList
+            handleClickChapter={handleClickChapter}
+            novelData={novelData}
+            params={params}
+            setParams={setParams}
+          />
+        );
+    }
+  }, [
+    tab,
+    setTab,
+    handleClickChapter,
+    novelData,
+    params,
+    setParams,
+    novelInfo,
+  ]);
 
   return (
     <div className=" mx-[50px] p-4 text-white">
@@ -347,100 +380,26 @@ export const Chapters = () => {
             Đánh giá
           </button>
         </div>
-        <div className="flex h-full gap-6 items-center justify-between">
-          <button
-            className="cursor-pointer rounded-[10px] hover:bg-[#2e2e2e] p-2 h-full"
-            onClick={() =>
-              setParams((prev) => ({
-                ...prev,
-                sortBy:
-                  params.sortBy === "chapter_number:desc"
-                    ? "chapter_number:asc"
-                    : "chapter_number:desc",
-              }))
-            }
-          >
-            <SwapVert />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
-        <p className="flex items-center">Cập nhật gần nhất:</p>
-        <p className="flex items-center text-[#ff6740]">
-          Chương {lastChapter?.chapterNumber}: {lastChapter?.title}
-        </p>
-        <p className="flex items-center text-[#cfcfcf]">
-          {formatTicksToRelativeTime(lastChapter?.updateAt!)}
-        </p>
-      </div>
-
-      {/* Chapter List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
-        {chapters?.map((chapter) => (
-          <div
-            onClick={() =>
-              handleClickChapter(
-                chapter.chapterId,
-                chapter.isPaid,
-                chapter.price
-              )
-            }
-            key={chapter.chapterId}
-            className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
-          >
-            <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-4 justify-between">
-              <div className="flex items-center">
-                <h1 className="w-[20px] text-[20px]">
-                  {chapter.chapterNumber}
-                </h1>
-                <div className="ml-2">
-                  <p className="text-[18px] font-normal line-clamp-1">
-                    {chapter.title}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {formatTicksToRelativeTime(chapter.updateAt)}
-                  </p>
-                </div>
-              </div>
-              {chapter.isPaid && !novelData?.isAccessFull && <Lock />}
-            </div>
+        {tab === "Chapter" && (
+          <div className="flex h-full gap-6 items-center justify-between">
+            <button
+              className="cursor-pointer rounded-[10px] hover:bg-[#2e2e2e] p-2 h-full"
+              onClick={() =>
+                setParams((prev) => ({
+                  ...prev,
+                  sortBy:
+                    params.sortBy === "chapter_number:desc"
+                      ? "chapter_number:asc"
+                      : "chapter_number:desc",
+                }))
+              }
+            >
+              <SwapVert />
+            </button>
           </div>
-        ))}
+        )}
       </div>
-
-      <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
-        <button
-          onClick={() =>
-            setParams((prev) => ({
-              ...prev,
-              page: (prev.page || 1) - 1,
-            }))
-          }
-          disabled={params.page === 0}
-          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
-        >
-          <img src={ArrowLeft02} />
-        </button>
-        <div className="w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]">
-          <span className="text-sm">
-            Trang <span className="border-1 rounded-[5px] px-2.5">{1}</span> /
-            {novelData?.totalPages}
-          </span>
-        </div>
-        <button
-          onClick={() =>
-            setParams((prev) => ({
-              ...prev,
-              page: (prev.page || 1) + 1,
-            }))
-          }
-          disabled={params.page === (novelData?.totalPages ?? 1) - 1}
-          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
-        >
-          <img src={ArrowRight02} />
-        </button>
-      </div>
+      {tabContent}
 
       <ConfirmModal
         isOpen={isBuyModalOpen}
