@@ -6,7 +6,7 @@ import { GetChapter } from "../../api/Chapters/chapter.api";
 import { GetChapters } from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
 import { useNavigate, useParams } from "react-router-dom";
-import type { BackendChapterResponse } from "../../api/Chapters/chapter.type";
+import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { ChapterListModal } from "../../pages/novelRead/ChapterListModal";
 import { CommentUser } from "../../pages/commentUser/CommentUser";
@@ -21,21 +21,23 @@ type SpeechState = "started" | "paused" | "stopped";
 export const NovelRead = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speechState, setSpeechState] = useState<SpeechState>("stopped");
-
   const { novelId, chapterId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
 
-  const { data: novelData } = useQuery({
+  const { data: novelInfo, error: novelError } = useQuery({
     queryKey: ["novel-by-slug", novelId],
     queryFn: async () => {
-      const res = await GetNovelByUrl(novelId!);
-      return res.data.data;
+      try {
+        const res = await GetNovelByUrl(novelId!);
+        return res.data.data;
+      } catch (error) {
+        console.error("GetNovelByUrl error:", error);
+        return null;
+      }
     },
     enabled: !!novelId,
   });
-
-  const actualNovelId = novelData?.novelInfo?.novelId;
 
   const { data } = useQuery({
     queryKey: ["chapters", chapterId],
@@ -46,67 +48,77 @@ export const NovelRead = () => {
     enabled: !!chapterId,
   });
 
-  const { data: chapterList, isLoading: chapterListLoading, error: chapterListError } = useQuery({
-    queryKey: ["chapter-list", actualNovelId],
+  const { data: chapterList } = useQuery({
+    queryKey: ["chapter-list", novelInfo?.novelInfo?.novelId || novelId],
     queryFn: async () => {
-      const res = await GetChapters(actualNovelId!);
-
-      if (res.data.success === false) {
-        throw new Error(res.data.message || "Failed to fetch chapters");
+      const actualNovelId = novelInfo?.novelInfo?.novelId || novelId;
+      try {
+        const res = await GetChapters(actualNovelId!);
+        return res.data.data as ChapterByNovel[];
+      } catch (error) {
+        console.error("GetChapters error:", error);
+        return [];
       }
-
-      return res.data.data as BackendChapterResponse[];
     },
-    enabled: !!actualNovelId,
-    retry: 1,
-    retryDelay: 1000,
+    enabled: !!(novelInfo?.novelInfo?.novelId || novelId),
   });
 
-  const currentChapter = chapterList?.find((chap) => chap.chapterId === chapterId);
-  const currentNumber = currentChapter?.chapterNumber ?? 0;
-  const currentNumberFromData = data?.chapter?.chapterNumber;
-  const actualCurrentNumber = currentNumber || currentNumberFromData || 0;
+  const finalChapterList = novelInfo?.allChapters || chapterList;
+
+  const adaptedChapterList = finalChapterList?.map((chap) => {
+    if ('id' in chap) {
+      return chap;
+    } else {
+      return {
+        id: chap.chapterId,
+        novel_id: chap.novelId,
+        title: chap.title,
+        content: chap.content,
+        chapter_number: chap.chapterNumber,
+        is_paid: chap.isPaid,
+        price: chap.price,
+        scheduled_at: chap.scheduledAt,
+        is_lock: chap.isLock,
+        is_draft: chap.isDraft,
+        is_public: chap.isPublic,
+        created_at: chap.createAt,
+        updated_at: chap.updateAt,
+      };
+    }
+  });
+
+  const currentChapter = finalChapterList?.find((chap) =>
+    'id' in chap ? chap.id === chapterId : chap.chapterId === chapterId
+  );
+
+  const currentNumber = data?.chapter?.chapterNumber ||
+    (currentChapter && ('chapter_number' in currentChapter ? currentChapter.chapter_number :
+      (('chapterNumber' in currentChapter) ? (currentChapter as any).chapterNumber : 0))) || 0;
 
   const handleGoToChapterNumber = (offset: number) => {
-    if (!chapterList || chapterList.length === 0) {
+
+    if (!finalChapterList || currentNumber === 0) {
       return;
     }
 
-    const currentChapter = chapterList.find(chap => chap.chapterId === chapterId);
-    let currentChapterNumber = 0;
+    const nextChapter = finalChapterList.find((chap) => {
+      const chapterNum = 'chapter_number' in chap ? chap.chapter_number : chap.chapterNumber;
+      return chapterNum === currentNumber + offset;
+    });
 
-    if (currentChapter) {
-      currentChapterNumber = currentChapter.chapterNumber;
-    } else {
-      const currentNumberFromData = data?.chapter?.chapterNumber;
-      if (currentNumberFromData) {
-        const chapterByNumber = chapterList.find(chap => chap.chapterNumber === currentNumberFromData);
-        if (chapterByNumber) {
-          currentChapterNumber = chapterByNumber.chapterNumber;
-        } else {
-          return;
-        }
-      } else {
+    if (nextChapter) {
+      const isPaid = 'is_paid' in nextChapter ? nextChapter.is_paid : nextChapter.isPaid;
+      if (isPaid) {
+        toast?.onOpen("Bạn không sở hữu chương này");
         return;
       }
+
+      const nextChapterId = 'id' in nextChapter ? nextChapter.id : nextChapter.chapterId;
+      const nextNovelId = 'novel_id' in nextChapter ? nextChapter.novel_id : nextChapter.novelId;
+      navigate(`/novels/${nextNovelId}/${nextChapterId}`);
+    } else {
     }
-
-    const targetNumber = currentChapterNumber + offset;
-    const nextChapter = chapterList.find(chap => chap.chapterNumber === targetNumber);
-
-    if (!nextChapter) {
-      return;
-    }
-
-    if (nextChapter.isPaid) {
-      return;
-    }
-
-    navigate(`/novels/${novelId}/${nextChapter.chapterId}`);
   };
-
-  const nextChapter = chapterList?.find(chap => chap.chapterNumber === actualCurrentNumber + 1);
-  const isNextChapterLocked = nextChapter?.isPaid || false;
 
   const cleanText = htmlToPlainText(data?.chapter.content ?? "");
 
@@ -148,41 +160,14 @@ export const NovelRead = () => {
         marginTop: "-10px",
       }}
     >
-      {chapterList && (
+      {adaptedChapterList && (
         <ChapterListModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          chapters={chapterList}
-          novelId={actualNovelId!}
+          chapters={adaptedChapterList}
+          novelId={novelId!}
           novelSlug={novelId!}
         />
-      )}
-
-      {chapterListLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-          <div className="bg-white p-4 rounded-lg">
-            <p>Đang tải danh sách chương...</p>
-          </div>
-        </div>
-      )}
-
-      {chapterListError && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-          <div className="bg-white p-6 rounded-lg max-w-md">
-            <h3 className="text-red-600 font-bold mb-2">Lỗi tải danh sách chương</h3>
-            <p className="text-gray-700 mb-4">
-              {chapterListError.message === "Novel not found."
-                ? "Không tìm thấy tiểu thuyết này. Vui lòng kiểm tra lại đường dẫn."
-                : chapterListError.message}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Thử lại
-            </button>
-          </div>
-        </div>
       )}
 
       <div
@@ -271,15 +256,16 @@ export const NovelRead = () => {
           <button
             className="buttonStyle"
             onClick={() => handleGoToChapterNumber(-1)}
-            disabled={actualCurrentNumber <= 1 || chapterListLoading}
+            disabled={!finalChapterList || finalChapterList.length === 0 || currentNumber <= 1}
           >
             &lt; Chương trước
           </button>
 
           <button
             className="buttonStyle"
-            onClick={() => setIsModalOpen(true)}
-            disabled={chapterListLoading}
+            onClick={() => {
+              setIsModalOpen(true);
+            }}
           >
             Mục lục
           </button>
@@ -287,7 +273,7 @@ export const NovelRead = () => {
           <button
             className="buttonStyle"
             onClick={() => handleGoToChapterNumber(1)}
-            disabled={actualCurrentNumber >= (chapterList?.length ?? 1) || chapterListLoading || isNextChapterLocked}
+            disabled={!finalChapterList || finalChapterList.length === 0 || currentNumber >= finalChapterList.length}
           >
             Chương sau &gt;
           </button>
