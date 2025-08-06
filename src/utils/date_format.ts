@@ -50,6 +50,7 @@ export const formatTicksToRelativeTime = (
   return m ? m.fromNow() : "Không có dữ liệu thời gian";
 };
 
+// HH:mm dd/MM/yyyy
 export const formatVietnamTimeFromTicks = (ticks: number): string => {
   const epochTicks = 621355968000000000;
   const ticksPerMs = 10000;
