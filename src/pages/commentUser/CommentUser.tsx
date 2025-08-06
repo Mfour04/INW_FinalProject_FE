@@ -9,7 +9,6 @@ import {
   getCurrentTicks,
 } from "../../utils/date_format.ts";
 
-import ImageAdd02Icon from "../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import favorite from "../../assets/svg/CommentUser/favorite.svg";
@@ -482,7 +481,7 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 mb-4 px-13">
+            <div className="flex flex-col gap-3 mb-4 ">
               <input
                 className="comment w-full"
                 type="text"
@@ -493,7 +492,6 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
 
               <div className="flex justify-between items-center">
                 <div className="flex gap-5 flex-shrink-0">
-                  <img src={ImageAdd02Icon} className="w-6 h-6" />
                   <img src={SmileIcon} className="w-6 h-6" />
                 </div>
 

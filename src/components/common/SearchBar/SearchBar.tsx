@@ -20,7 +20,7 @@ import {
 } from "../../../utils/validation";
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/HomePage";
 import { getTags } from "../../../api/Tags/tag.api";
 
@@ -110,9 +110,9 @@ export const SearchBar = () => {
     { label: "All Tags", value: "" },
     ...(Array.isArray(tagData)
       ? tagData.map((tag) => ({
-          label: capitalize(tag.name),
-          value: tag.name,
-        }))
+        label: capitalize(tag.name),
+        value: tag.name,
+      }))
       : []),
   ];
 
@@ -531,9 +531,12 @@ export const SearchBar = () => {
               </div>
 
               <div className="mt-4 pt-3  space-y-2 text-sm border-t border-white">
-                <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 cursor-pointer hover:text-orange-400"
+                >
                   <Person /> <span>Trang cá nhân</span>
-                </div>
+                </Link>
                 <div
                   onClick={handleTransactionHistoryClick}
                   className="flex items-center gap-2 cursor-pointer hover:text-orange-400"

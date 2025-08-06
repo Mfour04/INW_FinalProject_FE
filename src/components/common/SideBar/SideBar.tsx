@@ -45,7 +45,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/community",
       isHeader: true,
       subItems: [
-        { label: "Diễn đàn", path: "/community/forum" },
+        { label: "Diễn đàn", path: "/blogs" },
         { label: "Kết nối", path: "/community/connect" },
       ],
     },
@@ -77,8 +77,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         lg:h-full
 
         /* Desktop toggle logic */
-        lg:${
-          isOpen ? "w-[250px] opacity-100" : "w-0 opacity-0 pointer-events-none"
+        lg:${isOpen ? "w-[250px] opacity-100" : "w-0 opacity-0 pointer-events-none"
         }`}
     >
       <div className="p-5 flex items-center justify-between">
@@ -103,8 +102,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center px-4 py-1.5 mx-1.5 rounded-md ${
-                      isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
+                    `flex items-center px-4 py-1.5 mx-1.5 rounded-md ${isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
                     }`
                   }
                   end
@@ -127,8 +125,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                   key={`${index}-${subIndex}`}
                   to={subItem.path}
                   className={({ isActive }) =>
-                    `flex items-center px-5 py-2 ml-4 mt-1 mr-1.5 rounded-md ${
-                      isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
+                    `flex items-center px-5 py-2 ml-4 mt-1 mr-1.5 rounded-md ${isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
                     }`
                   }
                 >

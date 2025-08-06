@@ -1,11 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { useToast } from "../../context/ToastContext/toast-context";
+import { AuthContext } from "../../context/AuthContext/AuthProvider";
+import { useSearchParams } from "react-router-dom";
 import BlogHeader from "../Blogs/Post/BlogHeader";
 import PostForm from "../Blogs/Post/PostForm";
 import PostItem from "../Blogs/Post/PostItem";
 import ReportPopup from "../Blogs/Modals/ReportPopup";
 import ProfileSidebar from "../Blogs/Sidebar/ProfileSidebar";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
+import { useBlogPosts, useCreateBlogPost, useDeleteBlogPost, useUpdateBlogPost } from "../../hooks/useBlogs";
+import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
+import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
 
 const posts: Post[] = [
@@ -115,29 +120,33 @@ const postsFollowing: Post[] = [
 ];
 
 export const Blogs = () => {
+  const { auth } = useContext(AuthContext);
+  const [searchParams] = useSearchParams();
+  const targetPostId = searchParams.get('post');
+  const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
   const [tab, setTab] = useState<Tabs>("all");
   const [content, setContent] = useState("");
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [isPosting, setIsPosting] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
-  const [images, setImages] = useState<File[]>([]);
-  const inputFileRef = useRef<HTMLInputElement | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
   const [menuOpenPostId, setMenuOpenPostId] = useState<string | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [deleteAction, setDeleteAction] = useState<{
-    type: "post" | "comment";
-    id: string;
-  } | null>(null);
-  const [reportPostId, setReportPostId] = useState<string | null>(null);
   const [openComments, setOpenComments] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [openReplyId, setOpenReplyId] = useState<string | null>(null);
+
   const [menuOpenCommentId, setMenuOpenCommentId] = useState<string | null>(
     null
   );
+
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
-  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
+  const [updatedTimestamps, setUpdatedTimestamps] = useState<Record<string, string>>({});
+  const resetFileInputRef = useRef<(() => void) | null>(null);
+
   const [visibleRootComments, setVisibleRootComments] = useState<{
     [postId: string]: number;
   }>({});
@@ -145,9 +154,47 @@ export const Blogs = () => {
     commentId: string;
     username: string;
   } | null>(null);
-  const [commentInput, setCommentInput] = useState<string>("");
 
+  const [commentInput, setCommentInput] = useState<string>("");
   const toast = useToast();
+  const { data: blogPosts = [], isLoading, refetch } = useBlogPosts();
+  const createBlogPostMutation = useCreateBlogPost();
+  const deleteBlogPostMutation = useDeleteBlogPost();
+  const updateBlogPostMutation = useUpdateBlogPost();
+
+  const [likedPosts, setLikedPosts] = useState<{ [id: string]: boolean }>(() => {
+    const map: { [id: string]: boolean } = {};
+    for (const key in localStorage) {
+      if (key.startsWith("blog_liked_")) {
+        const postId = key.replace("blog_liked_", "");
+        map[postId] = true;
+      }
+    }
+    return map;
+  });
+
+  useEffect(() => {
+    if (targetPostId && blogPosts.length > 0 && !hasScrolledToTarget) {
+      const targetPost = blogPosts.find(post => post.id === targetPostId);
+      if (targetPost) {
+        setTimeout(() => {
+          const postElement = document.getElementById(`post-${targetPostId}`);
+          if (postElement) {
+            postElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+            postElement.style.backgroundColor = '#ff4500';
+            postElement.style.transition = 'background-color 0.3s ease';
+            setTimeout(() => {
+              postElement.style.backgroundColor = '';
+            }, 2000);
+          }
+        }, 500);
+        setHasScrolledToTarget(true);
+      }
+    }
+  }, [targetPostId, blogPosts, hasScrolledToTarget]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -158,34 +205,43 @@ export const Blogs = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const filesArray = Array.from(e.target.files);
-    setImages((prev) => [...prev, ...filesArray]);
-    e.target.value = "";
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const handlePost = async () => {
-    const hasText = content.trim().length > 0;
-    const hasImage = images.length > 0;
-    if (!hasText && !hasImage) return;
-    setIsPosting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log("Creating post:", { content, images });
-      setContent("");
-      setImages([]);
-    } finally {
-      setIsPosting(false);
+    if (!content.trim() && selectedImages.length === 0) return;
+
+    if (!auth?.user) {
+      toast?.onOpen("Vui lòng đăng nhập để đăng bài!");
+      return;
     }
+
+    setIsPosting(true);
+    createBlogPostMutation.mutate(
+      {
+        content: content.trim(),
+        images: selectedImages.length > 0 ? selectedImages : undefined
+      },
+      {
+        onSuccess: () => {
+          setContent("");
+          setSelectedImages([]);
+
+          if (resetFileInputRef.current) {
+            resetFileInputRef.current();
+          }
+          toast?.onOpen("Đăng bài thành công!");
+          setIsPosting(false);
+        },
+        onError: (error: any) => {
+          console.error("Error creating post:", error);
+          toast?.onOpen("Có lỗi xảy ra khi đăng bài!");
+          setIsPosting(false);
+        },
+      }
+    );
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       handlePost();
     }
   };
@@ -201,118 +257,197 @@ export const Blogs = () => {
   };
 
   const handleDelete = () => {
-    if (deleteAction) {
-      console.log(`Deleting ${deleteAction.type}:`, deleteAction.id);
-      // Thay bằng API call, ví dụ:
-      // if (deleteAction.type === "post") {
-      //   deletePostMutation.mutate(deleteAction.id);
-      // } else {
-      //   deleteCommentMutation.mutate(deleteAction.id);
-      // }
+    if (confirmDeleteId) {
+      deleteBlogPostMutation.mutate(confirmDeleteId, {
+        onSuccess: () => {
+          toast?.onOpen("Xóa bài viết thành công!");
+        },
+        onError: (error) => {
+          console.error("Error deleting post:", error);
+          toast?.onOpen("Có lỗi xảy ra khi xóa bài viết!");
+        },
+      });
     }
-    setShowConfirmModal(false);
-    setDeleteAction(null);
+    setConfirmDeleteId(null);
   };
 
   const handleRequestDelete = (type: "post" | "comment", id: string) => {
-    setDeleteAction({ type, id });
-    setShowConfirmModal(true);
+    setConfirmDeleteId(id);
   };
 
-  const renderTabContent = () => {
-    const data = tab === "all" ? posts : postsFollowing;
-    return (
-      <div className="space-y-5">
-        <PostForm
-          content={content}
-          setContent={setContent}
-          images={images}
-          setImages={setImages}
-          isPosting={isPosting}
-          handlePost={handlePost}
-          handleKeyPress={handleKeyPress}
-          inputFileRef={inputFileRef}
-          handleImageChange={handleImageChange}
-          handleRemoveImage={handleRemoveImage}
-        />
-        {data.map((post) => (
-          <PostItem
-            key={post.id}
-            post={post}
-            menuOpenPostId={menuOpenPostId}
-            setMenuOpenPostId={setMenuOpenPostId}
-            editingPostId={editingPostId}
-            setEditingPostId={setEditingPostId}
-            setReportPostId={setReportPostId}
-            openComments={openComments}
-            setOpenComments={setOpenComments}
-            visibleRootComments={visibleRootComments}
-            setVisibleRootComments={setVisibleRootComments}
-            isMobile={isMobile}
-            openReplyId={openReplyId}
-            setOpenReplyId={setOpenReplyId}
-            menuOpenCommentId={menuOpenCommentId}
-            setMenuOpenCommentId={setMenuOpenCommentId}
-            editingCommentId={editingCommentId}
-            setEditingCommentId={setEditingCommentId}
-            editedContent={editedContent}
-            setEditedContent={setEditedContent}
-            setReportCommentId={setReportCommentId}
-            commentInput={commentInput}
-            setCommentInput={setCommentInput}
-            replyingTo={replyingTo}
-            setReplyingTo={setReplyingTo}
-            onRequestDelete={handleRequestDelete}
-          />
-        ))}
-      </div>
+  const handleUpdatePost = (postId: string, content: string) => {
+    updateBlogPostMutation.mutate(
+      { postId, data: { content } },
+      {
+        onSuccess: () => {
+          const currentTime = blogGetCurrentTicks();
+          const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(currentTime);
+          setUpdatedTimestamps(prev => ({
+            ...prev,
+            [postId]: formattedTime
+          }));
+          toast?.onOpen("Cập nhật bài viết thành công!");
+        },
+        onError: (error) => {
+          console.error("Error updating post:", error);
+          toast?.onOpen("Có lỗi xảy ra khi cập nhật bài viết!");
+        },
+      }
     );
   };
 
+  const handleToggleLike = async (postId: string) => {
+    const hasLiked = likedPosts[postId];
+
+    try {
+      if (hasLiked) {
+        await UnlikeBlogPost(postId);
+        setLikedPosts(prev => ({ ...prev, [postId]: false }));
+        localStorage.removeItem(`blog_liked_${postId}`);
+      } else {
+        await LikeBlogPost(postId);
+        setLikedPosts(prev => ({ ...prev, [postId]: true }));
+        localStorage.setItem(`blog_liked_${postId}`, "true");
+      }
+
+      refetch();
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast?.onOpen("Có lỗi xảy ra khi thao tác yêu thích!");
+    }
+  };
+
+  const renderTabContent = () => {
+    if (tab === "all") {
+      return (
+        <div className="space-y-5">
+          <PostForm
+            content={content}
+            setContent={setContent}
+            isPosting={isPosting || createBlogPostMutation.isPending}
+            handlePost={handlePost}
+            handleKeyPress={handleKeyPress}
+            selectedImages={selectedImages}
+            setSelectedImages={setSelectedImages}
+            resetFileInput={resetFileInputRef}
+          />
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+              <p className="text-gray-400 mt-2">Đang tải bài viết...</p>
+            </div>
+          ) : !blogPosts || blogPosts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400">Chưa có bài viết nào.</p>
+            </div>
+          ) : (
+            (Array.isArray(blogPosts) ? blogPosts : []).map((post) => {
+              return (
+                <div key={post.id} id={`post-${post.id}`}>
+                  <PostItem
+                    post={{
+                      id: post.id,
+                      user: {
+                        name: post.author?.username || "Ẩn danh",
+                        username: post.author?.username || "user",
+                        avatar: post.author?.avatar || "/images/default-avatar.png",
+                      },
+                      content: post.content,
+                      timestamp: post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian",
+                      likes: post.likeCount || 0,
+                      comments: post.commentCount || 0,
+                      isLiked: post.isLiked || false,
+                      imgUrls: post.imgUrls || [],
+                    }}
+                    menuOpenPostId={menuOpenPostId}
+                    setMenuOpenPostId={setMenuOpenPostId}
+                    editingPostId={editingPostId}
+                    setEditingPostId={setEditingPostId}
+                    setReportPostId={setReportPostId}
+                    openComments={openComments}
+                    setOpenComments={setOpenComments}
+                    visibleRootComments={visibleRootComments}
+                    setVisibleRootComments={setVisibleRootComments}
+                    isMobile={isMobile}
+                    openReplyId={openReplyId}
+                    setOpenReplyId={setOpenReplyId}
+                    menuOpenCommentId={menuOpenCommentId}
+                    setMenuOpenCommentId={setMenuOpenCommentId}
+                    editingCommentId={editingCommentId}
+                    setEditingCommentId={setEditingCommentId}
+                    editedContent={editedContent}
+                    setEditedContent={setEditedContent}
+                    setReportCommentId={setReportCommentId}
+                    replyingTo={replyingTo}
+                    setReplyingTo={setReplyingTo}
+                    commentInput={commentInput}
+                    setCommentInput={setCommentInput}
+                    onRequestDelete={handleRequestDelete}
+                    onToggleLike={handleToggleLike}
+                    isLiked={Boolean(likedPosts[post.id])}
+                    onUpdatePost={handleUpdatePost}
+                    updatedTimestamp={updatedTimestamps[post.id]}
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-400">Chức năng đang theo dõi sẽ được phát triển sau.</p>
+        </div>
+      );
+    }
+  };
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-6">
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
+    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
+        {/* Main Content - Left Side */}
+        <div className="xl:col-span-3">
           <BlogHeader tab={tab} handleTabChange={handleTabChange} />
-          <div className="flex-1-auto min-h-screen">
+          <div className="min-h-screen">
             <div
-              className={`transition-all duration-300 ${
-                transitioning
-                  ? "opacity-0 translate-y-2 pointer-events-none"
-                  : "opacity-100 translate-y-0"
-              }`}
+              className={`transition-all duration-300 ${transitioning
+                ? "opacity-0 translate-y-2 pointer-events-none"
+                : "opacity-100 translate-y-0"
+                }`}
             >
               {renderTabContent()}
             </div>
           </div>
         </div>
-        {reportCommentId && (
-          <ReportPopup
-            type="comment"
-            id={reportCommentId}
-            setReportId={setReportCommentId}
+
+        {/* Sidebar - Right Side */}
+        <div className="xl:col-span-1">
+          {reportCommentId && (
+            <ReportPopup
+              type="comment"
+              id={reportCommentId}
+              setReportId={setReportCommentId}
+            />
+          )}
+          {reportPostId && (
+            <ReportPopup
+              type="post"
+              id={reportPostId}
+              setReportId={setReportPostId}
+            />
+          )}
+          <ConfirmModal
+            isOpen={!!confirmDeleteId}
+            title="Xóa bài viết"
+            message="Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác."
+            onConfirm={handleDelete}
+            onCancel={() => {
+              setConfirmDeleteId(null);
+            }}
           />
-        )}
-        {reportPostId && (
-          <ReportPopup
-            type="post"
-            id={reportPostId}
-            setReportId={setReportPostId}
-          />
-        )}
-        <ConfirmModal
-          isOpen={showConfirmModal}
-          title={
-            deleteAction?.type === "post" ? "Xóa bài viết" : "Xóa bình luận"
-          }
-          message="Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác."
-          onConfirm={handleDelete}
-          onCancel={() => {
-            setShowConfirmModal(false);
-            setDeleteAction(null);
-          }}
-        />
-        <ProfileSidebar />
+          <ProfileSidebar />
+        </div>
       </div>
     </div>
   );
