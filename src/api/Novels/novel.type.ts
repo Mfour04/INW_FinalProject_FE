@@ -26,27 +26,10 @@ interface NovelReponse {
   totalPages: number;
 }
 
-export type NovelByAuthorResponse = {
-  novelId: string;
-  title: string;
-  description: string;
-  authorId: string;
-  authorName: string;
-  novelImage: string;
-  novelBanner: string | null;
-  tags: Tags[];
-  status: number;
-  isPublic: boolean;
-  isPaid: boolean;
-  isLock: boolean;
-  price: number;
-  totalChapters: number;
-  totalViews: number;
-  followers: number;
-  ratingAvg: number;
-  ratingCount: number;
-  createAt: number;
-  updateAt: number;
+type NovelByAuthorResponse = {
+  novels: Novel[];
+  totalComments: number;
+  totalNovelViews: number;
 };
 
 export type NovelChaptersResponse = {
