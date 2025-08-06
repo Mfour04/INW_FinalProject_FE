@@ -46,6 +46,7 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
   const inputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
   const [renderKey] = useState(0);
   const { data: rawComments } = UseComments(chapterId, novelId);
+
   const commentIds =
     rawComments && Array.isArray(rawComments)
       ? rawComments.map((c) => c.id).filter(Boolean)
@@ -117,6 +118,8 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
   const serverComments: Comment[] = useMemo(() => {
     const flatten: Comment[] = [];
 
+    const replyCountMap: { [commentId: string]: number } = {};
+
     const collectComments = (comment: any) => {
       if (!comment.id) {
         console.warn("Comment without ID found:", comment);
@@ -145,39 +148,19 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
           ? formatVietnamTimeFromTicks(latestTicks)
           : "Không rõ thời gian";
 
-      const nameKey = `comment_authorName_${comment.id}`;
-      const handleKey = `comment_authorHandle_${comment.id}`;
-
-      const name =
-        comment.author?.displayName ||
-        comment.author?.userName ||
-        comment.authorName ||
-        comment.userName ||
-        comment.displayName ||
-        localStorage.getItem(nameKey) ||
-        "Ẩn danh";
-      const user = comment.author?.userName
-        ? `@${comment.author.userName}`
-        : comment.userName
-          ? `@${comment.userName}`
-          : localStorage.getItem(handleKey) || "@user";
-
-      if (!localStorage.getItem(nameKey)) {
-        localStorage.setItem(nameKey, name);
-      }
-      if (!localStorage.getItem(handleKey)) {
-        localStorage.setItem(handleKey, user);
-      }
+      const author = comment.author;
+      const name = author?.displayName || author?.username || "Ẩn danh";
+      const user = author?.username ? `@${author.username}` : "@user";
 
       flatten.push({
         id: comment.id,
         content: comment.content,
         parentId: comment.parent_comment_id ?? comment.parentCommentId ?? null,
         likes: comment.likeCount ?? 0,
-        replies: Array.isArray(comment.replies) ? comment.replies.length : 0,
+        replies: replyCountMap[comment.id] || 0,
         name,
         user,
-        avatarUrl: defaultAvatar,
+        avatarUrl: author?.avatar || defaultAvatar,
         timestamp,
       });
 
@@ -186,20 +169,22 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
       }
     };
 
-    if (rawComments && Array.isArray(rawComments)) {
-      rawComments.forEach(collectComments);
-    }
-
     if (repliesData && Array.isArray(repliesData)) {
       repliesData.forEach((repliesForComment: any, index: number) => {
         if (Array.isArray(repliesForComment)) {
+          const commentId = commentIds[index];
+          replyCountMap[commentId] = repliesForComment.length;
           repliesForComment.forEach(collectComments);
         }
       });
     }
 
+    if (rawComments && Array.isArray(rawComments)) {
+      rawComments.forEach(collectComments);
+    }
+
     return flatten;
-  }, [rawComments, repliesData]);
+  }, [rawComments, repliesData, commentIds]);
 
   const localComments: Comment[] = tempComments.map((c) => {
     const nameKey = `comment_authorName_${c.id}`;
@@ -461,30 +446,30 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
 
   return (
     <>
-      {auth?.user && (
-        <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
-          <div
+      <div className="mt-10 p-5 bg-[#1e1e1e] rounded-xl text-white">
+        <div
+          style={{
+            backgroundColor: "#1e1e1e",
+            color: "#ffffff",
+            padding: "30px",
+          }}
+        >
+          <h3 className="font-semibold">
+            Bình luận ({enrichedComments.length})
+          </h3>
+
+          <hr
             style={{
-              backgroundColor: "#1e1e1e",
-              color: "#ffffff",
-              padding: "30px",
+              marginLeft: "-50px",
+              marginRight: "-50px",
+              marginTop: "20px",
+              width: "calc(100% + 100px)",
+              borderTop: "1px solid #4B5563",
             }}
-          >
-            <h3 className="font-semibold">
-              Bình luận ({enrichedComments.length})
-            </h3>
+          />
+        </div>
 
-            <hr
-              style={{
-                marginLeft: "-50px",
-                marginRight: "-50px",
-                marginTop: "20px",
-                width: "calc(100% + 100px)",
-                borderTop: "1px solid #4B5563",
-              }}
-            />
-          </div>
-
+        {auth?.user && (
           <div className="p-3">
             <div className="flex items-center space-x-4">
               <img
@@ -525,275 +510,277 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
               </div>
             </div>
           </div>
+        )}
 
-          {topLevelComments.map((comment: Comment) => (
-            <div key={comment.id} className="mb-3 p-3 rounded-md">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-4 min-w-0 flex-1">
-                  <img
-                    src={comment.avatarUrl || defaultAvatar}
-                    className="w-10 h-10 rounded-full flex-shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold truncate">{comment.name}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {comment.user} •{" "}
-                      {comment.id && comment.id.startsWith("temp_")
-                        ? "Đang gửi..."
-                        : editedComments[comment.id]?.timestamp ||
-                        comment.timestamp}
-                      {editedComments[comment.id] && (
-                        <span className="italic text-gray-500 ml-1"></span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 ml-4 mt-0">
-                  {comment.user === currentUser.user ||
-                    comment.name === currentUser.name ? (
-                    <MoreUser
-                      commentId={comment.id}
-                      onDelete={deleteComment}
-                      onEdit={() => {
-                        setEditingCommentId(comment.id);
-                        setEditValue(comment.content);
-                      }}
-                    />
-                  ) : (
-                    <MoreButton />
-                  )}
+        {!auth?.user && (
+          <div className="p-3 text-center text-gray-400">
+            <p>Đăng nhập để bình luận</p>
+          </div>
+        )}
+
+        {topLevelComments.map((comment: Comment) => (
+          <div key={comment.id} className="mb-3 p-3 rounded-md">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start space-x-4 min-w-0 flex-1">
+                <img
+                  src={comment.avatarUrl || defaultAvatar}
+                  className="w-10 h-10 rounded-full flex-shrink-0 mt-1"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold truncate">{comment.name}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {comment.user} •{" "}
+                    {comment.id && comment.id.startsWith("temp_")
+                      ? "Đang gửi..."
+                      : editedComments[comment.id]?.timestamp ||
+                      comment.timestamp}
+                    {editedComments[comment.id] && (
+                      <span className="italic text-gray-500 ml-1"></span>
+                    )}
+                  </p>
                 </div>
               </div>
+              <div className="flex-shrink-0 ml-4 mt-0">
+                {auth?.user && (comment.user === currentUser.user ||
+                  comment.name === currentUser.name) ? (
+                  <MoreUser
+                    commentId={comment.id}
+                    onDelete={deleteComment}
+                    onEdit={() => {
+                      setEditingCommentId(comment.id);
+                      setEditValue(comment.content);
+                    }}
+                  />
+                ) : auth?.user ? (
+                  <MoreButton />
+                ) : null}
+              </div>
+            </div>
 
-              <div className="ml-14">
-                {editingCommentId === comment.id ? (
-                  <div className="flex flex-col gap-2 mt-2">
-                    <input
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      className="comment w-[1570px]"
-                    />
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => {
-                          updateComment(
-                            { commentId: comment.id, content: editValue },
-                            {
-                              onSuccess: () => {
-                                const ticks = getCurrentTicks();
-                                const formattedTime =
-                                  formatVietnamTimeFromTicks(ticks);
+            <div className="ml-14">
+              {editingCommentId === comment.id ? (
+                <div className="flex flex-col gap-2 mt-2">
+                  <input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    className="comment w-[1570px]"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        updateComment(
+                          { commentId: comment.id, content: editValue },
+                          {
+                            onSuccess: () => {
+                              const ticks = getCurrentTicks();
+                              const formattedTime =
+                                formatVietnamTimeFromTicks(ticks);
 
-                                setEditedComments((prev) => ({
-                                  ...prev,
-                                  [comment.id]: {
-                                    content: editValue,
-                                    timestamp: formattedTime,
-                                  },
-                                }));
-                                localStorage.setItem(
-                                  `updatedAt_${comment.id}`,
-                                  String(ticks)
-                                );
-                                setEditingCommentId(null);
-                                setEditValue("");
-                              },
-                            }
-                          );
-                        }}
-                        className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
-                      >
-                        Lưu
-                      </button>
+                              setEditedComments((prev) => ({
+                                ...prev,
+                                [comment.id]: {
+                                  content: editValue,
+                                  timestamp: formattedTime,
+                                },
+                              }));
+                              localStorage.setItem(
+                                `updatedAt_${comment.id}`,
+                                String(ticks)
+                              );
+                              setEditingCommentId(null);
+                              setEditValue("");
+                            },
+                          }
+                        );
+                      }}
+                      className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                    >
+                      Lưu
+                    </button>
 
-                      <button
-                        onClick={() => {
-                          setEditingCommentId(null);
-                          setEditValue("");
-                        }}
-                        className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                      >
-                        Hủy
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(null);
+                        setEditValue("");
+                      }}
+                      className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                    >
+                      Hủy
+                    </button>
                   </div>
-                ) : (
-                  <p className="mb-1">
-                    {editedComments[comment.id]?.content || comment.content}
-                  </p>
-                )}
-
-                <div className="mt-4 flex space-x-6">
-                  <span
-                    className={`flex items-center gap-2 cursor-pointer ${likedComments[comment.id] ? "text-red-500" : "text-white"
-                      }`}
-                    onClick={() => handleToggleLike(comment.id)}
-                  >
-                    <img
-                      src={likedComments[comment.id] ? red_favorite : favorite}
-                      className="w-5 h-5"
-                    />
-                    {editedComments[comment.id]?.likes ??
-                      (Number(localStorage.getItem(`likes_${comment.id}`)) ||
-                        comment.likes)}
-                  </span>
-
-                  <span
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => handleReplyClick(comment.id, comment.name)}
-                  >
-                    <img src={CommentAdd01Icon} />
-                    {editedComments[comment.id]?.replies ?? comment.replies}
-                  </span>
                 </div>
+              ) : (
+                <p className="mb-1">
+                  {editedComments[comment.id]?.content || comment.content}
+                </p>
+              )}
 
-                {replyInputs[comment.id] && (
-                  <div className="mt-4 w-full max-w-full">
-                    <Reply
-                      currentUser={currentUser}
-                      replyValue={replyValues[comment.id] || ""}
-                      onReplyChange={(e) =>
-                        handleReplyChange(comment.id, e.target.value)
-                      }
-                      onReplySubmit={() => handleReplySubmit(comment.id)}
-                      inputRef={(el) => (inputRefs.current[comment.id] = el)}
-                    />
-                  </div>
-                )}
+              <div className="mt-4 flex space-x-6">
+                <span
+                  className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                  onClick={() => auth?.user && handleToggleLike(comment.id)}
+                >
+                  <img
+                    src={likedComments[comment.id] ? red_favorite : favorite}
+                    className="w-5 h-5"
+                  />
+                  {editedComments[comment.id]?.likes ??
+                    (Number(localStorage.getItem(`likes_${comment.id}`)) ||
+                      comment.likes)}
+                </span>
 
-                {enrichedComments
-                  .filter((reply: Comment) => reply.parentId === comment.id)
-                  .map((reply: Comment) => (
-                    <div key={`${reply.id}-${renderKey}`} className="ml-6 mt-2">
-                      <div className="p-3 rounded-md w-full">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center space-x-4 min-w-0 flex-1">
-                            <img
-                              src={reply.avatarUrl || defaultAvatar}
-                              className="w-10 h-10 rounded-full flex-shrink-0"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold truncate">{reply.name}</p>
-                              <p className="text-xs text-gray-400 truncate">
-                                {reply.user} •{" "}
-                                {reply.id && reply.id.startsWith("temp_")
-                                  ? "Đang gửi..."
-                                  : editedComments[reply.id]?.timestamp ||
-                                  reply.timestamp}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="reply flex-shrink-0 ml-4 mt-0">
-                            {reply.user === currentUser.user ||
-                              reply.name === currentUser.name ? (
-                              <MoreUser
-                                commentId={reply.id}
-                                onDelete={deleteComment}
-                                onEdit={() => {
-                                  setEditingCommentId(reply.id);
-                                  setEditValue(reply.content);
-                                }}
-                              />
-                            ) : (
-                              <MoreButton />
-                            )}
+                <span
+                  className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                  onClick={() => auth?.user && handleReplyClick(comment.id, comment.name)}
+                >
+                  <img src={CommentAdd01Icon} />
+                  {editedComments[comment.id]?.replies ?? comment.replies}
+                </span>
+              </div>
+
+              {replyInputs[comment.id] && (
+                <div className="mt-4 w-full max-w-full">
+                  <Reply
+                    currentUser={currentUser}
+                    replyValue={replyValues[comment.id] || ""}
+                    onReplyChange={(e) =>
+                      handleReplyChange(comment.id, e.target.value)
+                    }
+                    onReplySubmit={() => handleReplySubmit(comment.id)}
+                    inputRef={(el) => (inputRefs.current[comment.id] = el)}
+                  />
+                </div>
+              )}
+
+              {enrichedComments
+                .filter((reply: Comment) => reply.parentId === comment.id)
+                .map((reply: Comment) => (
+                  <div key={`${reply.id}-${renderKey}`} className="ml-6 mt-2">
+                    <div className="p-3 rounded-md w-full">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start space-x-4 min-w-0 flex-1">
+                          <img
+                            src={reply.avatarUrl || defaultAvatar}
+                            className="w-10 h-10 rounded-full flex-shrink-0 mt-1"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold truncate">{reply.name}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {reply.user} •{" "}
+                              {reply.id && reply.id.startsWith("temp_")
+                                ? "Đang gửi..."
+                                : editedComments[reply.id]?.timestamp ||
+                                reply.timestamp}
+                            </p>
                           </div>
                         </div>
+                        <div className="reply flex-shrink-0 ml-4 mt-0">
+                          {auth?.user && (reply.user === currentUser.user ||
+                            reply.name === currentUser.name) ? (
+                            <MoreUser
+                              commentId={reply.id}
+                              onDelete={deleteComment}
+                              onEdit={() => {
+                                setEditingCommentId(reply.id);
+                                setEditValue(reply.content);
+                              }}
+                            />
+                          ) : auth?.user ? (
+                            <MoreButton />
+                          ) : null}
+                        </div>
+                      </div>
 
-                        <div className="ml-14">
-                          {editingCommentId === reply.id ? (
-                            <div className="flex flex-col gap-2 mt-2">
-                              <input
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                className="comment w-[1570px]"
-                              />
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={() => {
-                                    updateComment(
-                                      {
-                                        commentId: reply.id,
-                                        content: editValue,
+                      <div className="ml-14">
+                        {editingCommentId === reply.id ? (
+                          <div className="flex flex-col gap-2 mt-2">
+                            <input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="comment w-[1570px]"
+                            />
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => {
+                                  updateComment(
+                                    {
+                                      commentId: reply.id,
+                                      content: editValue,
+                                    },
+                                    {
+                                      onSuccess: () => {
+                                        const ticks = getCurrentTicks();
+                                        const formattedTime =
+                                          formatVietnamTimeFromTicks(ticks);
+
+                                        setEditedComments((prev) => ({
+                                          ...prev,
+                                          [reply.id]: {
+                                            content: editValue,
+                                            timestamp: formattedTime,
+                                          },
+                                        }));
+                                        localStorage.setItem(
+                                          `updatedAt_${reply.id}`,
+                                          String(ticks)
+                                        );
+                                        setEditingCommentId(null);
+                                        setEditValue("");
                                       },
-                                      {
-                                        onSuccess: () => {
-                                          const ticks = getCurrentTicks();
-                                          const formattedTime =
-                                            formatVietnamTimeFromTicks(ticks);
+                                    }
+                                  );
+                                }}
+                                className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                              >
+                                Lưu
+                              </button>
 
-                                          setEditedComments((prev) => ({
-                                            ...prev,
-                                            [reply.id]: {
-                                              content: editValue,
-                                              timestamp: formattedTime,
-                                            },
-                                          }));
-                                          localStorage.setItem(
-                                            `updatedAt_${reply.id}`,
-                                            String(ticks)
-                                          );
-                                          setEditingCommentId(null);
-                                          setEditValue("");
-                                        },
-                                      }
-                                    );
-                                  }}
-                                  className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
-                                >
-                                  Lưu
-                                </button>
-
-                                <button
-                                  onClick={() => {
-                                    setEditingCommentId(null);
-                                    setEditValue("");
-                                  }}
-                                  className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                                >
-                                  Hủy
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(null);
+                                  setEditValue("");
+                                }}
+                                className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                              >
+                                Hủy
+                              </button>
                             </div>
-                          ) : (
-                            <p className="mb-1">
-                              {editedComments[reply.id]?.content ||
-                                reply.content}
-                            </p>
-                          )}
-
-                          <div className="mt-4 flex space-x-6">
-                            <span
-                              className={`flex items-center gap-2 cursor-pointer ${likedComments[reply.id]
-                                ? "text-red-500"
-                                : "text-white"
-                                }`}
-                              onClick={() => handleToggleLike(reply.id)}
-                            >
-                              <img
-                                src={
-                                  likedComments[reply.id]
-                                    ? red_favorite
-                                    : favorite
-                                }
-                                className="w-5 h-5"
-                              />
-                              {editedComments[reply.id]?.likes ??
-                                (Number(
-                                  localStorage.getItem(`likes_${reply.id}`)
-                                ) ||
-                                  reply.likes)}
-                            </span>
                           </div>
+                        ) : (
+                          <p className="mb-1">
+                            {editedComments[reply.id]?.content ||
+                              reply.content}
+                          </p>
+                        )}
+
+                        <div className="mt-4 flex space-x-6">
+                          <span
+                            className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                            onClick={() => auth?.user && handleToggleLike(reply.id)}
+                          >
+                            <img
+                              src={
+                                likedComments[reply.id]
+                                  ? red_favorite
+                                  : favorite
+                              }
+                              className="w-5 h-5"
+                            />
+                            {editedComments[reply.id]?.likes ??
+                              (Number(
+                                localStorage.getItem(`likes_${reply.id}`)
+                              ) ||
+                                reply.likes)}
+                          </span>
                         </div>
                       </div>
                     </div>
-                  ))}
-              </div>
+                  </div>
+                ))}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </>
   );
 };
