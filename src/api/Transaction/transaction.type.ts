@@ -15,6 +15,7 @@ export type TransactionItem = {
   amount: number;
   status: number;
   completedAt: number;
+  createdAt: number;
 };
 
 export type TransactionResponse = {

@@ -3,7 +3,6 @@ import type { Novel } from "../../entity/novel";
 import type { Purchaser } from "../../entity/purchaser";
 import type { ApiResponse } from "../../entity/response";
 import type { Transaction } from "../../entity/transaction";
-import type { Tags } from "../Tags/tag.type";
 
 export interface CreateNovelRequest {
   title: string;
@@ -50,9 +49,10 @@ export type NovelByAuthorResponse = {
   updateAt: number;
 };
 
-type NovelChaptersResponse = {
+export type NovelChaptersResponse = {
   novelInfo: Novel;
   allChapters: Chapter[];
+  isAccessFull: boolean;
   freeChapters: string[];
   totalChapters: number;
   totalPages: number;
@@ -73,7 +73,7 @@ export type BuyNovelResponse = {
 };
 
 export type NovelsApiResponse = ApiResponse<NovelReponse>;
-export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse[]>;
+export type NovelsAuthorApiResponse = ApiResponse<NovelByAuthorResponse>;
 export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;
 export type NovelSlugCheckingApiResponse =
   ApiResponse<NovelSlugCheckingResponse>;
