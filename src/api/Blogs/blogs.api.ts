@@ -50,10 +50,35 @@ export const GetUserBlogPosts = (userId: string, params?: {
         params,
     });
 
-export const CreateBlogPost = (data: CreateBlogPostRequest) => {
-    return http.privateHttp.post<CreateBlogPostResponse>("forums/posts", {
-        content: data.content
-    });
+
+
+export const CreateBlogPost = async (data: CreateBlogPostRequest & { images?: File[] }) => {
+    const formData = new FormData();
+
+    const content = data.content || "";
+    formData.append('content', content);
+
+    if (data.images && data.images.length > 0) {
+        data.images.forEach((image) => {
+            formData.append('Images', image);
+        });
+    }
+
+    try {
+        const config = {
+            headers: {
+                'Content-Type': undefined
+            }
+        };
+
+        const res = await http.multipartHttp.post<CreateBlogPostResponse>("forums/posts", formData, config);
+        return res;
+    } catch (err: any) {
+        if (err.response) {
+            console.error('API error response:', err.response.data);
+        }
+        throw err;
+    }
 };
 
 export const LikeBlogPost = (postId: string) =>

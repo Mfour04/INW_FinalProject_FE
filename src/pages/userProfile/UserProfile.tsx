@@ -14,7 +14,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import favorite from '../../assets/svg/CommentUser/favorite.svg';
 import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
 import { useAuth } from '../../hooks/useAuth';
-import { formatVietnamTimeFromTicks } from '../../utils/date_format';
+import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
 import { useUserBlogPosts } from '../../hooks/useBlogs';
 
 export const UserProfile = () => {
@@ -67,31 +67,45 @@ export const UserProfile = () => {
                   >
                     <div className="flex items-center space-x-3 mb-3">
                       <img
-                        src={post.author?.avatar || auth?.user?.avatarUrl || "/images/default-avatar.png"}
+                        src={post.author?.avatar || "/images/default-avatar.png"}
                         alt="Avatar"
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <div>
                         <p className="font-semibold text-white">
-                          {post.author?.username || auth?.user?.displayName || auth?.user?.userName || "User"}
+                          {post.author?.username || "Ẩn danh"}
                         </p>
                         <p className="text-xs text-gray-400">
-                          @{post.author?.username || auth?.user?.userName || "user"} • {post.createdAt ? formatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian"}
+                          {post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian"}
                         </p>
                       </div>
                     </div>
-                    <p className="text-gray-300 text-sm line-clamp-3">
-                      {post.content}
-                    </p>
+                    <p className="text-gray-300 text-sm line-clamp-3">{post.content}</p>
+                    {post.imgUrls && post.imgUrls.length > 0 && (
+                      <div className="mt-3">
+                        {post.imgUrls.length === 1 ? (
+                          <img
+                            src={post.imgUrls[0]}
+                            alt="Post image"
+                            className="max-h-96 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            {post.imgUrls.slice(0, 4).map((img, index) => (
+                              <img
+                                key={index}
+                                src={img}
+                                alt={`Post image ${index + 1}`}
+                                className="h-32 rounded-lg object-cover"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <img src={favorite} className="w-4 h-4" alt="Like" />
-                        {post.likeCount || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <img src={commentIcon} className="w-4 h-4" alt="Comment" />
-                        {post.commentCount || 0}
-                      </span>
+                      <span>❤️ {post.likeCount || 0}</span>
+                      <span>💬 {post.commentCount || 0}</span>
                     </div>
                   </div>
                 ))}

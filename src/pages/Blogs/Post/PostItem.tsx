@@ -49,6 +49,7 @@ interface PostItemProps {
   onToggleLike?: (postId: string) => void;
   isLiked?: boolean;
   onUpdatePost?: (postId: string, content: string) => void;
+  updatedTimestamp?: string;
 }
 
 const PostItem = ({
@@ -80,6 +81,7 @@ const PostItem = ({
   onToggleLike,
   isLiked = false,
   onUpdatePost,
+  updatedTimestamp,
 }: PostItemProps) => {
   const { auth } = useContext(AuthContext);
   const isOwnPost = post.user.username === auth?.user?.userName;
@@ -141,14 +143,21 @@ const PostItem = ({
     setRealTimeLikeCount(undefined);
   }, [post.likes]);
 
+  useEffect(() => {
+    if (realTimeCommentCount === undefined) {
+      setRealTimeCommentCount(post.comments);
+    }
+  }, [post.comments, realTimeCommentCount]);
+
+  useEffect(() => {
+  }, [realTimeCommentCount]);
+
+  useEffect(() => {
+    setRealTimeCommentCount(undefined);
+  }, [post.id]);
+
   const handleToggleComments = () => {
     setShowCommentPopup(!showCommentPopup);
-    if (!showCommentPopup) {
-      const newSet = new Set(openComments);
-      newSet.add(post.id);
-      setOpenComments(newSet);
-      setVisibleRootComments({ ...visibleRootComments, [post.id]: 3 });
-    }
   };
 
   const handleEmojiClick = (emoji: string) => {
@@ -190,7 +199,7 @@ const PostItem = ({
             <div className="flex items-center gap-2 text-[#cecece] text-sm sm:text-base">
               <span>{post.user.username}</span>
               <div className="w-[6px] h-[6px] bg-[#cecece] rounded-full"></div>
-              <span>{post.timestamp}</span>
+              <span>{updatedTimestamp || post.timestamp}</span>
             </div>
           </div>
         </div>
@@ -221,6 +230,7 @@ const PostItem = ({
                     <motion.button
                       onClick={() => {
                         setEditingPostId(post.id);
+                        setEditContent(post.content);
                         setMenuOpenPostId(null);
                       }}
                       className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
@@ -361,19 +371,33 @@ const PostItem = ({
               {post.content}
             </p>
             {post.imgUrls && post.imgUrls.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-3">
-                {post.imgUrls.map((imgUrl, index) => (
-                  <div
-                    key={index}
-                    className="relative w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded overflow-hidden border border-[#ff6740]"
-                  >
+              <div className="mt-4">
+                {post.imgUrls?.length === 1 ? (
+                  <div className="w-full max-w-md">
                     <img
-                      src={imgUrl}
-                      alt={`post-image-${index}`}
-                      className="object-cover w-full h-full"
+                      src={post.imgUrls[0]}
+                      alt="post-image"
+                      className="w-full aspect-square object-cover rounded-lg"
                     />
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 max-w-md">
+                    {post.imgUrls?.slice(0, 4).map((imgUrl, index) => (
+                      <div key={index} className="relative aspect-square">
+                        <img
+                          src={imgUrl}
+                          alt={`post-image-${index}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        {index === 3 && post.imgUrls && post.imgUrls.length > 4 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                            <span className="text-white font-semibold">+{post.imgUrls.length - 4}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
@@ -395,17 +419,19 @@ const PostItem = ({
               className="flex items-center gap-2 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
               aria-label={isLiked ? "Hủy yêu thích" : "Yêu thích bài viết"}
             >
-              <img
-                src={isLiked ? red_favorite : favorite}
-                className="w-5 h-5"
-                alt={isLiked ? "Đã yêu thích" : "Yêu thích"}
-              />
-              <span
-                className={`text-sm sm:text-base font-medium ${isLiked ? "text-red-500" : "text-white"
-                  } group-hover:text-[#ff6740] transition-colors duration-200`}
-              >
-                {realTimeLikeCount !== undefined ? realTimeLikeCount : post.likes}
-              </span>
+              <div className="flex items-center gap-2">
+                <img
+                  src={isLiked ? red_favorite : favorite}
+                  className="w-5 h-5"
+                  alt={isLiked ? "Đã yêu thích" : "Yêu thích"}
+                />
+                <span
+                  className={`text-sm sm:text-base font-medium ${isLiked ? "text-red-500" : "text-white"
+                    } group-hover:text-[#ff6740] transition-colors duration-200`}
+                >
+                  {realTimeLikeCount !== undefined ? realTimeLikeCount : post.likes}
+                </span>
+              </div>
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -414,10 +440,12 @@ const PostItem = ({
               className="flex items-center gap-2 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
               aria-label={showCommentPopup ? "Đóng bình luận" : "Mở bình luận"}
             >
-              <img src={CommentAdd01Icon} className="w-5 h-5" alt="Bình luận" />
-              <span className="text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
-                {realTimeCommentCount !== undefined ? realTimeCommentCount : post.comments}
-              </span>
+              <div className="flex items-center gap-2">
+                <img src={CommentAdd01Icon} className="w-5 h-5" alt="Bình luận" />
+                <span className="text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
+                  {realTimeCommentCount !== undefined ? realTimeCommentCount : post.comments}
+                </span>
+              </div>
             </Button>
           </motion.div>
         </div>

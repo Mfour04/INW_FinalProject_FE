@@ -23,8 +23,8 @@ export interface ForumComment {
 
 export interface CreateForumCommentRequest {
     content: string;
-    postId?: string;
-    parentCommentId?: string;
+    PostId?: string;
+    ParentCommentId?: string;
 }
 
 export interface ForumCommentResponse {
@@ -93,7 +93,7 @@ export const UpdateForumComment = (data: UpdateForumCommentPayload) =>
         userId: data.userId
     });
 
-export const GetRepliesByForumComment = (
+export const GetRepliesByForumComment = async (
     commentId: string,
     params?: {
         page?: number;
@@ -101,5 +101,7 @@ export const GetRepliesByForumComment = (
         sortBy?: string;
     }
 ) => {
-    return Promise.resolve({ data: { data: [] } });
+    return http.http.get(`forums/comments/${commentId}/replies`, {
+        params,
+    });
 }; 

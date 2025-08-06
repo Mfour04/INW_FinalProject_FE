@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useContext } from "react";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
+import { useSearchParams } from "react-router-dom";
 import BlogHeader from "../Blogs/Post/BlogHeader";
 import PostForm from "../Blogs/Post/PostForm";
 import PostItem from "../Blogs/Post/PostItem";
@@ -9,7 +10,7 @@ import ProfileSidebar from "../Blogs/Sidebar/ProfileSidebar";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { useBlogPosts, useCreateBlogPost, useDeleteBlogPost, useUpdateBlogPost } from "../../hooks/useBlogs";
 import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
-import { formatVietnamTimeFromTicks } from "../../utils/date_format";
+import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
 
 const posts: Post[] = [
@@ -120,8 +121,12 @@ const postsFollowing: Post[] = [
 
 export const Blogs = () => {
   const { auth } = useContext(AuthContext);
+  const [searchParams] = useSearchParams();
+  const targetPostId = searchParams.get('post');
+  const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
   const [tab, setTab] = useState<Tabs>("all");
   const [content, setContent] = useState("");
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [isPosting, setIsPosting] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -139,6 +144,8 @@ export const Blogs = () => {
 
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
+  const [updatedTimestamps, setUpdatedTimestamps] = useState<Record<string, string>>({});
+  const resetFileInputRef = useRef<(() => void) | null>(null);
 
   const [visibleRootComments, setVisibleRootComments] = useState<{
     [postId: string]: number;
@@ -167,6 +174,29 @@ export const Blogs = () => {
   });
 
   useEffect(() => {
+    if (targetPostId && blogPosts.length > 0 && !hasScrolledToTarget) {
+      const targetPost = blogPosts.find(post => post.id === targetPostId);
+      if (targetPost) {
+        setTimeout(() => {
+          const postElement = document.getElementById(`post-${targetPostId}`);
+          if (postElement) {
+            postElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+            postElement.style.backgroundColor = '#ff4500';
+            postElement.style.transition = 'background-color 0.3s ease';
+            setTimeout(() => {
+              postElement.style.backgroundColor = '';
+            }, 2000);
+          }
+        }, 500);
+        setHasScrolledToTarget(true);
+      }
+    }
+  }, [targetPostId, blogPosts, hasScrolledToTarget]);
+
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -176,18 +206,31 @@ export const Blogs = () => {
   }, []);
 
   const handlePost = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() && selectedImages.length === 0) return;
+
+    if (!auth?.user) {
+      toast?.onOpen("Vui lòng đăng nhập để đăng bài!");
+      return;
+    }
 
     setIsPosting(true);
     createBlogPostMutation.mutate(
-      { content: content.trim() },
+      {
+        content: content.trim(),
+        images: selectedImages.length > 0 ? selectedImages : undefined
+      },
       {
         onSuccess: () => {
           setContent("");
+          setSelectedImages([]);
+
+          if (resetFileInputRef.current) {
+            resetFileInputRef.current();
+          }
           toast?.onOpen("Đăng bài thành công!");
           setIsPosting(false);
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error("Error creating post:", error);
           toast?.onOpen("Có lỗi xảy ra khi đăng bài!");
           setIsPosting(false);
@@ -237,6 +280,12 @@ export const Blogs = () => {
       { postId, data: { content } },
       {
         onSuccess: () => {
+          const currentTime = blogGetCurrentTicks();
+          const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(currentTime);
+          setUpdatedTimestamps(prev => ({
+            ...prev,
+            [postId]: formattedTime
+          }));
           toast?.onOpen("Cập nhật bài viết thành công!");
         },
         onError: (error) => {
@@ -278,6 +327,9 @@ export const Blogs = () => {
             isPosting={isPosting || createBlogPostMutation.isPending}
             handlePost={handlePost}
             handleKeyPress={handleKeyPress}
+            selectedImages={selectedImages}
+            setSelectedImages={setSelectedImages}
+            resetFileInput={resetFileInputRef}
           />
           {isLoading ? (
             <div className="text-center py-8">
@@ -291,50 +343,52 @@ export const Blogs = () => {
           ) : (
             (Array.isArray(blogPosts) ? blogPosts : []).map((post) => {
               return (
-                <PostItem
-                  key={post.id}
-                  post={{
-                    id: post.id,
-                    user: {
-                      name: post.author?.username || "Ẩn danh",
-                      username: post.author?.username || "user",
-                      avatar: post.author?.avatar || "/images/default-avatar.png",
-                    },
-                    content: post.content,
-                    timestamp: post.createdAt ? formatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian",
-                    likes: post.likeCount || 0,
-                    comments: post.commentCount || 0,
-                    isLiked: post.isLiked || false,
-                    imgUrls: post.imgUrls || [],
-                  }}
-                  menuOpenPostId={menuOpenPostId}
-                  setMenuOpenPostId={setMenuOpenPostId}
-                  editingPostId={editingPostId}
-                  setEditingPostId={setEditingPostId}
-                  setReportPostId={setReportPostId}
-                  openComments={openComments}
-                  setOpenComments={setOpenComments}
-                  visibleRootComments={visibleRootComments}
-                  setVisibleRootComments={setVisibleRootComments}
-                  isMobile={isMobile}
-                  openReplyId={openReplyId}
-                  setOpenReplyId={setOpenReplyId}
-                  menuOpenCommentId={menuOpenCommentId}
-                  setMenuOpenCommentId={setMenuOpenCommentId}
-                  editingCommentId={editingCommentId}
-                  setEditingCommentId={setEditingCommentId}
-                  editedContent={editedContent}
-                  setEditedContent={setEditedContent}
-                  setReportCommentId={setReportCommentId}
-                  replyingTo={replyingTo}
-                  setReplyingTo={setReplyingTo}
-                  commentInput={commentInput}
-                  setCommentInput={setCommentInput}
-                  onRequestDelete={handleRequestDelete}
-                  onToggleLike={handleToggleLike}
-                  isLiked={Boolean(likedPosts[post.id])}
-                  onUpdatePost={handleUpdatePost}
-                />
+                <div key={post.id} id={`post-${post.id}`}>
+                  <PostItem
+                    post={{
+                      id: post.id,
+                      user: {
+                        name: post.author?.username || "Ẩn danh",
+                        username: post.author?.username || "user",
+                        avatar: post.author?.avatar || "/images/default-avatar.png",
+                      },
+                      content: post.content,
+                      timestamp: post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian",
+                      likes: post.likeCount || 0,
+                      comments: post.commentCount || 0,
+                      isLiked: post.isLiked || false,
+                      imgUrls: post.imgUrls || [],
+                    }}
+                    menuOpenPostId={menuOpenPostId}
+                    setMenuOpenPostId={setMenuOpenPostId}
+                    editingPostId={editingPostId}
+                    setEditingPostId={setEditingPostId}
+                    setReportPostId={setReportPostId}
+                    openComments={openComments}
+                    setOpenComments={setOpenComments}
+                    visibleRootComments={visibleRootComments}
+                    setVisibleRootComments={setVisibleRootComments}
+                    isMobile={isMobile}
+                    openReplyId={openReplyId}
+                    setOpenReplyId={setOpenReplyId}
+                    menuOpenCommentId={menuOpenCommentId}
+                    setMenuOpenCommentId={setMenuOpenCommentId}
+                    editingCommentId={editingCommentId}
+                    setEditingCommentId={setEditingCommentId}
+                    editedContent={editedContent}
+                    setEditedContent={setEditedContent}
+                    setReportCommentId={setReportCommentId}
+                    replyingTo={replyingTo}
+                    setReplyingTo={setReplyingTo}
+                    commentInput={commentInput}
+                    setCommentInput={setCommentInput}
+                    onRequestDelete={handleRequestDelete}
+                    onToggleLike={handleToggleLike}
+                    isLiked={Boolean(likedPosts[post.id])}
+                    onUpdatePost={handleUpdatePost}
+                    updatedTimestamp={updatedTimestamps[post.id]}
+                  />
+                </div>
               );
             })
           )}

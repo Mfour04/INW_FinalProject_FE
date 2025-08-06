@@ -56,16 +56,14 @@ export const useCreateBlogPost = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: CreateBlogPostRequest) => {
+        mutationFn: async (data: CreateBlogPostRequest & { images?: File[] }) => {
             const res = await CreateBlogPost(data);
             return res.data;
         },
+
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
-        },
-        onError: (error) => {
-            console.error("Create blog post error:", error);
         },
     });
 };

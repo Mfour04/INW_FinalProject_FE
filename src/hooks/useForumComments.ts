@@ -27,15 +27,12 @@ export const UseForumComments = (postId: string) => {
 
 export const UseCreateForumComment = (postId: string) => {
     const queryClient = useQueryClient();
-
     return useMutation({
-        mutationFn: async (payload: { content: string; parentCommentId?: string }) => {
-            const res = await CreateForumComment({
-                content: payload.content,
-                postId: postId,
-                parentCommentId: payload.parentCommentId,
-            });
-            return res;
+        mutationFn: async (data: { content: string; parentCommentId?: string }) => {
+            const payload = data.parentCommentId
+                ? { content: data.content, ParentCommentId: data.parentCommentId }
+                : { content: data.content, PostId: postId };
+            return CreateForumComment(payload);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
@@ -65,8 +62,10 @@ export const UseDeleteForumComment = (postId: string) => {
             const res = await DeleteForumComment(commentId);
             return res.data;
         },
-        onSuccess: () => {
+        onSuccess: (_, commentId) => {
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+
+            queryClient.invalidateQueries({ queryKey: ["forum-replies"] });
         },
     });
 };
