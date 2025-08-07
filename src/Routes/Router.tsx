@@ -18,6 +18,7 @@ import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
 import { Setting } from "../pages/setting/Setting";
+import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
 export const Router = () => {
   return (
     <Routes>
@@ -54,8 +55,14 @@ export const Router = () => {
       {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/deposite" element={<Deposite />} />
       <Route path="/transaction-history" element={<TransactionHistory />} />
-      <Route path="/profile" element={<UserProfile />} />
+      <Route
+        path="/profile"
+        element={<ProtectedRoutes role={[Roles.User]} />}
+      >
+        <Route index element={<UserProfile />} />
+      </Route>
       <Route path="/blogs" element={<Blogs />} />
+      <Route path="/test-profile" element={<TestUserProfile />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
       <Route path="/setting" element={<Setting />} />

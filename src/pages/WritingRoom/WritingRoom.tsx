@@ -128,7 +128,7 @@ export const WritingRoom = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between max-w-5xl mx-auto mb-4">
+          <div className="flex items-center justify-between mx-auto mb-4">
             <h2 className="text-lg font-semibold">
               Tủ truyện ({novelsData?.novels.length})
             </h2>
@@ -143,7 +143,7 @@ export const WritingRoom = () => {
             {novelsData?.novels.map((novel) => (
               <div
                 key={novel.novelId}
-                className="h-[200px] bg-[#1e1e21] rounded-[10px] p-4 max-w-5xl "
+                className="h-[200px] bg-[#1e1e21] rounded-[10px] p-4 "
               >
                 <div className="flex gap-4">
                   <img

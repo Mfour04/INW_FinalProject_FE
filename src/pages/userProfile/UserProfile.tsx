@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import avatarImage from '../../assets/img/th.png';
 import bannerImage from '../../assets/img/hlban.jpg';
 import '../../pages/userProfile/UserProfile.css';
@@ -9,6 +11,11 @@ import MenuItem from '@mui/material/MenuItem';
 import BlockIcon from '@mui/icons-material/Block';
 import { CalendarUserIcon, Flag02Icon, CommentAdd01Icon } from './UserProfileIcon';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import favorite from '../../assets/svg/CommentUser/favorite.svg';
+import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
+import { useAuth } from '../../hooks/useAuth';
+import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
+import { useUserBlogPosts } from '../../hooks/useBlogs';
 
 export const UserProfile = () => {
 
@@ -16,6 +23,9 @@ export const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
+  const navigate = useNavigate();
+  const { auth } = useAuth();
+  const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(auth?.user?.userId || "");
 
   const handleFollowClick = () => {
     setIsFollowing(!isFollowing);
@@ -29,35 +39,78 @@ export const UserProfile = () => {
     setAnchorEl(null);
   };
 
+  const handleNovelClick = (novelId: string) => {
+    navigate(`/novels/${novelId}`);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'posts':
         return (
-          <div>
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="mt-4 bg-gray-900 p-4 rounded-lg border border-gray-700 w-full">
-                <div className="flex items-center space-x-4">
-                  <img src={bannerImage} alt="Avatar" className="w-10 h-10 rounded-full" />
-                  <div>
-                    <p className="font-semibold">Hít Lê</p>
-                    <p className="text-xs text-gray-400">@fromgermanwithlove • 39 giây trước</p>
-                  </div>
-                </div>
-                <p className="mt-4">Tình yêu nồng cháy không phải do em mà là dothai.</p>
-                <hr className="my-4 border-t border-gray-700" />
-                <div className="mt-4 flex space-x-6 text-white">
-                  <span className="flex items-center gap-2">
-                    <FavoriteBorderIcon />
-                    Yêu thích
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <CommentAdd01Icon />
-                    Bình luận
-                  </span>
-                </div>
-
+          <div className="mt-6">
+            {postsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Đang tải bài đăng...</p>
               </div>
-            ))}
+            ) : userPosts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Chưa có bài đăng nào.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => navigate(`/blogs?post=${post.id}`)}
+                    className="bg-gray-900 p-4 rounded-lg border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3 mb-3">
+                      <img
+                        src={post.author?.avatar || "/images/default-avatar.png"}
+                        alt="Avatar"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-semibold text-white">
+                          {post.author?.username || "Ẩn danh"}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 text-sm line-clamp-3">{post.content}</p>
+                    {post.imgUrls && post.imgUrls.length > 0 && (
+                      <div className="mt-3">
+                        {post.imgUrls.length === 1 ? (
+                          <img
+                            src={post.imgUrls[0]}
+                            alt="Post image"
+                            className="max-h-96 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            {post.imgUrls.slice(0, 4).map((img, index) => (
+                              <img
+                                key={index}
+                                src={img}
+                                alt={`Post image ${index + 1}`}
+                                className="h-32 rounded-lg object-cover"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
+                      <span>❤️ {post.likeCount || 0}</span>
+                      <span>💬 {post.commentCount || 0}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
@@ -90,7 +143,7 @@ export const UserProfile = () => {
         );
 
       default:
-        return <p className="mt-6 text-gray-400">Chưa có dữ liệu trong tab này.</p>;
+        return <p className="mt-6 text-gray-400">Chưa có thành tựu.</p>;
     }
   };
 
@@ -172,14 +225,20 @@ export const UserProfile = () => {
       <div className="-mt-10 px-80">
         <div className="flex flex-col space-y-1">
           <div>
-            <h1 className="text-4xl font-bold leading-tight">Hít Lê</h1>
-            <p className="text-gray-400">@fromgermanwithlove</p>
+            <h1 className="text-4xl font-bold leading-tight">
+              {auth?.user?.displayName || 'Hít Lê'}
+            </h1>
+            <p className="text-gray-400">
+              @{auth?.user?.userName || 'fromgermanwithlove'}
+            </p>
           </div>
 
           <p className="text-gray-400">
             <strong className="text-gray-400">3</strong> Đang theo dõi
             <span className="mx-2">•</span>
             <strong className="text-gray-400">2</strong> Người theo dõi
+            <span className="mx-2">•</span>
+            <strong className="text-gray-400">{userPosts.length}</strong> Bài đăng
           </p>
 
           <p className="text-gray-400 flex items-center gap-1">
@@ -194,6 +253,7 @@ export const UserProfile = () => {
         <div onClick={() => setActiveTab('followers')} className={`cursor-pointer ${activeTab === 'followers' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Người theo dõi</div>
         <div onClick={() => setActiveTab('following')} className={`cursor-pointer ${activeTab === 'following' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Đang theo dõi</div>
         <div onClick={() => setActiveTab('achievements')} className={`cursor-pointer ${activeTab === 'achievements' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Thành tựu</div>
+
       </div>
 
       <div className="follow overflow-y-auto px-10">

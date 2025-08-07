@@ -3,7 +3,6 @@ import type { Novel } from "../../entity/novel";
 import type { Purchaser } from "../../entity/purchaser";
 import type { ApiResponse } from "../../entity/response";
 import type { Transaction } from "../../entity/transaction";
-import type { Tags } from "../Tags/tag.type";
 
 export interface CreateNovelRequest {
   title: string;
@@ -33,7 +32,7 @@ type NovelByAuthorResponse = {
   totalNovelViews: number;
 };
 
-type NovelChaptersResponse = {
+export type NovelChaptersResponse = {
   novelInfo: Novel;
   allChapters: Chapter[];
   isAccessFull: boolean;

@@ -1,9 +1,10 @@
 import React from "react";
-import SmileIcon from "../../assets/svg/CommentUser/smile-stroke-rounded.svg";
-import SentIcon from "../../assets/svg/CommentUser/sent-stroke-rounded.svg";
-import avatarImage from "../../assets/img/th.png";
+import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
+import SentIcon from "../../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 
-interface ReplyProps {
+import avatarImage from "../../../assets/img/th.png";
+
+interface BlogReplyProps {
     currentUser: {
         name: string;
         user: string;
@@ -15,7 +16,7 @@ interface ReplyProps {
     inputRef?: (el: HTMLInputElement | null) => void;
 }
 
-export const Reply: React.FC<ReplyProps> = ({
+export const BlogReply: React.FC<BlogReplyProps> = ({
     currentUser,
     replyValue,
     onReplyChange,
@@ -36,7 +37,7 @@ export const Reply: React.FC<ReplyProps> = ({
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col gap-3 mt-8">
                 <input
                     ref={inputRef}
                     value={replyValue}
@@ -47,7 +48,7 @@ export const Reply: React.FC<ReplyProps> = ({
 
                 <div className="flex justify-between items-center">
                     <div className="flex gap-5 flex-shrink-0">
-                        <img src={SmileIcon} className="w-6 h-6" alt="Biểu cảm" />
+                        <img src={SmileIcon} className="w-6 h-6" />
                     </div>
                     <button type="button" onClick={onReplySubmit} className="buttonPost flex-shrink-0">
                         <div className="flex gap-2 items-center">
@@ -59,4 +60,4 @@ export const Reply: React.FC<ReplyProps> = ({
             </div>
         </div>
     );
-};
+}; 
