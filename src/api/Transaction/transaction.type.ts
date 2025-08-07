@@ -8,6 +8,24 @@ export type RechargeResponse = {
   checkoutUrl: string;
 };
 
+export type WithdrawRequest = {
+  coinAmount: number;
+  bankAccountId: string;
+};
+
+export type WithdrawResponse = {
+  id: string;
+  requester_id: string;
+  amount: number;
+  type: string;
+  payment_method: string;
+  status: string;
+  completed_at: number;
+  bank_account_id: string;
+  created_at: number;
+  updated_at: number;
+};
+
 export type TransactionItem = {
   paymentMethod: string;
   id: string;
@@ -52,3 +70,4 @@ const typeMap: Record<number, string> = {
 export const getTypeLabel = (status: number) => typeMap[status] ?? "Unknown";
 
 export type TransactionApiResponse = ApiResponse<TransactionResponse>;
+export type WithdrawApiResponse = ApiResponse<WithdrawResponse>;
