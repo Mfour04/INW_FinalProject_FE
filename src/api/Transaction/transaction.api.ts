@@ -6,6 +6,8 @@ import type {
   TransactionApiResponse,
   TransactionChartApiResponse,
   TransactionSummaryApiResponse,
+  WithdrawApiResponse,
+  WithdrawRequest,
 } from "./transaction.type";
 
 export const QRCheckIn = (data: RechargeRequest) =>
@@ -27,3 +29,5 @@ export const GetTransactionChart = (
   http.privateHttp.get<TransactionChartApiResponse>(
     `/transactions/dashboard/chart?Range=${range}&StartDate=${startDate}&EndDate=${endDate}`
   );
+export const WithdrawCoin = (data: WithdrawRequest) =>
+  http.privateHttp.post<WithdrawApiResponse>(`transactions/withdraws`, data);
