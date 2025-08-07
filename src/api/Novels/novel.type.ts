@@ -3,6 +3,30 @@ import type { Novel } from "../../entity/novel";
 import type { Purchaser } from "../../entity/purchaser";
 import type { ApiResponse } from "../../entity/response";
 import type { Transaction } from "../../entity/transaction";
+import type { Tag } from "../Tags/tag.type";
+
+export interface NovelAdmin {
+  NovelId: string;
+  Title: string;
+  AuthorName: string;
+  NovelImage: string | null;
+  Status: "Ongoing" | "Completed" | "Hiatus";
+  IsPublic: boolean;
+  IsLock: boolean;
+  TotalViews: number;
+  Followers: number;
+  RatingAvg: number;
+  CreateAt: string;
+  UpdateAt: string;
+  description: string;
+  authorId: string;
+  tags: Tag[];
+  isPaid: boolean;
+  price: number;
+  totalChapters: number;
+  ratingCount: number;
+  [key: string]: unknown;
+}
 
 export interface CreateNovelRequest {
   title: string;
@@ -21,6 +45,12 @@ export interface CreateNovelRequest {
 }
 
 interface NovelReponse {
+  novels: Novel[];
+  totalNovels: number;
+  totalPages: number;
+}
+
+interface NovelAdminReponse {
   novels: Novel[];
   totalNovels: number;
   totalPages: number;
@@ -61,3 +91,4 @@ export type NovelChaptersApiResponse = ApiResponse<NovelChaptersResponse>;
 export type NovelSlugCheckingApiResponse =
   ApiResponse<NovelSlugCheckingResponse>;
 export type BuyNovelApiResponse = ApiResponse<BuyNovelResponse>;
+export type NovelsAdminApiResponse = ApiResponse<NovelAdminReponse>;

@@ -6,6 +6,8 @@ import type {
   CreateChapterRequest,
   CreateChapterResponse,
   NovelChapters,
+  NovelChaptersAdmin,
+  UpdateChapterLockApiResponse,
   UpdateChapterRequest,
 } from "./chapter.type";
 
@@ -28,4 +30,14 @@ export const BuyChapter = (chapterId: string, request: BuyChapterRequest) =>
   http.privateHttp.post<BuyChapterApiResponse>(
     `Chapters/${chapterId}/buy`,
     request
+  );
+
+export const GetChaptersAdmin = (novelId: string) =>
+  http.http.get<NovelChaptersAdmin>("Chapters/get-chapter-by-novelId", {
+    params: { novelId },
+  });
+
+export const UpdateChapterLock = (chapterId: string, isLocked: boolean) =>
+  http.privateHttp.put<UpdateChapterLockApiResponse>(
+    `Chapters/update-lock-chapter/${chapterId}?isLocked=${isLocked}`
   );

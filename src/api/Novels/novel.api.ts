@@ -4,6 +4,7 @@ import type {
   BuyNovelApiResponse,
   BuyNovelRequest,
   NovelChaptersApiResponse,
+  NovelsAdminApiResponse,
   NovelsApiResponse,
   NovelsAuthorApiResponse,
   NovelSlugCheckingApiResponse,
@@ -63,3 +64,11 @@ export const GetRecommendedNovels = (params: GetRecommendNovelsParams) =>
   http.privateHttp.get<NovelsApiResponse>("Novels/recommendNovel-user", {
     params,
   });
+export const UpdateNovelLock = (novelId: string, isLocked: boolean) =>
+  http.privateHttp.put<NovelsAdminApiResponse>(
+    `Novels/update-lock-novel/${novelId}`,
+    {},
+    {
+      params: { isLocked },
+    }
+  );
