@@ -17,7 +17,7 @@ export interface User {
   lastLogin: number;
   favouriteType: string[];
   readCount: number; // Thêm để tương thích với UserTopSection
-  createAt: string;
-  updateAt: string;
+  createdAt: string;
+  updatedAt: string;
   [key: string]: unknown;
 }

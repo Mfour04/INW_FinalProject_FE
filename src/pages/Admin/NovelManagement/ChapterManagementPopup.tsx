@@ -44,6 +44,8 @@ const ChapterManagementPopup = ({
     title: "",
     chapterId: null,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const chaptersPerPage = 10;
 
   // Mutation for chapter lock/unlock
   const updateChapterLockMutation = useMutation({
@@ -77,6 +79,13 @@ const ChapterManagementPopup = ({
         chapter.chapter_number.toString().includes(searchTerm))
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredChapters.length / chaptersPerPage);
+  const paginatedChapters = filteredChapters.slice(
+    (currentPage - 1) * chaptersPerPage,
+    currentPage * chaptersPerPage
+  );
+
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm("");
@@ -87,6 +96,7 @@ const ChapterManagementPopup = ({
         title: "",
         chapterId: null,
       });
+      setCurrentPage(1); // Reset to first page when popup closes
     }
   }, [isOpen]);
 
@@ -113,7 +123,6 @@ const ChapterManagementPopup = ({
           chapterId: dialog.chapterId,
           isLocked: true,
         });
-        // Call optional callback if provided
         onLockChapter?.(dialog.chapterId);
         console.log(`Khóa chương: ${dialog.chapterId}`);
       } else if (dialog.type === "unlock") {
@@ -121,7 +130,6 @@ const ChapterManagementPopup = ({
           chapterId: dialog.chapterId,
           isLocked: false,
         });
-        // Call optional callback if provided
         onUnlockChapter?.(dialog.chapterId);
         console.log(`Mở khóa chương: ${dialog.chapterId}`);
       }
@@ -142,20 +150,22 @@ const ChapterManagementPopup = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-[#1e1e21] rounded-[10px] shadow-lg p-6 w-full max-w-4xl mx-4"
+            className="bg-[#1e1e21] rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Quản lý chương</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold text-white">
+                Quản lý chương
+              </h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-200"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 <svg
                   className="w-6 h-6"
@@ -174,67 +184,98 @@ const ChapterManagementPopup = ({
               </button>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tiêu đề hoặc số chương..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2.5 border border-gray-700 rounded-[10px] bg-[#2e2e2e] text-white focus:ring-[#ff4d4f] focus:border-[#ff4d4f]"
+                className="w-full p-2.5 border border-gray-600 rounded-lg bg-[#2a2a2e] text-white focus:ring-2 focus:ring-[#ff4d4f] focus:border-[#ff4d4f] transition-all"
               />
             </div>
 
             {isLoading ? (
-              <p className="text-gray-400 text-center">Đang tải chương...</p>
+              <p className="text-gray-400 text-center py-8">
+                Đang tải chương...
+              </p>
             ) : error ? (
-              <p className="text-red-600 text-center">
+              <p className="text-red-500 text-center py-8">
                 Không tải được danh sách chương
               </p>
             ) : filteredChapters.length === 0 ? (
-              <p className="text-gray-400 text-center">Không có chương nào</p>
+              <p className="text-gray-400 text-center py-8">
+                Không có chương nào
+              </p>
             ) : (
-              <div className="flex flex-col gap-5">
-                {filteredChapters.map((chapter) => (
-                  <motion.div
-                    key={chapter.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="h-[120px] bg-[#2e2e2e] rounded-[10px] p-4 flex items-center gap-4"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`h-2 w-2 rounded-full inline-block ${
-                              chapter.is_lock ? "bg-gray-400" : "bg-green-400"
-                            }`}
+              <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pr-2">
+                <div className="flex flex-col gap-3">
+                  {paginatedChapters.map((chapter) => (
+                    <motion.div
+                      key={chapter.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-[#2a2a2e] rounded-lg p-3 flex items-center gap-3 hover:bg-[#333337] transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`h-2 w-2 rounded-full ${
+                                chapter.is_lock ? "bg-gray-400" : "bg-green-400"
+                              }`}
+                            />
+                            <span className="text-base text-white font-medium">
+                              Chương {chapter.chapter_number}: {chapter.title}
+                            </span>
+                            {loadingChapterIds.includes(chapter.id) && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                            )}
+                          </div>
+                          <ActionButtons
+                            canLock={!chapter.is_lock}
+                            canUnlock={chapter.is_lock}
+                            selectedCount={1}
+                            onLockUnlock={() => handleLockUnlock(chapter)}
                           />
-                          <span className="text-[18px] text-white">
-                            Chương {chapter.chapter_number}: {chapter.title}
-                          </span>
-                          {loadingChapterIds.includes(chapter.id) && (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          )}
                         </div>
-                        <ActionButtons
-                          canLock={!chapter.is_lock}
-                          canUnlock={chapter.is_lock}
-                          selectedCount={1}
-                          onLockUnlock={() => handleLockUnlock(chapter)}
-                        />
-                      </div>
-                      <div className="flex gap-10 text-sm text-gray-400">
-                        <div className="flex gap-4">
-                          <span>Ngày tạo:</span>
+                        <div className="text-sm text-gray-400">
                           <span>
+                            Ngày tạo:{" "}
                             {formatTicksToDateString(chapter.created_at)}
                           </span>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex justify-center items-center gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Trước
+                </button>
+                <span className="text-white">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Sau
+                </button>
               </div>
             )}
           </motion.div>

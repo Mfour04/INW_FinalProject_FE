@@ -10,7 +10,7 @@ export interface NovelAdmin {
   Title: string;
   AuthorName: string;
   NovelImage: string | null;
-  Status: "Ongoing" | "Completed" | "Hiatus";
+  Status: "Đang diễn ra" | "Hoàn thành" | "Gián đoạn";
   IsPublic: boolean;
   IsLock: boolean;
   TotalViews: number;

@@ -9,7 +9,11 @@ import Pagination from "../AdminModal/Pagination";
 import UserTopSection from "./UserTopSection";
 import type { User } from "../../../api/Admin/User/user.type";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GetUsers, UpdateBanUser } from "../../../api/Admin/User/user.api";
+import {
+  GetAllUsers,
+  GetUsers,
+  UpdateBanUser,
+} from "../../../api/Admin/User/user.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { formatTicksToDateString } from "../../../utils/date_format";
 
@@ -45,8 +49,8 @@ const keyToApiField: Record<keyof User, string> = {
   lastLogin: "lastLogin",
   favouriteType: "favouriteType",
   readCount: "readCount",
-  createAt: "createAt",
-  updateAt: "updateAt",
+  createdAt: "createAt",
+  updatedAt: "updateAt",
 };
 
 const UserList = () => {
@@ -67,6 +71,7 @@ const UserList = () => {
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
+  // Fetch users for DataTable (paginated)
   const {
     data: userData,
     isLoading: isLoadingUsers,
@@ -82,10 +87,42 @@ const UserList = () => {
       }).then((res) => res.data),
   });
 
-  console.log(userData);
+  // Fetch all users for UserTopSection (no pagination)
+  const {
+    data: allUsersData,
+    isLoading: isLoadingAllUsers,
+    error: allUsersError,
+  } = useQuery({
+    queryKey: ["allUsers"],
+    queryFn: () => GetAllUsers().then((res) => res.data),
+  });
 
   const mappedUsers: User[] =
     userData?.data?.users?.map((user) => ({
+      userId: user.userId,
+      userName: user.userName,
+      displayName: user.displayName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      coverUrl: user.coverUrl,
+      bio: user.bio,
+      role: user.role,
+      isVerified: user.isVerified,
+      isBanned: user.isBanned,
+      bannedUntil: user.bannedUntil,
+      coin: user.coin,
+      blockCoin: user.blockCoin,
+      novelFollowCount: user.novelFollowCount,
+      badgeId: user.badgeId,
+      lastLogin: user.lastLogin,
+      favouriteType: user.favouriteType,
+      readCount: user.readCount ?? 0,
+      createdAt: formatTicksToDateString(Number(user.createAt)),
+      updatedAt: formatTicksToDateString(Number(user.updateAt)),
+    })) || [];
+
+  const mappedAllUsers: User[] =
+    allUsersData?.data?.users?.map((user) => ({
       userId: user.userId,
       userName: user.userName,
       displayName: user.displayName,
@@ -124,6 +161,7 @@ const UserList = () => {
     onSuccess: (data) => {
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["users"] });
+        queryClient.invalidateQueries({ queryKey: ["allUsers"] }); // Invalidate allUsers query
         toast?.onOpen(data.message);
       } else {
         toast?.onOpen(data.message || "Cập nhật trạng thái khóa thất bại");
@@ -222,13 +260,13 @@ const UserList = () => {
         </h1>
         <DarkModeToggler />
       </div>
-      {isLoadingUsers ? (
+      {isLoadingUsers || isLoadingAllUsers ? (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      ) : userError ? (
+      ) : userError || allUsersError ? (
         <p className="text-red-600">Failed to load users</p>
       ) : (
         <>
-          <UserTopSection users={mappedUsers} />
+          <UserTopSection users={mappedAllUsers} />
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
             <ActionButtons
               canLock={canLock}

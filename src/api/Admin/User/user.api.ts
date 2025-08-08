@@ -41,3 +41,8 @@ export const GetUserById = (userId: string) =>
   http.privateHttp.get<User>("/Users/user-infor", {
     params: { userId },
   });
+
+export const GetAllUsers = () =>
+  http.privateHttp.get<
+    ApiResponse<{ users: User[]; totalUsers: number; totalPages: number }>
+  >(`/Users`);

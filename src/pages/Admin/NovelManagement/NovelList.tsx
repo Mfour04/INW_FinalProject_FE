@@ -82,7 +82,7 @@ const NovelList = () => {
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
-  // Fetch novels
+  // Fetch novels for DataTable (paginated)
   const {
     data: novelData,
     isLoading: isLoadingNovels,
@@ -98,7 +98,23 @@ const NovelList = () => {
       }).then((res) => res.data),
   });
 
-  // Map API novel data to NovelAdmin interface
+  // Fetch all novels for NovelTopSection (no pagination)
+  const {
+    data: allNovelsData,
+    isLoading: isLoadingAllNovels,
+    error: allNovelsError,
+  } = useQuery({
+    queryKey: ["allNovels"],
+    queryFn: () =>
+      GetNovels({
+        searchTerm: undefined,
+        page: undefined,
+        limit: undefined,
+        sortBy: undefined,
+      }).then((res) => res.data),
+  });
+
+  // Map API novel data to NovelAdmin interface for DataTable
   const mappedNovels: NovelAdmin[] =
     novelData?.data?.novels?.map((novel) => ({
       NovelId: novel.novelId,
@@ -107,10 +123,39 @@ const NovelList = () => {
       NovelImage: novel.novelImage,
       Status:
         novel.status === 1
-          ? "Completed"
+          ? "Hoàn thành"
           : novel.status === 2
-          ? "Hiatus"
-          : "Ongoing",
+          ? "Gián đoạn"
+          : "Đang diễn ra",
+      IsPublic: novel.isPublic,
+      IsLock: novel.isLock,
+      TotalViews: novel.totalViews,
+      Followers: novel.followers,
+      RatingAvg: novel.ratingAvg,
+      CreateAt: formatTicksToDateString(novel.createAt),
+      UpdateAt: formatTicksToDateString(novel.updateAt),
+      description: novel.description,
+      authorId: novel.authorId,
+      tags: novel.tags,
+      isPaid: novel.isPaid,
+      price: novel.price,
+      totalChapters: novel.totalChapters,
+      ratingCount: novel.ratingCount,
+    })) || [];
+
+  // Map API novel data to NovelAdmin interface for NovelTopSection
+  const mappedAllNovels: NovelAdmin[] =
+    allNovelsData?.data?.novels?.map((novel) => ({
+      NovelId: novel.novelId,
+      Title: novel.title,
+      AuthorName: novel.authorName,
+      NovelImage: novel.novelImage,
+      Status:
+        novel.status === 1
+          ? "Hoàn thành"
+          : novel.status === 2
+          ? "Gián đoạn"
+          : "Đang diễn ra",
       IsPublic: novel.isPublic,
       IsLock: novel.isLock,
       TotalViews: novel.totalViews,
@@ -152,22 +197,12 @@ const NovelList = () => {
     }) => UpdateNovelLock(novelId, isLocked),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["novels"] });
+      queryClient.invalidateQueries({ queryKey: ["allNovels"] }); // Invalidate allNovels query
     },
     onError: (error) => {
       console.error("Failed to update novel lock status:", error);
     },
   });
-
-  // Mutation for delete
-  // const deleteNovelMutation = useMutation({
-  //   mutationFn: (novelId: string) => DeleteNovel(novelId),
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["novels"] });
-  //   },
-  //   onError: (error) => {
-  //     console.error("Failed to delete novel:", error);
-  //   },
-  // });
 
   const mappedChapters: ChapterByNovel[] =
     chapterData?.map((chapter: ChapterAdmin) => ({
@@ -185,6 +220,9 @@ const NovelList = () => {
       created_at: chapter.createAt,
       updated_at: chapter.updateAt,
     })) || [];
+
+  console.log(chapterData);
+  console.log(mappedChapters);
 
   const handleSelectNovel = (novelId: string) => {
     setSelectedNovels((prev) =>
@@ -228,16 +266,6 @@ const NovelList = () => {
     setDialog({ isOpen: true, type: action, title });
   };
 
-  // const handleDelete = () => {
-  //   const selectedNovelObjects = mappedNovels.filter((novel) =>
-  //     selectedNovels.includes(novel.NovelId)
-  //   );
-  //   const title = `Bạn muốn xóa truyện: ${selectedNovelObjects
-  //     .map((n) => n.Title)
-  //     .join(", ")} ?`;
-  //   setDialog({ isOpen: true, type: "delete", title });
-  // };
-
   const handleConfirmDialog = () => {
     if (dialog.type === "lock") {
       selectedNovels.forEach((novelId) => {
@@ -250,12 +278,6 @@ const NovelList = () => {
       });
       console.log(`Thực hiện unlock cho truyện: ${selectedNovels.join(", ")}`);
     }
-    // else if (dialog.type === "delete") {
-    //   selectedNovels.forEach((novelId) => {
-    //     deleteNovelMutation.mutate(novelId);
-    //   });
-    //   console.log(`Xóa truyện: ${selectedNovels.join(", ")}`);
-    // }
     setSelectedNovels([]);
     setDialog({ isOpen: false, type: null, title: "" });
   };
@@ -293,13 +315,16 @@ const NovelList = () => {
         </h1>
         <DarkModeToggler />
       </div>
-      {isLoadingNovels ? (
+      {isLoadingNovels || isLoadingAllNovels ? (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      ) : novelError ? (
+      ) : novelError || allNovelsError ? (
         <p className="text-red-600">Failed to load novels</p>
       ) : (
         <>
-          <NovelTopSection novels={mappedNovels} threeDaysAgo={threeDaysAgo} />
+          <NovelTopSection
+            novels={mappedAllNovels}
+            threeDaysAgo={threeDaysAgo}
+          />
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
             <ActionButtons
               canLock={canLock}
