@@ -18,6 +18,13 @@ import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
+import AdminHome from "../pages/Admin/AdminHome";
+import UserList from "../pages/Admin/UserManagement/UserList";
+import RequestList from "../pages/Admin/RequestMangement/RequestList";
+import ReportList from "../pages/Admin/ReportMangement/ReportList";
+import NovelList from "../pages/Admin/NovelManagement/NovelList";
+import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
+
 export const Router = () => {
   return (
     <Routes>
@@ -47,17 +54,18 @@ export const Router = () => {
           />
         </Route>
       </Route>
-      <Route
-        path="/admin"
-        element={<ProtectedRoutes role={Roles.Admin} />}
-      ></Route>
+      <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
+        <Route index element={<AdminHome />} />
+        <Route path="users" element={<UserList />} />
+        <Route path="novels" element={<NovelList />} />
+        <Route path="transaction" element={<TransactionList />} />
+        <Route path="reports" element={<ReportList />} />
+        <Route path="wallets" element={<RequestList />} />
+      </Route>
       {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/deposite" element={<Deposite />} />
       <Route path="/transaction-history" element={<TransactionHistory />} />
-      <Route
-        path="/profile"
-        element={<ProtectedRoutes role={[Roles.User]} />}
-      >
+      <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
         <Route index element={<UserProfile />} />
       </Route>
       <Route path="/blogs" element={<Blogs />} />

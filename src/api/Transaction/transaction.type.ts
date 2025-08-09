@@ -49,6 +49,23 @@ export type GetUserHistoryParams = {
   sortBy?: string;
 };
 
+export interface TransactionSummary {
+  totalTransactions: number;
+  totalRechargeCoins: number;
+  totalWithdrawCoins: number;
+  profitCoins: number;
+  profitVND: number;
+}
+
+export interface TransactionChartData {
+  label: string;
+  rechargeCount: number;
+  rechargeCoins: number;
+  withdrawCount: number;
+  withdrawCoins: number;
+  profitCoins: number;
+}
+
 const statusMap: Record<number, string> = {
   0: "Đang xử lý",
   1: "Hoàn thành",
@@ -70,4 +87,6 @@ const typeMap: Record<number, string> = {
 export const getTypeLabel = (status: number) => typeMap[status] ?? "Unknown";
 
 export type TransactionApiResponse = ApiResponse<TransactionResponse>;
+export type TransactionSummaryApiResponse = ApiResponse<TransactionSummary>;
+export type TransactionChartApiResponse = ApiResponse<TransactionChartData[]>;
 export type WithdrawApiResponse = ApiResponse<WithdrawResponse>;

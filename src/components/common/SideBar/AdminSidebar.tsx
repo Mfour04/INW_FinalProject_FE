@@ -1,70 +1,61 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import logo from "../../../assets/img/logo.png";
-import HomeIcon from "../../../assets/svg/SideBar/home-11-stroke-rounded.svg";
-import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded.svg";
-import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg";
-import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg";
-import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg";
-import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-rounded.svg";
-import WebsiteIcon from "../../../assets/img/icon_logo.png";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useState } from "react";
+import logo from "../../../assets/img/logo.png";
+import UsersIcon from "../../../assets/img/AdminSidebar/user-group-02-stroke-rounded.svg";
+import NovelsIcon from "../../../assets/img/AdminSidebar/book-02-stroke-rounded.svg";
+import ReportsIcon from "../../../assets/img/AdminSidebar/complaint-stroke-rounded.svg";
+import WalletsIcon from "../../../assets/img/AdminSidebar/wallet-done-01-stroke-rounded.svg";
+import MenuClose from "../../../assets/img/AdminSidebar/cancel-01-stroke-rounded.svg";
+import HomeIcon from "../../../assets/img/AdminSidebar/home-01-stroke-rounded.svg";
+import WebsiteIcon from "../../../assets/img/icon_logo.png";
+import TransactionIcon from "../../../assets/img/AdminSidebar/transaction-stroke-rounded.svg";
 import type { MenuItem } from "./type";
 
-interface SidebarProps {
+interface AdminSidebarProps {
   isOpen: boolean;
   onClose?: () => void;
 }
 
-export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
+export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const menuItems: MenuItem[] = [
     {
       icon: HomeIcon,
       label: "Trang chủ",
-      path: "/",
+      path: "/admin",
       isHeader: true,
     },
     {
-      icon: BookMarkIcon,
-      label: "Theo dõi",
-      path: "/following",
+      icon: UsersIcon,
+      label: "Người dùng",
+      path: "/admin/users",
       isHeader: true,
-      subItems: [
-        { label: "Cập nhật", path: "/following/updates" },
-        { label: "Thư viện", path: "/following/library" },
-        { label: "Lịch sử", path: "/following/history" },
-      ],
     },
     {
-      icon: BookOpenIcon,
+      icon: NovelsIcon,
       label: "Tiểu thuyết",
-      path: "/novels",
+      path: "/admin/novels",
       isHeader: true,
-      subItems: [{ label: "Phòng sáng tác", path: "/novels/writing-room" }],
     },
     {
-      icon: CommunityIcon,
-      label: "Cộng đồng",
-      path: "/community",
+      icon: TransactionIcon,
+      label: "Ngân sách",
+      path: "/admin/transaction",
       isHeader: true,
-      subItems: [
-        { label: "Diễn đàn", path: "/blogs" },
-        { label: "Kết nối", path: "/community/connect" },
-      ],
     },
     {
-      icon: PinIcon,
-      label: "InkWave",
-      path: "/inkwave",
+      icon: ReportsIcon,
+      label: "Báo cáo",
+      path: "/admin/reports",
       isHeader: true,
-      subItems: [
-        { label: "Nội quy", path: "/inkwave/rules" },
-        { label: "Về chúng tôi", path: "/inkwave/about" },
-        { label: "Liên hệ", path: "/inkwave/contact" },
-      ],
+    },
+    {
+      icon: WalletsIcon,
+      label: "Yêu cầu",
+      path: "/admin/wallets",
+      isHeader: true,
     },
   ];
 
@@ -79,7 +70,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         display: isOpen ? "flex" : window.innerWidth < 1024 ? "none" : "flex",
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`bg-white text-black dark:bg-[#151517] dark:text-white
+      className={`bg-white text-black dark:bg-[#1a1a1c] dark:text-white
         flex flex-col h-full
         fixed top-0 left-0 z-40 h-screen
         lg:static lg:h-full
@@ -99,7 +90,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
               >
                 <img
                   src={logo}
-                  alt="InkWave Logo"
+                  alt="InkWave Admin Logo"
                   className="h-full w-auto object-contain"
                 />
               </motion.div>
@@ -131,7 +122,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         </AnimatePresence>
       </div>
 
-      <div className="border-t border-[#3d3d3d] mt-2"></div>
+      <div className="border-t border-[#3d3d3d] "></div>
       <div className="flex flex-col flex-1 py-4">
         {menuItems.map((item, index) => (
           <div key={index} className="mb-2">
