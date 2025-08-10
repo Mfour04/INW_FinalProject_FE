@@ -180,20 +180,20 @@ export const UpsertChapter = () => {
         <button onClick={() => navigate(-1)} className="cursor-pointer">
           <img src={ArrowLeft02} />
         </button>
-        <div className="gap-10">
+        <div className="gap-2 flex">
           <Button
             onClick={handlePreviousStep}
             disabled={step === 1}
             className="cursor-pointer bg-[#ff6740] hover:bg-orange-600"
           >
-            Previous
+            Trước
           </Button>
           <Button
             onClick={step < 3 ? handleNextStep : handleUpsertButtonClick}
             disabled={step > 3}
             className="cursor-pointer bg-[#ff6740] hover:bg-orange-600"
           >
-            {step < 3 ? "Next" : "Submit"}
+            {step < 3 ? "Tiếp theo" : "Xác nhận"}
           </Button>
         </div>
       </div>
