@@ -28,8 +28,8 @@ ChartJS.register(
 
 const TransactionList = () => {
   const [range, setRange] = useState<"day" | "month">("day");
-  const startDate = "2025-07-01";
-  const endDate = "2025-07-31";
+  const startDate = "2025-08-01";
+  const endDate = "2025-08-31";
 
   // API cho card
   const {

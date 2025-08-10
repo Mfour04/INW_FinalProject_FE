@@ -134,6 +134,11 @@ export const SearchBar = () => {
     onSuccess: (data) => {
       const { accessToken, refreshToken, user } = data.data.token;
       setAuth({ accessToken, refreshToken, user });
+      if (auth?.user.role === "Admin") {
+        navigate("/admin");
+      } else {
+        navigate("/admin");
+      }
       toast?.onOpen("Bạn đã đăng nhập thành công!");
     },
   });
