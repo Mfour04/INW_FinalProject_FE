@@ -1,7 +1,6 @@
 import StarRate from "@mui/icons-material/StarRate";
 import BookMark from "@mui/icons-material/Bookmark";
 import Comment from "@mui/icons-material/Comment";
-import Share from "@mui/icons-material/Share";
 import ModeEdit from "@mui/icons-material/ModeEdit";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,7 +17,7 @@ const CreateChapters = () => {
   const { novelId } = useParams();
   const navigate = useNavigate();
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["novel", novelId],
     queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
@@ -84,7 +83,7 @@ const CreateChapters = () => {
 
           <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
             {novel?.tags.map((tag) => (
-              <TagView tag={tag} />
+              <TagView key={tag.tagId} tag={tag} />
             ))}
           </div>
         </div>

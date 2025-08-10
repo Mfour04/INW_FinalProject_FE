@@ -57,13 +57,19 @@ export type FollowedNovel = {
   followedAt: number;
 };
 
-export type FollowerNovelsResponse = {
+export type NovelFollows = {
   userId: string;
   userName: string;
   displayName: string;
   avatarUrl: string | null;
   totalFollowing: number;
   followedNovels: FollowedNovel[];
+};
+
+export type FollowerNovelsResponse = {
+  novelFollows: NovelFollows;
+  totalNovelFollows: number;
+  totalPages: 1;
 };
 
 export type NovelFollowApiResponse = ApiResponse<NovelFollowResponse>;

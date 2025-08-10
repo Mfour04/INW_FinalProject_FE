@@ -8,8 +8,6 @@ import Comment from "@mui/icons-material/Comment";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GetNovels } from "../../../api/Novels/novel.api";
-import { TagView } from "../../../components/TagComponent";
 import { GetFollowerNovels } from "../../../api/NovelFollow/novel-follow.api";
 
 type ViewAction = "Grid" | "List";
@@ -26,8 +24,8 @@ export const NovelLib = () => {
     queryFn: () => GetFollowerNovels().then((res) => res.data.data),
   });
 
-  const novels = Array.isArray(data?.followedNovels)
-    ? data?.followedNovels
+  const novels = Array.isArray(data?.novelFollows.followedNovels)
+    ? data?.novelFollows.followedNovels
     : [];
 
   const view = useMemo(() => {
@@ -119,7 +117,7 @@ export const NovelLib = () => {
           </>
         );
     }
-  }, [actionState, data]);
+  }, [actionState, data, novels]);
   return (
     <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
       <div className=" justify-between items-center mb-6">

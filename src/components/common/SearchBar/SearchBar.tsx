@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import LoginLogo from "../../../assets/img/SearchBar/login_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
@@ -20,9 +20,12 @@ import {
 } from "../../../utils/validation";
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/HomePage";
 import { getTags } from "../../../api/Tags/tag.api";
+import { useNotification } from "../../../context/NotificationContext/NotificationContext";
+import NotificationDropdown from "./NotificationDropdown";
+import { GetUserNotifications } from "../../../api/Notification/noti.api";
 
 const initialLoginForm: LoginParams = {
   username: "",
@@ -82,12 +85,15 @@ export const SearchBar = () => {
   const [registerMessage, setRegisterMessage] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState<boolean>(false);
   const [selectedSort, setSelectedSort] = useState<string>(
     `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`
   );
   const [selectedTag, setSelectedTag] = useState<string>("");
 
   const navigate = useNavigate();
+
+  const { notifications } = useNotification();
 
   const validationPassword: PasswordValidationResult = validatePassword(
     registerForm.password
@@ -110,11 +116,16 @@ export const SearchBar = () => {
     { label: "All Tags", value: "" },
     ...(Array.isArray(tagData)
       ? tagData.map((tag) => ({
-        label: capitalize(tag.name),
-        value: tag.name,
-      }))
+          label: capitalize(tag.name),
+          value: tag.name,
+        }))
       : []),
   ];
+
+  const { data: userNotifications, refetch: notificationsRefetch } = useQuery({
+    queryKey: ["userNotifications"],
+    queryFn: () => GetUserNotifications().then((res) => res.data.data),
+  });
 
   const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: (body: LoginParams) => {
@@ -390,6 +401,13 @@ export const SearchBar = () => {
     isLoginPending,
   ]);
 
+  useEffect(() => {
+    if (notifications[0]) {
+      notificationsRefetch();
+      toast?.onOpen("Tác giả vừa đăng " + notifications[0].message);
+    }
+  }, [notifications]);
+
   return (
     <>
       <div className="h-[90px] flex items-center justify-between px-12 md:px-13 lg:px-[50px] bg-white dark:bg-[#000000]">
@@ -481,7 +499,17 @@ export const SearchBar = () => {
         </div>
 
         <div className="flex items-center h-[50px] ml-4 shrink-0 gap-8">
-          <img src={Notification} alt="Notification" />
+          <div className="relative">
+            <img
+              src={Notification}
+              alt="Notification"
+              className="cursor-pointer"
+              onClick={() => setIsNotificationOpen((prev) => !prev)}
+            />
+            {isNotificationOpen && (
+              <NotificationDropdown notifications={userNotifications} />
+            )}
+          </div>
           <img
             src={auth?.user.avatarUrl || DefaultAvatar}
             alt="User Avatar"
