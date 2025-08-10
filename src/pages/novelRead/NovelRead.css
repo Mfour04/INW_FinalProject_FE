@@ -1,45 +1,29 @@
 .buttonStyle {
     background-color: #ff4500;
-    padding: 10px 24px;
-    border-radius: 6px;
-    transition: background-color 0.3s ease;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    user-select: none;
 }
 
 .buttonStyle:hover {
-    background-color: #e53e3e;
+    background-color: #e03d00;
+}
+
+.buttonStyle:active {
+    transform: translateY(1px);
 }
 
 .buttonStyle:disabled {
-    opacity: 0.5;
+    background-color: #6b7280;
     cursor: not-allowed;
-}
-
-.buttonPost {
-    background-color: #ff4500;
-    padding: 4px 20px;
-    border-radius: 60px;
-    transition: background-color 0.3s ease;
-}
-
-.buttonPost:hover {
-    background-color: #e53e3e;
-}
-
-.buttonPost:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
 }
 
-.comment {
-    border: none;
-    outline: none;
-    border-bottom: 1px solid #4B5563;
-    background-color: transparent;
-    color: white;
-    font-size: 16px;
-    padding: 6px 0;
-}
-
-.icon {
-    color: orange;
+.buttonStyle:disabled:active {
+    transform: none;
 }

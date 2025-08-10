@@ -1,52 +1,101 @@
 import { useMutation } from "@tanstack/react-query";
 import { QRCheckIn } from "../../api/Transaction/transaction.api";
+import Coin10 from "../../assets/img/Transaction/coin-10.png";
+import Coin20 from "../../assets/img/Transaction/coin-20.png";
+import Coin50 from "../../assets/img/Transaction/coin-50.png";
+import Coin100 from "../../assets/img/Transaction/coin-100.png";
+import Coin500 from "../../assets/img/Transaction/coin-500.png";
+import Coin1000 from "../../assets/img/Transaction/coin-1000.png";
+import { useAuth } from "../../hooks/useAuth";
+import { CoinCard, type Coin } from "./CoinCard";
+import { useMemo, useState } from "react";
+import { Withdraw } from "./Withdraw/Withdraw";
 
-const coinOptions = [
-  { amount: 10, image: "/images/coin.svg" },
-  { amount: 100, image: "/images/coin.svg" },
-  { amount: 1000, image: "/images/coin.svg" },
+const depositeCoinOptions: Coin[] = [
+  { amount: 10, image: Coin20, price: 10000 },
+  { amount: 50, image: Coin50, price: 50000 },
+  { amount: 100, image: Coin100, price: 100000 },
+  { amount: 500, image: Coin500, price: 500000 },
+  { amount: 1000, image: Coin1000, price: 1000000 },
 ];
 
+type tabType = "Deposite" | "Withdraw";
+
 export const Deposite = () => {
+  const { auth } = useAuth();
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [tab, setTab] = useState<tabType>("Deposite");
+
   const rechargeMutation = useMutation({
     mutationFn: QRCheckIn,
+    onMutate: (data) => {
+      setSelectedAmount(data.coinAmount);
+    },
     onSuccess: (data) => {
       window.open(data.data.checkoutUrl, "_self");
-      //   console.log(data.data.checkoutUrl);
+    },
+    onSettled: () => {
+      setSelectedAmount(null);
     },
   });
 
+  const handleBuyClick = (amount: number) => {
+    rechargeMutation.mutate({ coinAmount: amount });
+  };
+
+  const tabContent = useMemo(() => {
+    switch (tab) {
+      case "Deposite":
+        return (
+          <div className="flex flex-col gap-5">
+            {depositeCoinOptions.map((coin, index) => (
+              <CoinCard
+                key={index}
+                coin={coin}
+                onBuyClick={() => handleBuyClick(coin.amount)}
+                isLoading={
+                  rechargeMutation.isPending && selectedAmount === coin.amount
+                }
+              />
+            ))}
+          </div>
+        );
+      case "Withdraw":
+        return <Withdraw />;
+    }
+  }, [tab, setTab]);
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl text-white font-semibold mb-4">Nạp xu</h2>
-      <table className="w-full table-auto border-collapse">
-        <thead>
-          <tr className="text-left border-b border-gray-600 text-gray-300">
-            <th className="p-2">Số lượng xu</th>
-            <th className="p-2 w-[15%]">Thanh toán</th>
-          </tr>
-        </thead>
-        <tbody>
-          {coinOptions.map((coin, index) => (
-            <tr key={index} className="border-b border-gray-700">
-              <td className="p-2 flex items-center gap-2">
-                <img src={coin.image} alt="coin" className="w-6 h-6" />
-                <span>{coin.amount.toLocaleString()} xu</span>
-              </td>
-              <td className="p-2 w-[15%]">
-                <button
-                  onClick={() =>
-                    rechargeMutation.mutate({ coinAmount: coin.amount })
-                  }
-                  className="bg-[#ff6740] text-white px-4 py-1 rounded hover:bg-orange-600 text-sm"
-                >
-                  Thanh toán
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="min-h-screen px-6 py-8 rounded-[10px] mx-[50px] bg-[#1e1e21] text-white">
+      <div className="h-14 mb-2.5 flex items-center justify-between">
+        <h2 className="text-xl  font-semibold mb-4 flex gap-2.5 items-center">
+          <img className="h-10 w-10" src={Coin10} />
+          <div className="items-center">InkWave Giao dịch</div>
+          <div className="flex gap-1.5 text-[18px] font-extralight border p-1 rounded-[10px]">
+            <div
+              onClick={() => setTab("Deposite")}
+              className={`rounded-[6px] py-1 px-3 font-bold cursor-pointer ${
+                tab === "Deposite" ? `bg-white text-black` : ``
+              }`}
+            >
+              Nạp xu
+            </div>
+            <div
+              onClick={() => setTab("Withdraw")}
+              className={`rounded-[6px] py-1 px-3 font-bold cursor-pointer ${
+                tab === "Withdraw" ? `bg-white text-black` : ``
+              }`}
+            >
+              Rút xu
+            </div>
+          </div>
+        </h2>
+        <div className="flex gap-2 items-center border rounded-4xl px-4 py-1 border-[#45454e]">
+          <img className="h-10 w-10" src={Coin10} />
+          <div className="text-2xl">{auth?.user.coin}</div>
+        </div>
+      </div>
+      {tabContent}
     </div>
   );
 };

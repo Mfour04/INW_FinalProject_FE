@@ -41,15 +41,18 @@ const Button = ({
     <button
       {...props}
       disabled={isLoading || props.disabled}
-      className={cn("relative", buttonVariants({ variant, size }), className)}
+      className={cn(
+        "relative flex justify-center items-center",
+        buttonVariants({ variant, size }),
+        className
+      )}
     >
-      {isLoading ? (
+      {isLoading && (
         <div className="absolute inset-0 flex justify-center items-center">
           <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white" />
         </div>
-      ) : (
-        <span className={cn({ invisible: isLoading })}>{children}</span>
       )}
+      <span className={cn({ "opacity-0": isLoading })}>{children}</span>
     </button>
   );
 };

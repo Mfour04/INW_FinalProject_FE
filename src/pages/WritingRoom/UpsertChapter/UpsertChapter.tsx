@@ -1,6 +1,6 @@
 import ArrowLeft02 from "../../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   CreateChapterRequest,
@@ -17,6 +17,10 @@ import { Title } from "./UpsertStep/Title";
 import { Content } from "./UpsertStep/Content";
 import Button from "../../../components/ButtonComponent";
 import { ScheduleAndPrice } from "./UpsertStep/ScheduleAndPrice";
+import type { ModerationAIRequest } from "../../../api/AI/ai.type";
+import { ModerationContent } from "../../../api/AI/ai.api";
+import { stripHtmlTags } from "../../../utils/regex";
+import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -30,13 +34,32 @@ const initialChapterForm: ChapterForm = {
   isPublic: false,
   chapterId: "",
   chapterNumber: 0,
-  scheduledAt: new Date(),
+  scheduledAt: null,
+};
+
+const categoryMap: Record<string, string> = {
+  sexual: "Nội dung tình dục",
+  "sexual/minors": "Nội dung tình dục liên quan đến trẻ vị thành niên",
+  harassment: "Quấy rối",
+  "harassment/threatening": "Quấy rối mang tính đe dọa",
+  hate: "Thù ghét / kỳ thị",
+  "hate/threatening": "Thù ghét mang tính đe dọa",
+  illicit: "Hoạt động bất hợp pháp",
+  "illicit/violent": "Hoạt động bất hợp pháp mang tính bạo lực",
+  "self-harm": "Tự gây hại",
+  "self-harm/intent": "Có ý định tự gây hại",
+  "self-harm/instructions": "Hướng dẫn hoặc khuyến khích tự gây hại",
+  violence: "Bạo lực",
+  "violence/graphic": "Bạo lực có yếu tố hình ảnh kinh hoàng",
 };
 
 export const UpsertChapter = () => {
   const [chapterForm, setChapterForm] =
     useState<ChapterForm>(initialChapterForm);
   const [step, setStep] = useState<number>(1);
+  const [confirmUpsertModal, setConfirmUpsertModal] = useState<boolean>(false);
+
+  const chapterFormRef = useRef(chapterForm);
 
   const toast = useToast();
 
@@ -76,6 +99,35 @@ export const UpsertChapter = () => {
     },
   });
 
+  const autoSaveMutation = useMutation({
+    mutationFn: async (
+      request: CreateChapterRequest | UpdateChapterRequest
+    ) => {
+      if (isUpdate) {
+        return UpdateChapter(request as UpdateChapterRequest);
+      } else {
+        return CreateChapter(request as CreateChapterRequest);
+      }
+    },
+    onSuccess: () => {
+      if (!isUpdate)
+        toast?.onOpen("Tự động lưu tiến trình hiện tại dưới dạng bản nháp");
+      else toast?.onOpen("Tự động lưu tiến trình chỉnh sửa hiện tại!");
+    },
+  });
+
+  const ModerationMutation = useMutation({
+    mutationFn: (request: ModerationAIRequest) => ModerationContent(request),
+    onSuccess: (data) => {
+      const mappedResult = data.data.data.sensitive.map((item) => ({
+        category: categoryMap[item.category] || item.category,
+        score: Number(item.score),
+      }));
+      if (mappedResult.length > 0) setConfirmUpsertModal(true);
+      else handleConfirmUpsert();
+    },
+  });
+
   const handleNextStep = () => {
     setStep(step + 1);
   };
@@ -85,9 +137,15 @@ export const UpsertChapter = () => {
   };
 
   const handleUpsertButtonClick = () => {
+    const rawContent = stripHtmlTags(chapterForm.content);
+    ModerationMutation.mutate({ content: rawContent });
+  };
+
+  const handleConfirmUpsert = () => {
     if (isUpdate)
       updateChapterMutation.mutate(chapterForm as UpdateChapterRequest);
     else createChapterMutation.mutate(chapterForm as CreateChapterRequest);
+    setConfirmUpsertModal(false);
   };
 
   const content = useMemo(() => {
@@ -130,10 +188,25 @@ export const UpsertChapter = () => {
         isPaid: data.chapter.isPaid,
         isPublic: data.chapter.isPublic,
         price: data.chapter.price,
-        scheduledAt: new Date(),
+        scheduledAt: data.chapter.scheduledAt,
       });
     }
   }, [data]);
+
+  useEffect(() => {
+    chapterFormRef.current = chapterForm;
+  }, [chapterForm]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentForm = chapterFormRef.current;
+      if (currentForm.title || currentForm.content) {
+        autoSaveMutation.mutate(currentForm);
+      }
+    }, 10 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isUpdate]);
 
   // <div className="flex gap-3">
   //         {/* <button>Đã lưu</button> */}
@@ -151,24 +224,32 @@ export const UpsertChapter = () => {
         <button onClick={() => navigate(-1)} className="cursor-pointer">
           <img src={ArrowLeft02} />
         </button>
-        <div className="gap-10">
+        <div className="gap-2 flex">
           <Button
             onClick={handlePreviousStep}
             disabled={step === 1}
             className="cursor-pointer bg-[#ff6740] hover:bg-orange-600"
           >
-            Previous
+            Trước
           </Button>
           <Button
             onClick={step < 3 ? handleNextStep : handleUpsertButtonClick}
             disabled={step > 3}
+            isLoading={step >= 3 && ModerationMutation.isPending}
             className="cursor-pointer bg-[#ff6740] hover:bg-orange-600"
           >
-            {step < 3 ? "Next" : "Submit"}
+            {step < 3 ? "Tiếp theo" : "Xác nhận"}
           </Button>
         </div>
       </div>
       {content}
+      <ConfirmModal
+        isOpen={confirmUpsertModal}
+        title="Nội dung nhạy cảm"
+        message="nội dung của bạn chứa yếu cố nhạy cảm. Bạn có chắc chắn muốn đăng không?"
+        onCancel={() => setConfirmUpsertModal(false)}
+        onConfirm={handleConfirmUpsert}
+      />
     </div>
   );
 };

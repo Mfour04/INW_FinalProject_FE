@@ -8,7 +8,7 @@ export const UseUpdateComment = (chapterId: string, novelId: string) => {
     return useMutation<UpdateCommentResponse, unknown, UpdateCommentPayload>({
         mutationFn: async ({ commentId, content }) => {
             const res = await UpdateComment({ commentId, content });
-            return res.data?.data;
+            return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });

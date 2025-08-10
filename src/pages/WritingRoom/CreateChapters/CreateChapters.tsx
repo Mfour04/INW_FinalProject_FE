@@ -1,13 +1,13 @@
 import StarRate from "@mui/icons-material/StarRate";
 import BookMark from "@mui/icons-material/Bookmark";
 import Comment from "@mui/icons-material/Comment";
-import Share from "@mui/icons-material/Share";
 import ModeEdit from "@mui/icons-material/ModeEdit";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GetNovelById } from "../../../api/Novels/novel.api";
 import { formatTicksToRelativeTime } from "../../../utils/date_format";
+import { TagView } from "../../../components/TagComponent";
 
 type Tabs = "Chapter" | "Draft";
 
@@ -17,7 +17,7 @@ const CreateChapters = () => {
   const { novelId } = useParams();
   const navigate = useNavigate();
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["novel", novelId],
     queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
@@ -40,7 +40,7 @@ const CreateChapters = () => {
           <h1 className="text-[44px] font-bold">{novel?.title}</h1>
           <div className="flex justify-between h-[40px]">
             <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
-              Shimonitsuki Setsu
+              {novel?.authorName}
             </p>
             <div className="flex gap-2.5">
               <div className="flex items-center gap-1 text-[20px]">
@@ -75,22 +75,16 @@ const CreateChapters = () => {
               <BookMark sx={{ height: "20px", width: "20px" }} />
               <p>Chương mới</p>
             </button>
-            <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
+            {/* <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
               <Share sx={{ height: "20px", width: "20px" }} />
               <p>Chia sẻ</p>
-            </button>
+            </button> */}
           </div>
 
           <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Phiêu lưu{" "}
-            </div>
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Huyền huyễn{" "}
-            </div>
-            <div className="border-2 rounded-[5px] px-2 py-1 bg-black text-white text-sm">
-              Tiên hiệp
-            </div>
+            {novel?.tags.map((tag) => (
+              <TagView key={tag.tagId} tag={tag} />
+            ))}
           </div>
         </div>
       </div>
@@ -142,7 +136,7 @@ const CreateChapters = () => {
             >
               <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-10 justify-between">
                 <div className="flex items-center">
-                  {chapter.chapterNumber ? (
+                  {chapter.chapterNumber > 0 ? (
                     <h1 className="w-[60px] text-[20px]">
                       {chapter.chapterNumber}
                     </h1>

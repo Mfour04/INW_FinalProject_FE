@@ -1,18 +1,25 @@
-import Typography from "../components/TypographyComponent";
-import ArrowLeftIcon from "../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg";
-import BubbleChat from "../assets/svg/HomePage/bubble-chat-stroke-rounded.svg";
-import PencilEdit from "../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
-import ArrowRightIcon from "../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg";
+import Typography from "../../components/TypographyComponent";
+import ArrowLeftIcon from "../../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg";
+import BubbleChat from "../../assets/svg/HomePage/bubble-chat-stroke-rounded.svg";
+import PencilEdit from "../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
+import ArrowRightIcon from "../../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg";
 import TrendingUp from "@mui/icons-material/TrendingUp";
 import StarRate from "@mui/icons-material/StarRate";
 import MenuBook from "@mui/icons-material/MenuBook";
 import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
 import BookMark from "@mui/icons-material/Bookmark";
-import { useQuery } from "@tanstack/react-query";
-import { GetNovels } from "../api/Novels/novel.api";
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { GetNovels, GetRecommendedNovels } from "../../api/Novels/novel.api";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TagView } from "../components/TagComponent";
+import { TagView } from "../../components/TagComponent";
+import { useAuth } from "../../hooks/useAuth";
+import { FavouriteTypeModal } from "./FavoriteTypeModal";
+import { getTags } from "../../api/Tags/tag.api";
+import type { Tag } from "../../entity/tag";
+import { UpdateUser } from "../../api/User/user.api";
+import { urlToFile } from "../../utils/img";
+import { useToast } from "../../context/ToastContext/toast-context";
 
 export const SORT_BY_FIELDS = {
   CREATED_AT: "created_at",
@@ -27,8 +34,15 @@ export const SORT_DIRECTIONS = {
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const visibleCount = 5;
 
   const navigate = useNavigate();
+
+  const { auth } = useAuth();
+  const toast = useToast();
 
   const useSortedNovels = (
     sortBy: string,
@@ -45,6 +59,33 @@ export const HomePage = () => {
           sortBy: `${sortBy}:${direction}`,
         }).then((res) => res.data.data.novels),
     });
+
+  const { data: tagData } = useQuery({
+    queryKey: ["home-tags"],
+    queryFn: () => getTags().then((res) => res.data.data),
+  });
+
+  const { data: recommendNovels } = useQuery({
+    queryKey: ["recommendedNovels", { topN: 10 }],
+    queryFn: () =>
+      GetRecommendedNovels({ topN: 10 }).then((res) => res.data.data),
+  });
+
+  const maxIndex = Math.max(
+    0,
+    (recommendNovels?.novels?.length || 0) - visibleCount
+  );
+
+  const updateUserMutation = useMutation({
+    mutationFn: (body: FormData) => UpdateUser(body),
+    onSuccess: () => {
+      setShowModal(false);
+      toast?.onOpen("Thêm các thể loại yêu thích thành công");
+    },
+    onError: () => {
+      toast?.onOpen("Có lỗi xảy ra khi thêm thể loại yêu thích");
+    },
+  });
 
   const { isLoading: isTrendingLoading, data: trendingData } = useSortedNovels(
     SORT_BY_FIELDS.CREATED_AT,
@@ -82,19 +123,71 @@ export const HomePage = () => {
     }
   };
 
+  const handleSlide = (direction: "left" | "right") => {
+    setCurrentIndex((prev) => {
+      const next =
+        direction === "right"
+          ? Math.min(prev + 1, maxIndex)
+          : Math.max(prev - 1, 0);
+      return next;
+    });
+  };
+
+  const handleConfirmFavourite = async (selectedTypes: Tag[]) => {
+    const formData = new FormData();
+
+    if (auth?.user) {
+      formData.append("userId", auth.user.userId);
+      formData.append("displayName", auth.user.displayName);
+      formData.append("bio", auth.user.bio!);
+      selectedTypes.forEach((type) => {
+        formData.append("favouriteType", type.tagId);
+      });
+    }
+
+    if (auth?.user.badgeId) {
+      auth.user.badgeId.forEach((id: string) => {
+        formData.append("badgeId", id);
+      });
+    }
+
+    if (auth?.user.avatarUrl) {
+      const avatarImg = await urlToFile(auth.user.avatarUrl);
+      if (avatarImg) {
+        formData.append("avataUrl", avatarImg);
+      } else {
+        formData.append("avataUrl", "");
+      }
+    } else {
+      formData.append("avataUrl", "");
+    }
+
+    updateUserMutation.mutate(formData);
+  };
+
+  useEffect(() => {
+    if (
+      auth?.user &&
+      Array.isArray(auth.user.favouriteType) &&
+      auth.user.favouriteType.length === 0
+    ) {
+      setShowModal(true);
+    }
+  }, [auth]);
+
   return (
     <div>
       <div className="flex-col items-center px-[50px] bg-white dark:text-white dark:bg-[#0f0f11] justify-between">
-        <Typography variant="h4" size="large" className="mb-4">
+        <Typography variant="h4" size="large" className="my-4">
           Truyện Vừa Ra Mắt
         </Typography>
         <div className="lg:h-[412px] w-full flex flex-col lg:flex-row bg-[#1c1c1f] rounded-[10px] border border-black overflow-hidden">
           <img
             onClick={() =>
-              navigate(`/novels/${trendingData?.[nNovelsIndex].novelId}`)
+              navigate(`/novels/${trendingData?.[nNovelsIndex].slug}`)
             }
             src={trendingData?.[nNovelsIndex].novelImage || undefined}
-            className="cursor-pointer w-full lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
+            className="cursor-pointer w-1/4 lg:w-1/4 h-52 lg:h-auto object-cover bg-[#d9d9d9]"
           />
 
           <div className="p-4 flex flex-col flex-1 min-w-0">
@@ -146,7 +239,7 @@ export const HomePage = () => {
             ) : (
               mostViewed?.map((novel) => (
                 <div
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() => navigate(`/novels/${novel.slug}`)}
                   key={novel.novelId}
                   className="h-[88px] mt-[15px] px-5 py-1 flex"
                 >
@@ -186,7 +279,7 @@ export const HomePage = () => {
             ) : (
               trendingData?.map((novel) => (
                 <div
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() => navigate(`/novels/${novel.slug}`)}
                   key={novel.novelId}
                   className="h-[88px] mt-[15px] px-5 py-1 flex"
                 >
@@ -227,7 +320,7 @@ export const HomePage = () => {
             ) : (
               topRated?.map((novel) => (
                 <div
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() => navigate(`/novels/${novel.slug}`)}
                   key={novel.novelId}
                   className="h-[88px] mt-[15px] px-5 py-1 flex"
                 >
@@ -258,32 +351,62 @@ export const HomePage = () => {
             )}
           </div>
         </div>
-        {/* <div className="h-[490px] w-full flex-col">
-          <div className="py-6">
-            <Typography variant="h4" size="large" >Đề cử</Typography>
-          </div>
-          <div className="gap-12 flex max-w-screen overflow-x-hidden">
-            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
-            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
-            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
-            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
-            <div className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px]" />
-          </div>
-        </div>
 
-        <div className="h-[625px] w-full flex-col">
+        {recommendNovels?.novels && (
+          <div className="h-[490px] w-full flex flex-col relative">
+            <div className="py-6">
+              <Typography variant="h4" size="large">
+                InkWave Đề cử
+              </Typography>
+            </div>
+
+            {/* Nút trái */}
+            <button
+              onClick={() => handleSlide("left")}
+              className="absolute left-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
+            >
+              ◀
+            </button>
+
+            {/* Novel list */}
+            <div className="gap-12 flex overflow-x-hidden max-w-screen transition-all duration-300">
+              {recommendNovels?.novels
+                ?.slice(currentIndex, currentIndex + visibleCount)
+                .map((novel) => (
+                  <img
+                    key={novel.novelId}
+                    src={novel.novelImage || undefined}
+                    onClick={() => navigate(`/novels/${novel.slug}`)}
+                    className="h-[280px] w-[160px] bg-[#d9d9d9] rounded-[10px] shrink-0"
+                  />
+                ))}
+            </div>
+
+            {/* Nút phải */}
+            <button
+              onClick={() => handleSlide("right")}
+              className="absolute right-0 top-[50%] -translate-y-1/2 bg-white/80 px-2 py-1 rounded-full shadow z-10"
+            >
+              ▶
+            </button>
+          </div>
+        )}
+
+        {/* <div className="h-[625px] w-full flex-col">
           <div className="py-6">
-            <Typography variant="h4" size="large" >Truyện mới cập nhật</Typography>
+            <Typography variant="h4" size="large">
+              Truyện mới cập nhật
+            </Typography>
           </div>
           <div>
             <div className="h-64 gap-12 flex max-w-screen overflow-x-hidden">
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
-              <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
+              <img className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
             </div>
             <div className="h-64 gap-12 flex max-w-screen overflow-x-hidden">
               <div className="h-[180px] w-[100px] bg-[#d9d9d9] rounded-[10px]" />
@@ -297,6 +420,16 @@ export const HomePage = () => {
           </div>
         </div> */}
       </div>
+
+      {showModal && (
+        <FavouriteTypeModal
+          allTypes={tagData!}
+          selected={auth?.user?.favouriteType ?? []}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirmFavourite}
+          isLoading={updateUserMutation.isPending}
+        />
+      )}
     </div>
   );
 };

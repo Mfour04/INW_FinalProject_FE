@@ -12,13 +12,14 @@ export interface Novel {
   tags: Tag[];
   status: number;
   isPublic: boolean;
+  allowComment: boolean;
   isPaid: boolean;
   isLock: boolean;
-  allowComment: boolean;
   price: number;
   totalChapters: number;
   totalViews: number;
   followers: number;
+  commentCount: number;
   ratingAvg: number;
   ratingCount: number;
   createAt: number;

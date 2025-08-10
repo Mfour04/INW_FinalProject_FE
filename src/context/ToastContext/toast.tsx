@@ -38,7 +38,7 @@ export const Toast = ({ message, onClose }: ToastProps) => {
   return (
     <div className="min-h-14 bg-white text-left flex items-start content-start text-black rounded-md px-4 py-2 w-72 shadow-lg relative animate-slideIn">
       <div className="flex-1 pr-6">
-        <p className="text-lg font-bold">Title</p>
+        {/* <p className="text-lg font-bold">Title</p> */}
         <p className="line-clamp-3 text-sm break-words">{message}</p>
       </div>
       <button

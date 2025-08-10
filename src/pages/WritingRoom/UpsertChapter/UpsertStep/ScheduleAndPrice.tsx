@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 type ScheduleAndPriceStepProps = {
   chapterForm: ChapterForm;
-  setChapterForm: (value: ChapterForm) => void;
+  setChapterForm: React.Dispatch<React.SetStateAction<ChapterForm>>;
 };
 
 type PublishOption = "draft" | "now" | "scheduled";
@@ -12,26 +12,40 @@ export const ScheduleAndPrice = ({
   chapterForm,
   setChapterForm,
 }: ScheduleAndPriceStepProps) => {
-  const [publishOption, setPublishOption] = useState<PublishOption>("draft");
-  const [publishDate, setPublishDate] = useState<Date | null>(null);
-  const [isPaid, setIsPaid] = useState<boolean>(false);
-  const [price, setPrice] = useState<number>(1);
+  const [publishOption, setPublishOption] = useState<PublishOption>(
+    chapterForm.isDraft
+      ? "draft"
+      : chapterForm.scheduledAt
+      ? "scheduled"
+      : "now"
+  );
+  const [publishDate, setPublishDate] = useState<Date | null>(
+    chapterForm.scheduledAt ? new Date(chapterForm.scheduledAt) : null
+  );
+  const [isPaid, setIsPaid] = useState<boolean>(chapterForm.isPaid);
+  const [price, setPrice] = useState<number>(chapterForm.price);
 
   useEffect(() => {
-    if (publishOption === "now") setPublishDate(new Date());
-    setChapterForm({
-      ...chapterForm,
-      isPaid,
-      isDraft: publishOption === "draft",
-      isPublic: publishOption !== "draft",
-      price: isPaid ? price : 0,
-      scheduledAt: publishOption === "scheduled" ? publishDate : null,
+    setChapterForm((prev) => {
+      const newForm = {
+        ...prev,
+        isPaid,
+        isDraft: publishOption === "draft",
+        isPublic: publishOption !== "draft",
+        price: isPaid ? price : 0,
+        scheduledAt: publishOption === "scheduled" ? publishDate : null,
+      };
+
+      if (JSON.stringify(prev) === JSON.stringify(newForm)) {
+        return prev;
+      }
+
+      return newForm;
     });
   }, [publishOption, isPaid, price, publishDate]);
 
   return (
     <div>
-      {/* Publish Option */}
       <div className="mb-6">
         <label className="block text-lg font-semibold text-white mb-2">
           Lưu truyện của bạn dưới dạng

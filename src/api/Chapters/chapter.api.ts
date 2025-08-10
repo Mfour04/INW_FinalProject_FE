@@ -1,14 +1,18 @@
 import http from "../../utils/http";
 import type {
+  BuyChapterApiResponse,
+  BuyChapterRequest,
   Chapters,
   CreateChapterRequest,
   CreateChapterResponse,
   NovelChapters,
+  NovelChaptersAdmin,
+  UpdateChapterLockApiResponse,
   UpdateChapterRequest,
 } from "./chapter.type";
 
 export const GetChapter = (id: string) => {
-  return http.http.get<Chapters>(`Chapters/${id}`);
+  return http.privateHttp.get<Chapters>(`Chapters/${id}`);
 };
 
 export const GetChapters = (novelId: string) =>
@@ -21,3 +25,19 @@ export const CreateChapter = (request: CreateChapterRequest) =>
 
 export const UpdateChapter = (request: UpdateChapterRequest) =>
   http.privateHttp.put<UpdateChapterRequest>("Chapters/updated", request);
+
+export const BuyChapter = (chapterId: string, request: BuyChapterRequest) =>
+  http.privateHttp.post<BuyChapterApiResponse>(
+    `Chapters/${chapterId}/buy`,
+    request
+  );
+
+export const GetChaptersAdmin = (novelId: string) =>
+  http.http.get<NovelChaptersAdmin>("Chapters/get-chapter-by-novelId", {
+    params: { novelId },
+  });
+
+export const UpdateChapterLock = (chapterId: string, isLocked: boolean) =>
+  http.privateHttp.put<UpdateChapterLockApiResponse>(
+    `Chapters/update-lock-chapter/${chapterId}?isLocked=${isLocked}`
+  );

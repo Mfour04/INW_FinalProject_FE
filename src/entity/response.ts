@@ -4,10 +4,7 @@ export type ApiResponse<T> = {
   data: T;
 };
 
-export type PaginatedApiResponse<T> = {
+export type NoneDataApiResponse = {
   success: boolean;
   message: string;
-  data: T;
-  totalPage: number;
-  totalResult: number;
 };
