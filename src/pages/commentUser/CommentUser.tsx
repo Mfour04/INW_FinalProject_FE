@@ -261,9 +261,9 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
               prev.map((c) =>
                 c.id === tempComment.id
                   ? {
-                    ...c,
-                    timestamp: formatVietnamTimeFromTicks(Date.now()),
-                  }
+                      ...c,
+                      timestamp: formatVietnamTimeFromTicks(Date.now()),
+                    }
                   : c
               )
             );
@@ -360,9 +360,9 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
               prev.map((c) =>
                 c.id === tempReply.id
                   ? {
-                    ...c,
-                    timestamp: formatVietnamTimeFromTicks(Date.now()),
-                  }
+                      ...c,
+                      timestamp: formatVietnamTimeFromTicks(Date.now()),
+                    }
                   : c
               )
             );
@@ -481,7 +481,7 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 mb-4 ">
+            <div className="flex flex-col gap-3 mb-4 mt-8">
               <input
                 className="comment w-full"
                 type="text"
@@ -531,7 +531,7 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                     {comment.id && comment.id.startsWith("temp_")
                       ? "Đang gửi..."
                       : editedComments[comment.id]?.timestamp ||
-                      comment.timestamp}
+                        comment.timestamp}
                     {editedComments[comment.id] && (
                       <span className="italic text-gray-500 ml-1"></span>
                     )}
@@ -539,7 +539,8 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                 </div>
               </div>
               <div className="flex-shrink-0 ml-4 mt-0">
-                {auth?.user && (comment.user === currentUser.user ||
+                {auth?.user &&
+                (comment.user === currentUser.user ||
                   comment.name === currentUser.name) ? (
                   <MoreUser
                     commentId={comment.id}
@@ -615,7 +616,11 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
 
               <div className="mt-4 flex space-x-6">
                 <span
-                  className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                  className={`flex items-center gap-2 ${
+                    auth?.user
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed opacity-50"
+                  }`}
                   onClick={() => auth?.user && handleToggleLike(comment.id)}
                 >
                   <img
@@ -628,8 +633,14 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                 </span>
 
                 <span
-                  className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
-                  onClick={() => auth?.user && handleReplyClick(comment.id, comment.name)}
+                  className={`flex items-center gap-2 ${
+                    auth?.user
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed opacity-50"
+                  }`}
+                  onClick={() =>
+                    auth?.user && handleReplyClick(comment.id, comment.name)
+                  }
                 >
                   <img src={CommentAdd01Icon} />
                   {editedComments[comment.id]?.replies ?? comment.replies}
@@ -662,18 +673,21 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                             className="w-10 h-10 rounded-full flex-shrink-0 mt-1"
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold truncate">{reply.name}</p>
+                            <p className="font-semibold truncate">
+                              {reply.name}
+                            </p>
                             <p className="text-xs text-gray-400 truncate">
                               {reply.user} •{" "}
                               {reply.id && reply.id.startsWith("temp_")
                                 ? "Đang gửi..."
                                 : editedComments[reply.id]?.timestamp ||
-                                reply.timestamp}
+                                  reply.timestamp}
                             </p>
                           </div>
                         </div>
                         <div className="reply flex-shrink-0 ml-4 mt-0">
-                          {auth?.user && (reply.user === currentUser.user ||
+                          {auth?.user &&
+                          (reply.user === currentUser.user ||
                             reply.name === currentUser.name) ? (
                             <MoreUser
                               commentId={reply.id}
@@ -746,15 +760,20 @@ export const CommentUser = ({ novelId, chapterId }: CommentUserProps) => {
                           </div>
                         ) : (
                           <p className="mb-1">
-                            {editedComments[reply.id]?.content ||
-                              reply.content}
+                            {editedComments[reply.id]?.content || reply.content}
                           </p>
                         )}
 
                         <div className="mt-4 flex space-x-6">
                           <span
-                            className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
-                            onClick={() => auth?.user && handleToggleLike(reply.id)}
+                            className={`flex items-center gap-2 ${
+                              auth?.user
+                                ? "cursor-pointer"
+                                : "cursor-not-allowed opacity-50"
+                            }`}
+                            onClick={() =>
+                              auth?.user && handleToggleLike(reply.id)
+                            }
                           >
                             <img
                               src={
