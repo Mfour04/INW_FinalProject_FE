@@ -24,6 +24,7 @@ import RequestList from "../pages/Admin/RequestMangement/RequestList";
 import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
+import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
 
 export const Router = () => {
   return (
@@ -33,9 +34,9 @@ export const Router = () => {
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}
       >
-        <Route index element={<></>} />
+        <Route index element={<NovelLib />} />
         <Route path="library" element={<NovelLib />} />
-        <Route path="history" element={<></>} />
+        <Route path="history" element={<ReadingProcess />} />
       </Route>
       <Route path="/novels">
         <Route index element={<Novels />} />
