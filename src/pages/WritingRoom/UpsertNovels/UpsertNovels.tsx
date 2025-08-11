@@ -347,7 +347,7 @@ export const UpsertNovels = () => {
           </label>
         </div>
 
-        <div className="col-span-7">
+        {/* <div className="col-span-7">
           <label className="block text-xl mb-1">Banner</label>
           <label
             htmlFor="banner-upload"
@@ -389,7 +389,7 @@ export const UpsertNovels = () => {
               }
             }}
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="mb-6">
