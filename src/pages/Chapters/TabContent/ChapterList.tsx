@@ -20,6 +20,11 @@ export const ChapterList = ({
 }: ChapterListProps) => {
   const chapters = novelData?.allChapters;
   const lastChapter = chapters?.[chapters?.length - 1];
+  const acceptedChapterIds = [
+    ...(novelData?.purchasedChapterIds ?? []),
+    ...(novelData?.freeChapters ?? []),
+  ];
+
   return (
     <div>
       <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
@@ -28,7 +33,9 @@ export const ChapterList = ({
           Chương {lastChapter?.chapterNumber}: {lastChapter?.title}
         </p>
         <p className="flex items-center text-[#cfcfcf]">
-          {formatTicksToRelativeTime(lastChapter?.updateAt!)}
+          {lastChapter?.updateAt
+            ? formatTicksToRelativeTime(lastChapter?.updateAt!)
+            : formatTicksToRelativeTime(lastChapter?.createAt)}
         </p>
       </div>
 
@@ -55,11 +62,15 @@ export const ChapterList = ({
                     {chapter.title}
                   </p>
                   <p className="text-sm text-gray-400">
-                    {formatTicksToRelativeTime(chapter.updateAt)}
+                    {chapter.updateAt
+                      ? formatTicksToRelativeTime(chapter.updateAt)
+                      : formatTicksToRelativeTime(chapter.createAt)}
                   </p>
                 </div>
               </div>
-              {chapter.isPaid && !novelData?.isAccessFull && <Lock />}
+              {chapter.isPaid &&
+                !novelData?.isAccessFull &&
+                !acceptedChapterIds.includes(chapter.chapterId) && <Lock />}
             </div>
           </div>
         ))}

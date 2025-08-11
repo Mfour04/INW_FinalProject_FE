@@ -137,7 +137,7 @@ export const SearchBar = () => {
       if (auth?.user.role === "Admin") {
         navigate("/admin");
       } else {
-        navigate("/admin");
+        navigate("/");
       }
       toast?.onOpen("Bạn đã đăng nhập thành công!");
     },

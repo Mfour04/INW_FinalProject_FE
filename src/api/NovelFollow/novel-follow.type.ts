@@ -1,4 +1,5 @@
 import type { ApiResponse } from "../../entity/response";
+import type { Tag } from "../../entity/tag";
 
 export type NovelFollowRequest = {
   novelId: string;
@@ -48,11 +49,13 @@ export type FollowedNovel = {
   novelBanner: string | null;
   authorId: string;
   authorName: string;
-  isCompleted: boolean;
+  status: number;
   isPaid: boolean;
   price: number;
   ratingAvg: number;
+  slug: string;
   followers: number;
+  tags: Tag[];
   totalChapters: number;
   followedAt: number;
 };

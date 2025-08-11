@@ -130,7 +130,7 @@ const RequestList = () => {
     >
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Quản lý yêu cầu rút tiền</h1>
-        <DarkModeToggler />
+        {/* <DarkModeToggler /> */}
       </div>
 
       <div className="mb-6">

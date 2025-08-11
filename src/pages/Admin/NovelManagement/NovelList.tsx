@@ -313,7 +313,7 @@ const NovelList = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Quản lý truyện
         </h1>
-        <DarkModeToggler />
+        {/* <DarkModeToggler /> */}
       </div>
       {isLoadingNovels || isLoadingAllNovels ? (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>

@@ -79,9 +79,11 @@ export const NovelRead = () => {
     enabled: !!auth?.user.userId,
   });
 
-  const isCurrentNovel = !!ReadingProcess?.data.find(
-    (process) => process.novelId === novelInfo?.novelInfo.novelId
-  );
+  const isCurrentNovel = Array.isArray(ReadingProcess?.data)
+    ? !!ReadingProcess.data.find(
+        (process) => process.novelId === novelInfo?.novelInfo?.novelId
+      )
+    : false;
 
   const CreateReadingProcessMutation = useMutation({
     mutationFn: (request: ReadingProcessReq) => CreateReadingProcess(request),
@@ -157,7 +159,7 @@ export const NovelRead = () => {
     }
   };
 
-  const cleanText = htmlToPlainText(data?.chapter.content ?? "");
+  const cleanText = htmlToPlainText(data?.chapter?.content ?? "");
 
   const { speechStatus, start, pause, stop } = useSpeech({
     text: cleanText,
