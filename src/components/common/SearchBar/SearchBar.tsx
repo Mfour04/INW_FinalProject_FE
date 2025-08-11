@@ -409,8 +409,8 @@ export const SearchBar = () => {
 
   useEffect(() => {
     if (notifications[0]) {
+      toast?.onOpen("Tác giả vừa đăng chương mới");
       notificationsRefetch();
-      toast?.onOpen("Tác giả vừa đăng " + notifications[0].message);
     }
   }, [notifications]);
 
