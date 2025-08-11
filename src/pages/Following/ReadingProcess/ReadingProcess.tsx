@@ -8,26 +8,29 @@ import Comment from "@mui/icons-material/Comment";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GetFollowerNovels } from "../../../api/NovelFollow/novel-follow.api";
-import { TagView } from "../../../components/TagComponent";
+import { useAuth } from "../../../hooks/useAuth";
+import { GetReadingProcess } from "../../../api/ReadingHistory/reading.api";
 
 type ViewAction = "Grid" | "List";
 
-export const NovelLib = () => {
+export const ReadingProcess = () => {
   const [actionState, setActionState] = useState<ViewAction>("Grid");
   const [page, setPage] = useState<number>(0);
   const limit = 12;
 
   const navigate = useNavigate();
 
+  const { auth } = useAuth();
+
   const { data } = useQuery({
-    queryKey: ["follower-novels"],
-    queryFn: () => GetFollowerNovels().then((res) => res.data.data),
+    queryKey: ["readingProcesses"],
+    queryFn: () =>
+      GetReadingProcess(auth?.user.userId!).then((res) => res.data.data),
   });
 
-  const novels = Array.isArray(data?.novelFollows.followedNovels)
-    ? data?.novelFollows.followedNovels
-    : [];
+  // const novels = Array.isArray(data)
+  //   ? data?.novelFollows.followedNovels
+  //   : [];
 
   const view = useMemo(() => {
     switch (actionState) {
@@ -35,18 +38,18 @@ export const NovelLib = () => {
         return (
           <>
             <div className="grid grid-cols-6 gap-4 mb-6">
-              {novels.map((novel) => (
+              {data?.map((novel) => (
                 <div
                   key={novel.novelId}
-                  onClick={() => navigate(`/novels/${novel.slug}`)}
+                  onClick={() => navigate(`/novels/${novel.novelId}`)}
                   className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
                 >
                   <img
-                    src={novel.novelImage || undefined}
+                    src={undefined}
                     className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
                   />
                   <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">
-                    {novel.title}
+                    {novel.chapterId}
                   </p>
                 </div>
               ))}
@@ -56,27 +59,27 @@ export const NovelLib = () => {
       case "List":
         return (
           <>
-            {novels.map((novel) => (
+            {data?.map((novel) => (
               <div
                 key={novel.novelId}
-                onClick={() => navigate(`/novels/${novel.slug}`)}
+                onClick={() => navigate(`/novels/${novel.novelId}`)}
                 className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full"
               >
                 <img
-                  src={novel.novelImage || undefined}
+                  src={undefined}
                   className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
                 />
 
                 <div className="flex flex-col flex-1 overflow-hidden justify-between">
                   <div>
                     <h2 className="text-[18px] font-medium truncate">
-                      {novel.title}
+                      {novel.chapterId}
                     </h2>
-                    <div className="flex flex-wrap gap-2 my-1">
-                      {novel.tags.map((tag) => (
-                        <TagView key={tag.tagId} tag={tag} />
-                      ))}
-                    </div>
+                    {/* <div className="flex flex-wrap gap-2 my-1">
+                        {novel.tags.map((tag) => (
+                          <TagView key={tag.tagId} tag={tag} />
+                        ))}
+                      </div> */}
                   </div>
 
                   <div className="flex justify-between w-full">
@@ -85,9 +88,7 @@ export const NovelLib = () => {
                       <div className="flex gap-2.5">
                         <div className="flex items-center gap-1 text-sm">
                           <StarRate sx={{ height: "20px", width: "20px" }} />
-                          <div className="flex items-center">
-                            {novel.ratingAvg}
-                          </div>
+                          <div className="flex items-center">{novel.id}</div>
                         </div>
                         <div className="flex items-center gap-1 text-sm ">
                           <BookMark sx={{ height: "20px", width: "20px" }} />
@@ -95,17 +96,21 @@ export const NovelLib = () => {
                         </div>
                         <div className="flex items-center gap-1 text-sm ">
                           <Comment sx={{ height: "20px", width: "20px" }} />
-                          <div>{novel.ratingAvg}</div>
+                          <div>{novel.id}</div>
                         </div>
                       </div>
-                      <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                        <span
-                          className={`h-2 w-2 rounded-full inline-block ${
-                            novel.status === 1 ? "bg-gray-400" : "bg-green-400"
-                          }`}
-                        />
-                        {novel.status === 1 ? "Hoàn thành" : "Đang diễn ra"}
-                      </div>
+                      {/* <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
+                          <span
+                            className={`h-2 w-2 rounded-full inline-block ${
+                              novel.isCompleted === true
+                                ? "bg-gray-400"
+                                : "bg-green-400"
+                            }`}
+                          />
+                          {novel.isCompleted === false
+                            ? "Hoàn thành"
+                            : "Đang diễn ra"}
+                        </div> */}
                     </div>
                   </div>
                 </div>
@@ -114,7 +119,7 @@ export const NovelLib = () => {
           </>
         );
     }
-  }, [actionState, data, novels]);
+  }, [actionState, data]);
   return (
     <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
       <div className=" justify-between items-center mb-6">

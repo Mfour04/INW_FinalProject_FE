@@ -58,7 +58,7 @@ export const Chapters = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const { data: novelData } = useQuery({
+  const { data: novelData, refetch: refetchNovelData } = useQuery({
     queryKey: ["novel", novelId, params],
     queryFn: () =>
       GetNovelByUrl(novelId!, {
@@ -71,6 +71,11 @@ export const Chapters = () => {
       }).then((res) => res.data.data),
     enabled: !!novelId,
   });
+
+  const acceptedChapterIds = [
+    ...(novelData?.purchasedChapterIds ?? []),
+    ...(novelData?.freeChapters ?? []),
+  ];
 
   const novelInfo = novelData?.novelInfo;
 
@@ -113,6 +118,7 @@ export const Chapters = () => {
     }) => BuyChapter(chapterId, request),
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
+      refetchNovelData();
     },
   });
 
@@ -126,6 +132,7 @@ export const Chapters = () => {
     }) => BuyNovel(novelId, request),
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
+      refetchNovelData();
     },
   });
 
@@ -141,7 +148,11 @@ export const Chapters = () => {
     price: number
   ) => {
     setSelectedChapterId(chapterId);
-    if (isPaid && !novelData?.isAccessFull) {
+    if (
+      isPaid &&
+      !novelData?.isAccessFull &&
+      !acceptedChapterIds.includes(chapterId)
+    ) {
       setChapterPrice(price);
       if (!auth?.user)
         toast?.onOpen(
@@ -174,7 +185,7 @@ export const Chapters = () => {
   const confirmBuyNovel = () => {
     if (novelId && novelInfo)
       BuyNovelMutation.mutate({
-        novelId: novelId,
+        novelId: novelInfo.novelId,
         request: { coinCost: novelInfo?.price },
       });
     setIsBuyNovelOpen(false);
@@ -320,11 +331,16 @@ export const Chapters = () => {
             {novelInfo?.status === 1 && (
               <Button
                 onClick={() => setIsBuyNovelOpen(true)}
-                className=" bg-[#ff6740] w-[100px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
+                disabled={novelData?.isAccessFull}
+                className={` ${
+                  novelData?.isAccessFull
+                    ? `bg-[#45454e]`
+                    : `bg-[#ff6740] hover:bg-orange-600`
+                } w-[100px]  border-none px-4 py-1 rounded text-[18px]`}
               >
-                <div className="flex items-center justify-center gap-2.5">
+                <div className="flex items-center justify-center gap-2.5 w-fit whitespace-nowrap">
                   <ShoppingCart sx={{ height: "20px", width: "20px" }} />
-                  <p>Mua</p>
+                  {novelData?.isAccessFull ? <p>Đã Mua</p> : <p>Mua</p>}
                 </div>
               </Button>
             )}
@@ -363,14 +379,14 @@ export const Chapters = () => {
           >
             Danh sách chương
           </button>
-          <button
+          {/* <button
             onClick={() => setTab("Comment")}
             className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
               tab === "Comment" ? "bg-[#2e2e2e]" : undefined
             } `}
           >
             Bình luận (2)
-          </button>
+          </button> */}
           <button
             onClick={() => setTab("Rating")}
             className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${

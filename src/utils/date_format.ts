@@ -51,7 +51,7 @@ export const formatTicksToRelativeTime = (
 
   if (!m) return "Không có dữ liệu thời gian";
 
-  const vietnamTime = m.add(0, "hours");
+  const vietnamTime = m.add(-7, "hours");
 
   return vietnamTime.fromNow();
 };

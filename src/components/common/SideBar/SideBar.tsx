@@ -33,7 +33,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/following",
       isHeader: true,
       subItems: [
-        { label: "Cập nhật", path: "/following/updates" },
+        // { label: "Cập nhật", path: "/following/updates" },
         { label: "Thư viện", path: "/following/library" },
         { label: "Lịch sử", path: "/following/history" },
       ],
@@ -52,7 +52,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       isHeader: true,
       subItems: [
         { label: "Diễn đàn", path: "/blogs" },
-        { label: "Kết nối", path: "/community/connect" },
+        // { label: "Kết nối", path: "/community/connect" },
       ],
     },
     {

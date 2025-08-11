@@ -156,7 +156,7 @@ const TransactionList = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Quản lý giao dịch
         </h1>
-        <DarkModeToggler />
+        {/* <DarkModeToggler /> */}
       </div>
 
       {/* Card Section */}

@@ -258,7 +258,7 @@ const UserList = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Quản lý người dùng
         </h1>
-        <DarkModeToggler />
+        {/* <DarkModeToggler /> */}
       </div>
       {isLoadingUsers || isLoadingAllUsers ? (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>

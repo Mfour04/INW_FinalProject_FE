@@ -158,9 +158,9 @@ export const Withdraw = () => {
           <div className="flex items-center justify-between">
             <div>Tài khoản ngân hàng của bạn</div>
             <div className="gap-10">
-              <button className="h-7 w-7 rounded bg-[#2e2e2e] hover:bg-[#ff6740] text-black p-1 mr-2">
+              {/* <button className="h-7 w-7 rounded bg-[#2e2e2e] hover:bg-[#ff6740] text-black p-1 mr-2">
                 <img src={Pen} alt="" />
-              </button>
+              </button> */}
               <button
                 onClick={handleDeleteBankButtonClick}
                 className="h-7 w-7 rounded bg-[#2e2e2e] hover:bg-[#ff6740] text-black p-1"
