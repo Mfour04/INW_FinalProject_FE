@@ -134,7 +134,8 @@ export const SearchBar = () => {
     onSuccess: (data) => {
       const { accessToken, refreshToken, user } = data.data.token;
       setAuth({ accessToken, refreshToken, user });
-      if (auth?.user.role === "Admin") {
+      if (user.role === "Admin") {
+        console.log(user.role);
         navigate("/admin");
       } else {
         navigate("/");
@@ -408,8 +409,8 @@ export const SearchBar = () => {
 
   useEffect(() => {
     if (notifications[0]) {
+      toast?.onOpen("Tác giả vừa đăng chương mới");
       notificationsRefetch();
-      toast?.onOpen("Tác giả vừa đăng " + notifications[0].message);
     }
   }, [notifications]);
 
