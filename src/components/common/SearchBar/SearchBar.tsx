@@ -134,7 +134,8 @@ export const SearchBar = () => {
     onSuccess: (data) => {
       const { accessToken, refreshToken, user } = data.data.token;
       setAuth({ accessToken, refreshToken, user });
-      if (auth?.user.role === "Admin") {
+      if (user.role === "Admin") {
+        console.log(user.role);
         navigate("/admin");
       } else {
         navigate("/");
