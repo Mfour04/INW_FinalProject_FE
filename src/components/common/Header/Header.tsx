@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import LoginLogo from "../../../assets/img/SearchBar/login_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
@@ -21,11 +21,13 @@ import {
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate, Link } from "react-router-dom";
-import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/HomePage";
+import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSortedNovels";
 import { getTags } from "../../../api/Tags/tag.api";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
 import NotificationDropdown from "./NotificationDropdown";
 import { GetUserNotifications } from "../../../api/Notification/noti.api";
+import { SearchBar } from "./SearchBar";
+import { DarkModeToggler } from "../../DarkModeToggler";
 
 const initialLoginForm: LoginParams = {
   username: "",
@@ -73,7 +75,7 @@ export const AUTH_ACTIONS = {
 
 export type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
 
-export const SearchBar = () => {
+export const Header = () => {
   const { auth, setAuth, logout } = useAuth();
   const toast = useToast();
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
@@ -416,206 +418,148 @@ export const SearchBar = () => {
 
   return (
     <>
-      <div className="h-[90px] flex items-center justify-between px-12 md:px-13 lg:px-[50px] bg-white dark:bg-[#000000]">
-        <div className="relative w-full max-w-[650px]">
-          <button
-            className="absolute left-3 top-1/2 -translate-y-1/2"
-            onClick={handleSearchNovels}
-          >
-            <img
-              src={Search}
-              alt="Search"
-              className="w-5 h-5 opacity-70 hover:opacity-100"
-            />
-          </button>
-          <input
-            type="text"
-            placeholder="Tìm Kiếm..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-11 text-white rounded-[10px] pl-10 pr-4 py-2 bg-[#1c1c1f] border-0 focus:outline-none focus:ring-0"
-          />
-          {searchTerm && (
-            <button
-              className="absolute right-9 top-1/2 -translate-y-1/2"
-              onClick={() => setSearchTerm("")}
-            >
-              <img
-                src={Delete}
-                alt="Delete"
-                className="w-5 h-5 opacity-70 hover:opacity-100"
-              />
-            </button>
-          )}
+      <div className="h-[90px] flex items-center justify-between px-12 lg:px-[50px] bg-white dark:bg-[#000000]">
+        {/* Search + Filter */}
+        <SearchBar
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          onSubmit={handleSearchNovels}
+          sortOptions={sortOptions} // [{value:'created_at_asc', label:'Ngày ra mắt ↑'}, ...]
+          searchIcon={Search}
+          clearIcon={Delete}
+          filterIcon={SearchArea}
+          // onApplyFilters={({ sort, tags }) => {
+          //   // lưu vào state của bạn nếu cần:
+          //   setSelectedSort(sort);       // nhớ tạo state selectedSort ở parent
+          //   setSelectedTags(tags);       // mảng string
+          //   // gọi API lọc nếu muốn
+          // }}
+          initialSort=""
+          initialTags={[]}
+        />
 
-          <button
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            onClick={() => setSearchTerm("")}
-          >
-            <img
-              src={SearchArea}
-              alt="SearchArea"
-              onClick={() => setShowDropdown((prev) => !prev)}
-              className="w-5 h-5 opacity-70 hover:opacity-100"
-            />
-          </button>
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-64 bg-[#2e2e2e] rounded-lg shadow-lg z-20 p-4 space-y-4 text-white">
-              <div>
-                <label className="block mb-1 text-sm font-semibold">
-                  Sắp xếp theo
-                </label>
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value)}
-                  className="w-full bg-[#1c1c1f] text-white px-3 py-2 rounded-md focus:outline-none"
-                >
-                  <option value="" disabled>
-                    Chọn kiểu sắp xếp
-                  </option>
-                  {sortOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <DarkModeToggler/>
 
-              <div>
-                <label className="block mb-1 text-sm font-semibold">
-                  Lọc theo tag
-                </label>
-                <select
-                  value={selectedTag}
-                  onChange={(e) => setSelectedTag(e.target.value)}
-                  className="w-full bg-[#1c1c1f] text-white px-3 py-2 rounded-md focus:outline-none"
-                >
-                  <option value="" disabled>
-                    Chọn tag
-                  </option>
-                  {tagOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center h-[50px] ml-4 shrink-0 gap-8">
+        {/* Actions */}
+        <div className="flex items-center h-[50px] ml-4 shrink-0 gap-6">
+          {/* Notification */}
           <div className="relative">
-            <img
-              src={Notification}
-              alt="Notification"
-              className="cursor-pointer"
+            <button
               onClick={() => setIsNotificationOpen((prev) => !prev)}
-            />
+              className="grid place-items-center h-10 w-10 rounded-full hover:bg-zinc-800/40 transition"
+              aria-haspopup="menu"
+              aria-expanded={isNotificationOpen}
+              aria-label="Thông báo"
+            >
+              <img src={Notification} alt="" className="h-5 w-5" />
+            </button>
             {isNotificationOpen && (
               <NotificationDropdown notifications={userNotifications} />
             )}
           </div>
-          <img
-            src={auth?.user.avatarUrl || DefaultAvatar}
-            alt="User Avatar"
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover cursor-pointer bg-white"
+
+          {/* Avatar */}
+          <button
             onClick={() => setIsPopupOpen(!isPopupOpen)}
-          />
+            className="h-11 w-11 rounded-full ring-1 ring-zinc-700 hover:ring-orange-500/60 transition overflow-hidden bg-white"
+            aria-haspopup="dialog"
+            aria-expanded={isPopupOpen}
+            aria-label="Tài khoản"
+          >
+            <img
+              src={auth?.user.avatarUrl || DefaultAvatar}
+              alt="User Avatar"
+              className="h-full w-full object-cover"
+            />
+          </button>
         </div>
       </div>
+
+      {/* Account / Login Popover */}
       {isPopupOpen && (
         <>
           {auth?.user ? (
-            <div className="absolute top-20 right-12 mt-[-6px] w-[210px] h-[#281px] bg-[#1c1c1f] text-white rounded-xl shadow-lg z-50 p-4">
-              <div className="flex items-center gap-4">
-                <img
-                  src={auth.user.avatarUrl || DefaultAvatar}
-                  alt="User Avatar"
-                  className="w-15 h-15 rounded-full object-cover bg-white"
-                />
-                <div className="flex flex-col gap-0.5">
-                  <div className="font-bold text-sm">
+            <div className="absolute top-[90px] right-12 mt-2 w-[260px] rounded-2xl border border-zinc-800 bg-[#111114] text-white shadow-2xl z-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-[52px] w-[52px] rounded-full overflow-hidden ring-1 ring-zinc-700 bg-white">
+                  <img
+                    src={auth.user.avatarUrl || DefaultAvatar}
+                    alt="User Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm truncate">
                     {auth.user.displayName}
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-zinc-400 truncate">
                     @{auth.user.displayName}
                   </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      🥇<span>{auth.user.badgeId.length ?? 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      🔥<span>1</span>
-                    </div>
+                  <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-300">
+                    <span className="flex items-center gap-1">🥇 {auth.user.badgeId.length ?? 0}</span>
+                    <span className="flex items-center gap-1">🔥 1</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mt-4">
-                <div className="text-yellow-300 font-bold text-sm">
-                  🪙 {auth.user.coin}
+                <div className="text-amber-300 font-bold text-sm">
+                  🪙 {(auth.user.coin ?? 0).toLocaleString("vi-VN")}
                 </div>
                 <button
                   onClick={handleDepositClick}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold"
+                  className="rounded-full px-3 py-1 text-xs font-semibold text-white
+                           bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]
+                           hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]
+                           shadow-[0_8px_24px_rgba(255,103,64,0.35)] transition"
                 >
                   Nạp thêm
                 </button>
               </div>
 
-              <div className="mt-4 pt-3  space-y-2 text-sm border-t border-white">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 cursor-pointer hover:text-orange-400"
-                >
+              <div className="mt-4 pt-3 space-y-2 text-sm border-t border-zinc-800">
+                <Link to="/profile" className="flex items-center gap-2 hover:text-orange-400 transition">
                   <Person /> <span>Trang cá nhân</span>
                 </Link>
-                <div
+                <button
                   onClick={handleTransactionHistoryClick}
-                  className="flex items-center gap-2 cursor-pointer hover:text-orange-400"
+                  className="flex items-center gap-2 hover:text-orange-400 transition"
                 >
                   <History /> <span>Lịch sử giao dịch</span>
-                </div>
-                <div className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                </button>
+                <div className="flex items-center gap-2 hover:text-orange-400 transition cursor-pointer">
                   <Settings /> <span>Cài đặt</span>
                 </div>
               </div>
 
-              <div
+              <button
                 onClick={() => handleLogoutClick()}
-                className="mt-4 border-t border-white pt-3 text-sm cursor-pointer hover:text-red-400 flex items-center gap-2"
+                className="mt-3 w-full rounded-lg border border-zinc-800 py-2 text-sm text-zinc-300 hover:text-red-400 hover:border-red-400 transition flex items-center justify-center gap-2"
               >
                 <Logout /> <span>Đăng xuất</span>
-              </div>
+              </button>
             </div>
           ) : (
-            <div className="fixed inset-0 z-50 flex items-center justify-center  bg-[rgba(0,0,0,0.4)]">
-              <div className="w-[350px] bg-white shadow-lg rounded-xl p-6 transform transition-all duration-200 ease-out scale-100 opacity-100">
-                <div className="max-h-[50px] w-full overflow-hidden flex justify-center items-center mb-4">
-                  <img
-                    src={LoginLogo}
-                    alt="Login Logo"
-                    className="max-w-42 h-auto object-contain"
-                  />
-                </div>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="relative w-[360px] bg-white rounded-2xl p-6 shadow-2xl">
                 <button
                   onClick={onLoginCloseClick}
-                  className="absolute cursor-pointer top-2 right-3 text-gray-500 hover:text-gray-700 text-xl"
-                  aria-label="Đóng popup"
+                  className="absolute top-2.5 right-3 h-8 w-8 grid place-items-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 transition text-xl"
+                  aria-label="Đóng"
                 >
                   &times;
                 </button>
-                <h2 className="text-lg font-semibold text-center mb-2">
-                  Chào mừng đến với InkWave
-                </h2>
-                <p className="text-sm text-center text-gray-600 mb-4">
-                  Gõ cửa thế giới truyện
-                </p>
 
-                <button className="w-full border border-gray-300 rounded-md py-2 flex items-center justify-center gap-2 mb-4 hover:bg-gray-100">
+                <div className="h-[46px] w-full flex items-center justify-center mb-4 overflow-hidden">
+                  <img src={LoginLogo} alt="Login Logo" className="max-w-[168px] h-auto object-contain" />
+                </div>
+
+                <h2 className="text-lg font-semibold text-center mb-1">Chào mừng đến với InkWave</h2>
+                <p className="text-sm text-center text-zinc-600 mb-4">Gõ cửa thế giới truyện</p>
+
+                <button className="w-full border border-zinc-300 rounded-lg py-2.5 flex items-center justify-center gap-2 mb-3 hover:bg-zinc-50 transition">
                   <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
-                  <span>Đăng nhập bằng Google</span>
+                  <span className="text-sm">Đăng nhập bằng Google</span>
                 </button>
 
                 {content}
@@ -626,4 +570,4 @@ export const SearchBar = () => {
       )}
     </>
   );
-};
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "./App.css";
-import { SearchBar } from "./components/common/SearchBar/SearchBar";
+import { Header } from "./components/common/Header/Header";
 import { SideBar } from "./components/common/SideBar/SideBar";
 import { AdminSidebar } from "./components/common/SideBar/AdminSidebar";
 import { Router } from "./Routes/Router";
@@ -63,7 +63,7 @@ function App() {
           </button>
         )}
 
-        <SearchBar />
+        <Header />
 
         <div className="flex-1 overflow-y-auto">
           <Router />
