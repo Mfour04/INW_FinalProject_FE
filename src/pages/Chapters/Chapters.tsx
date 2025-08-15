@@ -7,7 +7,7 @@ import SwapVert from "@mui/icons-material/SwapVert";
 
 import NotificationActive from "@mui/icons-material/NotificationsActive";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -20,11 +20,13 @@ import { useAuth } from "../../hooks/useAuth";
 import type {
   NovelFollowerRequest,
   NovelFollowRequest,
+  UpdateFollowStatusReq,
 } from "../../api/NovelFollow/novel-follow.type";
 import {
   FollowNovel,
   GetNovelFollowers,
   UnfollowNovel,
+  UpdateFollowStatus,
 } from "../../api/NovelFollow/novel-follow.api";
 import { FollowPopup } from "./FollowPopup";
 import Button from "../../components/ButtonComponent";
@@ -49,6 +51,7 @@ export const Chapters = () => {
     page: 0,
     sortBy: "chapter_number:asc",
   });
+
   const [chapterPrice, setChapterPrice] = useState(0);
   const [selectedChapterId, setSelectedChapterId] = useState<string>("");
 
@@ -93,6 +96,12 @@ export const Chapters = () => {
     enabled: !!novelId,
   });
 
+  const follower = Array.isArray(novelFollowers?.followers)
+    ? novelFollowers.followers.find(
+        (follower) => follower.userId === auth?.user.userId
+      )
+    : undefined;
+
   const NovelFollowMutation = useMutation({
     mutationFn: (request: NovelFollowRequest) => FollowNovel(request),
     onSuccess: (data) => {
@@ -108,6 +117,11 @@ export const Chapters = () => {
       refetchNovelFollowers();
     },
   });
+
+  const UpdateFollowStatusMutation = useMutation({
+    mutationFn: (request: UpdateFollowStatusReq) => UpdateFollowStatus(request),
+  });
+
   const BuyChapterMutation = useMutation({
     mutationFn: ({
       chapterId,
@@ -135,12 +149,6 @@ export const Chapters = () => {
       refetchNovelData();
     },
   });
-
-  const follower = Array.isArray(novelFollowers?.followers)
-    ? novelFollowers.followers.find(
-        (follower) => follower.userId === auth?.user.userId
-      )
-    : undefined;
 
   const handleClickChapter = (
     chapterId: string,
@@ -191,13 +199,28 @@ export const Chapters = () => {
     setIsBuyNovelOpen(false);
   };
 
+  const handleNotifyChange = () => {
+    UpdateFollowStatusMutation.mutate({
+      isNotification: !follower?.isNotification,
+      novelFollowId: follower?.followerId!,
+      readingStatus: follower?.readingStatus!,
+    });
+  };
+
+  const handleStatusChange = (status: number) => {
+    UpdateFollowStatusMutation.mutate({
+      isNotification: follower?.isNotification!,
+      novelFollowId: follower?.followerId!,
+      readingStatus: status,
+    });
+  };
+
   const tabContent = useMemo(() => {
     switch (tab) {
       case "Comment":
         break;
       case "Rating":
         return <RatingSection novelInfo={novelInfo!} />;
-        break;
       case "Chapter":
         return (
           <ChapterList
@@ -317,11 +340,13 @@ export const Chapters = () => {
                 {showFollowPopup && (
                   <div className="absolute left-57 top-[-15px] z-50 mt-2">
                     <FollowPopup
-                      notify={false}
-                      status="Đang đọc"
+                      notify={follower.isNotification}
+                      status={follower.readingStatus}
                       onUnfollow={() =>
                         handleUnfollowNovel(follower.followerId)
                       }
+                      onNotifyChange={handleNotifyChange}
+                      onStatusChange={(status) => handleStatusChange(status)}
                     />
                   </div>
                 )}
