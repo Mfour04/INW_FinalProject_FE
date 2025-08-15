@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -11,7 +11,11 @@ import { useToast } from "../../context/ToastContext/toast-context";
 import { TOKENS } from "./ui/tokens";
 import { Hero } from "./components/Hero";
 import { RecommendCarousel } from "./sections/RecommendCarousel";
-import { useSortedNovels, SORT_BY_FIELDS, SORT_DIRECTIONS } from "./hooks/useSortedNovels";
+import {
+  useSortedNovels,
+  SORT_BY_FIELDS,
+  SORT_DIRECTIONS,
+} from "./hooks/useSortedNovels";
 import type { TagType as Tag, Novel } from "./types";
 
 import TrendingUp from "@mui/icons-material/TrendingUp";
@@ -20,12 +24,12 @@ import MenuBook from "@mui/icons-material/MenuBook";
 import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
 import BookMark from "@mui/icons-material/Bookmark";
 import PencilEdit from "../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
-import { Metric } from "./components/ListRow";
 
 import VerticalColumn from "./discovery/VerticalColumn";
 import HorizontalRail from "./discovery/HorizontalRail";
+import { Metric } from "./components/ListRow/Metric";
 
-export default function HomePage() {
+export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -43,7 +47,8 @@ export default function HomePage() {
 
   const { data: recommend } = useQuery({
     queryKey: ["recommendedNovels", { topN: 10 }],
-    queryFn: () => GetRecommendedNovels({ topN: 10 }).then((res) => res.data.data),
+    queryFn: () =>
+      GetRecommendedNovels({ topN: 10 }).then((res) => res.data.data),
     staleTime: 60_000,
   });
 
@@ -54,26 +59,48 @@ export default function HomePage() {
 
   const updateUserMutation = useMutation({
     mutationFn: (body: FormData) => UpdateUser(body),
-    onSuccess: () => { setShowModal(false); toast?.onOpen("Thêm các thể loại yêu thích thành công"); },
-    onError: () => { toast?.onOpen("Có lỗi xảy ra khi thêm thể loại yêu thích"); },
+    onSuccess: () => {
+      setShowModal(false);
+      toast?.onOpen("Thêm các thể loại yêu thích thành công");
+    },
+    onError: () => {
+      toast?.onOpen("Có lỗi xảy ra khi thêm thể loại yêu thích");
+    },
   });
 
-  const { data: trendingData } = useSortedNovels(SORT_BY_FIELDS.CREATED_AT, SORT_DIRECTIONS.DESC, 0, 12);
-  const { data: mostViewed } = useSortedNovels(SORT_BY_FIELDS.TOTAL_VIEWS, SORT_DIRECTIONS.DESC, 0, 12);
-  const { data: topRated } = useSortedNovels(SORT_BY_FIELDS.RATING_AVG, SORT_DIRECTIONS.DESC, 0, 12);
+  const { data: trendingData } = useSortedNovels(
+    SORT_BY_FIELDS.CREATED_AT,
+    SORT_DIRECTIONS.DESC,
+    0,
+    12
+  );
+  const { data: mostViewed } = useSortedNovels(
+    SORT_BY_FIELDS.TOTAL_VIEWS,
+    SORT_DIRECTIONS.DESC,
+    0,
+    12
+  );
+  const { data: topRated } = useSortedNovels(
+    SORT_BY_FIELDS.RATING_AVG,
+    SORT_DIRECTIONS.DESC,
+    0,
+    12
+  );
 
   const handleNextNovels = () => {
-    const len = (trendingData?.length || 0);
+    const len = trendingData?.length || 0;
     if (!len) return;
     setNNovelsIndex((p) => (p + 1) % len);
   };
   const handlePrevNovels = () => {
-    const len = (trendingData?.length || 0);
+    const len = trendingData?.length || 0;
     if (!len) return;
     setNNovelsIndex((p) => (p - 1 + len) % len);
   };
   const handleSlide = (dir: "left" | "right") =>
-    setCurrentIndex((prev) => (dir === "right" ? Math.min(prev + 1, maxIndex) : Math.max(prev - 1, 0)));
+    setCurrentIndex((prev) =>
+      dir === "right" ? Math.min(prev + 1, maxIndex) : Math.max(prev - 1, 0)
+    );
 
   const handleConfirmFavourite = async (selectedTypes: Tag[]) => {
     const formData = new FormData();
@@ -83,7 +110,8 @@ export default function HomePage() {
       formData.append("bio", auth.user.bio ?? "");
       selectedTypes.forEach((t) => formData.append("favouriteType", t.tagId));
     }
-    if (auth?.user?.badgeId) auth.user.badgeId.forEach((id: string) => formData.append("badgeId", id));
+    if (auth?.user?.badgeId)
+      auth.user.badgeId.forEach((id: string) => formData.append("badgeId", id));
     if (auth?.user?.avatarUrl) {
       const avatarImg = await urlToFile(auth.user.avatarUrl);
       formData.append("avataUrl", avatarImg || "");
@@ -92,7 +120,11 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (auth?.user && Array.isArray(auth.user.favouriteType) && auth.user.favouriteType.length === 0) {
+    if (
+      auth?.user &&
+      Array.isArray(auth.user.favouriteType) &&
+      auth.user.favouriteType.length === 0
+    ) {
       setShowModal(true);
     }
   }, [auth]);
@@ -109,36 +141,58 @@ export default function HomePage() {
           index={nNovelsIndex}
           onPrev={handlePrevNovels}
           onNext={handleNextNovels}
-          onRead={() => hero && navigate(`/novels/${hero.slug ?? hero.novelId}`)}
+          onRead={() => {
+            console.log(hero.slug);
+            navigate(`/novels/${hero.slug}`);
+          }}
         />
 
         <div className="mt-10 grid gap-7 md:grid-cols-2">
           <VerticalColumn
             title="Đọc nhiều nhất"
-            icon={<MenuBook/>}
+            icon={<MenuBook />}
             items={(mostViewed as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            leftMeta={(n) => <Metric icon={<RemoveRedEye sx={{ height: 16 }} />} value={n.totalViews} />}
-            rightMeta={(n) => <Metric icon={<BookMark sx={{ height: 16 }} />} value={n.ratingCount} />}
+            leftMeta={(n) => (
+              <Metric
+                icon={<RemoveRedEye sx={{ height: 16 }} />}
+                value={n.totalViews}
+              />
+            )}
+            rightMeta={(n) => (
+              <Metric
+                icon={<BookMark sx={{ height: 16 }} />}
+                value={n.ratingCount}
+              />
+            )}
           />
 
           <VerticalColumn
             title="Đánh giá cao"
-            icon={<StarRate/>}
+            icon={<StarRate />}
             items={(topRated as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            leftMeta={(n) => <Metric icon={<StarRate sx={{ height: 16 }} />} value={n.ratingCount} />}
-            rightMeta={(n) => <Metric icon={<img className="h-4" src={PencilEdit} />} value={n.totalViews} />}
+            leftMeta={(n) => (
+              <Metric
+                icon={<StarRate sx={{ height: 16 }} />}
+                value={n.ratingCount}
+              />
+            )}
+            rightMeta={(n) => (
+              <Metric
+                icon={<img className="h-4" src={PencilEdit} />}
+                value={n.totalViews}
+              />
+            )}
           />
 
           <HorizontalRail
             title="Xu hướng mới"
-          icon={<TrendingUp fontSize="small" />}
+            icon={<TrendingUp fontSize="small" />}
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             onSeeMore={() => navigate("/trending")}
           />
-
         </div>
 
         {recommend?.novels?.length ? (
@@ -167,4 +221,4 @@ export default function HomePage() {
       )}
     </div>
   );
-}
+};

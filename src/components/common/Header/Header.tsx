@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import LoginLogo from "../../../assets/img/SearchBar/login_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
@@ -21,13 +21,16 @@ import {
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate, Link } from "react-router-dom";
-import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSortedNovels";
+import {
+  SORT_BY_FIELDS,
+  SORT_DIRECTIONS,
+} from "../../../pages/Home/hooks/useSortedNovels";
 import { getTags } from "../../../api/Tags/tag.api";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
-import NotificationDropdown from "./NotificationDropdown";
 import { GetUserNotifications } from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
 import { DarkModeToggler } from "../../DarkModeToggler";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 const initialLoginForm: LoginParams = {
   username: "",
@@ -419,7 +422,6 @@ export const Header = () => {
   return (
     <>
       <div className="h-[90px] flex items-center justify-between px-12 lg:px-[50px] bg-white dark:bg-[#000000]">
-        {/* Search + Filter */}
         <SearchBar
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
@@ -438,7 +440,7 @@ export const Header = () => {
           initialTags={[]}
         />
 
-        <DarkModeToggler/>
+        <DarkModeToggler />
 
         {/* Actions */}
         <div className="flex items-center h-[50px] ml-4 shrink-0 gap-6">
@@ -496,7 +498,9 @@ export const Header = () => {
                     @{auth.user.displayName}
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-300">
-                    <span className="flex items-center gap-1">🥇 {auth.user.badgeId.length ?? 0}</span>
+                    <span className="flex items-center gap-1">
+                      🥇 {auth.user.badgeId.length ?? 0}
+                    </span>
                     <span className="flex items-center gap-1">🔥 1</span>
                   </div>
                 </div>
@@ -518,7 +522,10 @@ export const Header = () => {
               </div>
 
               <div className="mt-4 pt-3 space-y-2 text-sm border-t border-zinc-800">
-                <Link to="/profile" className="flex items-center gap-2 hover:text-orange-400 transition">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 hover:text-orange-400 transition"
+                >
                   <Person /> <span>Trang cá nhân</span>
                 </Link>
                 <button
@@ -551,11 +558,19 @@ export const Header = () => {
                 </button>
 
                 <div className="h-[46px] w-full flex items-center justify-center mb-4 overflow-hidden">
-                  <img src={LoginLogo} alt="Login Logo" className="max-w-[168px] h-auto object-contain" />
+                  <img
+                    src={LoginLogo}
+                    alt="Login Logo"
+                    className="max-w-[168px] h-auto object-contain"
+                  />
                 </div>
 
-                <h2 className="text-lg font-semibold text-center mb-1">Chào mừng đến với InkWave</h2>
-                <p className="text-sm text-center text-zinc-600 mb-4">Gõ cửa thế giới truyện</p>
+                <h2 className="text-lg font-semibold text-center mb-1">
+                  Chào mừng đến với InkWave
+                </h2>
+                <p className="text-sm text-center text-zinc-600 mb-4">
+                  Gõ cửa thế giới truyện
+                </p>
 
                 <button className="w-full border border-zinc-300 rounded-lg py-2.5 flex items-center justify-center gap-2 mb-3 hover:bg-zinc-50 transition">
                   <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
@@ -570,4 +585,4 @@ export const Header = () => {
       )}
     </>
   );
-}
+};

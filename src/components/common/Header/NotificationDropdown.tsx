@@ -1,26 +1,14 @@
 import type { GetUserNotificationRes } from "../../../api/Notification/noti.type";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
-import {
-  blogFormatVietnamTimeFromTicks,
-  formatTicksToRelativeTime,
-  formatVietnamTimeFromTicks,
-} from "../../../utils/date_format";
-
-interface Notification {
-  id: string;
-  avatar: string;
-  content: string;
-  time: string;
-  isRead: boolean;
-}
+import { formatTicksToRelativeTime } from "../../../utils/date_format";
 
 interface NotificationDropdownProps {
   notifications?: GetUserNotificationRes[];
 }
 
-export default function NotificationDropdown({
+export const NotificationDropdown = ({
   notifications,
-}: NotificationDropdownProps) {
+}: NotificationDropdownProps) => {
   return (
     <div className="absolute top-full right-0 mt-2 w-80 bg-[#18191A] text-white rounded-lg shadow-lg overflow-hidden z-50">
       <div className="px-4 py-2 font-semibold border-b border-gray-700">
@@ -51,4 +39,4 @@ export default function NotificationDropdown({
       </div>
     </div>
   );
-}
+};

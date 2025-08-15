@@ -2,7 +2,13 @@ import React from "react";
 import Typography from "../../../components/TypographyComponent";
 import { HEADER } from "../ui/tokens";
 
-export const SectionHeader: React.FC<{ icon?: React.ReactNode; title: string; right?: React.ReactNode }>=({ icon, title, right })=> (
+export type SectionHeaderProps = {
+  icon?: React.ReactNode;
+  title: string;
+  right?: React.ReactNode;
+};
+
+export const SectionHeader = ({ icon, title, right }: SectionHeaderProps) => (
   <div className={HEADER}>
     <div className="flex items-center gap-3">
       {icon}

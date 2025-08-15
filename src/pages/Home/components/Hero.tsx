@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Typography from "../../../components/TypographyComponent";
 import type { Novel } from "../types";
@@ -8,7 +8,7 @@ import StarRate from "@mui/icons-material/StarRate";
 import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
 import PencilEdit from "../../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
 
-export const Hero: React.FC<{
+export type HeroProps = {
   title: string;
   hero?: Novel;
   index: number;
@@ -16,7 +16,17 @@ export const Hero: React.FC<{
   onNext: () => void;
   onRead?: () => void;
   fadeDescription?: boolean;
-}> = ({ title, hero, index, onPrev, onNext, onRead, fadeDescription = false }) => {
+};
+
+export const Hero = ({
+  title,
+  hero,
+  index,
+  onPrev,
+  onNext,
+  onRead,
+  fadeDescription = false,
+}: HeroProps) => {
   const bgUrl = useMemo(() => hero?.novelImage || "", [hero?.novelImage]);
 
   const handleKey = useCallback(
@@ -43,8 +53,8 @@ export const Hero: React.FC<{
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/85" />
 
-       <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-6 z-10 pointer-events-none">
-         <button
+        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-6 z-10 pointer-events-none">
+          <button
             onClick={onPrev}
             aria-label="Previous"
             className="pointer-events-auto rounded-full backdrop-blur-md bg-white/10 hover:bg-white/15 p-2 sm:p-3 ring-1 ring-white/20 transition active:scale-95 shadow-lg"
@@ -59,12 +69,11 @@ export const Hero: React.FC<{
           >
             <img src={ArrowRightIcon} alt="right" />
           </button>
-
         </div>
 
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 select-none z-[5]">
           <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-md px-3 py-1 text-xs tracking-wider ring-1 ring-white/20 text-white/90">
-            NO.{(index + 1) || 1}
+            NO.{index + 1 || 1}
           </span>
         </div>
 
@@ -80,7 +89,11 @@ export const Hero: React.FC<{
             >
               <div className="group cursor-default pointer-events-none w-[90vw] max-w-3xl h-[300px] flex flex-col justify-between rounded-3xl bg-black/40 backdrop-blur-xl ring-1 ring-white/15 p-6 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.45)]">
                 <div>
-                  <Typography variant="h4" size="small" className="mb-1.5 text-white/95">
+                  <Typography
+                    variant="h4"
+                    size="small"
+                    className="mb-1.5 text-white/95"
+                  >
                     {title}
                   </Typography>
                   <div className="inline-block max-w-full align-top">
@@ -104,9 +117,11 @@ export const Hero: React.FC<{
                       {hero?.description ?? ""}
                     </p>
                     {fadeDescription && (
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14
+                      <div
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-14
                                       bg-gradient-to-t from-black/5 to-transparent
-                                      transition-all duration-[1000ms] ease-out" />
+                                      transition-all duration-[1000ms] ease-out"
+                      />
                     )}
                   </div>
                 </div>
@@ -114,20 +129,29 @@ export const Hero: React.FC<{
                   <div className="grid grid-cols-3 gap-3">
                     <div className="rounded-2xl bg-white/7 backdrop-blur-md ring-1 ring-white/15 px-3 py-2 flex items-center gap-2">
                       <RemoveRedEye sx={{ height: 18, width: 18 }} />
-                      <span className="text-sm tabular-nums">{hero?.totalViews ?? "—"}</span>
+                      <span className="text-sm tabular-nums">
+                        {hero?.totalViews ?? "—"}
+                      </span>
                     </div>
                     <div className="rounded-2xl bg-white/7 backdrop-blur-md ring-1 ring-white/15 px-3 py-2 flex items-center gap-2">
                       <StarRate sx={{ height: 18, width: 18 }} />
-                      <span className="text-sm tabular-nums">{hero?.ratingCount ?? "—"}</span>
+                      <span className="text-sm tabular-nums">
+                        {hero?.ratingCount ?? "—"}
+                      </span>
                     </div>
                     <div className="rounded-2xl bg-white/7 backdrop-blur-md ring-1 ring-white/15 px-3 py-2 flex items-center gap-2">
                       <img className="h-4" src={PencilEdit} alt="edit" />
-                      <span className="text-sm tabular-nums">{(hero as any)?.chapterCount ?? "—"}</span>
+                      <span className="text-sm tabular-nums">
+                        {(hero as any)?.chapterCount ?? "—"}
+                      </span>
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); onRead?.(); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRead?.();
+                    }}
                     className={[
                       "pointer-events-auto",
                       "relative inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5",
