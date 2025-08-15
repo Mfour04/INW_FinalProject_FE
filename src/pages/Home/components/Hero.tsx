@@ -43,21 +43,23 @@ export const Hero: React.FC<{
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/85" />
 
-        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-6 z-10">
-          <button
+       <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3 sm:px-6 z-10 pointer-events-none">
+         <button
             onClick={onPrev}
             aria-label="Previous"
-            className="rounded-full backdrop-blur-md bg-white/10 hover:bg-white/15 p-2 sm:p-3 ring-1 ring-white/20 transition active:scale-95 shadow-lg"
+            className="pointer-events-auto rounded-full backdrop-blur-md bg-white/10 hover:bg-white/15 p-2 sm:p-3 ring-1 ring-white/20 transition active:scale-95 shadow-lg"
           >
             <img src={ArrowLeftIcon} alt="left" />
           </button>
+
           <button
             onClick={onNext}
             aria-label="Next"
-            className="rounded-full backdrop-blur-md bg-white/10 hover:bg-white/15 p-2 sm:p-3 ring-1 ring-white/20 transition active:scale-95 shadow-lg"
+            className="pointer-events-auto rounded-full backdrop-blur-md bg-white/10 hover:bg-white/15 p-2 sm:p-3 ring-1 ring-white/20 transition active:scale-95 shadow-lg"
           >
             <img src={ArrowRightIcon} alt="right" />
           </button>
+
         </div>
 
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 select-none z-[5]">
@@ -74,15 +76,9 @@ export const Hero: React.FC<{
               animate={{ y: 0, opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
+              className="z-20"
             >
-              {/* Clickable card */}
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => onRead?.()}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onRead?.(); }}
-                className="group cursor-pointer w-[90vw] max-w-3xl h-[300px] flex flex-col justify-between rounded-3xl bg-black/40 backdrop-blur-xl ring-1 ring-white/15 p-6 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.45)]"
-              >
+              <div className="group cursor-default pointer-events-none w-[90vw] max-w-3xl h-[300px] flex flex-col justify-between rounded-3xl bg-black/40 backdrop-blur-xl ring-1 ring-white/15 p-6 overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.45)]">
                 <div>
                   <Typography variant="h4" size="small" className="mb-1.5 text-white/95">
                     {title}
@@ -133,6 +129,7 @@ export const Hero: React.FC<{
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onRead?.(); }}
                     className={[
+                      "pointer-events-auto",
                       "relative inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5",
                       "text-white font-semibold text-sm border-none select-none",
                       "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",

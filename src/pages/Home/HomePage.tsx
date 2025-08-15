@@ -109,7 +109,7 @@ export default function HomePage() {
           index={nNovelsIndex}
           onPrev={handlePrevNovels}
           onNext={handleNextNovels}
-          // onRead={() => hero && navigate(`/novels/${hero.slug ?? hero.novelId}`)}
+          onRead={() => hero && navigate(`/novels/${hero.slug ?? hero.novelId}`)}
         />
 
         <div className="mt-10 grid gap-7 md:grid-cols-2">
