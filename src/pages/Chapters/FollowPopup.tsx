@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type FollowStatus = "Đang đọc" | "Sẽ đọc" | "Hoàn thành";
 
 type FollowPopupProps = {
   notify: boolean;
-  status: FollowStatus;
+  status: number;
   onNotifyChange?: () => void;
-  onStatusChange?: () => void;
+  onStatusChange?: (status: number) => void;
   onUnfollow?: () => void;
   onClose?: () => void;
 };
@@ -20,7 +20,7 @@ export const FollowPopup = ({
   onClose,
 }: FollowPopupProps) => {
   const [notify, setNotify] = useState(initialNotify);
-  const [status, setStatus] = useState<FollowStatus>(initialStatus);
+  const [status, setStatus] = useState<number>(initialStatus);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const statusOptions: FollowStatus[] = ["Đang đọc", "Sẽ đọc", "Hoàn thành"];
@@ -33,7 +33,10 @@ export const FollowPopup = ({
           className={`w-10 h-5 rounded-full flex items-center px-1 ${
             notify ? "bg-[#ff6740]" : "bg-gray-400"
           }`}
-          onClick={() => setNotify((prev) => !prev)}
+          onClick={() => {
+            setNotify((prev) => !prev);
+            onNotifyChange?.();
+          }}
         >
           <div
             className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
@@ -50,17 +53,18 @@ export const FollowPopup = ({
             className="bg-[#444] px-3 py-1 w-[55%] rounded text-left"
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            {status}
+            {statusOptions[status]}
           </button>
         </div>
         {showDropdown && (
           <div className="absolute bg-[#555] min-w-[55%] right-0 mt-1 rounded shadow z-10">
-            {statusOptions.map((option) => (
+            {statusOptions.map((option, index) => (
               <div
                 key={option}
                 className="px-3 py-1 hover:bg-[#666] cursor-pointer"
                 onClick={() => {
-                  setStatus(option);
+                  setStatus(index);
+                  onStatusChange?.(index);
                   setShowDropdown(false);
                 }}
               >

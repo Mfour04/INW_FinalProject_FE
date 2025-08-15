@@ -22,7 +22,11 @@ export const NovelLib = () => {
 
   const { data } = useQuery({
     queryKey: ["follower-novels"],
-    queryFn: () => GetFollowerNovels().then((res) => res.data.data),
+    queryFn: () =>
+      GetFollowerNovels({
+        limit: limit,
+        page: page,
+      }).then((res) => res.data.data),
   });
 
   const novels = Array.isArray(data?.novelFollows.followedNovels)
@@ -131,7 +135,6 @@ export const NovelLib = () => {
         </div>
 
         <div className="flex items-center justify-between w-full h-10">
-          {/* <div>Đang đọc</div> */}
           <div className="flex h-full gap-[30px] justify-between">
             <select
               id="filter"
@@ -180,12 +183,12 @@ export const NovelLib = () => {
           <span className="text-sm">
             Trang{" "}
             <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> /
-            {/* {data?.data.data.totalPages} */}
+            {data?.totalPages}
           </span>
         </div>
         <button
           onClick={() => setPage(page + 1)}
-          //   disabled={page === (data?.data.data.totalPages ?? 1) - 1}
+          disabled={page === (data?.totalPages ?? 1) - 1}
           className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
         >
           <img src={ArrowRight02} />
