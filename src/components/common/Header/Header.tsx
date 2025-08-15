@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import Notification from "../../../assets/svg/SearchBar/notification-02-stroke-rounded.svg";
 import Delete from "../../../assets/svg/SearchBar/multiplication-sign-stroke-rounded.svg";
 import Search from "../../../assets/svg/SearchBar/search-02-stroke-rounded.svg";
 import SearchArea from "../../../assets/svg/SearchBar/search-area-stroke-rounded.svg";
+
 import { useQuery } from "@tanstack/react-query";
 import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSortedNovels";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
@@ -11,6 +12,7 @@ import { GetUserNotifications } from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { DarkModeToggler } from "../../DarkModeToggler";
+
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
@@ -65,14 +67,13 @@ export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderP
       toast?.onOpen("Tác giả vừa đăng chương mới");
       notificationsRefetch();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifications]);
+  }, [notifications, toast, notificationsRefetch]);
 
   return (
     <>
-      <div className="h-[90px] flex items-center px-6 lg:px-[50px] bg-white dark:bg-[#000000]">
-        {/* Trái: nút menu */}
-        <div className="shrink-0 mr-3">
+      <div className="h-[90px] flex items-center px-6 lg:px-[50px] bg-white dark:bg-[#000000] gap-3">
+        {/* Trái: Nút menu */}
+        <div className="shrink-0">
           {!isAdminRoute && (
             <button
               onClick={onToggleSidebar}
@@ -95,58 +96,57 @@ export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderP
           )}
         </div>
 
-        {/* Giữa: SearchBar chiếm tối đa khoảng trống, rộng đẹp trên desktop */}
-        <div className="flex-1">
-          <div className="w-full max-w-[720px] lg:max-w-[800px] mx-auto">
-            <SearchBar
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-              onSubmit={handleSearchNovels}
-              sortOptions={sortOptions}
-              searchIcon={Search}
-              clearIcon={Delete}
-              filterIcon={SearchArea}
-              initialSort=""
-              initialTags={[]}
-            />
-          </div>
+        {/* Giữa: SearchBar */}
+        <div className="flex-1 max-w-[800px]">
+          <SearchBar
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            onSubmit={handleSearchNovels}
+            sortOptions={sortOptions}
+            searchIcon={Search}
+            clearIcon={Delete}
+            filterIcon={SearchArea}
+            initialSort=""
+            initialTags={[]}
+          />
         </div>
 
-        {/* Phải: DarkMode + Notifications + Avatar */}
-        <div className="flex items-center gap-6 ml-4 shrink-0 h-[50px]">
-          <DarkModeToggler />
+        {/* Dark mode */}
+        <DarkModeToggler />
 
-          <div className="relative">
-            <button
-              onClick={() => setIsNotificationOpen((prev) => !prev)}
-              className="grid place-items-center h-10 w-10 rounded-full hover:bg-zinc-800/40 transition"
-              aria-haspopup="menu"
-              aria-expanded={isNotificationOpen}
-              aria-label="Thông báo"
-            >
-              <img src={Notification} alt="" className="h-5 w-5" />
-            </button>
-            {isNotificationOpen && (
-              <NotificationDropdown notifications={userNotifications} />
-            )}
-          </div>
-
+        {/* Notification */}
+        <div className="relative">
           <button
-            onClick={() => setIsPopupOpen(!isPopupOpen)}
-            className="h-11 w-11 rounded-full ring-1 ring-zinc-700 hover:ring-orange-500/60 transition overflow-hidden bg-white"
-            aria-haspopup="dialog"
-            aria-expanded={isPopupOpen}
-            aria-label="Tài khoản"
+            onClick={() => setIsNotificationOpen((prev) => !prev)}
+            className="grid place-items-center h-10 w-10 rounded-full hover:bg-zinc-800/40 transition"
+            aria-haspopup="menu"
+            aria-expanded={isNotificationOpen}
+            aria-label="Thông báo"
           >
-            <img
-              src={auth?.user?.avatarUrl || DefaultAvatar}
-              alt="User Avatar"
-              className="h-full w-full object-cover"
-            />
+            <img src={Notification} alt="Notification" className="h-5 w-5" />
           </button>
+          {isNotificationOpen && (
+            <NotificationDropdown notifications={userNotifications} />
+          )}
         </div>
+
+        {/* Avatar */}
+        <button
+          onClick={() => setIsPopupOpen(!isPopupOpen)}
+          className="h-11 w-11 rounded-full ring-1 ring-zinc-700 hover:ring-orange-500/60 transition overflow-hidden bg-white"
+          aria-haspopup="dialog"
+          aria-expanded={isPopupOpen}
+          aria-label="Tài khoản"
+        >
+          <img
+            src={auth?.user?.avatarUrl || DefaultAvatar}
+            alt="User Avatar"
+            className="h-full w-full object-cover"
+          />
+        </button>
       </div>
 
+      {/* Popup */}
       {isPopupOpen &&
         (auth?.user
           ? <UserMenu onClose={() => setIsPopupOpen(false)} />
