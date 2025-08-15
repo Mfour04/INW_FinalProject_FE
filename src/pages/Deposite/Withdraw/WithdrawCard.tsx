@@ -1,7 +1,7 @@
 export type Coin = {
-  amount: number;
+  amount: number; // VND
   image: string;
-  price: number;
+  price: number;  // Xu
 };
 
 type CoinProps = {
@@ -11,20 +11,66 @@ type CoinProps = {
 };
 
 export const WithdrawCard = ({ coin, selected, onClick }: CoinProps) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
       onClick={onClick}
-      className={`bg-[#2e2e2e] flex flex-col items-center justify-between gap-5 border rounded-xl p-4 shadow-sm w-1/5 cursor-pointer transition-all
-        ${selected ? "border-2 border-[#ff6740]" : "border border-black"}
-      `}
+      onKeyDown={handleKeyDown}
+      className={[
+        "group relative flex w-full cursor-pointer select-none",
+        "flex-col items-center justify-between gap-3 rounded-xl p-5",
+        "bg-gradient-to-b from-zinc-800 to-zinc-900",
+        "border transition-all duration-200 ease-out",
+        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
+        selected
+          ? "border-transparent ring-2 ring-[#ff6740]/80"
+          : "border-zinc-700 hover:border-zinc-500",
+      ].join(" ")}
     >
-      <img src={coin.image} alt="coin" className="w-23 h-23" />
-      <span className="font-semibold text-white text-xl">
-        {coin.amount.toLocaleString("vi-VN")} VND
-      </span>
-      <div className="bg-[#ff6740]  px-3 py-1.5 rounded-full text-xl font-semibold text-white border-none">
-        {coin.price} Xu
+      <div className="rounded-full bg-zinc-700/40 p-3.5 shadow-inner">
+        <img
+          src={coin.image}
+          alt="coin"
+          className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow"
+          draggable={false}
+        />
       </div>
+
+      <div className="text-center">
+        <div className="text-white font-bold text-lg tracking-wide">
+          {coin.amount.toLocaleString("vi-VN")}{" "}
+          <span className="opacity-90">VND</span>
+        </div>
+      </div>
+
+      <div
+        className={[
+          "relative inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5",
+          "text-white font-semibold text-sm border-none select-none",
+          "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+          "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
+          "shadow-[0_10px_24px_rgba(255,103,64,0.45)] hover:shadow-[0_14px_32px_rgba(255,103,64,0.60)]",
+          "transition-colors duration-300",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#ff784f]/60",
+          "overflow-hidden before:content-[''] before:absolute before:inset-0",
+          "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.18),transparent_55%)]",
+          "before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300",
+          selected ? "shadow-[0_14px_36px_rgba(255,103,64,0.65)]" : ""
+        ].join(" ")}
+      >
+        <span>{coin.price.toLocaleString("vi-VN")} Xu</span>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
   );
 };

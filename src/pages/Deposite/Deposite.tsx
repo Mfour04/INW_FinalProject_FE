@@ -43,58 +43,89 @@ export const Deposite = () => {
     rechargeMutation.mutate({ coinAmount: amount });
   };
 
+  // 👉 Đổi layout nạp xu thành 3–2 ô
   const tabContent = useMemo(() => {
-    switch (tab) {
-      case "Deposite":
-        return (
-          <div className="flex flex-col gap-5">
-            {depositeCoinOptions.map((coin, index) => (
-              <CoinCard
-                key={index}
-                coin={coin}
-                onBuyClick={() => handleBuyClick(coin.amount)}
-                isLoading={
-                  rechargeMutation.isPending && selectedAmount === coin.amount
-                }
-              />
+    if (tab === "Deposite") {
+      return (
+        <div className="mt-6 flex flex-col items-center gap-8">
+          {/* Hàng trên (3 ô) */}
+          <div className="flex justify-center gap-8">
+            {depositeCoinOptions.slice(0, 3).map((coin, index) => (
+              <div key={`top-${index}`} className="w-[180px] sm:w-[200px]">
+                <CoinCard
+                  coin={coin}
+                  onBuyClick={() => handleBuyClick(coin.amount)}
+                  isLoading={rechargeMutation.isPending && selectedAmount === coin.amount}
+                />
+              </div>
             ))}
           </div>
-        );
-      case "Withdraw":
-        return <Withdraw />;
+          {/* Hàng dưới (2 ô) */}
+          <div className="flex justify-center gap-8">
+            {depositeCoinOptions.slice(3, 5).map((coin, index) => (
+              <div key={`bottom-${index}`} className="w-[180px] sm:w-[200px]">
+                <CoinCard
+                  coin={coin}
+                  onBuyClick={() => handleBuyClick(coin.amount)}
+                  isLoading={rechargeMutation.isPending && selectedAmount === coin.amount}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
     }
-  }, [tab, setTab]);
+    return <Withdraw />;
+  }, [tab, rechargeMutation.isPending, selectedAmount]);
 
-  return (
-    <div className="min-h-screen px-6 py-8 rounded-[10px] mx-[50px] bg-[#1e1e21] text-white">
-      <div className="h-14 mb-2.5 flex items-center justify-between">
-        <h2 className="text-xl  font-semibold mb-4 flex gap-2.5 items-center">
-          <img className="h-10 w-10" src={Coin10} />
-          <div className="items-center">InkWave Giao dịch</div>
-          <div className="flex gap-1.5 text-[18px] font-extralight border p-1 rounded-[10px]">
-            <div
-              onClick={() => setTab("Deposite")}
-              className={`rounded-[6px] py-1 px-3 font-bold cursor-pointer ${
-                tab === "Deposite" ? `bg-white text-black` : ``
-              }`}
-            >
-              Nạp xu
-            </div>
-            <div
-              onClick={() => setTab("Withdraw")}
-              className={`rounded-[6px] py-1 px-3 font-bold cursor-pointer ${
-                tab === "Withdraw" ? `bg-white text-black` : ``
-              }`}
-            >
-              Rút xu
+   return (
+    <div className="min-h-screen px-6 py-4 rounded-[10px] mx-[50px] bg-[#1e1e21] text-white">
+      <header className="h-14 mb-2.5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 p-[2px]">
+            <div className="h-full w-full rounded-[10px] bg-neutral-900 grid place-items-center">
+              <img className="h-6 w-6" src={Coin10} alt="InkWave" />
             </div>
           </div>
-        </h2>
-        <div className="flex gap-2 items-center border rounded-4xl px-4 py-1 border-[#45454e]">
-          <img className="h-10 w-10" src={Coin10} />
-          <div className="text-2xl">{auth?.user.coin}</div>
+
+          <h2 className="text-base font-semibold leading-none">InkWave Giao dịch</h2>
+
+          <nav className="ml-2">
+            <div className="inline-flex rounded-xl bg-zinc-800/80 border border-zinc-700 p-1">
+              <button
+                onClick={() => setTab("Deposite")}
+                className={[
+                  "px-3 py-1.5 text-sm rounded-lg font-semibold transition",
+                  tab === "Deposite"
+                    ? "bg-white text-black shadow"
+                    : "text-zinc-300 hover:text-white"
+                ].join(" ")}
+              >
+                Nạp xu
+              </button>
+              <button
+                onClick={() => setTab("Withdraw")}
+                className={[
+                  "px-3 py-1.5 text-sm rounded-lg font-semibold transition",
+                  tab === "Withdraw"
+                    ? "bg-white text-black shadow"
+                    : "text-zinc-300 hover:text-white"
+                ].join(" ")}
+              >
+                Rút xu
+              </button>
+            </div>
+          </nav>
         </div>
-      </div>
+
+        <div className="flex items-center gap-2 rounded-full border border-[#45454e] bg-zinc-900/60 px-3 py-1.5">
+          <img className="h-6 w-6" src={Coin10} alt="coin" />
+          <div className="text-lg tabular-nums">
+            {(auth?.user?.coin ?? 0).toLocaleString("vi-VN")}
+          </div>
+        </div>
+      </header>
+
       {tabContent}
     </div>
   );
