@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SortOption = { value: string; label: string };
 
@@ -29,7 +29,7 @@ const MOCK_TAG_OPTIONS: { value: string; label: string }[] = [
   { value: "drama", label: "Drama" },
 ];
 
-export const SearchBar: React.FC<SearchProps> = ({
+export const SearchBar = ({
   searchTerm,
   onSearchTermChange,
   onSubmit,
@@ -40,7 +40,7 @@ export const SearchBar: React.FC<SearchProps> = ({
   onApplyFilters,
   initialSort = "",
   initialTags = [],
-}) => {
+}: SearchProps) => {
   const [selectedSort, setSelectedSort] = useState<string>(initialSort ?? "");
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTags ?? []);
 
@@ -140,64 +140,64 @@ export const SearchBar: React.FC<SearchProps> = ({
             <label className="block mb-1 text-[11px] font-semibold text-zinc-300">
               Sắp xếp theo
             </label>
-           <div className="relative">
-            <select
-              value={tempSort ?? ""}
-              onChange={(e) => setTempSort(e.target.value)}
-              className="w-full h-10 rounded-lg bg-[#121214] text-white text-sm px-3 pr-9
+            <div className="relative">
+              <select
+                value={tempSort ?? ""}
+                onChange={(e) => setTempSort(e.target.value)}
+                className="w-full h-10 rounded-lg bg-[#121214] text-white text-sm px-3 pr-9
                         ring-1 ring-zinc-800 focus:ring-2 focus:ring-[#ff6740]/70 outline-none transition
                         appearance-none [-webkit-appearance:none] [-moz-appearance:none] bg-none"
-            >
-              <option value="">Chọn kiểu sắp xếp</option>
-              {(Array.isArray(sortOptions) ? sortOptions : []).map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              >
+                <option value="">Chọn kiểu sắp xếp</option>
+                {(Array.isArray(sortOptions) ? sortOptions : []).map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
 
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
-              ▾
-            </span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                ▾
+              </span>
+            </div>
           </div>
-        </div>
-          
-        <div>
-          <label className="block mb-2 text-[11px] font-semibold text-zinc-300">
-            Tag (chọn nhiều)
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {MOCK_TAG_OPTIONS.map((tag) => {
-              const active = tempTags.includes(tag.value);
-              return (
-                <button
-                  key={tag.value}
-                  aria-pressed={active}
-                  onClick={() => toggleTempTag(tag.value)}
-                  className={[
-                    "px-3 h-8 rounded-full text-xs font-medium transition relative overflow-hidden",
-                    active
-                      ? [
-                          "text-white border-0",
-                          "bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
-                          "hover:brightness-110",
-                          "shadow-[0_8px_20px_rgba(255,103,64,0.35)]",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/60",
-                          "before:content-[''] before:absolute before:inset-0",
-                          "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.18),transparent_55%)]",
-                          "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
-                        ].join(" ")
-                      : "border border-zinc-700 text-zinc-300 bg-[#121214] hover:border-zinc-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/40",
-                  ].join(" ")}
-                >
-                  {tag.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
-        <div className="pt-1 flex items-center justify-between">
+          <div>
+            <label className="block mb-2 text-[11px] font-semibold text-zinc-300">
+              Tag (chọn nhiều)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {MOCK_TAG_OPTIONS.map((tag) => {
+                const active = tempTags.includes(tag.value);
+                return (
+                  <button
+                    key={tag.value}
+                    aria-pressed={active}
+                    onClick={() => toggleTempTag(tag.value)}
+                    className={[
+                      "px-3 h-8 rounded-full text-xs font-medium transition relative overflow-hidden",
+                      active
+                        ? [
+                            "text-white border-0",
+                            "bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+                            "hover:brightness-110",
+                            "shadow-[0_8px_20px_rgba(255,103,64,0.35)]",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/60",
+                            "before:content-[''] before:absolute before:inset-0",
+                            "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.18),transparent_55%)]",
+                            "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
+                          ].join(" ")
+                        : "border border-zinc-700 text-zinc-300 bg-[#121214] hover:border-zinc-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/40",
+                    ].join(" ")}
+                  >
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="pt-1 flex items-center justify-between">
             <button
               onClick={() => {
                 setTempSort("");
@@ -218,7 +218,10 @@ export const SearchBar: React.FC<SearchProps> = ({
                 onClick={() => {
                   setSelectedSort(tempSort || "");
                   setSelectedTags(tempTags || []);
-                  onApplyFilters?.({ sort: tempSort || "", tags: tempTags || [] });
+                  onApplyFilters?.({
+                    sort: tempSort || "",
+                    tags: tempTags || [],
+                  });
                   setShowDropdown(false);
                 }}
                 className="rounded-full px-3 py-1.5 text-xs font-semibold bg-[#ffffff] hover:bg-[#f5f5f5] transition"

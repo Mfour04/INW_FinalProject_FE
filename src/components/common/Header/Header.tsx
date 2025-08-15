@@ -9,13 +9,19 @@ import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSo
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
 import { GetUserNotifications } from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
-import NotificationDropdown from "./NotificationDropdown";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
+
+type HeaderProps = {
+  onToggleSidebar: () => void;
+  isSidebarOpen?: boolean;
+  isAdminRoute?: boolean;
+};
 
 const sortOptions = [
   { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
@@ -26,7 +32,7 @@ const sortOptions = [
   { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
 ];
 
-export const Header = () => {
+export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderProps) => {
   const { auth } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -34,8 +40,8 @@ export const Header = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSort, setSelectedSort] = useState(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedSort] = useState(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
+  const [selectedTag] = useState("");
 
   const { notifications } = useNotification();
   const { data: userNotifications, refetch: notificationsRefetch } = useQuery({
@@ -59,26 +65,57 @@ export const Header = () => {
       toast?.onOpen("Tác giả vừa đăng chương mới");
       notificationsRefetch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifications]);
 
   return (
     <>
-      <div className="h-[90px] flex items-center justify-between px-12 lg:px-[50px] bg-white dark:bg-[#000000]">
-        <SearchBar
-          searchTerm={searchTerm}
-          onSearchTermChange={setSearchTerm}
-          onSubmit={handleSearchNovels}
-          sortOptions={sortOptions}
-          searchIcon={Search}
-          clearIcon={Delete}
-          filterIcon={SearchArea}
-          initialSort=""
-          initialTags={[]}
-        />
+      <div className="h-[90px] flex items-center px-6 lg:px-[50px] bg-white dark:bg-[#000000]">
+        {/* Trái: nút menu */}
+        <div className="shrink-0 mr-3">
+          {!isAdminRoute && (
+            <button
+              onClick={onToggleSidebar}
+              className="grid place-items-center h-10 w-10 rounded-lg
+                         bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff884b]
+                         hover:opacity-90 active:scale-95 transition transform shadow-md"
+              aria-label={isSidebarOpen ? "Đóng sidebar" : "Mở sidebar"}
+              title={isSidebarOpen ? "Đóng sidebar" : "Mở sidebar"}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+        </div>
 
-        <DarkModeToggler />
+        {/* Giữa: SearchBar chiếm tối đa khoảng trống, rộng đẹp trên desktop */}
+        <div className="flex-1">
+          <div className="w-full max-w-[720px] lg:max-w-[800px] mx-auto">
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              onSubmit={handleSearchNovels}
+              sortOptions={sortOptions}
+              searchIcon={Search}
+              clearIcon={Delete}
+              filterIcon={SearchArea}
+              initialSort=""
+              initialTags={[]}
+            />
+          </div>
+        </div>
 
-        <div className="flex items-center h-[50px] ml-4 shrink-0 gap-6">
+        {/* Phải: DarkMode + Notifications + Avatar */}
+        <div className="flex items-center gap-6 ml-4 shrink-0 h-[50px]">
+          <DarkModeToggler />
+
           <div className="relative">
             <button
               onClick={() => setIsNotificationOpen((prev) => !prev)}
