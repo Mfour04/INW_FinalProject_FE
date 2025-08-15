@@ -16,7 +16,6 @@ import {
 } from "../../../api/BankAccount/bank.api";
 import { useEffect, useState } from "react";
 import type { Bank } from "../../../entity/bank";
-import { InlineBankSelect } from "./InlineBankSelect";
 import type {
   CreateBankRequest,
   GetUserBanksRes,
@@ -25,6 +24,7 @@ import type { WithdrawRequest } from "../../../api/Transaction/transaction.type"
 import { WithdrawCoin } from "../../../api/Transaction/transaction.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
+import { InlineBankSelect } from "./InlineBankSelect/InlineBankSelect";
 
 const withdrawCoinOptions: Coin[] = [
   { amount: 9000, image: Coin20, price: 10 },
@@ -50,7 +50,11 @@ export const Withdraw = () => {
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [selectedDefautBankId, setSelectedDefaultBankId] = useState<string>("");
   const [selectedRow, setSelectedRow] = useState<GetUserBanksRes | null>(null);
-  const [selectedCoin, setSelectedCoin] = useState<Coin>({ amount: 0, image: "", price: 0 });
+  const [selectedCoin, setSelectedCoin] = useState<Coin>({
+    amount: 0,
+    image: "",
+    price: 0,
+  });
 
   const toast = useToast();
 
@@ -64,26 +68,38 @@ export const Withdraw = () => {
     queryFn: () => GetUserBanks().then((res) => res.data.data),
   });
 
-  const defaultAccountId = userBanks?.find((bank) => bank.isDefault)?.id ?? null;
+  const defaultAccountId =
+    userBanks?.find((bank) => bank.isDefault)?.id ?? null;
 
   const CreateBankMutation = useMutation({
     mutationFn: (request: CreateBankRequest) => CreateBank(request),
-    onSuccess: () => { banksRefetch(); },
+    onSuccess: () => {
+      banksRefetch();
+    },
   });
 
   const WithdrawMutation = useMutation({
     mutationFn: (request: WithdrawRequest) => WithdrawCoin(request),
-    onSuccess: (data) => { toast?.onOpen(data.data.message); },
+    onSuccess: (data) => {
+      toast?.onOpen(data.data.message);
+    },
   });
 
   const SetDefaultBankMutation = useMutation({
     mutationFn: (id: string) => SetDefaultBank(id),
-    onSuccess: (data) => { toast?.onOpen(data.data.message); userBanksRefetch(); },
+    onSuccess: (data) => {
+      toast?.onOpen(data.data.message);
+      userBanksRefetch();
+    },
   });
 
   const DeleteBankMutation = useMutation({
     mutationFn: (id: string) => DeleteBank(id),
-    onSuccess: (data) => { toast?.onOpen(data.data.message); userBanksRefetch(); setDeleteModal(false); },
+    onSuccess: (data) => {
+      toast?.onOpen(data.data.message);
+      userBanksRefetch();
+      setDeleteModal(false);
+    },
   });
 
   const handleCreateBank = () => {
@@ -92,9 +108,14 @@ export const Withdraw = () => {
 
   const handleWithdraw = () => {
     if (defaultAccountId && selectedCoin.amount > 0)
-      WithdrawMutation.mutate({ coinAmount: selectedCoin.price, bankAccountId: defaultAccountId });
-    else if (!defaultAccountId) toast?.onOpen("Bạn chưa đăng ký tài khoản rút tiền mặc định!");
-    else if (selectedCoin.price <= 0) toast?.onOpen("Hãy chọn số lượng muốn rút!");
+      WithdrawMutation.mutate({
+        coinAmount: selectedCoin.price,
+        bankAccountId: defaultAccountId,
+      });
+    else if (!defaultAccountId)
+      toast?.onOpen("Bạn chưa đăng ký tài khoản rút tiền mặc định!");
+    else if (selectedCoin.price <= 0)
+      toast?.onOpen("Hãy chọn số lượng muốn rút!");
   };
 
   const handleSetDefault = (bankAccountId: string) => {
@@ -108,7 +129,8 @@ export const Withdraw = () => {
   };
 
   const handleConfirmSetDefault = () => {
-    if (selectedDefautBankId) SetDefaultBankMutation.mutate(selectedDefautBankId);
+    if (selectedDefautBankId)
+      SetDefaultBankMutation.mutate(selectedDefautBankId);
     setConfirmDefault(false);
   };
 
@@ -133,7 +155,9 @@ export const Withdraw = () => {
         <div className="col-span-12 lg:col-span-7">
           <div className="rounded-lg border border-zinc-800 bg-zinc-900 shadow-md">
             <div className="px-3 py-2 border-b border-zinc-800 flex items-center justify-between">
-              <h2 className="text-white font-bold text-sm">Tài khoản ngân hàng</h2>
+              <h2 className="text-white font-bold text-sm">
+                Tài khoản ngân hàng
+              </h2>
               <button
                 onClick={handleDeleteBankButtonClick}
                 className="h-7 w-7 grid place-items-center rounded-md bg-zinc-800 text-zinc-200 hover:bg-[#ff6740] hover:text-white transition"
@@ -159,17 +183,31 @@ export const Withdraw = () => {
                     <tr
                       key={acc.id ?? index}
                       onClick={() => setSelectedRow(acc)}
-                      className={`cursor-pointer transition hover:bg-zinc-800 ${selectedRow?.id === acc.id ? "bg-zinc-800" : ""}`}
+                      className={`cursor-pointer transition hover:bg-zinc-800 ${
+                        selectedRow?.id === acc.id ? "bg-zinc-800" : ""
+                      }`}
                     >
                       <td className="px-2 py-1 text-zinc-300">{index + 1}</td>
-                      <td className="px-2 py-1 text-white">{acc.bankShortName}</td>
-                      <td className="px-2 py-1 text-white">{acc.bankAccountNumber}</td>
-                      <td className="px-2 py-1 text-white">{acc.bankAccountName}</td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankShortName}
+                      </td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankAccountNumber}
+                      </td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankAccountName}
+                      </td>
                       <td className="px-2 py-1">
                         <span
-                          onClick={!acc.isDefault ? () => handleSetDefault(acc.id) : undefined}
+                          onClick={
+                            !acc.isDefault
+                              ? () => handleSetDefault(acc.id)
+                              : undefined
+                          }
                           className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                            acc.isDefault ? "bg-emerald-500 text-white" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                            acc.isDefault
+                              ? "bg-emerald-500 text-white"
+                              : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
                           }`}
                         >
                           {acc.isDefault ? "Mặc định" : "Đặt mặc định"}
@@ -179,7 +217,10 @@ export const Withdraw = () => {
                   ))}
                   {!userBanks?.length && (
                     <tr>
-                      <td colSpan={5} className="px-2 py-6 text-center text-zinc-400">
+                      <td
+                        colSpan={5}
+                        className="px-2 py-6 text-center text-zinc-400"
+                      >
                         Chưa có tài khoản ngân hàng
                       </td>
                     </tr>
@@ -200,9 +241,24 @@ export const Withdraw = () => {
               <label className="flex items-center h-8">
                 <span className="w-1/3 text-zinc-300 text-xs">Ngân hàng</span>
                 <InlineBankSelect
-                  value={selectedBank ? { shortName: selectedBank.shortName, logo: selectedBank.logo } : null}
+                  value={
+                    selectedBank
+                      ? {
+                          shortName: selectedBank.shortName,
+                          logo: selectedBank.logo,
+                        }
+                      : null
+                  }
                   onSelect={(b) => {
-                    setSelectedBank(prev => prev ? { ...prev, shortName: b.shortName, logo: b.logo } as any : (b as any));
+                    setSelectedBank((prev) =>
+                      prev
+                        ? ({
+                            ...prev,
+                            shortName: b.shortName,
+                            logo: b.logo,
+                          } as any)
+                        : (b as any)
+                    );
                   }}
                 />
               </label>
@@ -213,18 +269,30 @@ export const Withdraw = () => {
                   className="w-2/3 h-full px-2 rounded-md border border-zinc-700 bg-zinc-800 text-white text-xs placeholder-zinc-500 outline-none focus:border-[#ff6740] transition"
                   type="text"
                   value={bankForm.bankAccountNumber}
-                  onChange={(e) => setBankForm((prev) => ({ ...prev, bankAccountNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setBankForm((prev) => ({
+                      ...prev,
+                      bankAccountNumber: e.target.value,
+                    }))
+                  }
                   placeholder="Số tài khoản"
                 />
               </label>
 
               <label className="flex items-center h-8">
-                <span className="w-1/3 text-zinc-300 text-xs truncate">Chủ TK</span>
+                <span className="w-1/3 text-zinc-300 text-xs truncate">
+                  Chủ TK
+                </span>
                 <input
                   className="w-2/3 h-full px-2 rounded-md border border-zinc-700 bg-zinc-800 text-white text-xs placeholder-zinc-500 outline-none focus:border-[#ff6740] transition"
                   type="text"
                   value={bankForm.bankAccountName}
-                  onChange={(e) => setBankForm((prev) => ({ ...prev, bankAccountName: e.target.value }))}
+                  onChange={(e) =>
+                    setBankForm((prev) => ({
+                      ...prev,
+                      bankAccountName: e.target.value,
+                    }))
+                  }
                   placeholder="Tên chủ tài khoản"
                 />
               </label>
@@ -269,15 +337,14 @@ export const Withdraw = () => {
       </div>
 
       <div className="mt-6 flex justify-end">
-      <Button
-        onClick={handleWithdraw}
-        isLoading={WithdrawMutation.isPending}
-        className="h-9 px-6 text-base font-bold border-none bg-[#ffffff] hover:bg-[#f5f5f5] rounded-xl"
-        size="sm"
-      >
-        Rút ngay
-      </Button>
-
+        <Button
+          onClick={handleWithdraw}
+          isLoading={WithdrawMutation.isPending}
+          className="h-9 px-6 text-base font-bold border-none bg-[#ffffff] hover:bg-[#f5f5f5] rounded-xl"
+          size="sm"
+        >
+          Rút ngay
+        </Button>
       </div>
 
       <ConfirmModal

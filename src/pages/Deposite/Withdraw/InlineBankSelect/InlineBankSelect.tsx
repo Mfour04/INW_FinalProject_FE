@@ -1,20 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
-
-type VietQrBank = {
-  id: number;
-  name: string;
-  shortName: string;
-  code: string;
-  bin: string;
-  logo: string;
-  transferSupported: number;
-};
-
-export type UiBank = {
-  shortName: string;
-  logo: string;
-};
+import type { UiBank, VietQrBank } from "./BankSelectType";
+import { useQuery } from "@tanstack/react-query";
+import { GetQrBanks } from "../../../../api/BankAccount/bank.api";
 
 type InlineBankSelectProps = {
   value: UiBank | null;
@@ -23,52 +10,48 @@ type InlineBankSelectProps = {
   className?: string;
 };
 
-export function InlineBankSelect({
+export const InlineBankSelect = ({
   value,
   onSelect,
   placeholder = "Chọn ngân hàng",
   className,
-}: InlineBankSelectProps) {
+}: InlineBankSelectProps) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [banks, setBanks] = useState<UiBank[]>([]);
-  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Fetch từ VietQR: lọc transferSupported=1, map shortName + logo
+  const {
+    data: vietqrBanks = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["vietqrBanks"],
+    queryFn: async () => {
+      const res = await GetQrBanks();
+      const raw: VietQrBank[] = res.data?.data ?? [];
+      return raw
+        .filter((b) => b.transferSupported === 1)
+        .map((b) => ({ shortName: b.shortName, logo: b.logo }))
+        .sort((a, b) => a.shortName.localeCompare(b.shortName, "vi"));
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const data = Array.isArray(vietqrBanks)
+    ? vietqrBanks.filter((b) =>
+        (b.shortName || "").toLowerCase().includes(q.trim().toLowerCase())
+      )
+    : [];
+
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get("https://api.vietqr.io/v2/banks");
-        const raw: VietQrBank[] = res.data?.data ?? [];
-        const filtered: UiBank[] = raw
-          .filter((b) => b.transferSupported === 1)
-          .map((b) => ({ shortName: b.shortName, logo: b.logo }))
-          .sort((a, b) => a.shortName.localeCompare(b.shortName, "vi"));
-        if (mounted) setBanks(filtered);
-      } catch (e) {
-        if (mounted) setErr("Không tải được danh sách ngân hàng");
-        // console.error(e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (isError) setErr("Không tải được danh sách ngân hàng");
+  }, [isError]);
 
-  const data = banks.filter((b) =>
-    (b.shortName || "").toLowerCase().includes(q.trim().toLowerCase())
-  );
-
-  // click outside + ESC để đóng
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -148,15 +131,15 @@ export function InlineBankSelect({
           </div>
 
           <div role="listbox" tabIndex={-1} className="max-h-60 overflow-auto">
-            {loading && (
+            {isLoading && (
               <div className="px-2 py-3 text-xs text-zinc-400">Đang tải...</div>
             )}
-            {!loading && err && (
+            {!isLoading && err && (
               <div className="px-2 py-3 text-xs text-red-400">{err}</div>
             )}
-            {!loading && !err && (
+            {!isLoading && !err && (
               <>
-                {data.length ? (
+                {data?.length ? (
                   data.map((b, idx) => (
                     <div
                       key={`${b.shortName}-${idx}`}
@@ -176,7 +159,7 @@ export function InlineBankSelect({
                       }}
                       className={[
                         "px-2 py-2 text-xs cursor-pointer flex items-center gap-2",
-                        "hover:bg-zinc-800 transition"
+                        "hover:bg-zinc-800 transition",
                       ].join(" ")}
                       title={b.shortName}
                     >
@@ -209,4 +192,4 @@ export function InlineBankSelect({
       )}
     </div>
   );
-}
+};

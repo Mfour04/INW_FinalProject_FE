@@ -4,6 +4,7 @@ import type {
   CreateBankRequest,
   GetBanksApiResponse,
   GetUserBanksApiRes,
+  GetVietQrBanksApiRes,
 } from "./bank.type";
 
 export const GetBanks = () =>
@@ -21,4 +22,7 @@ export const SetDefaultBank = (bankAccountId: string) =>
   );
 
 export const DeleteBank = (bankAccountId: string) =>
-  http.privateHttp.delete<NoneDataApiResponse>(`banks/user/${bankAccountId}`)
+  http.privateHttp.delete<NoneDataApiResponse>(`banks/user/${bankAccountId}`);
+
+export const GetQrBanks = () =>
+  http.http.get<GetVietQrBanksApiRes>(`https://api.vietqr.io/v2/banks`);
