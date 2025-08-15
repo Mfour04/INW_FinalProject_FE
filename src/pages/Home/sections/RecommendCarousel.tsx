@@ -3,10 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import Typography from "../../../components/TypographyComponent";
 import { PANEL, TOKENS } from "../ui/tokens";
 import type { Novel } from "../types";
+import { ORANGE_GRAD } from "../constant";
 
-const ORANGE_GRAD = "from-[#ff512f] via-[#ff6740] to-[#ff9966]";
-
-export const RecommendCarousel: React.FC<{
+export type RecommendCarouselProps = {
   title: string;
   novels: Novel[];
   currentIndex: number;
@@ -14,13 +13,26 @@ export const RecommendCarousel: React.FC<{
   onPrev: () => void;
   onNext: () => void;
   onClickItem: (n: Novel) => void;
-}> = ({ title, novels, currentIndex, visibleCount, onPrev, onNext, onClickItem }) => {
+};
+
+export const RecommendCarousel = ({
+  title,
+  novels,
+  currentIndex,
+  visibleCount,
+  onPrev,
+  onNext,
+  onClickItem,
+}: RecommendCarouselProps) => {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
-  const onKey = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") onPrev();
-    if (e.key === "ArrowRight") onNext();
-  }, [onPrev, onNext]);
+  const onKey = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowLeft") onPrev();
+      if (e.key === "ArrowRight") onNext();
+    },
+    [onPrev, onNext]
+  );
 
   const visible = useMemo(
     () => novels.slice(currentIndex, currentIndex + visibleCount),
@@ -31,8 +43,12 @@ export const RecommendCarousel: React.FC<{
     <section className="mt-10" aria-label={title}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className={`inline-flex h-2 w-2 rounded-full bg-gradient-to-r ${ORANGE_GRAD}`} />
-          <Typography variant="h4" size="large">{title}</Typography>
+          <span
+            className={`inline-flex h-2 w-2 rounded-full bg-gradient-to-r ${ORANGE_GRAD}`}
+          />
+          <Typography variant="h4" size="large">
+            {title}
+          </Typography>
         </div>
         <div className="flex gap-2">
           <button
@@ -52,8 +68,11 @@ export const RecommendCarousel: React.FC<{
         </div>
       </div>
 
-      <div className={`${PANEL} relative p-4 overflow-hidden rounded-2xl`}
-           onKeyDown={onKey} tabIndex={0}>
+      <div
+        className={`${PANEL} relative p-4 overflow-hidden rounded-2xl`}
+        onKeyDown={onKey}
+        tabIndex={0}
+      >
         <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-black/50 to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black/50 to-transparent" />
 
@@ -76,7 +95,11 @@ export const RecommendCarousel: React.FC<{
                 className={`${TOKENS.poster.h} ${TOKENS.poster.w} ${TOKENS.radius} ${TOKENS.ring} overflow-hidden bg-zinc-800/40 shrink-0 relative group`}
               >
                 {n.novelImage ? (
-                  <img src={n.novelImage} className="h-full w-full object-cover" alt={n.title} />
+                  <img
+                    src={n.novelImage}
+                    className="h-full w-full object-cover"
+                    alt={n.title}
+                  />
                 ) : (
                   <div className="h-full w-full animate-pulse bg-white/5" />
                 )}
@@ -91,10 +114,14 @@ export const RecommendCarousel: React.FC<{
                       {n.title}
                     </p>
                   </div>
-                  <span className={`ml-auto inline-flex h-1.5 w-1.5 rounded-full bg-gradient-to-r ${ORANGE_GRAD} opacity-80 group-hover:opacity-100 transition`} />
+                  <span
+                    className={`ml-auto inline-flex h-1.5 w-1.5 rounded-full bg-gradient-to-r ${ORANGE_GRAD} opacity-80 group-hover:opacity-100 transition`}
+                  />
                 </div>
 
-                <span className={`pointer-events-none absolute inset-0 rounded-[inherit] ring-0 group-focus-visible:ring-2 ring-offset-0 ring-white/40`} />
+                <span
+                  className={`pointer-events-none absolute inset-0 rounded-[inherit] ring-0 group-focus-visible:ring-2 ring-offset-0 ring-white/40`}
+                />
               </motion.button>
             ))}
           </motion.div>
