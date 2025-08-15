@@ -21,7 +21,19 @@ export type ModerationAIResponse = {
 export type PlagiarismAIResponse = {
   inputContentLength: number;
   matchCount: number;
-  matches: string[];
+  matches: Matches[];
+};
+
+export type Matches = {
+  chapterId: string;
+  similarity: number;
+  matches: Chunk[];
+};
+
+export type Chunk = {
+  inputChunk: string;
+  matchedChunk: string;
+  similarity: number;
 };
 
 export type ModerationAIApiResponse = ApiResponse<ModerationAIResponse>;
