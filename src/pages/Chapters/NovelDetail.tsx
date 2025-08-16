@@ -1,5 +1,5 @@
 import SwapVert from "@mui/icons-material/SwapVert";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -25,10 +25,11 @@ import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { BuyChapter } from "../../api/Chapters/chapter.api";
 import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
 import type { BuyNovelRequest } from "../../api/Novels/novel.type";
-import { ChapterList } from "./components/ChapterList";
-import RatingSection from "./components/RatingSection";
+import { ChapterList } from "./components/ChapterList/ChapterList";
+import RatingSection from "./components/Rating/RatingSection";
 import { AsidePanel } from "./components/AsidePanel";
 import { InfoCard } from "./components/InfoCard";
+import { gradientBtn } from "./constants";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -51,14 +52,20 @@ export const NovelDetail = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const { data: novelData, refetch: refetchNovelData, isFetching } = useQuery({
+  const {
+    data: novelData,
+    refetch: refetchNovelData,
+    isFetching,
+  } = useQuery({
     queryKey: ["novel", novelId, params],
     queryFn: () =>
       GetNovelByUrl(novelId!, {
         page: params.page,
         limit: params.limit,
         sortBy: params.sortBy,
-        ...(params.chapterNumber ? { chapterNumber: params.chapterNumber } : {}),
+        ...(params.chapterNumber
+          ? { chapterNumber: params.chapterNumber }
+          : {}),
       }).then((res) => res.data.data),
     enabled: !!novelId,
   });
@@ -148,7 +155,9 @@ export const NovelDetail = () => {
     ) {
       setChapterPrice(price);
       if (!auth?.user)
-        toast?.onOpen("Bạn cần đăng nhập để có thể tiếp tục với các chương bị khóa");
+        toast?.onOpen(
+          "Bạn cần đăng nhập để có thể tiếp tục với các chương bị khóa"
+        );
       else setIsBuyModalOpen(true);
     } else navigate(`/novels/${novelId}/${chapterId}`);
   };
@@ -201,6 +210,14 @@ export const NovelDetail = () => {
   };
 
   const followBtnRef = useRef<HTMLDivElement | null>(null);
+
+  const isCompleted = novelInfo?.status === 1;
+
+  const ratingRef = useRef<HTMLDivElement | null>(null);
+  const jumpToRating = () => {
+    ratingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (!followBtnRef.current) return;
@@ -212,31 +229,8 @@ export const NovelDetail = () => {
     return () => document.removeEventListener("mousedown", onClick);
   }, [showFollowPopup]);
 
-  const isCompleted = novelInfo?.status === 1;
-
-  // anchor phần Đánh giá
-  const ratingRef = useRef<HTMLDivElement | null>(null);
-  const jumpToRating = () => {
-    ratingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const gradientBtn =
-    [
-      "relative w-full rounded-full border-none text-white font-semibold",
-      "text-sm px-4 py-1.5",
-      "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
-      "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
-      "shadow-[0_10px_24px_rgba(255,103,64,0.45)] hover:shadow-[0_14px_32px_rgba(255,103,64,0.60)]",
-      "transition-colors duration-300",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/70",
-      "overflow-hidden before:content-[''] before:absolute before:inset-0",
-      "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.22),transparent_55%)]",
-      "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
-    ].join(" ");
-
   return (
     <div className="mx-auto max-w-5xl px-2 py-4 text-white">
-      {/* Thu nhỏ cột aside: 236px thay vì 260px */}
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr] gap-5">
         <AsidePanel
           novelInfo={novelInfo}
@@ -252,7 +246,7 @@ export const NovelDetail = () => {
           onNotifyChange={handleNotifyChange}
           onStatusChange={(s) => handleStatusChange(s)}
           onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
-          onJumpToRating={jumpToRating} 
+          onJumpToRating={jumpToRating}
           gradientBtn={gradientBtn}
           loadingFollow={
             NovelFollowMutation.isPending ||
@@ -270,7 +264,9 @@ export const NovelDetail = () => {
           <InfoCard
             title={novelInfo?.title || ""}
             author={novelInfo?.authorName || ""}
-            tags={(novelData?.novelInfo?.tags ?? novelInfo?.tags ?? []) as any[]}
+            tags={
+              (novelData?.novelInfo?.tags ?? novelInfo?.tags ?? []) as any[]
+            }
             description={novelInfo?.description || ""}
             expanded={expandedDesc}
             onToggleExpand={() => setExpandedDesc((v) => !v)}

@@ -8,6 +8,7 @@ import NotificationsActive from "@mui/icons-material/NotificationsActive";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import Button from "../../../components/ButtonComponent";
 import { FollowPopup } from "../FollowPopup";
+import { buyBtn } from "../constants";
 
 type Props = {
   novelInfo: any;
@@ -48,14 +49,6 @@ export const AsidePanel = ({
   loadingFollow,
   loadingUnfollow,
 }: Props) => {
-  const buyBtn = [
-    "relative w-full rounded-full text-white font-semibold",
-    "text-[12px] px-3 py-1.5",
-    "!bg-gradient-to-r from-[#6366f1] via-[#8b5cf6] to-[#a78bfa]",
-    "hover:from-[#7c83ff] hover:via-[#9d6cff] hover:to-[#b59cff]",
-    "transition-colors duration-300",
-  ].join(" ");
-
   return (
     <aside className="md:sticky md:top-5 self-start">
       <div className="rounded-xl ring-1 ring-white/12 bg-[#0b0c0e]/90 backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
@@ -120,7 +113,9 @@ export const AsidePanel = ({
               onClick={onFollow}
               isLoading={loadingFollow}
               aria-label="Theo dõi tiểu thuyết"
-              className={[gradientBtn, "text-[12px] px-3 py-1.5 mt-1.5"].join(" ")}
+              className={[gradientBtn, "text-[12px] px-3 py-1.5 mt-1.5"].join(
+                " "
+              )}
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
                 <ModeEdit sx={{ fontSize: 15 }} />

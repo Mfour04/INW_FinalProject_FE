@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { normalizeTags } from "../utils";
 
 type Props = {
   title: string;
@@ -8,20 +9,6 @@ type Props = {
   expanded: boolean;
   onToggleExpand: () => void;
 };
-
-function normalizeTags(raw: any[]): { id: string; label: string }[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((t, idx) => {
-      if (t == null) return null;
-      if (typeof t === "string") return { id: `${idx}-${t}`, label: t };
-      const id = t.tagId ?? t.id ?? t.tagID ?? t._id ?? t.value ?? `${idx}`;
-      const label = t.tagName ?? t.name ?? t.title ?? t.label ?? t.value ?? "";
-      const safeLabel = typeof label === "string" ? label : String(label ?? "");
-      return { id: String(id), label: safeLabel };
-    })
-    .filter((x): x is { id: string; label: string } => Boolean(x && x.label));
-}
 
 const TagGhost = ({ label }: { label: string }) => (
   <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11.5px] leading-none border border-white/12 bg-white/[0.045] text-gray-200 hover:bg-white/[0.08] hover:border-white/20 transition-colors">

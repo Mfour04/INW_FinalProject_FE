@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Star from "@mui/icons-material/Star";
-import Button from "../../../components/ButtonComponent";
-import DefaultAvatar from "../../../assets/img/default_avt.png";
-import { useAuth } from "../../../hooks/useAuth";
+import Button from "../../../../components/ButtonComponent";
+import DefaultAvatar from "../../../../assets/img/default_avt.png";
+import { useAuth } from "../../../../hooks/useAuth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CreateNovelRating,
@@ -11,18 +11,18 @@ import {
   GetNovelRatingSummary,
   UpdateNovelRating,
   type GetNovelRatingParams,
-} from "../../../api/Rating/rating.api";
-import type { Novel } from "../../../entity/novel";
+} from "../../../../api/Rating/rating.api";
+import type { Novel } from "../../../../entity/novel";
 import type {
   CreateNovelRatingRequest,
   DeleteNovelRatingRequest,
   UpdateNovelRatingRequest,
-} from "../../../api/Rating/rating.type";
-import { useToast } from "../../../context/ToastContext/toast-context";
-import { formatTicksToRelativeTime } from "../../../utils/date_format";
-
-const MAX_LEN = 750;
-const scoreKeys = ["1", "2", "3", "4", "5"] as const;
+} from "../../../../api/Rating/rating.type";
+import { useToast } from "../../../../context/ToastContext/toast-context";
+import { formatTicksToRelativeTime } from "../../../../utils/date_format";
+import { MAX_LEN, scoreKeys } from "../../constants";
+import { Segmented } from "./Segment";
+import type { Rating } from "../../../../entity/rating";
 
 const initialNovelRatingRequest: CreateNovelRatingRequest = {
   novelId: "",
@@ -41,43 +41,6 @@ const Hairline = () => (
   </div>
 );
 
-const Segmented = ({
-  value,
-  onChange,
-}: {
-  value: number | "all";
-  onChange: (v: number | "all") => void;
-}) => {
-  const base =
-    "px-2.5 py-1 rounded-full text-[12px] transition border border-white/12";
-  const active =
-    "bg-white/15 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]";
-  const idle = "bg-white/5 text-white/80 hover:bg-white/10";
-  return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-white/5 p-1 border border-white/12">
-      <button
-        className={`${base} ${value === "all" ? active : idle}`}
-        onClick={() => onChange("all")}
-      >
-        Tất cả
-      </button>
-      {[5, 4, 3, 2, 1].map((s) => (
-        <button
-          key={s}
-          className={`${base} ${value === s ? active : idle}`}
-          onClick={() => onChange(s)}
-          title={`${s} sao`}
-        >
-          <span className="inline-flex items-center gap-1">
-            <Star sx={{ width: 12, height: 12 }} className="text-yellow-400" />
-            {s}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-};
-
 const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   const [ratingRequest, setRatingRequest] = useState<CreateNovelRatingRequest>(
     initialNovelRatingRequest
@@ -94,10 +57,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   const { auth } = useAuth();
   const toast = useToast();
 
-  const {
-    data: ratingData,
-    isLoading: isRatingLoading,
-  } = useQuery({
+  const { data: ratingData, isLoading: isRatingLoading } = useQuery({
     queryKey: [
       "ratingNovels",
       novelInfo?.novelId ?? "",
@@ -109,26 +69,9 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     enabled: !!novelInfo?.novelId,
   });
 
-  useEffect(() => {
-    if (!ratingData?.ratings) return;
-    if ((params.page ?? 0) === 0) {
-      setLoadedReviews(ratingData.ratings);
-    } else {
-      setLoadedReviews((prev) => {
-        const map = new Map<string, any>();
-        [...prev, ...ratingData.ratings].forEach((r) =>
-          map.set(r.ratingId, r)
-        );
-        return Array.from(map.values());
-      });
-    }
-  }, [ratingData?.ratings, params.page]);
-
   const myId = auth?.user?.userId;
-  const myRating = myId
-    ? loadedReviews?.find(
-        (r) => (r.author?.id ?? r.author?.userId) === myId
-      )
+  const myRating: Rating = myId
+    ? loadedReviews?.find((r) => (r.author?.id ?? r.author?.userId) === myId)
     : undefined;
 
   const { data: ratingSummary } = useQuery({
@@ -154,25 +97,28 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   );
 
   const CreateNovelRatingMutation = useMutation({
-    mutationFn: (request: CreateNovelRatingRequest) => CreateNovelRating(request),
+    mutationFn: (request: CreateNovelRatingRequest) =>
+      CreateNovelRating(request),
     onSuccess: (data) => {
       toast?.onOpen(data.data.message);
       setParams((p) => ({ ...p, page: 0 }));
     },
   });
   const UpdateNovelRatingMutation = useMutation({
-    mutationFn: (request: UpdateNovelRatingRequest) => UpdateNovelRating(request),
+    mutationFn: (request: UpdateNovelRatingRequest) =>
+      UpdateNovelRating(request),
     onSuccess: (data) => {
       toast?.onOpen(data.data.message);
       setParams((p) => ({ ...p, page: 0 }));
     },
   });
   const DeleteNovelRatingMutation = useMutation({
-    mutationFn: (request: DeleteNovelRatingRequest) => DeleteNovelRating(request),
+    mutationFn: (request: DeleteNovelRatingRequest) =>
+      DeleteNovelRating(request),
     onSuccess: (data) => {
       toast?.onOpen(data.data.message);
       setRatingRequest((prev) => ({
-        ...initialNovelRatingRequest,
+        ...prev,
         novelId: novelInfo.novelId,
       }));
       setParams((p) => ({ ...p, page: 0 }));
@@ -201,10 +147,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
         content: normalized,
       });
     }
-    setRatingRequest((prev) => ({
-      ...initialNovelRatingRequest,
-      novelId: novelInfo.novelId,
-    }));
+    setRatingRequest(initialNovelRatingRequest);
   };
 
   const handleDeleteNovelRating = (ratingId: string) => {
@@ -213,6 +156,15 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
       ratingId,
     });
   };
+
+  useEffect(() => {
+    if (myRating)
+      setRatingRequest({
+        content: myRating.content,
+        novelId: myRating.novelId,
+        score: myRating.score,
+      });
+  }, [myRating]);
 
   const renderStars = (count: number, size: number) =>
     Array.from({ length: 5 }, (_, i) => {
@@ -253,6 +205,19 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     });
 
   useEffect(() => {
+    if (!ratingData?.ratings) return;
+    if ((params.page ?? 0) === 0) {
+      setLoadedReviews(ratingData.ratings);
+    } else {
+      setLoadedReviews((prev) => {
+        const map = new Map<string, any>();
+        [...prev, ...ratingData.ratings].forEach((r) => map.set(r.ratingId, r));
+        return Array.from(map.values());
+      });
+    }
+  }, [ratingData?.ratings, params.page]);
+
+  useEffect(() => {
     if (novelInfo?.novelId) {
       setRatingRequest((prev) => ({ ...prev, novelId: novelInfo.novelId }));
       setParams({ limit: 10, page: 0 });
@@ -269,7 +234,8 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
 
   const totalPages = Math.max(ratingData?.totalPage ?? 1, 1);
   const canLoadMore =
-    (params.page ?? 0) < (ratingData?.totalPage ?? 1) - 1 && filterStar === "all";
+    (params.page ?? 0) < (ratingData?.totalPage ?? 1) - 1 &&
+    filterStar === "all";
 
   const contentLen = (ratingRequest.content ?? "").length;
   const nearLimit = contentLen > MAX_LEN - 25;
@@ -278,7 +244,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     <section className="rounded-2xl border border-white/12 bg-[#0f1012]/90 backdrop-blur-md shadow-[0_24px_80px_-30px_rgba(0,0,0,0.75)] overflow-hidden">
       <div className="px-4 pt-4 pb-2">
         <h2 className="text-[15px] font-semibold tracking-wide uppercase text-white/90">
-            Đánh giá
+          Đánh giá
         </h2>
       </div>
       <Hairline />
@@ -429,14 +395,20 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
             {isRatingLoading && loadedReviews.length === 0 ? (
               <div className="p-4 space-y-2">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-14 rounded-md bg-white/6 animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-14 rounded-md bg-white/6 animate-pulse"
+                  />
                 ))}
               </div>
             ) : displayed.length ? (
               displayed.map((rev) => {
                 const isMine = myRating && rev.ratingId === myRating.ratingId;
                 return (
-                  <div key={rev.ratingId} className="p-4 hover:bg-white/[0.02] transition">
+                  <div
+                    key={rev.ratingId}
+                    className="p-4 hover:bg-white/[0.02] transition"
+                  >
                     <div className="flex items-start gap-2.5">
                       <img
                         className="h-7 w-7 rounded-full object-cover bg-white"
@@ -488,26 +460,29 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
             )}
           </div>
 
-          {((params.page ?? 0) < (ratingData?.totalPage ?? 1) - 1 &&
-            filterStar === "all") && (
-            <div className="p-3">
-              <button
-                onClick={() =>
-                  setParams((prev) => ({ ...prev, page: (prev.page ?? 0) + 1 }))
-                }
-                className={[
-                  "w-full rounded-full text-[12.5px] font-semibold",
-                  "px-3 py-2 border border-white/12 bg-white/[0.06] hover:bg-white/[0.1] transition",
-                  "shadow-[0_10px_28px_-18px_rgba(255,255,255,0.25)]",
-                ].join(" ")}
-              >
-                Xem thêm đánh giá
-                <span className="ml-2 text-white/60">
-                  ({(params.page ?? 0) + 1}/{totalPages})
-                </span>
-              </button>
-            </div>
-          )}
+          {(params.page ?? 0) < (ratingData?.totalPage ?? 1) - 1 &&
+            filterStar === "all" && (
+              <div className="p-3">
+                <button
+                  onClick={() =>
+                    setParams((prev) => ({
+                      ...prev,
+                      page: (prev.page ?? 0) + 1,
+                    }))
+                  }
+                  className={[
+                    "w-full rounded-full text-[12.5px] font-semibold",
+                    "px-3 py-2 border border-white/12 bg-white/[0.06] hover:bg-white/[0.1] transition",
+                    "shadow-[0_10px_28px_-18px_rgba(255,255,255,0.25)]",
+                  ].join(" ")}
+                >
+                  Xem thêm đánh giá
+                  <span className="ml-2 text-white/60">
+                    ({(params.page ?? 0) + 1}/{totalPages})
+                  </span>
+                </button>
+              </div>
+            )}
         </div>
       </div>
     </section>
