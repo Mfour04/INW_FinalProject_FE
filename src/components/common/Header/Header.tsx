@@ -98,17 +98,16 @@ export const Header = ({
 
   return (
     <>
-      <div className="h-[90px] flex items-center px-6 lg:px-[50px] bg-white dark:bg-[#000000] gap-3">
-        {/* Trái: Nút menu */}
+      <div className="h-[90px] flex items-center justify-center px-6 lg:px-[50px] bg-white dark:bg-[#000000] gap-6">
         <div className="shrink-0">
-          {!isAdminRoute && (
+          {!isAdminRoute && !isSidebarOpen && ( 
             <button
               onClick={onToggleSidebar}
               className="grid place-items-center h-10 w-10 rounded-lg
-                         bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff884b]
-                         hover:opacity-90 active:scale-95 transition transform shadow-md"
-              aria-label={isSidebarOpen ? "Đóng sidebar" : "Mở sidebar"}
-              title={isSidebarOpen ? "Đóng sidebar" : "Mở sidebar"}
+                        bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff884b]
+                        hover:opacity-90 active:scale-95 transition transform shadow-md"
+              aria-label="Mở sidebar"
+              title="Mở sidebar"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -117,18 +116,12 @@ export const Header = ({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           )}
         </div>
 
-        {/* Giữa: SearchBar */}
         <div className="flex-1 max-w-[800px]">
           <SearchBar
             searchTerm={searchTerm}
@@ -143,7 +136,6 @@ export const Header = ({
           />
         </div>
 
-        {/* Dark mode */}
         <DarkModeToggler />
 
         {/* Notification */}
