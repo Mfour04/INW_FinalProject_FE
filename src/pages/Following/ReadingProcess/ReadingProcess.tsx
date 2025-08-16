@@ -29,12 +29,6 @@ export const ReadingProcess = () => {
       GetReadingProcess(auth?.user.userId!).then((res) => res.data.data),
   });
 
-  console.log(data);
-
-  // const novels = Array.isArray(data)
-  //   ? data?.novelFollows.followedNovels
-  //   : [];
-
   const view = useMemo(() => {
     switch (actionState) {
       case "Grid":
