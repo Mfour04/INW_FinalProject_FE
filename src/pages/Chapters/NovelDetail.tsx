@@ -1,0 +1,359 @@
+import SwapVert from "@mui/icons-material/SwapVert";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router-dom";
+
+import {
+  BuyNovel,
+  GetNovelByUrl,
+  type GetNovelChaptersParams,
+} from "../../api/Novels/novel.api";
+import { useToast } from "../../context/ToastContext/toast-context";
+import { useAuth } from "../../hooks/useAuth";
+import type {
+  NovelFollowerRequest,
+  NovelFollowRequest,
+  UpdateFollowStatusReq,
+} from "../../api/NovelFollow/novel-follow.type";
+import {
+  FollowNovel,
+  GetNovelFollowers,
+  UnfollowNovel,
+  UpdateFollowStatus,
+} from "../../api/NovelFollow/novel-follow.api";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
+import { BuyChapter } from "../../api/Chapters/chapter.api";
+import type { BuyChapterRequest } from "../../api/Chapters/chapter.type";
+import type { BuyNovelRequest } from "../../api/Novels/novel.type";
+import { ChapterList } from "./components/ChapterList";
+import RatingSection from "./components/RatingSection";
+import { AsidePanel } from "./components/AsidePanel";
+import { InfoCard } from "./components/InfoCard";
+
+export const NovelDetail = () => {
+  const [showFollowPopup, setShowFollowPopup] = useState(false);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [isBuyNovelOpen, setIsBuyNovelOpen] = useState(false);
+  const [expandedDesc, setExpandedDesc] = useState(false);
+
+  const [params, setParams] = useState<GetNovelChaptersParams>({
+    limit: 20,
+    page: 0,
+    sortBy: "chapter_number:asc",
+  });
+
+  const [chapterPrice, setChapterPrice] = useState(0);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
+
+  const { novelId } = useParams();
+  const navigate = useNavigate();
+
+  const toast = useToast();
+  const { auth } = useAuth();
+
+  const { data: novelData, refetch: refetchNovelData, isFetching } = useQuery({
+    queryKey: ["novel", novelId, params],
+    queryFn: () =>
+      GetNovelByUrl(novelId!, {
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        ...(params.chapterNumber ? { chapterNumber: params.chapterNumber } : {}),
+      }).then((res) => res.data.data),
+    enabled: !!novelId,
+  });
+
+  const acceptedChapterIds = [
+    ...(novelData?.purchasedChapterIds ?? []),
+    ...(novelData?.freeChapters ?? []),
+  ];
+  const novelInfo = novelData?.novelInfo;
+
+  const {
+    data: novelFollowers,
+    refetch: refetchNovelFollowers,
+    isLoading: isFollowersLoading,
+    isFetching: isFollowersFetching,
+  } = useQuery({
+    queryKey: ["novelFollower", novelData?.novelInfo.novelId],
+    queryFn: () =>
+      GetNovelFollowers({ novelId: novelData?.novelInfo.novelId! }).then(
+        (res) => res.data.data
+      ),
+    enabled: !!novelId && !!novelData?.novelInfo.novelId,
+  });
+
+  const follower = Array.isArray(novelFollowers?.followers)
+    ? novelFollowers.followers.find((f) => f.userId === auth?.user.userId)
+    : undefined;
+
+  const NovelFollowMutation = useMutation({
+    mutationFn: (request: NovelFollowRequest) => FollowNovel(request),
+    onSuccess: (data) => {
+      toast?.onOpen(data.data.message);
+      refetchNovelFollowers();
+    },
+  });
+
+  const UnfollowNovelMutaion = useMutation({
+    mutationFn: (request: NovelFollowerRequest) => UnfollowNovel(request),
+    onSuccess: () => {
+      toast?.onOpen("Bạn đã hủy theo dõi tiểu thuyết!");
+      refetchNovelFollowers();
+    },
+  });
+
+  const UpdateFollowStatusMutation = useMutation({
+    mutationFn: (request: UpdateFollowStatusReq) => UpdateFollowStatus(request),
+  });
+
+  const BuyChapterMutation = useMutation({
+    mutationFn: ({
+      chapterId,
+      request,
+    }: {
+      chapterId: string;
+      request: BuyChapterRequest;
+    }) => BuyChapter(chapterId, request),
+    onSuccess: (res) => {
+      toast?.onOpen(res.data.message);
+      refetchNovelData();
+    },
+  });
+
+  const BuyNovelMutation = useMutation({
+    mutationFn: ({
+      novelId,
+      request,
+    }: {
+      novelId: string;
+      request: BuyNovelRequest;
+    }) => BuyNovel(novelId, request),
+    onSuccess: (res) => {
+      toast?.onOpen(res.data.message);
+      refetchNovelData();
+    },
+  });
+
+  const handleClickChapter = (
+    chapterId: string,
+    isPaid: boolean,
+    price: number
+  ) => {
+    setSelectedChapterId(chapterId);
+    if (
+      isPaid &&
+      !novelData?.isAccessFull &&
+      !acceptedChapterIds.includes(chapterId)
+    ) {
+      setChapterPrice(price);
+      if (!auth?.user)
+        toast?.onOpen("Bạn cần đăng nhập để có thể tiếp tục với các chương bị khóa");
+      else setIsBuyModalOpen(true);
+    } else navigate(`/novels/${novelId}/${chapterId}`);
+  };
+
+  const handleFollowNovel = (nid: string) => {
+    if (nid) NovelFollowMutation.mutate({ novelId: nid });
+  };
+
+  const handleUnfollowNovel = (novelFollowId: string) => {
+    if (novelFollowId) {
+      setShowFollowPopup(false);
+      UnfollowNovelMutaion.mutate({ novelFollowId });
+    }
+  };
+
+  const confirmBuy = () => {
+    if (selectedChapterId)
+      BuyChapterMutation.mutate({
+        chapterId: selectedChapterId,
+        request: { coinCost: chapterPrice },
+      });
+    setIsBuyModalOpen(false);
+  };
+
+  const confirmBuyNovel = () => {
+    if (novelId && novelInfo)
+      BuyNovelMutation.mutate({
+        novelId: novelInfo.novelId,
+        request: { coinCost: novelInfo?.price },
+      });
+    setIsBuyNovelOpen(false);
+  };
+
+  const handleNotifyChange = () => {
+    if (!follower) return;
+    UpdateFollowStatusMutation.mutate({
+      isNotification: !follower?.isNotification,
+      novelFollowId: follower?.followerId!,
+      readingStatus: follower?.readingStatus!,
+    });
+  };
+
+  const handleStatusChange = (status: number) => {
+    if (!follower) return;
+    UpdateFollowStatusMutation.mutate({
+      isNotification: follower?.isNotification!,
+      novelFollowId: follower?.followerId!,
+      readingStatus: status,
+    });
+  };
+
+  const followBtnRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!followBtnRef.current) return;
+      if (!followBtnRef.current.contains(e.target as Node)) {
+        setShowFollowPopup(false);
+      }
+    };
+    if (showFollowPopup) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [showFollowPopup]);
+
+  const isCompleted = novelInfo?.status === 1;
+
+  // anchor phần Đánh giá
+  const ratingRef = useRef<HTMLDivElement | null>(null);
+  const jumpToRating = () => {
+    ratingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const gradientBtn =
+    [
+      "relative w-full rounded-full border-none text-white font-semibold",
+      "text-sm px-4 py-1.5",
+      "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+      "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
+      "shadow-[0_10px_24px_rgba(255,103,64,0.45)] hover:shadow-[0_14px_32px_rgba(255,103,64,0.60)]",
+      "transition-colors duration-300",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/70",
+      "overflow-hidden before:content-[''] before:absolute before:inset-0",
+      "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.22),transparent_55%)]",
+      "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
+    ].join(" ");
+
+  return (
+    <div className="mx-auto max-w-5xl px-2 py-4 text-white">
+      {/* Thu nhỏ cột aside: 236px thay vì 260px */}
+      <div className="grid grid-cols-1 md:grid-cols-[236px_1fr] gap-5">
+        <AsidePanel
+          novelInfo={novelInfo}
+          novelData={novelData}
+          follower={follower}
+          isCompleted={isCompleted}
+          showFollowPopup={showFollowPopup}
+          setShowFollowPopup={setShowFollowPopup}
+          followBtnRef={followBtnRef}
+          onFollow={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
+          onToggleFollow={() => setShowFollowPopup((v) => !v)}
+          onUnfollow={() => handleUnfollowNovel(follower!.followerId)}
+          onNotifyChange={handleNotifyChange}
+          onStatusChange={(s) => handleStatusChange(s)}
+          onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
+          onJumpToRating={jumpToRating} 
+          gradientBtn={gradientBtn}
+          loadingFollow={
+            NovelFollowMutation.isPending ||
+            isFollowersLoading ||
+            isFollowersFetching
+          }
+          loadingUnfollow={
+            UnfollowNovelMutaion.isPending ||
+            isFollowersLoading ||
+            isFollowersFetching
+          }
+        />
+
+        <main className="space-y-5">
+          <InfoCard
+            title={novelInfo?.title || ""}
+            author={novelInfo?.authorName || ""}
+            tags={(novelData?.novelInfo?.tags ?? novelInfo?.tags ?? []) as any[]}
+            description={novelInfo?.description || ""}
+            expanded={expandedDesc}
+            onToggleExpand={() => setExpandedDesc((v) => !v)}
+          />
+
+          <section className="rounded-2xl ring-1 ring-white/12 bg-[#121212]/80 backdrop-blur-md shadow-[0_16px_52px_-20px_rgba(0,0,0,0.6)]">
+            <div className="flex items-center justify-between px-3 md:px-4 pt-3">
+              <h2 className="text-[15px] font-semibold tracking-wide uppercase text-white/90">
+                Danh sách chương
+              </h2>
+              <button
+                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[12.5px] hover:bg-white/10 transition"
+                onClick={() =>
+                  setParams((prev) => ({
+                    ...prev,
+                    sortBy:
+                      params.sortBy === "chapter_number:desc"
+                        ? "chapter_number:asc"
+                        : "chapter_number:desc",
+                  }))
+                }
+                title="Đổi thứ tự chương"
+              >
+                <SwapVert
+                  className={`transition-transform ${
+                    params.sortBy === "chapter_number:desc"
+                      ? "rotate-180"
+                      : "rotate-0"
+                  }`}
+                  sx={{ width: 18, height: 18 }}
+                />
+                <span className="hidden md:inline">
+                  {params.sortBy === "chapter_number:desc"
+                    ? "Mới → Cũ"
+                    : "Cũ → Mới"}
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-3 border-t border-white/10" />
+
+            <div className="p-3 md:p-4">
+              {isFetching ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-12 rounded-lg bg-white/5 animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ChapterList
+                  handleClickChapter={handleClickChapter}
+                  novelData={novelData}
+                  params={params}
+                  setParams={setParams}
+                />
+              )}
+            </div>
+          </section>
+
+          <div ref={ratingRef}>
+            {novelInfo && <RatingSection novelInfo={novelInfo} />}
+          </div>
+        </main>
+      </div>
+
+      <ConfirmModal
+        isOpen={isBuyModalOpen}
+        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        message={`Chương truyện này có giá ${chapterPrice} coin. Bạn có muốn mua không?`}
+        onConfirm={confirmBuy}
+        onCancel={() => setIsBuyModalOpen(false)}
+      />
+
+      <ConfirmModal
+        isOpen={isBuyNovelOpen}
+        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        message={`Tiểu thuyết này có giá ${novelInfo?.price} coin. Bạn có muốn mua không?`}
+        onConfirm={confirmBuyNovel}
+        onCancel={() => setIsBuyNovelOpen(false)}
+      />
+    </div>
+  );
+};

@@ -72,19 +72,19 @@ export const HomePage = () => {
     SORT_BY_FIELDS.CREATED_AT,
     SORT_DIRECTIONS.DESC,
     0,
-    12
+    15
   );
   const { data: mostViewed } = useSortedNovels(
     SORT_BY_FIELDS.TOTAL_VIEWS,
     SORT_DIRECTIONS.DESC,
     0,
-    12
+    5
   );
   const { data: topRated } = useSortedNovels(
     SORT_BY_FIELDS.RATING_AVG,
     SORT_DIRECTIONS.DESC,
     0,
-    12
+    5
   );
 
   const handleNextNovels = () => {
