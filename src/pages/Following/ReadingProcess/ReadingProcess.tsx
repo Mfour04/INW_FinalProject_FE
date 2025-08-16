@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { GetReadingProcess } from "../../../api/ReadingHistory/reading.api";
+import { TagView } from "../../../components/TagComponent";
 
 type ViewAction = "Grid" | "List";
 
@@ -28,6 +29,8 @@ export const ReadingProcess = () => {
       GetReadingProcess(auth?.user.userId!).then((res) => res.data.data),
   });
 
+  console.log(data);
+
   // const novels = Array.isArray(data)
   //   ? data?.novelFollows.followedNovels
   //   : [];
@@ -41,15 +44,17 @@ export const ReadingProcess = () => {
               {data?.map((novel) => (
                 <div
                   key={novel.novelId}
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() =>
+                    navigate(`/novels/${novel.slug}/${novel.chapterId}`)
+                  }
                   className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
                 >
                   <img
-                    src={undefined}
+                    src={novel.novelImage || undefined}
                     className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
                   />
                   <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">
-                    {novel.chapterId}
+                    {novel.title}
                   </p>
                 </div>
               ))}
@@ -62,24 +67,26 @@ export const ReadingProcess = () => {
             {data?.map((novel) => (
               <div
                 key={novel.novelId}
-                onClick={() => navigate(`/novels/${novel.novelId}`)}
+                onClick={() =>
+                  navigate(`/novels/${novel.slug}/${novel.chapterId}`)
+                }
                 className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full"
               >
                 <img
-                  src={undefined}
+                  src={novel.novelImage || undefined}
                   className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
                 />
 
                 <div className="flex flex-col flex-1 overflow-hidden justify-between">
                   <div>
                     <h2 className="text-[18px] font-medium truncate">
-                      {novel.chapterId}
+                      {novel.title}
                     </h2>
-                    {/* <div className="flex flex-wrap gap-2 my-1">
-                        {novel.tags.map((tag) => (
-                          <TagView key={tag.tagId} tag={tag} />
-                        ))}
-                      </div> */}
+                    <div className="flex flex-wrap gap-2 my-1">
+                      {novel.tags.map((tag) => (
+                        <TagView key={tag.tagId} tag={tag} />
+                      ))}
+                    </div>
                   </div>
 
                   <div className="flex justify-between w-full">
@@ -88,29 +95,29 @@ export const ReadingProcess = () => {
                       <div className="flex gap-2.5">
                         <div className="flex items-center gap-1 text-sm">
                           <StarRate sx={{ height: "20px", width: "20px" }} />
-                          <div className="flex items-center">{novel.id}</div>
+                          <div className="flex items-center">
+                            {novel.ratingAvg}
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 text-sm ">
                           <BookMark sx={{ height: "20px", width: "20px" }} />
-                          <div className="flex items-center">11K</div>
+                          <div className="flex items-center">
+                            {novel.totalViews}
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 text-sm ">
                           <Comment sx={{ height: "20px", width: "20px" }} />
-                          <div>{novel.id}</div>
+                          <div>{novel.commentCount}</div>
                         </div>
                       </div>
-                      {/* <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                          <span
-                            className={`h-2 w-2 rounded-full inline-block ${
-                              novel.isCompleted === true
-                                ? "bg-gray-400"
-                                : "bg-green-400"
-                            }`}
-                          />
-                          {novel.isCompleted === false
-                            ? "Hoàn thành"
-                            : "Đang diễn ra"}
-                        </div> */}
+                      <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
+                        <span
+                          className={`h-2 w-2 rounded-full inline-block ${
+                            novel.status === 1 ? "bg-gray-400" : "bg-green-400"
+                          }`}
+                        />
+                        {novel.status === 1 ? "Hoàn thành" : "Đang diễn ra"}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -136,18 +143,6 @@ export const ReadingProcess = () => {
         </div>
 
         <div className="flex items-center justify-between w-full h-10">
-          {/* <div>Đang đọc</div> */}
-          <div className="flex h-full gap-[30px] justify-between">
-            <select
-              id="filter"
-              className="cursor-pointer bg-[#d9d9d9] text-black rounded-md w-[140px] px-2.5"
-            >
-              <option>Đang đọc</option>
-              <option>Sẽ đọc</option>
-              <option>Hoàn thành</option>
-            </select>
-          </div>
-
           <div className="flex gap-2.5">
             <div
               onClick={() => setActionState("List")}
