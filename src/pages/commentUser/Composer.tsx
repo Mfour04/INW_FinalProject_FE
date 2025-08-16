@@ -16,16 +16,16 @@ type Props = {
   loginCta?: () => void;
 };
 
-export const Composer: React.FC<Props> = ({
+export const Composer = ({
   value,
   onChange,
   onSubmit,
   disabled,
   currentUser,
   loginCta,
-}) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  useAutoGrow(textareaRef, value);
+}: Props) => {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  useAutoGrow<HTMLTextAreaElement>(textareaRef, value);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<File[]>([]);

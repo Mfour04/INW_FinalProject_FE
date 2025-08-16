@@ -1,8 +1,7 @@
 import { useAuth } from "../../../hooks/useAuth";
 import abc from "../../../assets/img/th.png";
-import React from "react";
 
-const ProfileSidebar: React.FC = () => {
+const ProfileSidebar = () => {
   const { auth } = useAuth();
   const displayName = auth?.user?.displayName || auth?.user?.userName || "User";
   const handle = auth?.user?.userName || "user";

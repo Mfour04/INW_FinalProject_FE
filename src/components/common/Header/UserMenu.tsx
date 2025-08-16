@@ -9,7 +9,7 @@ import { useToast } from "../../../context/ToastContext/toast-context";
 
 type Props = { onClose: () => void };
 
-export default function UserMenu({ onClose }: Props) {
+export const UserMenu = ({ onClose }: Props) => {
   const { auth, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -36,20 +36,32 @@ export default function UserMenu({ onClose }: Props) {
     <div className="absolute top-[90px] right-12 mt-2 w-[260px] rounded-2xl border border-zinc-800 bg-[#111114] text-white shadow-2xl z-50 p-4">
       <div className="flex items-center gap-3">
         <div className="h-[52px] w-[52px] rounded-full overflow-hidden ring-1 ring-zinc-700 bg-white">
-          <img src={auth.user.avatarUrl || DefaultAvatar} alt="User Avatar" className="h-full w-full object-cover" />
+          <img
+            src={auth.user.avatarUrl || DefaultAvatar}
+            alt="User Avatar"
+            className="h-full w-full object-cover"
+          />
         </div>
         <div className="min-w-0">
-          <div className="font-semibold text-sm truncate">{auth.user.displayName}</div>
-          <div className="text-xs text-zinc-400 truncate">@{auth.user.displayName}</div>
+          <div className="font-semibold text-sm truncate">
+            {auth.user.displayName}
+          </div>
+          <div className="text-xs text-zinc-400 truncate">
+            @{auth.user.displayName}
+          </div>
           <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-300">
-            <span className="flex items-center gap-1">🥇 {auth.user.badgeId.length ?? 0}</span>
+            <span className="flex items-center gap-1">
+              🥇 {auth.user.badgeId.length ?? 0}
+            </span>
             <span className="flex items-center gap-1">🔥 1</span>
           </div>
         </div>
       </div>
 
       <div className="flex justify-between items-center mt-4">
-        <div className="text-amber-300 font-bold text-sm">🪙 {(auth.user.coin ?? 0).toLocaleString("vi-VN")}</div>
+        <div className="text-amber-300 font-bold text-sm">
+          🪙 {(auth.user.coin ?? 0).toLocaleString("vi-VN")}
+        </div>
         <button
           onClick={handleDepositClick}
           className="rounded-full px-3 py-1 text-xs font-semibold text-white
@@ -62,7 +74,11 @@ export default function UserMenu({ onClose }: Props) {
       </div>
 
       <div className="mt-4 pt-3 space-y-2 text-sm border-t border-zinc-800">
-        <Link to="/profile" onClick={onClose} className="flex items-center gap-2 hover:text-orange-400 transition">
+        <Link
+          to="/profile"
+          onClick={onClose}
+          className="flex items-center gap-2 hover:text-orange-400 transition"
+        >
           <Person /> <span>Trang cá nhân</span>
         </Link>
         <button
@@ -84,4 +100,4 @@ export default function UserMenu({ onClose }: Props) {
       </button>
     </div>
   );
-}
+};

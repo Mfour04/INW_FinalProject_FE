@@ -6,7 +6,10 @@ import Search from "../../../assets/svg/SearchBar/search-02-stroke-rounded.svg";
 import SearchArea from "../../../assets/svg/SearchBar/search-area-stroke-rounded.svg";
 
 import { useQuery } from "@tanstack/react-query";
-import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSortedNovels";
+import {
+  SORT_BY_FIELDS,
+  SORT_DIRECTIONS,
+} from "../../../pages/Home/hooks/useSortedNovels";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
 import { GetUserNotifications } from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
@@ -16,8 +19,8 @@ import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
-import AuthModal from "./AuthModal";
-import UserMenu from "./UserMenu";
+import { AuthModal } from "./AuthModal";
+import { UserMenu } from "./UserMenu";
 
 type HeaderProps = {
   onToggleSidebar: () => void;
@@ -26,15 +29,37 @@ type HeaderProps = {
 };
 
 const sortOptions = [
-  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Đánh giá ↑", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
+  {
+    label: "Ngày ra mắt ↑",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Ngày ra mắt ↓",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Lượt xem ↑",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Lượt xem ↓",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Đánh giá ↑",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Đánh giá ↓",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}`,
+  },
 ];
 
-export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderProps) => {
+export const Header = ({
+  onToggleSidebar,
+  isSidebarOpen,
+  isAdminRoute,
+}: HeaderProps) => {
   const { auth } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -42,7 +67,9 @@ export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderP
   const [searchTerm, setSearchTerm] = useState("");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSort] = useState(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
+  const [selectedSort] = useState(
+    `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`
+  );
   const [selectedTag] = useState("");
 
   const { notifications } = useNotification();
@@ -90,7 +117,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderP
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           )}
@@ -148,9 +180,11 @@ export const Header = ({ onToggleSidebar, isSidebarOpen, isAdminRoute }: HeaderP
 
       {/* Popup */}
       {isPopupOpen &&
-        (auth?.user
-          ? <UserMenu onClose={() => setIsPopupOpen(false)} />
-          : <AuthModal onClose={() => setIsPopupOpen(false)} />)}
+        (auth?.user ? (
+          <UserMenu onClose={() => setIsPopupOpen(false)} />
+        ) : (
+          <AuthModal onClose={() => setIsPopupOpen(false)} />
+        ))}
     </>
   );
 };

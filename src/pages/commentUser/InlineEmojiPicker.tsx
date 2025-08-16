@@ -1,14 +1,12 @@
-import React from "react";
-
 type Props = {
   open: boolean;
   onPick: (emoji: string) => void;
   className?: string;
 };
 
-export const InlineEmojiPicker: React.FC<Props> = ({ open, onPick, className }) => {
+export const InlineEmojiPicker = ({ open, onPick, className }: Props) => {
   if (!open) return null;
-  const emojis = ["😀","😂","😍","👍","🔥","🙏","🥺","🎉","😎","😢"];
+  const emojis = ["😀", "😂", "😍", "👍", "🔥", "🙏", "🥺", "🎉", "😎", "😢"];
   return (
     <div
       className={`absolute bottom-12 left-0 z-20 rounded-xl border border-white/10 bg-[#111217] p-2 shadow-xl ${

@@ -6,7 +6,10 @@ import { useToast } from "../../../context/ToastContext/toast-context";
 import { useMutation } from "@tanstack/react-query";
 import { Login, Register } from "../../../api/Auth/auth.api";
 import type { LoginParams, RegisterParams } from "../../../api/Auth/auth.type";
-import { validatePassword, type PasswordValidationResult } from "../../../utils/validation";
+import {
+  validatePassword,
+  type PasswordValidationResult,
+} from "../../../utils/validation";
 import { useAuth } from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
@@ -19,23 +22,31 @@ const AUTH_ACTIONS = {
 type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
 
 const initialLoginForm: LoginParams = { username: "", password: "" };
-const initialRegisterForm: RegisterParams = { username: "", email: "", password: "" };
+const initialRegisterForm: RegisterParams = {
+  username: "",
+  email: "",
+  password: "",
+};
 
 type Props = { onClose: () => void };
 
-export default function AuthModal({ onClose }: Props) {
+export const AuthModal = ({ onClose }: Props) => {
   const toast = useToast();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
 
   const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
-  const [registerForm, setRegisterForm] = useState<RegisterParams>(initialRegisterForm);
+  const [registerForm, setRegisterForm] =
+    useState<RegisterParams>(initialRegisterForm);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerMessage, setRegisterMessage] = useState("");
 
-  const validationPassword: PasswordValidationResult = validatePassword(registerForm.password);
-  const isRegisterError = registerForm.password !== confirmPassword && confirmPassword.length > 0;
+  const validationPassword: PasswordValidationResult = validatePassword(
+    registerForm.password
+  );
+  const isRegisterError =
+    registerForm.password !== confirmPassword && confirmPassword.length > 0;
 
   const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: (body: LoginParams) => Login(body),
@@ -51,7 +62,8 @@ export default function AuthModal({ onClose }: Props) {
 
   const { mutate: registerMutate, isPending: isRegisterPending } = useMutation({
     mutationFn: (body: RegisterParams) => Register(body),
-    onError: (res: any) => setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
+    onError: (res: any) =>
+      setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
     onSuccess: () => {
       toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
       setAction(AUTH_ACTIONS.LOGIN);
@@ -83,19 +95,25 @@ export default function AuthModal({ onClose }: Props) {
       case AUTH_ACTIONS.LOGIN:
         return (
           <>
-            <div className="text-sm text-left text-[#45454e] mb-4">Hoặc đăng nhập tài khoản:</div>
+            <div className="text-sm text-left text-[#45454e] mb-4">
+              Hoặc đăng nhập tài khoản:
+            </div>
             <input
               type="text"
               placeholder="Tên đăng nhập"
               value={loginForm.username}
-              onChange={(e) => setLoginForm((p) => ({ ...p, username: e.target.value }))}
+              onChange={(e) =>
+                setLoginForm((p) => ({ ...p, username: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
             <input
               type="password"
               placeholder="Mật khẩu"
               value={loginForm.password}
-              onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))}
+              onChange={(e) =>
+                setLoginForm((p) => ({ ...p, password: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
             <div
@@ -128,26 +146,34 @@ export default function AuthModal({ onClose }: Props) {
       case AUTH_ACTIONS.REGISTER:
         return (
           <>
-            <div className="text-sm text-left text-[#45454e] mb-4">Hoặc đăng ký tài khoản:</div>
+            <div className="text-sm text-left text-[#45454e] mb-4">
+              Hoặc đăng ký tài khoản:
+            </div>
             <input
               type="text"
               placeholder="Tên đăng nhập"
               value={registerForm.username}
-              onChange={(e) => setRegisterForm((p) => ({ ...p, username: e.target.value }))}
+              onChange={(e) =>
+                setRegisterForm((p) => ({ ...p, username: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
             <input
               type="email"
               placeholder="Email"
               value={registerForm.email}
-              onChange={(e) => setRegisterForm((p) => ({ ...p, email: e.target.value }))}
+              onChange={(e) =>
+                setRegisterForm((p) => ({ ...p, email: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
             <input
               type="password"
               placeholder="Mật khẩu"
               value={registerForm.password}
-              onChange={(e) => setRegisterForm((p) => ({ ...p, password: e.target.value }))}
+              onChange={(e) =>
+                setRegisterForm((p) => ({ ...p, password: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
             <input
@@ -161,15 +187,21 @@ export default function AuthModal({ onClose }: Props) {
             {!validationPassword.isValid && (
               <div>
                 {validationPassword.errors.map((error, i) => (
-                  <div key={i} className="text-sm text-left text-red-500">{error}</div>
+                  <div key={i} className="text-sm text-left text-red-500">
+                    {error}
+                  </div>
                 ))}
               </div>
             )}
             {isRegisterError && (
-              <div className="text-sm text-left text-red-500">Nhập lại mật khẩu không giống với mật khẩu</div>
+              <div className="text-sm text-left text-red-500">
+                Nhập lại mật khẩu không giống với mật khẩu
+              </div>
             )}
             {registerMessage && (
-              <div className="text-sm text-left text-red-500">{registerMessage}</div>
+              <div className="text-sm text-left text-red-500">
+                {registerMessage}
+              </div>
             )}
 
             <div className="w-full flex justify-center">
@@ -197,12 +229,16 @@ export default function AuthModal({ onClose }: Props) {
       case AUTH_ACTIONS.FORGOT_PASSWORD:
         return (
           <>
-            <div className="text-sm text-left text-[#45454e] mb-4">Quên mật khẩu?</div>
+            <div className="text-sm text-left text-[#45454e] mb-4">
+              Quên mật khẩu?
+            </div>
             <input
               type="text"
               placeholder="Email/Tên đăng nhập"
               value={loginForm.username}
-              onChange={(e) => setLoginForm((p) => ({ ...p, username: e.target.value }))}
+              onChange={(e) =>
+                setLoginForm((p) => ({ ...p, username: e.target.value }))
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2"
             />
 
@@ -254,11 +290,19 @@ export default function AuthModal({ onClose }: Props) {
         </button>
 
         <div className="h-[46px] w-full flex items-center justify-center mb-4 overflow-hidden">
-          <img src={LoginLogo} alt="Login Logo" className="max-w-[168px] h-auto object-contain" />
+          <img
+            src={LoginLogo}
+            alt="Login Logo"
+            className="max-w-[168px] h-auto object-contain"
+          />
         </div>
 
-        <h2 className="text-lg font-semibold text-center mb-1">Chào mừng đến với InkWave</h2>
-        <p className="text-sm text-center text-zinc-600 mb-4">Gõ cửa thế giới truyện</p>
+        <h2 className="text-lg font-semibold text-center mb-1">
+          Chào mừng đến với InkWave
+        </h2>
+        <p className="text-sm text-center text-zinc-600 mb-4">
+          Gõ cửa thế giới truyện
+        </p>
 
         <button className="w-full border border-zinc-300 rounded-lg py-2.5 flex items-center justify-center gap-2 mb-3 hover:bg-zinc-50 transition">
           <img src={GoogleLogin} alt="Google" className="w-5 h-5" />
@@ -269,4 +313,4 @@ export default function AuthModal({ onClose }: Props) {
       </div>
     </div>
   );
-}
+};
