@@ -6,7 +6,13 @@ import type {
   NovelFollowerRequest,
   NovelFollowRequest,
   UnFollowNovelApiResponse,
+  UpdateFollowStatusReq,
 } from "./novel-follow.type";
+
+export type FollowerNovelsParams = {
+  page?: number;
+  limit?: number;
+};
 
 export const FollowNovel = (request: NovelFollowRequest) =>
   http.privateHttp.post<NovelFollowApiResponse>(
@@ -24,5 +30,10 @@ export const GetNovelFollowers = (request: NovelFollowRequest) =>
     `NovelFollowers/novel/${request.novelId}`
   );
 
-export const GetFollowerNovels = () =>
-  http.privateHttp.get<FollowerNovelsApiResponse>(`NovelFollowers/user`);
+export const GetFollowerNovels = (params?: FollowerNovelsParams) =>
+  http.privateHttp.get<FollowerNovelsApiResponse>(`NovelFollowers/user`, {
+    params,
+  });
+
+export const UpdateFollowStatus = (request: UpdateFollowStatusReq) =>
+  http.privateHttp.put(`NovelFollowers/updated`, request);

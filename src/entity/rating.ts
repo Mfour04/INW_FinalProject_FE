@@ -1,10 +1,16 @@
+type Author = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatar: string | null;
+};
+
 export type Rating = {
   ratingId: string;
   novelId: string;
-  userId: string;
+  author: Author;
   score: number;
-  ratingContent: string;
-  displayName: string;
+  content: string;
   createdAt: number;
   updatedAt: number;
 };

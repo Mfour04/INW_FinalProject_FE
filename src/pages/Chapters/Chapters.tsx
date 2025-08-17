@@ -7,7 +7,7 @@ import SwapVert from "@mui/icons-material/SwapVert";
 
 import NotificationActive from "@mui/icons-material/NotificationsActive";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -20,11 +20,13 @@ import { useAuth } from "../../hooks/useAuth";
 import type {
   NovelFollowerRequest,
   NovelFollowRequest,
+  UpdateFollowStatusReq,
 } from "../../api/NovelFollow/novel-follow.type";
 import {
   FollowNovel,
   GetNovelFollowers,
   UnfollowNovel,
+  UpdateFollowStatus,
 } from "../../api/NovelFollow/novel-follow.api";
 import { FollowPopup } from "./FollowPopup";
 import Button from "../../components/ButtonComponent";
@@ -49,6 +51,7 @@ export const Chapters = () => {
     page: 0,
     sortBy: "chapter_number:asc",
   });
+
   const [chapterPrice, setChapterPrice] = useState(0);
   const [selectedChapterId, setSelectedChapterId] = useState<string>("");
 
@@ -58,7 +61,7 @@ export const Chapters = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const { data: novelData } = useQuery({
+  const { data: novelData, refetch: refetchNovelData } = useQuery({
     queryKey: ["novel", novelId, params],
     queryFn: () =>
       GetNovelByUrl(novelId!, {
@@ -71,6 +74,11 @@ export const Chapters = () => {
       }).then((res) => res.data.data),
     enabled: !!novelId,
   });
+
+  const acceptedChapterIds = [
+    ...(novelData?.purchasedChapterIds ?? []),
+    ...(novelData?.freeChapters ?? []),
+  ];
 
   const novelInfo = novelData?.novelInfo;
 
@@ -88,6 +96,12 @@ export const Chapters = () => {
     enabled: !!novelId,
   });
 
+  const follower = Array.isArray(novelFollowers?.followers)
+    ? novelFollowers.followers.find(
+        (follower) => follower.userId === auth?.user.userId
+      )
+    : undefined;
+
   const NovelFollowMutation = useMutation({
     mutationFn: (request: NovelFollowRequest) => FollowNovel(request),
     onSuccess: (data) => {
@@ -103,6 +117,11 @@ export const Chapters = () => {
       refetchNovelFollowers();
     },
   });
+
+  const UpdateFollowStatusMutation = useMutation({
+    mutationFn: (request: UpdateFollowStatusReq) => UpdateFollowStatus(request),
+  });
+
   const BuyChapterMutation = useMutation({
     mutationFn: ({
       chapterId,
@@ -113,6 +132,7 @@ export const Chapters = () => {
     }) => BuyChapter(chapterId, request),
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
+      refetchNovelData();
     },
   });
 
@@ -126,14 +146,9 @@ export const Chapters = () => {
     }) => BuyNovel(novelId, request),
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
+      refetchNovelData();
     },
   });
-
-  const follower = Array.isArray(novelFollowers?.followers)
-    ? novelFollowers.followers.find(
-        (follower) => follower.userId === auth?.user.userId
-      )
-    : undefined;
 
   const handleClickChapter = (
     chapterId: string,
@@ -141,7 +156,11 @@ export const Chapters = () => {
     price: number
   ) => {
     setSelectedChapterId(chapterId);
-    if (isPaid && !novelData?.isAccessFull) {
+    if (
+      isPaid &&
+      !novelData?.isAccessFull &&
+      !acceptedChapterIds.includes(chapterId)
+    ) {
       setChapterPrice(price);
       if (!auth?.user)
         toast?.onOpen(
@@ -174,10 +193,26 @@ export const Chapters = () => {
   const confirmBuyNovel = () => {
     if (novelId && novelInfo)
       BuyNovelMutation.mutate({
-        novelId: novelId,
+        novelId: novelInfo.novelId,
         request: { coinCost: novelInfo?.price },
       });
     setIsBuyNovelOpen(false);
+  };
+
+  const handleNotifyChange = () => {
+    UpdateFollowStatusMutation.mutate({
+      isNotification: !follower?.isNotification,
+      novelFollowId: follower?.followerId!,
+      readingStatus: follower?.readingStatus!,
+    });
+  };
+
+  const handleStatusChange = (status: number) => {
+    UpdateFollowStatusMutation.mutate({
+      isNotification: follower?.isNotification!,
+      novelFollowId: follower?.followerId!,
+      readingStatus: status,
+    });
   };
 
   const tabContent = useMemo(() => {
@@ -186,7 +221,6 @@ export const Chapters = () => {
         break;
       case "Rating":
         return <RatingSection novelInfo={novelInfo!} />;
-        break;
       case "Chapter":
         return (
           <ChapterList
@@ -306,11 +340,13 @@ export const Chapters = () => {
                 {showFollowPopup && (
                   <div className="absolute left-57 top-[-15px] z-50 mt-2">
                     <FollowPopup
-                      notify={false}
-                      status="Đang đọc"
+                      notify={follower.isNotification}
+                      status={follower.readingStatus}
                       onUnfollow={() =>
                         handleUnfollowNovel(follower.followerId)
                       }
+                      onNotifyChange={handleNotifyChange}
+                      onStatusChange={(status) => handleStatusChange(status)}
                     />
                   </div>
                 )}
@@ -320,11 +356,16 @@ export const Chapters = () => {
             {novelInfo?.status === 1 && (
               <Button
                 onClick={() => setIsBuyNovelOpen(true)}
-                className=" bg-[#ff6740] w-[100px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
+                disabled={novelData?.isAccessFull}
+                className={` ${
+                  novelData?.isAccessFull
+                    ? `bg-[#45454e]`
+                    : `bg-[#ff6740] hover:bg-orange-600`
+                } w-[100px]  border-none px-4 py-1 rounded text-[18px]`}
               >
-                <div className="flex items-center justify-center gap-2.5">
+                <div className="flex items-center justify-center gap-2.5 w-fit whitespace-nowrap">
                   <ShoppingCart sx={{ height: "20px", width: "20px" }} />
-                  <p>Mua</p>
+                  {novelData?.isAccessFull ? <p>Đã Mua</p> : <p>Mua</p>}
                 </div>
               </Button>
             )}
@@ -363,14 +404,14 @@ export const Chapters = () => {
           >
             Danh sách chương
           </button>
-          <button
+          {/* <button
             onClick={() => setTab("Comment")}
             className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
               tab === "Comment" ? "bg-[#2e2e2e]" : undefined
             } `}
           >
             Bình luận (2)
-          </button>
+          </button> */}
           <button
             onClick={() => setTab("Rating")}
             className={`px-5 cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${

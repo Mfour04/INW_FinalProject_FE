@@ -1,4 +1,5 @@
 import type { ApiResponse } from "../../entity/response";
+import type { Tag } from "../../entity/tag";
 
 export type NovelFollowRequest = {
   novelId: string;
@@ -25,6 +26,8 @@ export interface NovelFollower {
   displayName: string;
   avatarUrl: string | null;
   followedAt: number;
+  isNotification: boolean;
+  readingStatus: number;
 }
 
 export interface NovelFollowerResponse {
@@ -48,22 +51,38 @@ export type FollowedNovel = {
   novelBanner: string | null;
   authorId: string;
   authorName: string;
-  isCompleted: boolean;
+  status: number;
   isPaid: boolean;
   price: number;
   ratingAvg: number;
+  slug: string;
   followers: number;
+  tags: Tag[];
+  isNotification: boolean;
+  readingStatus: number;
   totalChapters: number;
   followedAt: number;
 };
 
-export type FollowerNovelsResponse = {
+export type NovelFollows = {
   userId: string;
   userName: string;
   displayName: string;
   avatarUrl: string | null;
   totalFollowing: number;
   followedNovels: FollowedNovel[];
+};
+
+export type FollowerNovelsResponse = {
+  novelFollows: NovelFollows;
+  totalNovelFollows: number;
+  totalPages: 1;
+};
+
+export type UpdateFollowStatusReq = {
+  novelFollowId: string;
+  isNotification: boolean;
+  readingStatus: number;
 };
 
 export type NovelFollowApiResponse = ApiResponse<NovelFollowResponse>;

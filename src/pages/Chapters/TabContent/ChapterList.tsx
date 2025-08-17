@@ -20,6 +20,11 @@ export const ChapterList = ({
 }: ChapterListProps) => {
   const chapters = novelData?.allChapters;
   const lastChapter = chapters?.[chapters?.length - 1];
+  const acceptedChapterIds = [
+    ...(novelData?.purchasedChapterIds ?? []),
+    ...(novelData?.freeChapters ?? []),
+  ];
+
   return (
     <div>
       <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
@@ -28,41 +33,49 @@ export const ChapterList = ({
           Chương {lastChapter?.chapterNumber}: {lastChapter?.title}
         </p>
         <p className="flex items-center text-[#cfcfcf]">
-          {formatTicksToRelativeTime(lastChapter?.updateAt!)}
+          {lastChapter?.updateAt
+            ? formatTicksToRelativeTime(lastChapter?.updateAt!)
+            : formatTicksToRelativeTime(lastChapter?.createAt)}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
-        {chapters?.map((chapter) => (
-          <div
-            onClick={() =>
-              handleClickChapter(
-                chapter.chapterId,
-                chapter.isPaid,
-                chapter.price
-              )
-            }
-            key={chapter.chapterId}
-            className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
-          >
-            <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-4 justify-between">
-              <div className="flex items-center">
-                <h1 className="w-[20px] text-[20px]">
-                  {chapter.chapterNumber}
-                </h1>
-                <div className="ml-2">
-                  <p className="text-[18px] font-normal line-clamp-1">
-                    {chapter.title}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {formatTicksToRelativeTime(chapter.updateAt)}
-                  </p>
+        {chapters
+          ?.filter((chapter) => !chapter.isDraft)
+          .map((chapter) => (
+            <div
+              onClick={() =>
+                handleClickChapter(
+                  chapter.chapterId,
+                  chapter.isPaid,
+                  chapter.price
+                )
+              }
+              key={chapter.chapterId}
+              className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
+            >
+              <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-4 justify-between">
+                <div className="flex items-center">
+                  <h1 className="w-[20px] text-[20px]">
+                    {chapter.chapterNumber}
+                  </h1>
+                  <div className="ml-2">
+                    <p className="text-[18px] font-normal line-clamp-1">
+                      {chapter.title}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {chapter.updateAt
+                        ? formatTicksToRelativeTime(chapter.updateAt)
+                        : formatTicksToRelativeTime(chapter.createAt)}
+                    </p>
+                  </div>
                 </div>
+                {chapter.isPaid &&
+                  !novelData?.isAccessFull &&
+                  !acceptedChapterIds.includes(chapter.chapterId) && <Lock />}
               </div>
-              {chapter.isPaid && !novelData?.isAccessFull && <Lock />}
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">

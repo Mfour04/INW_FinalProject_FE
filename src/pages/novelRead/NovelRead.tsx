@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../../pages/novelRead/NovelRead.css";
 import { novelData } from "../../pages/novelRead/Content";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { GetChapter } from "../../api/Chapters/chapter.api";
 import { GetChapters } from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
@@ -15,6 +15,13 @@ import Play from "../../assets/svg/NovelRead/play-stroke-rounded.svg";
 import Pause from "../../assets/svg/NovelRead/pause-stroke-rounded.svg";
 import Stop from "../../assets/svg/NovelRead/stop-stroke-rounded.svg";
 import { htmlToPlainText } from "../../utils/text-speech";
+import type { ReadingProcessReq } from "../../api/ReadingHistory/reading.type";
+import {
+  CreateReadingProcess,
+  GetReadingProcess,
+  UpdateReadingProcess,
+} from "../../api/ReadingHistory/reading.api";
+import { useAuth } from "../../hooks/useAuth";
 
 type SpeechState = "started" | "paused" | "stopped";
 
@@ -22,8 +29,10 @@ export const NovelRead = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speechState, setSpeechState] = useState<SpeechState>("stopped");
   const { novelId, chapterId } = useParams();
+
   const navigate = useNavigate();
   const toast = useToast();
+  const { auth } = useAuth();
 
   const { data: novelInfo, error: novelError } = useQuery({
     queryKey: ["novel-by-slug", novelId],
@@ -63,10 +72,31 @@ export const NovelRead = () => {
     enabled: !!(novelInfo?.novelInfo?.novelId || novelId),
   });
 
+  const { data: ReadingProcess } = useQuery({
+    queryKey: ["readingProcess", auth?.user.userId],
+    queryFn: () =>
+      GetReadingProcess(auth?.user.userId!).then((res) => res.data),
+    enabled: !!auth?.user.userId,
+  });
+
+  const isCurrentNovel = Array.isArray(ReadingProcess?.data)
+    ? !!ReadingProcess.data.find(
+        (process) => process.novelId === novelInfo?.novelInfo?.novelId
+      )
+    : false;
+
+  const CreateReadingProcessMutation = useMutation({
+    mutationFn: (request: ReadingProcessReq) => CreateReadingProcess(request),
+  });
+
+  const UpdateReadingProcessMutation = useMutation({
+    mutationFn: (request: ReadingProcessReq) => UpdateReadingProcess(request),
+  });
+
   const finalChapterList = novelInfo?.allChapters || chapterList;
 
   const adaptedChapterList = finalChapterList?.map((chap) => {
-    if ('id' in chap) {
+    if ("id" in chap) {
       return chap;
     } else {
       return {
@@ -88,39 +118,48 @@ export const NovelRead = () => {
   });
 
   const currentChapter = finalChapterList?.find((chap) =>
-    'id' in chap ? chap.id === chapterId : chap.chapterId === chapterId
+    "id" in chap ? chap.id === chapterId : chap.chapterId === chapterId
   );
 
-  const currentNumber = data?.chapter?.chapterNumber ||
-    (currentChapter && ('chapter_number' in currentChapter ? currentChapter.chapter_number :
-      (('chapterNumber' in currentChapter) ? (currentChapter as any).chapterNumber : 0))) || 0;
+  const currentNumber =
+    data?.chapter?.chapterNumber ||
+    (currentChapter &&
+      ("chapter_number" in currentChapter
+        ? currentChapter.chapter_number
+        : "chapterNumber" in currentChapter
+        ? (currentChapter as any).chapterNumber
+        : 0)) ||
+    0;
 
   const handleGoToChapterNumber = (offset: number) => {
-
     if (!finalChapterList || currentNumber === 0) {
       return;
     }
 
     const nextChapter = finalChapterList.find((chap) => {
-      const chapterNum = 'chapter_number' in chap ? chap.chapter_number : chap.chapterNumber;
+      const chapterNum =
+        "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
       return chapterNum === currentNumber + offset;
     });
 
     if (nextChapter) {
-      const isPaid = 'is_paid' in nextChapter ? nextChapter.is_paid : nextChapter.isPaid;
+      const isPaid =
+        "is_paid" in nextChapter ? nextChapter.is_paid : nextChapter.isPaid;
       if (isPaid) {
         toast?.onOpen("Bạn không sở hữu chương này");
         return;
       }
 
-      const nextChapterId = 'id' in nextChapter ? nextChapter.id : nextChapter.chapterId;
-      const nextNovelId = 'novel_id' in nextChapter ? nextChapter.novel_id : nextChapter.novelId;
+      const nextChapterId =
+        "id" in nextChapter ? nextChapter.id : nextChapter.chapterId;
+      const nextNovelId =
+        "novel_id" in nextChapter ? nextChapter.novel_id : nextChapter.novelId;
       navigate(`/novels/${nextNovelId}/${nextChapterId}`);
     } else {
     }
   };
 
-  const cleanText = htmlToPlainText(data?.chapter.content ?? "");
+  const cleanText = htmlToPlainText(data?.chapter?.content ?? "");
 
   const { speechStatus, start, pause, stop } = useSpeech({
     text: cleanText,
@@ -150,6 +189,23 @@ export const NovelRead = () => {
     setSpeechState("stopped");
     stop();
   };
+
+  useEffect(() => {
+    if (!novelInfo?.novelInfo.novelId || !chapterId || !auth?.user.userId)
+      return;
+    if (isCurrentNovel)
+      UpdateReadingProcessMutation.mutate({
+        novelId: novelInfo?.novelInfo.novelId!,
+        chapterId: chapterId!,
+        userId: auth?.user.userId!,
+      });
+    else
+      CreateReadingProcessMutation.mutate({
+        novelId: novelInfo?.novelInfo.novelId!,
+        chapterId: chapterId!,
+        userId: auth?.user.userId!,
+      });
+  }, [isCurrentNovel, novelInfo, chapterId, auth]);
 
   return (
     <div
@@ -256,7 +312,11 @@ export const NovelRead = () => {
           <button
             className="buttonStyle"
             onClick={() => handleGoToChapterNumber(-1)}
-            disabled={!finalChapterList || finalChapterList.length === 0 || currentNumber <= 1}
+            disabled={
+              !finalChapterList ||
+              finalChapterList.length === 0 ||
+              currentNumber <= 1
+            }
           >
             &lt; Chương trước
           </button>
@@ -273,7 +333,11 @@ export const NovelRead = () => {
           <button
             className="buttonStyle"
             onClick={() => handleGoToChapterNumber(1)}
-            disabled={!finalChapterList || finalChapterList.length === 0 || currentNumber >= finalChapterList.length}
+            disabled={
+              !finalChapterList ||
+              finalChapterList.length === 0 ||
+              currentNumber >= finalChapterList.length
+            }
           >
             Chương sau &gt;
           </button>

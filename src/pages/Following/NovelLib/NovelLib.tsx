@@ -8,9 +8,8 @@ import Comment from "@mui/icons-material/Comment";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GetNovels } from "../../../api/Novels/novel.api";
-import { TagView } from "../../../components/TagComponent";
 import { GetFollowerNovels } from "../../../api/NovelFollow/novel-follow.api";
+import { TagView } from "../../../components/TagComponent";
 
 type ViewAction = "Grid" | "List";
 
@@ -23,11 +22,15 @@ export const NovelLib = () => {
 
   const { data } = useQuery({
     queryKey: ["follower-novels"],
-    queryFn: () => GetFollowerNovels().then((res) => res.data.data),
+    queryFn: () =>
+      GetFollowerNovels({
+        limit: limit,
+        page: page,
+      }).then((res) => res.data.data),
   });
 
-  const novels = Array.isArray(data?.followedNovels)
-    ? data?.followedNovels
+  const novels = Array.isArray(data?.novelFollows.followedNovels)
+    ? data?.novelFollows.followedNovels
     : [];
 
   const view = useMemo(() => {
@@ -39,7 +42,7 @@ export const NovelLib = () => {
               {novels.map((novel) => (
                 <div
                   key={novel.novelId}
-                  onClick={() => navigate(`/novels/${novel.novelId}`)}
+                  onClick={() => navigate(`/novels/${novel.slug}`)}
                   className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
                 >
                   <img
@@ -60,7 +63,7 @@ export const NovelLib = () => {
             {novels.map((novel) => (
               <div
                 key={novel.novelId}
-                onClick={() => navigate(`/novels/${novel.novelId}`)}
+                onClick={() => navigate(`/novels/${novel.slug}`)}
                 className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full"
               >
                 <img
@@ -73,11 +76,11 @@ export const NovelLib = () => {
                     <h2 className="text-[18px] font-medium truncate">
                       {novel.title}
                     </h2>
-                    {/* <div className="flex flex-wrap gap-2 my-1">
+                    <div className="flex flex-wrap gap-2 my-1">
                       {novel.tags.map((tag) => (
                         <TagView key={tag.tagId} tag={tag} />
                       ))}
-                    </div> */}
+                    </div>
                   </div>
 
                   <div className="flex justify-between w-full">
@@ -102,14 +105,10 @@ export const NovelLib = () => {
                       <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
                         <span
                           className={`h-2 w-2 rounded-full inline-block ${
-                            novel.isCompleted === true
-                              ? "bg-gray-400"
-                              : "bg-green-400"
+                            novel.status === 1 ? "bg-gray-400" : "bg-green-400"
                           }`}
                         />
-                        {novel.isCompleted === false
-                          ? "Hoàn thành"
-                          : "Đang diễn ra"}
+                        {novel.status === 1 ? "Hoàn thành" : "Đang diễn ra"}
                       </div>
                     </div>
                   </div>
@@ -119,7 +118,7 @@ export const NovelLib = () => {
           </>
         );
     }
-  }, [actionState, data]);
+  }, [actionState, data, novels]);
   return (
     <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
       <div className=" justify-between items-center mb-6">
@@ -136,7 +135,6 @@ export const NovelLib = () => {
         </div>
 
         <div className="flex items-center justify-between w-full h-10">
-          {/* <div>Đang đọc</div> */}
           <div className="flex h-full gap-[30px] justify-between">
             <select
               id="filter"
@@ -185,12 +183,12 @@ export const NovelLib = () => {
           <span className="text-sm">
             Trang{" "}
             <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> /
-            {/* {data?.data.data.totalPages} */}
+            {data?.totalPages}
           </span>
         </div>
         <button
           onClick={() => setPage(page + 1)}
-          //   disabled={page === (data?.data.data.totalPages ?? 1) - 1}
+          disabled={page === (data?.totalPages ?? 1) - 1}
           className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
         >
           <img src={ArrowRight02} />

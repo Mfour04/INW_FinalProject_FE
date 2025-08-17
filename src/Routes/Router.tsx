@@ -19,6 +19,14 @@ import { TransactionHistory } from "../pages/TransactionHistory/TransactionHisto
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
 import { Setting } from "../pages/setting/Setting";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
+import AdminHome from "../pages/Admin/AdminHome";
+import UserList from "../pages/Admin/UserManagement/UserList";
+import RequestList from "../pages/Admin/RequestMangement/RequestList";
+import ReportList from "../pages/Admin/ReportMangement/ReportList";
+import NovelList from "../pages/Admin/NovelManagement/NovelList";
+import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
+import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
+
 export const Router = () => {
   return (
     <Routes>
@@ -27,9 +35,9 @@ export const Router = () => {
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}
       >
-        <Route index element={<></>} />
+        <Route index element={<NovelLib />} />
         <Route path="library" element={<NovelLib />} />
-        <Route path="history" element={<></>} />
+        <Route path="history" element={<ReadingProcess />} />
       </Route>
       <Route path="/novels">
         <Route index element={<Novels />} />
@@ -48,17 +56,18 @@ export const Router = () => {
           />
         </Route>
       </Route>
-      <Route
-        path="/admin"
-        element={<ProtectedRoutes role={Roles.Admin} />}
-      ></Route>
+      <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
+        <Route index element={<AdminHome />} />
+        <Route path="users" element={<UserList />} />
+        <Route path="novels" element={<NovelList />} />
+        <Route path="transaction" element={<TransactionList />} />
+        <Route path="reports" element={<ReportList />} />
+        <Route path="wallets" element={<RequestList />} />
+      </Route>
       {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/deposite" element={<Deposite />} />
       <Route path="/transaction-history" element={<TransactionHistory />} />
-      <Route
-        path="/profile"
-        element={<ProtectedRoutes role={[Roles.User]} />}
-      >
+      <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
         <Route index element={<UserProfile />} />
       </Route>
       <Route path="/blogs" element={<Blogs />} />
