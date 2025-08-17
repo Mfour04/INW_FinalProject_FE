@@ -11,4 +11,6 @@ export type VietQrBank = {
 export type UiBank = {
   shortName: string;
   logo: string;
+  bin: string;
+  code: string;
 };

@@ -246,6 +246,8 @@ export const Withdraw = () => {
                       ? {
                           shortName: selectedBank.shortName,
                           logo: selectedBank.logo,
+                          bin: selectedBank.bin,
+                          code: selectedBank.code,
                         }
                       : null
                   }
@@ -256,6 +258,8 @@ export const Withdraw = () => {
                             ...prev,
                             shortName: b.shortName,
                             logo: b.logo,
+                            bin: b.bin,
+                            code: b.code,
                           } as any)
                         : (b as any)
                     );

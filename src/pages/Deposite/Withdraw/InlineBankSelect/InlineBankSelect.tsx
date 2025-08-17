@@ -32,7 +32,12 @@ export const InlineBankSelect = ({
       const raw: VietQrBank[] = res.data?.data ?? [];
       return raw
         .filter((b) => b.transferSupported === 1)
-        .map((b) => ({ shortName: b.shortName, logo: b.logo }))
+        .map((b) => ({
+          shortName: b.shortName,
+          logo: b.logo,
+          bin: b.bin,
+          code: b.code,
+        }))
         .sort((a, b) => a.shortName.localeCompare(b.shortName, "vi"));
     },
     staleTime: 1000 * 60 * 5,
