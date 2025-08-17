@@ -57,12 +57,6 @@ export const Withdraw = () => {
   });
 
   const toast = useToast();
-
-  const { data: banksData, refetch: banksRefetch } = useQuery({
-    queryKey: ["banks"],
-    queryFn: () => GetBanks().then((res) => res.data.data),
-  });
-
   const { data: userBanks, refetch: userBanksRefetch } = useQuery({
     queryKey: ["userBanks"],
     queryFn: () => GetUserBanks().then((res) => res.data.data),
@@ -74,7 +68,8 @@ export const Withdraw = () => {
   const CreateBankMutation = useMutation({
     mutationFn: (request: CreateBankRequest) => CreateBank(request),
     onSuccess: () => {
-      banksRefetch();
+      toast?.onOpen("Thêm tài khoản ngân hàng thành công");
+      userBanksRefetch();
     },
   });
 
