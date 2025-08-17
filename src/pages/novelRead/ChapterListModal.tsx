@@ -35,6 +35,24 @@ export const ChapterListModal = ({
     setSortDir("asc");
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!dialogRef.current) return;
+      if (!dialogRef.current.contains(target)) handleClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
   const data = useMemo(() => {
     const base = (chapters ?? []).filter((c) => !c.is_draft);
     const filtered = q.trim()
@@ -65,24 +83,6 @@ export const ChapterListModal = ({
     navigate(`/novels/${novelSlug}/${chapterId}`);
     handleClose();
   };
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!dialogRef.current) return;
-      if (!dialogRef.current.contains(target)) handleClose();
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
 
   return (
     <div className="fixed inset-0 z-[9999]">
