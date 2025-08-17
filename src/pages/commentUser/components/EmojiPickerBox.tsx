@@ -1,4 +1,10 @@
-import React, { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import type { EmojiClickData, PickerProps } from "emoji-picker-react";
 import { Theme } from "emoji-picker-react";
@@ -19,7 +25,7 @@ type Props = {
   closeOnPick?: boolean;
 };
 
-export const EmojiPickerBox: React.FC<Props> = ({
+export const EmojiPickerBox = ({
   open,
   onPick,
   anchorRef,
@@ -30,7 +36,7 @@ export const EmojiPickerBox: React.FC<Props> = ({
   width = 320,
   height = 260,
   closeOnPick = true,
-}) => {
+}: Props) => {
   const GAP = 10;
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -53,7 +59,9 @@ export const EmojiPickerBox: React.FC<Props> = ({
     const preferTop = placement === "top";
     const canFitTop = spaceAbove >= height + GAP;
     const canFitBottom = spaceBelow >= height + GAP;
-    const useTop = preferTop ? canFitTop || !canFitBottom : !(canFitBottom || !canFitTop);
+    const useTop = preferTop
+      ? canFitTop || !canFitBottom
+      : !(canFitBottom || !canFitTop);
 
     let top = useTop ? r.top - height - GAP : r.bottom + GAP;
     let left = align === "right" ? r.right - width : r.left;
@@ -123,17 +131,24 @@ export const EmojiPickerBox: React.FC<Props> = ({
         if (vi && el.textContent !== vi) el.textContent = vi;
       });
 
-      root.querySelectorAll(".epr-header span, .epr-preview span").forEach((el) => {
-        const raw = (el.textContent || "").trim().replace(/\s+/g, " ");
-        const vi = translations[raw];
-        if (vi && el.textContent !== vi) el.textContent = vi;
-      });
+      root
+        .querySelectorAll(".epr-header span, .epr-preview span")
+        .forEach((el) => {
+          const raw = (el.textContent || "").trim().replace(/\s+/g, " ");
+          const vi = translations[raw];
+          if (vi && el.textContent !== vi) el.textContent = vi;
+        });
     };
 
     const t = setTimeout(translateLabels, 0);
     const obs = new MutationObserver(() => translateLabels());
     const node = panelRef.current;
-    if (node) obs.observe(node, { childList: true, subtree: true, characterData: true });
+    if (node)
+      obs.observe(node, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
     observerRef.current = obs;
 
     return () => {
@@ -160,14 +175,17 @@ export const EmojiPickerBox: React.FC<Props> = ({
     height,
     padding: 2,
     borderRadius: 16,
-    background: "linear-gradient(140deg, rgba(255,255,255,0.28), rgba(255,255,255,0.12))",
+    background:
+      "linear-gradient(140deg, rgba(255,255,255,0.28), rgba(255,255,255,0.12))",
     boxShadow:
       "0 18px 48px rgba(0,0,0,0.55), 0 6px 18px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.10)",
     backdropFilter: "blur(3px)",
     WebkitBackdropFilter: "blur(3px)",
     pointerEvents: "auto",
     zIndex: 10001,
-    transform: mounted ? "translateY(0) scale(1)" : "translateY(8px) scale(0.97)",
+    transform: mounted
+      ? "translateY(0) scale(1)"
+      : "translateY(8px) scale(0.97)",
     opacity: mounted ? 1 : 0,
     transition: "opacity 140ms ease, transform 160ms ease",
   };
@@ -178,7 +196,8 @@ export const EmojiPickerBox: React.FC<Props> = ({
     borderRadius: 14,
     overflow: "hidden",
     background: "rgba(15,17,23,0.94)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08)",
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08)",
     ["--epr-emoji-size" as any]: "16px",
     ["--epr-emoji-gap" as any]: "4px",
   };
@@ -217,7 +236,13 @@ export const EmojiPickerBox: React.FC<Props> = ({
           <style>{inlineCss}</style>
           <Suspense
             fallback={
-              <div style={{ padding: 10, fontSize: 12, color: "rgba(255,255,255,0.75)" }}>
+              <div
+                style={{
+                  padding: 10,
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.75)",
+                }}
+              >
                 Đang tải biểu tượng…
               </div>
             }

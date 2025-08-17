@@ -35,24 +35,6 @@ export const ChapterListModal = ({
     setSortDir("asc");
   };
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!dialogRef.current) return;
-      if (!dialogRef.current.contains(target)) handleClose();
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
-
   const data = useMemo(() => {
     const base = (chapters ?? []).filter((c) => !c.is_draft);
     const filtered = q.trim()
@@ -84,6 +66,24 @@ export const ChapterListModal = ({
     handleClose();
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!dialogRef.current) return;
+      if (!dialogRef.current.contains(target)) handleClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
   return (
     <div className="fixed inset-0 z-[9999]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
@@ -97,7 +97,9 @@ export const ChapterListModal = ({
           <div className="border-b border-white/10 px-5 pt-4 pb-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-[17px] font-bold tracking-tight">Danh sách chương</h2>
+                <h2 className="text-[17px] font-bold tracking-tight">
+                  Danh sách chương
+                </h2>
                 <p className="text-[12.5px] text-white/55">
                   {chapters?.filter((c) => !c.is_draft).length ?? 0} chương
                 </p>
@@ -120,7 +122,9 @@ export const ChapterListModal = ({
                 className="flex-1 h-[35px] rounded-md bg-white/[0.1] ring-1 ring-white/25 px-3 text-[13px] placeholder:text-white/50 outline-none focus:ring-2 focus:ring-[#ff6740]/40"
               />
               <button
-                onClick={() => setSortDir((s) => (s === "asc" ? "desc" : "asc"))}
+                onClick={() =>
+                  setSortDir((s) => (s === "asc" ? "desc" : "asc"))
+                }
                 className="h-[35px] rounded-md px-3.5 text-[13px] font-medium bg-white/[0.1] ring-1 ring-white/25 hover:bg-white/[0.16] transition focus:ring-2 focus:ring-[#ff6740]/40"
                 title="Đổi thứ tự"
               >
@@ -151,15 +155,29 @@ export const ChapterListModal = ({
                           "bg-[#141416]/92 hover:bg-[#17181b]/92",
                           "ring-1 ring-white/10 hover:ring-white/15",
                           "shadow-[0_18px_52px_-24px_rgba(0,0,0,0.75)] hover:shadow-[0_26px_72px_-28px_rgba(0,0,0,0.78)]",
-                          isReading ? "bg-white/[0.08] ring-2 ring-[#ff6a3d]/60" : "",
+                          isReading
+                            ? "bg-white/[0.08] ring-2 ring-[#ff6a3d]/60"
+                            : "",
                         ].join(" ")}
                       >
-                        <div className={`pointer-events-none absolute inset-0 transition ${isReading ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                        <div
+                          className={`pointer-events-none absolute inset-0 transition ${
+                            isReading
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          }`}
+                        >
                           <div className="absolute -inset-[1px] rounded-xl bg-[conic-gradient(from_150deg_at_50%_0%,rgba(255,255,255,0.06),transparent_30%)]" />
                         </div>
 
                         <div className="relative flex items-center gap-3">
-                          <div className={`shrink-0 grid place-items-center h-9 w-9 rounded-lg ring-1 text-[12px] font-semibold tabular-nums ${isReading ? "bg-[#ff6a3d]/20 ring-[#ff6a3d]/40" : "bg-white/[0.08] ring-white/14"}`}>
+                          <div
+                            className={`shrink-0 grid place-items-center h-9 w-9 rounded-lg ring-1 text-[12px] font-semibold tabular-nums ${
+                              isReading
+                                ? "bg-[#ff6a3d]/20 ring-[#ff6a3d]/40"
+                                : "bg-white/[0.08] ring-white/14"
+                            }`}
+                          >
                             {chapter.chapter_number}
                           </div>
 
@@ -167,12 +185,20 @@ export const ChapterListModal = ({
                             <p className="truncate text-[14px] font-medium">
                               {chapter.title}
                             </p>
-                            <div className={`mt-1 flex items-center gap-2 text-[12px] ${isReading ? "text-white/70" : "text-white/55"}`}>
+                            <div
+                              className={`mt-1 flex items-center gap-2 text-[12px] ${
+                                isReading ? "text-white/70" : "text-white/55"
+                              }`}
+                            >
                               <span>
                                 {chapter.updated_at
-                                  ? formatTicksToRelativeTime(chapter.updated_at)
+                                  ? formatTicksToRelativeTime(
+                                      chapter.updated_at
+                                    )
                                   : chapter.created_at
-                                  ? formatTicksToRelativeTime(chapter.created_at)
+                                  ? formatTicksToRelativeTime(
+                                      chapter.created_at
+                                    )
                                   : "—"}
                               </span>
                             </div>
@@ -185,7 +211,13 @@ export const ChapterListModal = ({
                                   {price.toLocaleString?.("vi-VN") ?? price} xu
                                 </span>
                               )}
-                              <span className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ring-1 ${isReading ? "bg-black/35 ring-white/20" : "bg-black/45 ring-white/14"}`}>
+                              <span
+                                className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ring-1 ${
+                                  isReading
+                                    ? "bg-black/35 ring-white/20"
+                                    : "bg-black/45 ring-white/14"
+                                }`}
+                              >
                                 <Lock sx={{ width: 16, height: 16 }} />
                               </span>
                             </span>
@@ -205,8 +237,7 @@ export const ChapterListModal = ({
             </div>
           </div>
 
-          <div className="border-t border-white/10 px-5 py-4">
-          </div>
+          <div className="border-t border-white/10 px-5 py-4"></div>
         </div>
       </div>
     </div>

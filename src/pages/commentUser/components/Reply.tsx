@@ -7,20 +7,22 @@ import { EmojiPickerBox } from "./EmojiPickerBox";
 interface ReplyProps {
   currentUser: { name: string; user: string; avatarUrl?: string | null };
   replyValue: string;
-  onReplyChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onReplyChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onReplySubmit: () => void;
   inputRef?: (el: HTMLInputElement | HTMLTextAreaElement | null) => void;
 }
 
 const MAX_CHARS = 300;
 
-export const Reply: React.FC<ReplyProps> = ({
+export const Reply = ({
   currentUser,
   replyValue,
   onReplyChange,
   onReplySubmit,
   inputRef,
-}) => {
+}: ReplyProps) => {
   const name = currentUser.name || "Người dùng";
   const user = currentUser.user || "@anonymous";
   const avatarSrc = currentUser.avatarUrl || avatarImage;
@@ -75,15 +77,36 @@ export const Reply: React.FC<ReplyProps> = ({
 
   return (
     <div className="flex items-start gap-3">
-      <img src={avatarSrc} alt={name} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10 select-none" />
+      <img
+        src={avatarSrc}
+        alt={name}
+        className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10 select-none"
+      />
       <form className="flex-1" onSubmit={handleSubmit}>
-        <div className={["rounded-xl p-2.5 transition-all","bg-[rgba(14,16,22,0.75)] backdrop-blur-md","ring-1 ring-white/10",focused ? "ring-white/25 shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]" : "shadow-none"].join(" ")}>
+        <div
+          className={[
+            "rounded-xl p-2.5 transition-all",
+            "bg-[rgba(14,16,22,0.75)] backdrop-blur-md",
+            "ring-1 ring-white/10",
+            focused
+              ? "ring-white/25 shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]"
+              : "shadow-none",
+          ].join(" ")}
+        >
           <div className="px-2 mb-1 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[14px]">{name}</span>
               <span className="text-xs text-white/45">{user}</span>
             </div>
-            <span className={["text-[11px] tabular-nums transition-opacity",len > MAX_CHARS - 30 ? "text-white" : "text-white/70",focused || len > MAX_CHARS - 30 ? "opacity-100" : "opacity-0"].join(" ")}>{len}/{MAX_CHARS}</span>
+            <span
+              className={[
+                "text-[11px] tabular-nums transition-opacity",
+                len > MAX_CHARS - 30 ? "text-white" : "text-white/70",
+                focused || len > MAX_CHARS - 30 ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            >
+              {len}/{MAX_CHARS}
+            </span>
           </div>
 
           <div className="px-2">
@@ -137,13 +160,26 @@ export const Reply: React.FC<ReplyProps> = ({
               <Smile className="h-4 w-4" />
             </button>
 
-            <EmojiPickerBox open={emojiOpen} onPick={pickEmoji} anchorRef={emojiBtnRef} align="left" placement="top" onRequestClose={() => setEmojiOpen(false)} />
+            <EmojiPickerBox
+              open={emojiOpen}
+              onPick={pickEmoji}
+              anchorRef={emojiBtnRef}
+              align="left"
+              placement="top"
+              onRequestClose={() => setEmojiOpen(false)}
+            />
 
             <button
               type="submit"
               disabled={disabled}
               aria-disabled={disabled}
-              className={["inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-white shadow-sm shadow-black/10","bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",disabled ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95"].join(" ")}
+              className={[
+                "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-white shadow-sm shadow-black/10",
+                "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
+                disabled
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:brightness-110 active:brightness-95",
+              ].join(" ")}
             >
               Đăng
               <SendHorizontal className="w-4 h-4" />

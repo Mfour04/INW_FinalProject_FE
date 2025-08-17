@@ -8,7 +8,10 @@ import { EmojiPickerBox } from "./EmojiPickerBox";
 import type { Comment } from "../types";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
-type EditedMap = Record<string, { content?: string; timestamp?: string; likes?: number; replies?: number }>;
+type EditedMap = Record<
+  string,
+  { content?: string; timestamp?: string; likes?: number; replies?: number }
+>;
 
 type Props = {
   parent: Comment;
@@ -33,7 +36,7 @@ type Props = {
   onSaveEdit: (id: string, content: string) => void;
 };
 
-export const ReplyThread: React.FC<Props> = ({
+export const ReplyThread = ({
   parent,
   replies,
   currentUser,
@@ -49,7 +52,7 @@ export const ReplyThread: React.FC<Props> = ({
   setInputRef,
   onToggleReply,
   onSaveEdit,
-}) => {
+}: Props) => {
   const [expanded, setExpanded] = useState(false);
 
   const [activeEditId, setActiveEditId] = useState<string | null>(null);
@@ -133,7 +136,9 @@ export const ReplyThread: React.FC<Props> = ({
         <div className="space-y-2">
           <div className="relative">
             <textarea
-              ref={(el) => { editRef.current = el; }}
+              ref={(el) => {
+                editRef.current = el;
+              }}
               defaultValue={content}
               placeholder="Chỉnh sửa bình luận…"
               rows={3}
@@ -176,12 +181,22 @@ export const ReplyThread: React.FC<Props> = ({
           </div>
         </div>
       ) : (
-        <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{content}</p>
+        <p className="whitespace-pre-wrap text-[14px] leading-relaxed">
+          {content}
+        </p>
       )}
     </div>
   );
 
-  const LikeButton = ({ id, count, hover = true }: { id: string; count: number; hover?: boolean }) => (
+  const LikeButton = ({
+    id,
+    count,
+    hover = true,
+  }: {
+    id: string;
+    count: number;
+    hover?: boolean;
+  }) => (
     <button
       onClick={() => canInteract && onToggleLike(id)}
       title={liked[id] ? "Bỏ thích" : "Thích"}
@@ -192,12 +207,23 @@ export const ReplyThread: React.FC<Props> = ({
         canInteract ? "" : "opacity-50 cursor-not-allowed",
       ].join(" ")}
     >
-      <Heart className={["h-4 w-4", liked[id] ? "text-rose-400 fill-current" : "text-white/80"].join(" ")} />
+      <Heart
+        className={[
+          "h-4 w-4",
+          liked[id] ? "text-rose-400 fill-current" : "text-white/80",
+        ].join(" ")}
+      />
       <span>{count}</span>
     </button>
   );
 
-  const ReplyCountToggle = ({ count, onClick }: { count: number; onClick: () => void }) => (
+  const ReplyCountToggle = ({
+    count,
+    onClick,
+  }: {
+    count: number;
+    onClick: () => void;
+  }) => (
     <button
       onClick={onClick}
       title="Xem phản hồi"
@@ -212,7 +238,10 @@ export const ReplyThread: React.FC<Props> = ({
   return (
     <div className="rounded-2xl bg-[#0e1014] ring-1 ring-white/[0.05] p-3 md:p-4">
       <div className="grid grid-cols-[40px_1fr] gap-3 items-start">
-        <img src={parent.avatarUrl || defaultAvatar} className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
+        <img
+          src={parent.avatarUrl || defaultAvatar}
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+        />
         <div className="min-w-0">
           <Header
             name={parent.name}
@@ -220,11 +249,17 @@ export const ReplyThread: React.FC<Props> = ({
             timestamp={edited[parent.id]?.timestamp ?? parent.timestamp}
             actions={
               canInteract ? (
-                parent.user === currentUser?.user || parent.name === currentUser?.name ? (
+                parent.user === currentUser?.user ||
+                parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}
-                    onEdit={() => startLocalEdit(parent.id, edited[parent.id]?.content ?? parent.content)}
+                    onEdit={() =>
+                      startLocalEdit(
+                        parent.id,
+                        edited[parent.id]?.content ?? parent.content
+                      )
+                    }
                   />
                 ) : (
                   <MoreButton />
@@ -233,11 +268,19 @@ export const ReplyThread: React.FC<Props> = ({
             }
           />
 
-          <Body id={parent.id} content={edited[parent.id]?.content ?? parent.content} />
+          <Body
+            id={parent.id}
+            content={edited[parent.id]?.content ?? parent.content}
+          />
 
           <div className="mt-3 flex items-center gap-2 text-[12.5px]">
             <LikeButton id={parent.id} count={parentLikes} />
-            {replyCount > 0 && <ReplyCountToggle count={replyCount} onClick={() => setExpanded((v) => !v)} />}
+            {replyCount > 0 && (
+              <ReplyCountToggle
+                count={replyCount}
+                onClick={() => setExpanded((v) => !v)}
+              />
+            )}
             <button
               onClick={() => canInteract && onToggleReply()}
               className={[
@@ -258,11 +301,19 @@ export const ReplyThread: React.FC<Props> = ({
         <div className="mt-5 space-y-3">
           {replies.map((r) => {
             const rLikes = edited[r.id]?.likes ?? r.likes;
-            const isOwner = canInteract && (r.user === currentUser?.user || r.name === currentUser?.name);
+            const isOwner =
+              canInteract &&
+              (r.user === currentUser?.user || r.name === currentUser?.name);
 
             return (
-              <div key={r.id} className="ml-8 md:ml-12 grid grid-cols-[40px_1fr] gap-3 items-start">
-                <img src={r.avatarUrl || defaultAvatar} className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
+              <div
+                key={r.id}
+                className="ml-8 md:ml-12 grid grid-cols-[40px_1fr] gap-3 items-start"
+              >
+                <img
+                  src={r.avatarUrl || defaultAvatar}
+                  className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+                />
                 <div className="min-w-0">
                   <Header
                     name={r.name}
@@ -274,7 +325,12 @@ export const ReplyThread: React.FC<Props> = ({
                           <MoreUser
                             commentId={r.id}
                             onDelete={onDelete}
-                            onEdit={() => startLocalEdit(r.id, edited[r.id]?.content ?? r.content)}
+                            onEdit={() =>
+                              startLocalEdit(
+                                r.id,
+                                edited[r.id]?.content ?? r.content
+                              )
+                            }
                           />
                         ) : (
                           <MoreButton />
@@ -282,7 +338,10 @@ export const ReplyThread: React.FC<Props> = ({
                       ) : null
                     }
                   />
-                  <Body id={r.id} content={edited[r.id]?.content ?? r.content} />
+                  <Body
+                    id={r.id}
+                    content={edited[r.id]?.content ?? r.content}
+                  />
                   <div className="mt-2">
                     <LikeButton id={r.id} count={rLikes} hover={false} />
                   </div>
@@ -296,7 +355,13 @@ export const ReplyThread: React.FC<Props> = ({
       {canInteract && replyOpen && (
         <div className="mt-4 ml-8 md:ml-12">
           <Reply
-            currentUser={currentUser || { name: "Ẩn danh", user: "@user", avatarUrl: defaultAvatar }}
+            currentUser={
+              currentUser || {
+                name: "Ẩn danh",
+                user: "@user",
+                avatarUrl: defaultAvatar,
+              }
+            }
             replyValue={replyValue}
             onReplyChange={(e) => setReplyValue(e.target.value)}
             onReplySubmit={() => onSubmitReply(parent.id)}

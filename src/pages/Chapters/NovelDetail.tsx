@@ -30,6 +30,7 @@ import RatingSection from "./components/Rating/RatingSection";
 import { AsidePanel } from "./components/AsidePanel";
 import { InfoCard } from "./components/InfoCard";
 import { gradientBtn } from "./constants";
+import type { Tag } from "../../entity/tag";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -265,7 +266,7 @@ export const NovelDetail = () => {
             title={novelInfo?.title || ""}
             author={novelInfo?.authorName || ""}
             tags={
-              (novelData?.novelInfo?.tags ?? novelInfo?.tags ?? []) as any[]
+              (novelData?.novelInfo?.tags ?? novelInfo?.tags ?? []) as Tag[]
             }
             description={novelInfo?.description || ""}
             expanded={expandedDesc}

@@ -18,7 +18,7 @@ interface MoreUserProps {
   onDelete: (id: string) => void;
 }
 
-export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete }) => {
+export const MoreUser = ({ commentId, onEdit, onDelete }: MoreUserProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   const [openDialog, setOpenDialog] = useState(false);
@@ -28,9 +28,20 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
       <button
         onClick={(e) => setAnchorEl(e.currentTarget)}
         aria-label="Mở menu quản lý bình luận"
-        className={["inline-flex items-center justify-center","h-6 w-6 rounded-[5px]","border border-white/20 bg-white/[0.12]","hover:bg-white/[0.18] hover:border-white/30","focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40","active:scale-95 transition-all shadow-sm",open ? "bg-white/[0.18] border-white/30" : ""].join(" ")}
+        className={[
+          "inline-flex items-center justify-center",
+          "h-6 w-6 rounded-[5px]",
+          "border border-white/20 bg-white/[0.12]",
+          "hover:bg-white/[0.18] hover:border-white/30",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+          "active:scale-95 transition-all shadow-sm",
+          open ? "bg-white/[0.18] border-white/30" : "",
+        ].join(" ")}
       >
-        <img src={MoreDots} className="h-3.5 w-3.5 opacity-95 pointer-events-none" />
+        <img
+          src={MoreDots}
+          className="h-3.5 w-3.5 opacity-95 pointer-events-none"
+        />
       </button>
 
       <Menu
@@ -57,7 +68,13 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
         }}
         MenuListProps={{ disablePadding: true, sx: { p: 0, m: 0 } }}
       >
-        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 0.5 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 0.5,
+          }}
+        >
           <Box
             component="button"
             type="button"
@@ -81,11 +98,21 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
               transition: "all .15s ease",
               "&:hover": { backgroundColor: "rgba(255,255,255,0.10)" },
               "&:active": { transform: "scale(0.98)" },
-              "&:focus-visible": { outline: "none", borderColor: "rgba(255,255,255,0.25)" },
+              "&:focus-visible": {
+                outline: "none",
+                borderColor: "rgba(255,255,255,0.25)",
+              },
             }}
           >
             <EditRounded fontSize="small" sx={{ color: "#fff" }} />
-            <Typography sx={{ fontSize: 12, color: "#fff", lineHeight: 1, whiteSpace: "nowrap" }}>
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "#fff",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
               Chỉnh sửa
             </Typography>
           </Box>
@@ -113,11 +140,21 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
               transition: "all .15s ease",
               "&:hover": { backgroundColor: "rgba(255,255,255,0.10)" },
               "&:active": { transform: "scale(0.98)" },
-              "&:focus-visible": { outline: "none", borderColor: "rgba(255,255,255,0.25)" },
+              "&:focus-visible": {
+                outline: "none",
+                borderColor: "rgba(255,255,255,0.25)",
+              },
             }}
           >
             <img src={DeleteSvg} className="h-[14px] w-[14px]" />
-            <Typography sx={{ fontSize: 12, color: "#fff", lineHeight: 1, whiteSpace: "nowrap" }}>
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "#fff",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
               Xoá
             </Typography>
           </Box>
@@ -139,8 +176,12 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
           },
         }}
       >
-        <DialogTitle sx={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>Xác nhận xoá</DialogTitle>
-        <DialogContent sx={{ color: "rgba(255,255,255,0.9)", pt: 1.5, fontSize: 14 }}>
+        <DialogTitle sx={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>
+          Xác nhận xoá
+        </DialogTitle>
+        <DialogContent
+          sx={{ color: "rgba(255,255,255,0.9)", pt: 1.5, fontSize: 14 }}
+        >
           Hành động này không thể hoàn tác. Bạn có chắc muốn xoá bình luận này?
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2, gap: 0.75 }}>
@@ -172,7 +213,10 @@ export const MoreUser: React.FC<MoreUserProps> = ({ commentId, onEdit, onDelete 
               border: "1px solid rgba(255,120,120,0.45)",
               backgroundColor: "rgba(220,70,70,0.20)",
               color: "#fff",
-              "&:hover": { backgroundColor: "rgba(220,70,70,0.30)", border: "1px solid rgba(255,120,120,0.6)" },
+              "&:hover": {
+                backgroundColor: "rgba(220,70,70,0.30)",
+                border: "1px solid rgba(255,120,120,0.6)",
+              },
             }}
           >
             Xoá

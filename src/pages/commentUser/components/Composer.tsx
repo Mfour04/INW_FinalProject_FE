@@ -19,14 +19,14 @@ const MAX_FILES = 5;
 const MAX_SIZE_MB = 10;
 const MAX_CHARS = 750;
 
-export const Composer: React.FC<Props> = ({
+export const Composer = ({
   value,
   onChange,
   onSubmit,
   disabled,
   currentUser,
   loginCta,
-}) => {
+}: Props) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useAutoGrow<HTMLTextAreaElement>(textareaRef, value);
 
@@ -78,7 +78,9 @@ export const Composer: React.FC<Props> = ({
       const slots = Math.max(0, MAX_FILES - files.length);
       const clipped = sizeOk.slice(0, slots);
       if (sizeOk.length > slots) {
-        errMsg.push(`Chỉ thêm tối đa ${slots} ảnh nữa (tối đa ${MAX_FILES} ảnh).`);
+        errMsg.push(
+          `Chỉ thêm tối đa ${slots} ảnh nữa (tối đa ${MAX_FILES} ảnh).`
+        );
       }
 
       if (clipped.length > 0) {
@@ -208,7 +210,9 @@ export const Composer: React.FC<Props> = ({
           {/* HEADER: tên + user bên trái, đếm chữ bên phải */}
           <div className="px-4 pt-2.5 pb-1.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[14px]">{currentUser.name}</span>
+              <span className="font-semibold text-[14px]">
+                {currentUser.name}
+              </span>
               <span className="text-xs text-white/45">{currentUser.user}</span>
             </div>
 
@@ -350,7 +354,9 @@ export const Composer: React.FC<Props> = ({
               className={[
                 "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm shadow-black/10",
                 "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
-                blocked || submitting ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
+                blocked || submitting
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:brightness-110 active:brightness-95",
               ].join(" ")}
             >
               {submitting ? (

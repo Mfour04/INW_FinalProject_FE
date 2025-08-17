@@ -13,14 +13,18 @@ interface ReaderPrefsProps {
   defaults: { fontSize: number; lineHeight: number; widthIdx: number };
 }
 
-export function ReaderPrefs({
-  open, onClose,
-  fontSize, setFontSize,
-  lineHeight, setLineHeight,
-  widthIdx, setWidthIdx,
+export const ReaderPrefs = ({
+  open,
+  onClose,
+  fontSize,
+  setFontSize,
+  lineHeight,
+  setLineHeight,
+  widthIdx,
+  setWidthIdx,
   widthLevels,
   defaults,
-}: ReaderPrefsProps) {
+}: ReaderPrefsProps) => {
   const resetPrefs = () => {
     setFontSize(defaults.fontSize);
     setLineHeight(defaults.lineHeight);
@@ -40,7 +44,9 @@ export function ReaderPrefs({
       `}</style>
 
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[13px] font-semibold text-white/90">Thiết lập hiển thị</div>
+        <div className="text-[13px] font-semibold text-white/90">
+          Thiết lập hiển thị
+        </div>
         <button
           onClick={resetPrefs}
           className="rounded-full border border-white/12 bg-white/[0.06] hover:bg-white/[0.12] px-3 py-1.5 text-[12.5px] transition"
@@ -62,7 +68,9 @@ export function ReaderPrefs({
               className="reader-range w-full cursor-pointer"
               style={fillTrack(fontSize, 14, 22)}
             />
-            <span className="w-10 text-right tabular-nums text-white/70">{fontSize}</span>
+            <span className="w-10 text-right tabular-nums text-white/70">
+              {fontSize}
+            </span>
           </div>
         </div>
 
@@ -79,7 +87,9 @@ export function ReaderPrefs({
               className="reader-range w-full cursor-pointer"
               style={fillTrack(lineHeight, 1.4, 1.9)}
             />
-            <span className="w-12 text-right tabular-nums text-white/70">{lineHeight.toFixed(2)}</span>
+            <span className="w-12 text-right tabular-nums text-white/70">
+              {lineHeight.toFixed(2)}
+            </span>
           </div>
         </div>
 
@@ -121,4 +131,4 @@ export function ReaderPrefs({
       </div>
     </div>
   );
-}
+};
