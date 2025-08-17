@@ -2,7 +2,7 @@ import { useState, useRef, useContext, useMemo, useEffect } from "react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import "./BlogCommentUser.css";
 
-import type { Comment } from "../../commentUser/Comment";
+import type { Comment } from "../../commentUser/types";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 import {
     blogFormatVietnamTimeFromTicks,
@@ -18,8 +18,8 @@ import red_favorite from "../../../assets/svg/CommentUser/red_favorite.svg";
 import CommentAdd01Icon from "../../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
 import defaultAvatar from "../../../assets/img/th.png";
 
-import { MoreButton } from "../../commentUser/MoreButton";
-import { MoreUser } from "../../commentUser/MoreUser";
+import { MoreButton } from "../../commentUser/components/actions/MoreButton";
+import { MoreUser } from "../../commentUser/components/actions/MoreUser";
 import { BlogReply } from "./BlogReply";
 
 import { UseForumComments } from "../../../hooks/useForumComments";
