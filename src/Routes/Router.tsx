@@ -9,7 +9,7 @@ import { Novels } from "../pages/Novels/Novels";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelRead } from "../pages/novelRead/NovelRead";
-import { Chapters } from "../pages/Chapters/Chapters";
+import { NovelDetail } from "../pages/Chapters/NovelDetail";
 import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
@@ -41,7 +41,7 @@ export const Router = () => {
       </Route>
       <Route path="/novels">
         <Route index element={<Novels />} />
-        <Route path=":novelId" element={<Chapters />} />
+        <Route path=":novelId" element={<NovelDetail />} />
         <Route path=":novelId/:chapterId" element={<NovelRead />} />
         <Route
           path="writing-room"
