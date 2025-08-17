@@ -17,6 +17,7 @@ import { Blogs } from "../pages/Blogs/Blogs";
 import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
+import { Setting } from "../pages/setting/Setting";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
 import AdminHome from "../pages/Admin/AdminHome";
 import UserList from "../pages/Admin/UserManagement/UserList";
@@ -73,6 +74,7 @@ export const Router = () => {
       <Route path="/test-profile" element={<TestUserProfile />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
+      <Route path="/setting" element={<Setting />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>
   );

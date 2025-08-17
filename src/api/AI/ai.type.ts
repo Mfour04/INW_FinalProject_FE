@@ -14,7 +14,7 @@ export type PlagiarismAIRequest = {
 };
 
 export type ModerationAIResponse = {
-  flagged: false;
+  flagged: boolean;
   sensitive: Sensitive[];
 };
 
