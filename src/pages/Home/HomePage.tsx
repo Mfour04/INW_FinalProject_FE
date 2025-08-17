@@ -154,12 +154,12 @@ export const HomePage = () => {
     if (auth?.user.avatarUrl) {
       const avatarImg = await urlToFile(auth.user.avatarUrl);
       if (avatarImg) {
-        formData.append("avataUrl", avatarImg);
+        formData.append("avatarUrl", avatarImg);
       } else {
-        formData.append("avataUrl", "");
+        formData.append("avatarUrl", "");
       }
     } else {
-      formData.append("avataUrl", "");
+      formData.append("avatarUrl", "");
     }
 
     updateUserMutation.mutate(formData);

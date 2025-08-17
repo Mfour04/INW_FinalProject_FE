@@ -543,9 +543,9 @@ export const SearchBar = () => {
                 >
                   <History /> <span>Lịch sử giao dịch</span>
                 </div>
-                <a href="/setting" className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
+                <Link to="/setting" className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
                   <Settings /> <span>Cài đặt</span>
-                </a>
+                </Link>
               </div>
 
               <div

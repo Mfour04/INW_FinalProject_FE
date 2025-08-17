@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import avatarImage from '../../assets/img/th.png';
@@ -16,6 +16,7 @@ import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-roun
 import { useAuth } from '../../hooks/useAuth';
 import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
 import { useUserBlogPosts } from '../../hooks/useBlogs';
+import { useGetCurrentUserInfo } from '../setting/useUserSettings';
 
 export const UserProfile = () => {
 
@@ -25,7 +26,49 @@ export const UserProfile = () => {
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const { auth } = useAuth();
+  const { data: userInfo } = useGetCurrentUserInfo();
   const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(auth?.user?.userId || "");
+
+  let backendData = null;
+
+  if (userInfo?.data?.Data) {
+    backendData = userInfo.data.Data;
+  } else if (userInfo?.data?.data) {
+    backendData = userInfo.data.data;
+  } else if (userInfo?.data) {
+    backendData = userInfo.data;
+  }
+
+  const normalizedData = {
+    AvatarUrl: backendData?.AvatarUrl || backendData?.avatarUrl,
+    CoverUrl: backendData?.CoverUrl || backendData?.coverUrl,
+    Bio: backendData?.Bio || backendData?.bio,
+    DisplayName: backendData?.DisplayName || backendData?.displayName,
+    UserName: backendData?.UserName || backendData?.userName,
+  };
+
+  const currentAvatar = normalizedData.AvatarUrl || auth?.user?.avatarUrl || avatarImage;
+  const currentCover = normalizedData.CoverUrl || bannerImage;
+  const currentBio = normalizedData.Bio || auth?.user?.bio || "";
+  const currentDisplayName = normalizedData.DisplayName || auth?.user?.displayName || 'Hít Lê';
+  const currentUserName = normalizedData.UserName || auth?.user?.userName || 'fromgermanwithlove';
+
+  const createdAt = backendData?.CreatedAt || backendData?.createdAt;
+  const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "Tháng 3/2025";
+
+  useEffect(() => {
+    if (userInfo) {
+
+      let availableFields: string | string[] = "No data";
+      if (userInfo?.data?.Data) {
+        availableFields = Object.keys(userInfo.data.Data);
+      } else if (userInfo?.data?.data) {
+        availableFields = Object.keys(userInfo.data.data);
+      } else if (userInfo?.data) {
+        availableFields = Object.keys(userInfo.data);
+      }
+    }
+  }, [userInfo]);
 
   const handleFollowClick = () => {
     setIsFollowing(!isFollowing);
@@ -150,9 +193,9 @@ export const UserProfile = () => {
   return (
     <div className="profile bg-black text-white font-sans h-screen flex flex-col">
       <div className="img_banner relative">
-        <img src={bannerImage} alt="Banner" className="w-full h-70 object-cover rounded" />
+        <img src={currentCover} alt="Banner" className="w-full h-70 object-cover rounded" />
         <div className="absolute left-8 bottom-[-105px]">
-          <img src={avatarImage} alt="Avatar" className="w-60 h-60 rounded-full border-5 border-white" />
+          <img src={currentAvatar} alt="Avatar" className="w-60 h-60 rounded-full border-5 border-white" />
         </div>
       </div>
 
@@ -226,12 +269,19 @@ export const UserProfile = () => {
         <div className="flex flex-col space-y-1">
           <div>
             <h1 className="text-4xl font-bold leading-tight">
-              {auth?.user?.displayName || 'Hít Lê'}
+              {currentDisplayName}
             </h1>
             <p className="text-gray-400">
-              @{auth?.user?.userName || 'fromgermanwithlove'}
+              @{currentUserName}
             </p>
           </div>
+
+          {/* Bio section */}
+          {currentBio && (
+            <p className="text-gray-300 text-lg mt-2 max-w-2xl break-words overflow-hidden">
+              {currentBio}
+            </p>
+          )}
 
           <p className="text-gray-400">
             <strong className="text-gray-400">3</strong> Đang theo dõi
@@ -243,7 +293,7 @@ export const UserProfile = () => {
 
           <p className="text-gray-400 flex items-center gap-1">
             <CalendarUserIcon className="w-5 h-5" />
-            Tham gia từ Tháng 3/2025
+            Tham gia từ {joinDate}
           </p>
         </div>
       </div>
