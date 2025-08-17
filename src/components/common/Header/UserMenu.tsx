@@ -87,9 +87,9 @@ export const UserMenu = ({ onClose }: Props) => {
         >
           <History /> <span>Lịch sử giao dịch</span>
         </button>
-        <div className="flex items-center gap-2 hover:text-orange-400 transition cursor-pointer">
+        <Link to="/setting" className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
           <Settings /> <span>Cài đặt</span>
-        </div>
+        </Link>
       </div>
 
       <button

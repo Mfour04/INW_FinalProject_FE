@@ -114,8 +114,15 @@ export const HomePage = () => {
       auth.user.badgeId.forEach((id: string) => formData.append("badgeId", id));
     if (auth?.user?.avatarUrl) {
       const avatarImg = await urlToFile(auth.user.avatarUrl);
-      formData.append("avataUrl", avatarImg || "");
-    } else formData.append("avataUrl", "");
+      if (avatarImg) {
+        formData.append("avatarUrl", avatarImg);
+      } else {
+        formData.append("avatarUrl", "");
+      }
+    } else {
+      formData.append("avatarUrl", "");
+    }
+
     updateUserMutation.mutate(formData);
   };
 
