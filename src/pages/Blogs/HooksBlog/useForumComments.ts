@@ -7,7 +7,7 @@ import {
     LikeForumComment,
     UnlikeForumComment,
     GetRepliesByForumComment,
-} from "../api/ForumComment/forum-comment.api";
+} from "../../../api/ForumComment/forum-comment.api";
 
 export const UseForumComments = (postId: string) => {
     return useQuery({
@@ -105,11 +105,10 @@ export const UseGetRepliesByForumComment = (commentId: string) => {
             const res = await GetRepliesByForumComment(commentId, {
                 page: 0,
                 limit: 50,
-                sortBy: "created_at:desc",
             });
             return res.data.data;
         },
         enabled: !!commentId,
         staleTime: 1000 * 60,
     });
-}; 
+};

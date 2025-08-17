@@ -15,7 +15,7 @@ import favorite from '../../assets/svg/CommentUser/favorite.svg';
 import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
 import { useAuth } from '../../hooks/useAuth';
 import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
-import { useUserBlogPosts } from '../../hooks/useBlogs';
+import { useUserBlogPosts } from '../Blogs/HooksBlog';
 import { useGetCurrentUserInfo } from '../setting/useUserSettings';
 
 export const UserProfile = () => {
