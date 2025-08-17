@@ -31,6 +31,8 @@ export const ChapterList = ({
     [novelData?.purchasedChapterIds, novelData?.freeChapters]
   );
 
+  const paidList = novelData?.purchasedChapterIds;
+
   const totalPages = Math.max(novelData?.totalPages ?? 1, 1);
   const currentPage = (params.page ?? 0) + 1;
 
@@ -103,13 +105,15 @@ export const ChapterList = ({
                   </div>
 
                   <div className="ml-2 flex items-center gap-2">
-                    {chapter.isPaid && (
-                      <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
-                        {chapter.price?.toLocaleString?.("vi-VN") ??
-                          chapter.price}{" "}
-                        xu
-                      </span>
-                    )}
+                    {chapter.isPaid &&
+                      !novelData?.isAccessFull &&
+                      !paidList?.includes(chapter.chapterId) && (
+                        <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
+                          {chapter.price?.toLocaleString?.("vi-VN") ??
+                            chapter.price}{" "}
+                          xu
+                        </span>
+                      )}
                     {locked ? (
                       <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-black/45 border border-white/14">
                         <Lock sx={{ width: 16, height: 16 }} />
