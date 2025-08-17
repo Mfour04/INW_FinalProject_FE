@@ -40,7 +40,10 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       label: "Tiểu thuyết",
       path: "/novels",
       isHeader: true,
-      subItems: [{ label: "Phòng sáng tác", path: "/novels/writing-room" }],
+      subItems: [
+        { label: "Danh sách", path: "/novels" },
+        { label: "Phòng sáng tác", path: "/novels/writing-room" },
+      ],
     },
     {
       icon: CommunityIcon,
@@ -63,12 +66,15 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
   ];
 
   useEffect(() => {
-    const parent = menuItems.find((m) => m.subItems?.some((s) => pathname.startsWith(s.path)));
+    const parent = menuItems.find((m) =>
+      m.subItems?.some((s) => pathname.startsWith(s.path))
+    );
     setOpenMenu(parent ? parent.path : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const isMobile = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
+  const isMobile =
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const expandedW = 220;
   const collapsedW = 56;
 
@@ -118,7 +124,11 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 transition={{ duration: 0.22 }}
                 className="max-h-[46px] w-[140px] overflow-hidden flex items-center"
               >
-                <img src={logo} alt="InkWave" className="h-[34px] w-auto object-contain" />
+                <img
+                  src={logo}
+                  alt="InkWave"
+                  className="h-[34px] w-auto object-contain"
+                />
               </motion.div>
               <motion.button
                 key="close"
@@ -156,7 +166,9 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         {menuItems.map((item, idx) => {
           const hasSubs = !!item.subItems?.length;
           const open = openMenu === item.path && isOpen;
-          const hasActiveChild = hasSubs ? item.subItems!.some((s) => pathname.startsWith(s.path)) : false;
+          const hasActiveChild = hasSubs
+            ? item.subItems!.some((s) => pathname.startsWith(s.path))
+            : false;
 
           return (
             <div key={idx} className="px-1.5">
@@ -165,10 +177,12 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                   to={item.path}
                   end
                   className={({ isActive }) => {
-                    const base = "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none";
+                    const base =
+                      "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none";
                     if (hasSubs) {
                       const baseGroup = `${base} focus:ring-0`;
-                      if (isActive) return `${baseGroup} bg-[#ff6740]/15 text-white`;
+                      if (isActive)
+                        return `${baseGroup} bg-[#ff6740]/15 text-white`;
                       return `${baseGroup} hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40`;
                     } else {
                       const baseLeaf = `${base} focus-visible:ring-2 focus-visible:ring-[#ff6740]/45`;
@@ -186,14 +200,19 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                       const isOpenGroup = openMenu === item.path && isOpen;
                       if (!isOpen) {
                         onClose?.();
-                        setTimeout(() => setOpenMenu(isOpenGroup ? null : item.path), 0);
+                        setTimeout(
+                          () => setOpenMenu(isOpenGroup ? null : item.path),
+                          0
+                        );
                       } else {
                         setOpenMenu(isOpenGroup ? null : item.path);
                       }
                     }
                   }}
                 >
-                  {!(hasSubs ? (pathname === item.path || hasActiveChild) : pathname === item.path) && (
+                  {!(hasSubs
+                    ? pathname === item.path || hasActiveChild
+                    : pathname === item.path) && (
                     <span className="absolute left-0 inset-y-0 w-[3px] rounded-r-full bg-gradient-to-b from-[#ff512f] via-[#ff6740] to-[#ff9966] opacity-0 group-hover:opacity-60 transition" />
                   )}
 
@@ -265,7 +284,13 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       </nav>
 
       <div className="p-3 mt-auto">
-        {isOpen ? <div className="text-[11px] text-zinc-500">© {new Date().getFullYear()} InkWave</div> : <div className="h-2" />}
+        {isOpen ? (
+          <div className="text-[11px] text-zinc-500">
+            © {new Date().getFullYear()} InkWave
+          </div>
+        ) : (
+          <div className="h-2" />
+        )}
       </div>
     </motion.aside>
   );

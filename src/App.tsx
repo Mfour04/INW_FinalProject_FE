@@ -95,7 +95,7 @@ function App() {
           isAdminRoute={isAdminRoute}
           onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
         />
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-strong scrollbar-neon">
           <Router />
         </div>
       </main>
