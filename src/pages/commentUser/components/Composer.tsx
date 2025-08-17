@@ -295,7 +295,7 @@ export const Composer = ({
           {/* HÀNG NÚT */}
           <div className="mt-2 px-4 pb-3 flex items-center justify-between">
             <div className="relative flex items-center gap-1.5">
-              <button
+              {/* <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 title={
@@ -312,7 +312,7 @@ export const Composer = ({
               >
                 <ImagePlus className="h-4 w-4" />
                 <span className="text-xs hidden sm:inline">Ảnh</span>
-              </button>
+              </button> */}
               <input
                 ref={fileInputRef}
                 type="file"
