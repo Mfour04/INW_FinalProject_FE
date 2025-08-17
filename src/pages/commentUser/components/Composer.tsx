@@ -27,10 +27,6 @@ export const Composer = ({
   currentUser,
   loginCta,
 }: Props) => {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  useAutoGrow<HTMLTextAreaElement>(textareaRef, value);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
@@ -40,6 +36,11 @@ export const Composer = ({
   const [fileError, setFileError] = useState<string | null>(null);
 
   const [focused, setFocused] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  useAutoGrow<HTMLTextAreaElement>(textareaRef, value);
 
   const charCount = value.length;
   const nearLimit = charCount > MAX_CHARS - 30;
