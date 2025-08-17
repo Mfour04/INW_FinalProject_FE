@@ -9,7 +9,7 @@ import {
     UpdateBlogPost,
     type BlogPost,
     type CreateBlogPostRequest,
-} from "../api/Blogs/blogs.api";
+} from "../../../api/Blogs/blogs.api";
 
 export const useBlogPosts = () => {
     return useQuery({
@@ -103,14 +103,16 @@ export const useUpdateBlogPost = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ postId, data }: { postId: string; data: CreateBlogPostRequest }) => {
-            const res = await UpdateBlogPost(postId, data);
+        mutationFn: async (data: { postId: string; content: string; images?: File[] }) => {
+            const res = await UpdateBlogPost(data.postId, {
+                content: data.content,
+                images: data.images,
+            });
             return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
-            queryClient.refetchQueries({ queryKey: ["blog-posts"] });
         },
     });
-}; 
+};

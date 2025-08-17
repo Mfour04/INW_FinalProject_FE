@@ -7,6 +7,7 @@ export interface User {
   displayName: string;
   email: string;
   avatarUrl: string | null;
+  coverUrl: string | null;
   bio: string | null;
   role: Role;
   isVerified: boolean;

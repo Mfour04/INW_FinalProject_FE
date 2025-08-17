@@ -22,10 +22,7 @@ import { MoreButton } from "../../commentUser/MoreButton";
 import { MoreUser } from "../../commentUser/MoreUser";
 import { BlogReply } from "./BlogReply";
 
-import { UseForumComments } from "../../../hooks/useForumComments";
-import { UseCreateForumComment } from "../../../hooks/useForumComments";
-import { UseUpdateForumComment } from "../../../hooks/useForumComments";
-import { UseDeleteForumComment } from "../../../hooks/useForumComments";
+import { UseForumComments, UseCreateForumComment, UseUpdateForumComment, UseDeleteForumComment } from "../HooksBlog";
 
 import {
     LikeForumComment,
