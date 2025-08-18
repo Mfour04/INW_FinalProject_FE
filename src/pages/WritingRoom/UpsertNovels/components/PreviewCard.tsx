@@ -1,5 +1,3 @@
-import React from "react";
-
 type PreviewCardProps = {
   title: string;
   description: string;
@@ -8,13 +6,13 @@ type PreviewCardProps = {
   bannerPreview: string | null;
 };
 
-export const PreviewCard: React.FC<PreviewCardProps> = ({
+export const PreviewCard = ({
   title,
   description,
   slug,
   imagePreview,
   bannerPreview,
-}) => {
+}: PreviewCardProps) => {
   const fullSlug = `inkwave.io/novels/${slug || "ten-truyen"}`;
 
   return (
@@ -22,7 +20,9 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
       <div className="h-[2px] w-full bg-[linear-gradient(90deg,#ff512f,0%,#ff6740,55%,#ff9966)]" />
 
       <div className="flex items-center justify-between px-3.5 py-2.5 mt-1">
-        <div className="text-[12px] font-semibold text-white/85 tracking-wide">Xem trước</div>
+        <div className="text-[12px] font-semibold text-white/85 tracking-wide">
+          Xem trước
+        </div>
       </div>
 
       <div className="h-px w-full bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
@@ -32,11 +32,17 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
           <figure className="relative w-[88px] h-[120px] rounded-md overflow-hidden ring-1 ring-white/10 bg-white/[0.04] flex-shrink-0">
             {imagePreview ? (
               <>
-                <img src={imagePreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                <img
+                  src={imagePreview}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
               </>
             ) : (
-              <div className="absolute inset-0 grid place-items-center text-[12px] text-white/60">No cover</div>
+              <div className="absolute inset-0 grid place-items-center text-[12px] text-white/60">
+                No cover
+              </div>
             )}
           </figure>
 
@@ -60,10 +66,16 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
 
             <div className="mt-2 max-w-full rounded-md ring-1 ring-white/10 bg-white/[0.06] px-2 py-1">
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] ring-1 ring-white/10 bg-white/[0.06] text-white/80">
-              <svg viewBox="0 0 24 24" className="h-[13px] w-[13px]" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M4 7h16M4 12h10M4 17h8" />
-              </svg>
-              <span
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-[13px] w-[13px]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                >
+                  <path d="M4 7h16M4 12h10M4 17h8" />
+                </svg>
+                <span
                   className="text-[10px] text-white/80"
                   style={{
                     display: "-webkit-box",
@@ -75,9 +87,10 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                   }}
                   title={fullSlug}
                 >
-                  inkwave.io/novels/<span className="text-white">{slug || "ten-truyen"}</span>
+                  inkwave.io/novels/
+                  <span className="text-white">{slug || "ten-truyen"}</span>
                 </span>
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -85,11 +98,17 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
         <div className="mt-4">
           {bannerPreview ? (
             <div className="rounded-md overflow-hidden ring-1 ring-white/10 bg-white/[0.04]">
-              <img src={bannerPreview} alt="" className="w-full h-[110px] object-cover" />
+              <img
+                src={bannerPreview}
+                alt=""
+                className="w-full h-[110px] object-cover"
+              />
             </div>
           ) : (
             <div className="rounded-md ring-1 ring-dashed ring-white/12 bg-white/[0.03] p-3">
-              <div className="text-[12px] text-white/65">Chưa có banner xem trước.</div>
+              <div className="text-[12px] text-white/65">
+                Chưa có banner xem trước.
+              </div>
             </div>
           )}
         </div>

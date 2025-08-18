@@ -2,7 +2,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { CreateNovelRequest } from "../../../api/Novels/novel.type";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreateNovels, GetNovelByUrl, GetUrlChecked, UpdateNovels } from "../../../api/Novels/novel.api";
+import {
+  CreateNovels,
+  GetNovelByUrl,
+  GetUrlChecked,
+  UpdateNovels,
+} from "../../../api/Novels/novel.api";
 import { useAuth } from "../../../hooks/useAuth";
 import { getTags } from "../../../api/Tags/tag.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
@@ -10,8 +15,7 @@ import { urlToFile } from "../../../utils/img";
 import { isValidUrl } from "../../../utils/validation";
 import { ActionsBar } from "./components/ActionsBar";
 import { PreviewCard } from "./components/PreviewCard";
-
-const SLUG_MAX = 30;
+import { SLUG_MAX, slugifyVi } from "./constant";
 
 const initialCreateNovelForms: CreateNovelRequest = {
   title: "",
@@ -28,17 +32,6 @@ const initialCreateNovelForms: CreateNovelRequest = {
   allowComment: true,
   price: 0,
 };
-
-const slugifyVi = (input: string) =>
-  input
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/đ/g, "d")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, SLUG_MAX);
 
 export const UpsertNovels = () => {
   const [form, setForm] = useState<CreateNovelRequest>(initialCreateNovelForms);
@@ -63,7 +56,11 @@ export const UpsertNovels = () => {
     enabled: !!id,
   });
 
-  const { data: slugChecked, refetch: checkSlug, isFetching: isChecking } = useQuery({
+  const {
+    data: slugChecked,
+    refetch: checkSlug,
+    isFetching: isChecking,
+  } = useQuery({
     queryKey: ["check-slug", form.slug],
     queryFn: () => GetUrlChecked(form.slug).then((res) => res.data.data),
     enabled: false,
@@ -96,7 +93,9 @@ export const UpsertNovels = () => {
     if (!tagData) return [];
     if (!tagQuery.trim()) return tagData;
     const q = tagQuery.toLowerCase();
-    return tagData.filter((t: any) => (t.name || t.slug || "").toLowerCase().includes(q));
+    return tagData.filter((t: any) =>
+      (t.name || t.slug || "").toLowerCase().includes(q)
+    );
   }, [tagData, tagQuery]);
 
   const toggleTag = (tagId: string) => {
@@ -110,7 +109,11 @@ export const UpsertNovels = () => {
 
   const toFormData = (override: Partial<CreateNovelRequest>): FormData => {
     const fd = new FormData();
-    const merged: CreateNovelRequest = { ...form, ...override, tags: selectedTags };
+    const merged: CreateNovelRequest = {
+      ...form,
+      ...override,
+      tags: selectedTags,
+    };
     if (auth?.user?.userId) fd.append("authorId", auth.user.userId);
     fd.append("title", merged.title);
     fd.append("description", merged.description);
@@ -194,8 +197,12 @@ export const UpsertNovels = () => {
       const n = novelData.data.data.novelInfo;
       const tags = (n.tags || []).map((t: any) => t.tagId);
       const loadFiles = async () => {
-        const img = n.novelImage ? await urlToFile(n.novelImage, "novel-image.jpg") : null;
-        const ban = n.novelBanner ? await urlToFile(n.novelBanner, "banner.jpg") : null;
+        const img = n.novelImage
+          ? await urlToFile(n.novelImage, "novel-image.jpg")
+          : null;
+        const ban = n.novelBanner
+          ? await urlToFile(n.novelBanner, "banner.jpg")
+          : null;
         setForm({
           title: n.title,
           description: n.description,
@@ -226,7 +233,8 @@ export const UpsertNovels = () => {
   const onTitleChange = (val: string) => {
     const auto = slugifyVi(val);
     setForm((prev) => {
-      const shouldAuto = !slugTouched || prev.slug === lastAutoSlug || !prev.slug;
+      const shouldAuto =
+        !slugTouched || prev.slug === lastAutoSlug || !prev.slug;
       const nextSlug = shouldAuto ? auto : prev.slug;
       if (shouldAuto) setLastAutoSlug(auto);
       return { ...prev, title: val, slug: nextSlug };
@@ -240,15 +248,21 @@ export const UpsertNovels = () => {
   };
 
   const previewTitle = form.title || "Tên truyện";
-  const previewDesc = form.description?.trim() ? form.description.trim() : "Mô tả ngắn gọn hiển thị ở đây.";
+  const previewDesc = form.description?.trim()
+    ? form.description.trim()
+    : "Mô tả ngắn gọn hiển thị ở đây.";
   const previewSlug = form.slug || "ten-truyen";
 
   return (
     <section className="min-h-screen bg-[#0b0d11] text-white">
       <div className="max-w-[71rem] mx-auto px-4 md:px-6 py-8">
         <header className="mb-6">
-          <h1 className="text-[20px] md:text-[22px] font-semibold tracking-tight">{isUpdate ? "Chỉnh sửa truyện" : "Tạo truyện mới"}</h1>
-          <p className="text-white/80 text-[13px] mt-1">Viết chill — xuất bản liền tay.</p>
+          <h1 className="text-[20px] md:text-[22px] font-semibold tracking-tight">
+            {isUpdate ? "Chỉnh sửa truyện" : "Tạo truyện mới"}
+          </h1>
+          <p className="text-white/80 text-[13px] mt-1">
+            Viết chill — xuất bản liền tay.
+          </p>
         </header>
 
         <div className="grid grid-cols-12 gap-6">
@@ -256,7 +270,8 @@ export const UpsertNovels = () => {
             <div className="rounded-lg bg-[#0e1117]/92 ring-1 ring-white/8 backdrop-blur-sm shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)] p-5 md:p-6">
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
-                  Tên truyện <span className="text-red-500 font-semibold">*</span>
+                  Tên truyện{" "}
+                  <span className="text-red-500 font-semibold">*</span>
                 </label>
                 <input
                   type="text"
@@ -265,11 +280,15 @@ export const UpsertNovels = () => {
                   placeholder="Nhập tên truyện"
                   className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35"
                 />
-                <div className="mt-1 text-right text-xs text-white/50">{form.title.length}/100</div>
+                <div className="mt-1 text-right text-xs text-white/50">
+                  {form.title.length}/100
+                </div>
               </div>
 
               <div className="mb-5">
-                <label className="block text-[13px] mb-1.5 font-semibold">Đường dẫn</label>
+                <label className="block text-[13px] mb-1.5 font-semibold">
+                  Đường dẫn
+                </label>
                 <div className="flex items-stretch rounded-md overflow-hidden ring-1 ring-white/10 bg-[#0b0e13]">
                   <span className="hidden sm:flex items-center px-3 text-white/70 text-[13px] bg-white/[0.04] ring-1 ring-inset ring-white/10">
                     inkwave.io/novels/
@@ -297,11 +316,21 @@ export const UpsertNovels = () => {
                   <p
                     className={[
                       "text-[12px] inline-flex items-center gap-1.5",
-                      urlError ? "text-red-400" : urlOk ? "text-emerald-400" : "text-white/55",
+                      urlError
+                        ? "text-red-400"
+                        : urlOk
+                        ? "text-emerald-400"
+                        : "text-white/55",
                     ].join(" ")}
                   >
                     {urlOk && (
-                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M20 6 9 17l-5-5" />
                       </svg>
                     )}
@@ -320,17 +349,22 @@ export const UpsertNovels = () => {
                 <textarea
                   rows={6}
                   value={form.description}
-                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, description: e.target.value }))
+                  }
                   placeholder="Viết tóm tắt 1–3 đoạn, nêu bật điểm khác biệt."
                   className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35 resize-none"
                 />
-                <div className="mt-1 text-right text-xs text-white/50">{form.description.length}/1000</div>
+                <div className="mt-1 text-right text-xs text-white/50">
+                  {form.description.length}/1000
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] mb-2 font-semibold">
-                    Bìa truyện <span className="text-red-500 font-semibold">*</span>
+                    Bìa truyện{" "}
+                    <span className="text-red-500 font-semibold">*</span>
                   </label>
                   <label className="relative inline-flex items-center justify-center w-[180px] h-[250px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
                     <input
@@ -343,16 +377,25 @@ export const UpsertNovels = () => {
                       }}
                     />
                     {imagePreview ? (
-                      <img src={imagePreview} className="absolute inset-0 h-full w-full object-cover" />
+                      <img
+                        src={imagePreview}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
                     ) : (
-                      <span className="text-[13px] text-white/65">+ Tải ảnh bìa</span>
+                      <span className="text-[13px] text-white/65">
+                        + Tải ảnh bìa
+                      </span>
                     )}
                   </label>
-                  <p className="mt-2 text-[12px] text-white/55">3:4 • JPG/PNG • &lt; 5MB</p>
+                  <p className="mt-2 text-[12px] text-white/55">
+                    3:4 • JPG/PNG • &lt; 5MB
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-[13px] mb-2 font-semibold">Banner (tuỳ chọn)</label>
+                  <label className="block text-[13px] mb-2 font-semibold">
+                    Banner (tuỳ chọn)
+                  </label>
                   <label className="relative inline-flex items-center justify-center w-full max-w-[340px] h-[110px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
                     <input
                       type="file"
@@ -364,19 +407,30 @@ export const UpsertNovels = () => {
                       }}
                     />
                     {bannerPreview ? (
-                      <img src={bannerPreview} className="absolute inset-0 h-full w-full object-cover" />
+                      <img
+                        src={bannerPreview}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
                     ) : (
-                      <span className="text-[13px] text-white/65">+ Tải banner</span>
+                      <span className="text-[13px] text-white/65">
+                        + Tải banner
+                      </span>
                     )}
                   </label>
-                  <p className="mt-2 text-[12px] text-white/55">16:5 • JPG/PNG</p>
+                  <p className="mt-2 text-[12px] text-white/55">
+                    16:5 • JPG/PNG
+                  </p>
                 </div>
               </div>
 
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[13px] font-semibold">Chủ đề</label>
-                  <span className="text-[12px] text-white/60">{selectedTags.length}/3</span>
+                  <label className="block text-[13px] font-semibold">
+                    Chủ đề
+                  </label>
+                  <span className="text-[12px] text-white/60">
+                    {selectedTags.length}/3
+                  </span>
                 </div>
                 <input
                   value={tagQuery}
@@ -401,13 +455,23 @@ export const UpsertNovels = () => {
                             : "ring-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
                           disabled ? "opacity-40 cursor-not-allowed" : "",
                         ].join(" ")}
-                        title={active ? "Bỏ chọn" : disabled ? "Tối đa 3 thẻ" : "Chọn"}
+                        title={
+                          active
+                            ? "Bỏ chọn"
+                            : disabled
+                            ? "Tối đa 3 thẻ"
+                            : "Chọn"
+                        }
                       >
                         {tag.name || tag.slug || "Tag"}
                       </button>
                     );
                   })}
-                  {filteredTags?.length === 0 && <span className="text-[13px] text-white/50">Không có thẻ phù hợp.</span>}
+                  {filteredTags?.length === 0 && (
+                    <span className="text-[13px] text-white/50">
+                      Không có thẻ phù hợp.
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -415,8 +479,19 @@ export const UpsertNovels = () => {
 
           <aside className="col-span-12 md:col-span-4">
             <div className="md:sticky md:top-4 max-h-[calc(100vh-2rem)] overflow-auto space-y-4">
-              <ActionsBar busy={busy} onCancel={() => navigate(-1)} onSaveDraft={handleSaveDraft} onPublish={handlePublishNow} />
-              <PreviewCard title={previewTitle} description={previewDesc} slug={previewSlug} imagePreview={imagePreview} bannerPreview={bannerPreview} />
+              <ActionsBar
+                busy={busy}
+                onCancel={() => navigate(-1)}
+                onSaveDraft={handleSaveDraft}
+                onPublish={handlePublishNow}
+              />
+              <PreviewCard
+                title={previewTitle}
+                description={previewDesc}
+                slug={previewSlug}
+                imagePreview={imagePreview}
+                bannerPreview={bannerPreview}
+              />
             </div>
           </aside>
         </div>

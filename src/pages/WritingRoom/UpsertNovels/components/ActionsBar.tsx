@@ -1,4 +1,3 @@
-import React from "react";
 import Button from "../../../../components/ButtonComponent";
 
 type ActionsBarProps = {
@@ -8,12 +7,12 @@ type ActionsBarProps = {
   onPublish: () => void;
 };
 
-export const ActionsBar: React.FC<ActionsBarProps> = ({
+export const ActionsBar = ({
   busy = false,
   onCancel,
   onSaveDraft,
   onPublish,
-}) => {
+}: ActionsBarProps) => {
   return (
     <div className="rounded-lg bg-[#0e1117]/95 ring-1 ring-white/8 backdrop-blur-sm p-4 shadow-[0_20px_48px_-28px_rgba(0,0,0,0.55)]">
       <div className="grid grid-cols-3 gap-2">
