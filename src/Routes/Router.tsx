@@ -5,11 +5,11 @@ import { UserProfile } from "../pages/userProfile/UserProfile";
 import { ProtectedRoutes } from "./ProtectedRoutes";
 import { Unauthorized } from "../pages/Unauthorized";
 import { Roles } from "../context/AuthContext/AuthProvider";
-import { Novels } from "../pages/Novels/Novels";
+import { NovelsExplore } from "../pages/NovelsExplore/NovelsExplore";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelRead } from "../pages/novelRead/NovelRead";
-import { Chapters } from "../pages/Chapters/Chapters";
+import { NovelDetail } from "../pages/Chapters/NovelDetail";
 import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
@@ -17,6 +17,7 @@ import { Blogs } from "../pages/Blogs/Blogs";
 import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
+import { Setting } from "../pages/setting/Setting";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
 import AdminHome from "../pages/Admin/AdminHome";
 import UserList from "../pages/Admin/UserManagement/UserList";
@@ -39,8 +40,8 @@ export const Router = () => {
         <Route path="history" element={<ReadingProcess />} />
       </Route>
       <Route path="/novels">
-        <Route index element={<Novels />} />
-        <Route path=":novelId" element={<Chapters />} />
+        <Route index element={<NovelsExplore />} />
+        <Route path=":novelId" element={<NovelDetail />} />
         <Route path=":novelId/:chapterId" element={<NovelRead />} />
         <Route
           path="writing-room"
@@ -73,6 +74,7 @@ export const Router = () => {
       <Route path="/test-profile" element={<TestUserProfile />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
+      <Route path="/setting" element={<Setting />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>
   );

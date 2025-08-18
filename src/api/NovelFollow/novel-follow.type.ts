@@ -26,6 +26,8 @@ export interface NovelFollower {
   displayName: string;
   avatarUrl: string | null;
   followedAt: number;
+  isNotification: boolean;
+  readingStatus: number;
 }
 
 export interface NovelFollowerResponse {
@@ -56,6 +58,8 @@ export type FollowedNovel = {
   slug: string;
   followers: number;
   tags: Tag[];
+  isNotification: boolean;
+  readingStatus: number;
   totalChapters: number;
   followedAt: number;
 };
@@ -73,6 +77,12 @@ export type FollowerNovelsResponse = {
   novelFollows: NovelFollows;
   totalNovelFollows: number;
   totalPages: 1;
+};
+
+export type UpdateFollowStatusReq = {
+  novelFollowId: string;
+  isNotification: boolean;
+  readingStatus: number;
 };
 
 export type NovelFollowApiResponse = ApiResponse<NovelFollowResponse>;

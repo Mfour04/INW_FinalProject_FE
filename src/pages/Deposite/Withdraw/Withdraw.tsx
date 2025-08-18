@@ -3,7 +3,6 @@ import Coin50 from "../../../assets/img/Transaction/coin-50.png";
 import Coin100 from "../../../assets/img/Transaction/coin-100.png";
 import Coin500 from "../../../assets/img/Transaction/coin-500.png";
 import Coin1000 from "../../../assets/img/Transaction/coin-1000.png";
-import Pen from "../../../assets/svg/Withdraw/pen-01-stroke-rounded.svg";
 import TrashCan from "../../../assets/svg/Withdraw/delete-02-stroke-rounded.svg";
 import { WithdrawCard, type Coin } from "./WithdrawCard";
 import Button from "../../../components/ButtonComponent";
@@ -17,7 +16,6 @@ import {
 } from "../../../api/BankAccount/bank.api";
 import { useEffect, useState } from "react";
 import type { Bank } from "../../../entity/bank";
-import { BankSelectModal } from "./BankSelectModal";
 import type {
   CreateBankRequest,
   GetUserBanksRes,
@@ -26,6 +24,7 @@ import type { WithdrawRequest } from "../../../api/Transaction/transaction.type"
 import { WithdrawCoin } from "../../../api/Transaction/transaction.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
+import { InlineBankSelect } from "./InlineBankSelect/InlineBankSelect";
 
 const withdrawCoinOptions: Coin[] = [
   { amount: 9000, image: Coin20, price: 10 },
@@ -46,7 +45,6 @@ const initialBankForm: CreateBankRequest = {
 
 export const Withdraw = () => {
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
   const [bankForm, setBankForm] = useState<CreateBankRequest>(initialBankForm);
   const [confirmDefault, setConfirmDefault] = useState<boolean>(false);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -59,12 +57,6 @@ export const Withdraw = () => {
   });
 
   const toast = useToast();
-
-  const { data: banksData, refetch: banksRefetch } = useQuery({
-    queryKey: ["banks"],
-    queryFn: () => GetBanks().then((res) => res.data.data),
-  });
-
   const { data: userBanks, refetch: userBanksRefetch } = useQuery({
     queryKey: ["userBanks"],
     queryFn: () => GetUserBanks().then((res) => res.data.data),
@@ -76,7 +68,8 @@ export const Withdraw = () => {
   const CreateBankMutation = useMutation({
     mutationFn: (request: CreateBankRequest) => CreateBank(request),
     onSuccess: () => {
-      banksRefetch();
+      toast?.onOpen("Thêm tài khoản ngân hàng thành công");
+      userBanksRefetch();
     },
   });
 
@@ -152,99 +145,127 @@ export const Withdraw = () => {
   }, [selectedBank]);
 
   return (
-    <div className="max-w">
-      <div className="flex max-w gap-x-6 h-72">
-        <div className="w-[65%] flex flex-col gap-2.5 mb-10">
-          <div className="flex items-center justify-between">
-            <div>Tài khoản ngân hàng của bạn</div>
-            <div className="gap-10">
-              {/* <button className="h-7 w-7 rounded bg-[#2e2e2e] hover:bg-[#ff6740] text-black p-1 mr-2">
-                <img src={Pen} alt="" />
-              </button> */}
+    <section className="max-w-6xl mx-auto px-3">
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 lg:col-span-7">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 shadow-md">
+            <div className="px-3 py-2 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="text-white font-bold text-sm">
+                Tài khoản ngân hàng
+              </h2>
               <button
                 onClick={handleDeleteBankButtonClick}
-                className="h-7 w-7 rounded bg-[#2e2e2e] hover:bg-[#ff6740] text-black p-1"
+                className="h-7 w-7 grid place-items-center rounded-md bg-zinc-800 text-zinc-200 hover:bg-[#ff6740] hover:text-white transition"
+                title="Xóa tài khoản"
               >
-                <img src={TrashCan} alt="" />
+                <img src={TrashCan} alt="" className="h-4 w-4" />
               </button>
             </div>
-          </div>
-          <div className="overflow-y-auto max-h-[13.5rem] border rounded border-gray-600">
-            <table className="w-full text-sm table-auto border-separate border-spacing-0">
-              <thead className="sticky top-0 bg-[#1e1e1e] z-10">
-                <tr className="text-left">
-                  <th className="px-3 py-2 border-b border-gray-600">STT</th>
-                  <th className="px-3 py-2 border-b border-gray-600">
-                    NGÂN HÀNG
-                  </th>
-                  <th className="px-3 py-2 border-b border-gray-600">
-                    SỐ TÀI KHOẢN
-                  </th>
-                  <th className="px-3 py-2 border-b border-gray-600">
-                    CHỦ TÀI KHOẢN
-                  </th>
-                  <th className="px-3 py-2 border-b border-gray-600 text-center">
-                    TRẠNG THÁI
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-600">
-                {userBanks?.map((acc, index) => (
-                  <tr
-                    onClick={() => setSelectedRow(acc)}
-                    key={index}
-                    className={`hover:bg-[#2e2e2e] cursor-pointer ${
-                      selectedRow === acc && `bg-gray-600`
-                    }`}
-                  >
-                    <td className="px-3 py-2">{index + 1}</td>
-                    <td className="px-3 py-2">{acc.bankShortName}</td>
-                    <td className="px-3 py-2">{acc.bankAccountNumber}</td>
-                    <td className="px-3 py-2">{acc.bankAccountName}</td>
-                    <td className="px-3 py-2">
-                      <span
-                        onClick={
-                          !acc.isDefault
-                            ? () => handleSetDefault(acc.id)
-                            : undefined
-                        }
-                        className={`${
-                          acc.isDefault
-                            ? `bg-green-500`
-                            : `bg-gray-600 cursor-pointer`
-                        } text-white text-xs text-center font-semibold px-2 h-5.5 py-1 rounded line-clamp-1`}
-                      >
-                        {acc.isDefault ? `Mặc định` : `Đặt làm mặc định`}
-                      </span>
-                    </td>
+
+            <div className="max-h-[14rem] overflow-y-auto">
+              <table className="w-full text-xs border-separate border-spacing-0">
+                <thead className="sticky top-0 z-10 bg-zinc-900 border-b border-zinc-800">
+                  <tr className="text-left text-zinc-300">
+                    <th className="px-2 py-2">#</th>
+                    <th className="px-2 py-2">Ngân hàng</th>
+                    <th className="px-2 py-2">Số TK</th>
+                    <th className="px-2 py-2">Chủ TK</th>
+                    <th className="px-2 py-2 text-center">Trạng thái</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {userBanks?.map((acc, index) => (
+                    <tr
+                      key={acc.id ?? index}
+                      onClick={() => setSelectedRow(acc)}
+                      className={`cursor-pointer transition hover:bg-zinc-800 ${
+                        selectedRow?.id === acc.id ? "bg-zinc-800" : ""
+                      }`}
+                    >
+                      <td className="px-2 py-1 text-zinc-300">{index + 1}</td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankShortName}
+                      </td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankAccountNumber}
+                      </td>
+                      <td className="px-2 py-1 text-white">
+                        {acc.bankAccountName}
+                      </td>
+                      <td className="px-2 py-1">
+                        <span
+                          onClick={
+                            !acc.isDefault
+                              ? () => handleSetDefault(acc.id)
+                              : undefined
+                          }
+                          className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                            acc.isDefault
+                              ? "bg-emerald-500 text-white"
+                              : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                          }`}
+                        >
+                          {acc.isDefault ? "Mặc định" : "Đặt mặc định"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {!userBanks?.length && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-2 py-6 text-center text-zinc-400"
+                      >
+                        Chưa có tài khoản ngân hàng
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div className="w-[35%] flex flex-col gap-2.5 mb-10">
-          <div>Thêm tài khoản ngân hàng</div>
-          <div className="border border-gray-600 p-4 rounded">
-            <div className="flex flex-col gap-4">
-              <div className="flex h-10 items-center">
-                <div className="w-[30%]">Ngân hàng</div>
-                <div
-                  onClick={() => setShowPopup(true)}
-                  className="w-[70%] h-full border border-gray-600 rounded p-2  cursor-pointer line-clamp-1"
-                >
-                  {selectedBank ? (
-                    selectedBank.name
-                  ) : (
-                    <span className="text-gray-400 ">Chọn ngân hàng</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex h-10 items-center">
-                <div className="w-[30%]">STK</div>
+        <div className="col-span-12 lg:col-span-5">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 shadow-md">
+            <div className="px-3 py-2 border-b border-zinc-800">
+              <h3 className="text-white font-bold text-sm">Thêm tài khoản</h3>
+            </div>
+
+            <div className="p-3 space-y-3">
+              <label className="flex items-center h-8">
+                <span className="w-1/3 text-zinc-300 text-xs">Ngân hàng</span>
+                <InlineBankSelect
+                  value={
+                    selectedBank
+                      ? {
+                          shortName: selectedBank.shortName,
+                          logo: selectedBank.logo,
+                          bin: selectedBank.bin,
+                          code: selectedBank.code,
+                        }
+                      : null
+                  }
+                  onSelect={(b) => {
+                    setSelectedBank((prev) =>
+                      prev
+                        ? ({
+                            ...prev,
+                            shortName: b.shortName,
+                            logo: b.logo,
+                            bin: b.bin,
+                            code: b.code,
+                          } as any)
+                        : (b as any)
+                    );
+                  }}
+                />
+              </label>
+
+              <label className="flex items-center h-8">
+                <span className="w-1/3 text-zinc-300 text-xs">STK</span>
                 <input
-                  className="w-[70%] h-full border border-gray-600 rounded p-2"
+                  className="w-2/3 h-full px-2 rounded-md border border-zinc-700 bg-zinc-800 text-white text-xs placeholder-zinc-500 outline-none focus:border-[#ff6740] transition"
                   type="text"
                   value={bankForm.bankAccountNumber}
                   onChange={(e) =>
@@ -255,11 +276,14 @@ export const Withdraw = () => {
                   }
                   placeholder="Số tài khoản"
                 />
-              </div>
-              <div className="flex h-10 items-center">
-                <div className="w-[30%] line-clamp-1">Chủ tài khoản</div>
+              </label>
+
+              <label className="flex items-center h-8">
+                <span className="w-1/3 text-zinc-300 text-xs truncate">
+                  Chủ TK
+                </span>
                 <input
-                  className="w-[70%] h-full border border-gray-600 rounded p-2"
+                  className="w-2/3 h-full px-2 rounded-md border border-zinc-700 bg-zinc-800 text-white text-xs placeholder-zinc-500 outline-none focus:border-[#ff6740] transition"
                   type="text"
                   value={bankForm.bankAccountName}
                   onChange={(e) =>
@@ -270,50 +294,57 @@ export const Withdraw = () => {
                   }
                   placeholder="Tên chủ tài khoản"
                 />
+              </label>
+
+              <div className="pt-1 flex justify-end">
+                <Button
+                  className="w-2/3 h-8 rounded-md border-none bg-[#ffffff] hover:!bg-[#f5f5f5] text-xs font-bold"
+                  onClick={handleCreateBank}
+                  isLoading={CreateBankMutation.isPending}
+                >
+                  Thêm tài khoản
+                </Button>
               </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                className=" w-[70%] border-none bg-[#ff6740] hover:bg-orange-600"
-                onClick={handleCreateBank}
-                isLoading={CreateBankMutation.isPending}
-              >
-                Thêm tài khoản
-              </Button>
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col">
-        <div className="flex gap-5">
-          {withdrawCoinOptions.map((coin, index) => (
-            <WithdrawCard
-              key={index}
-              coin={coin}
-              selected={selectedCoin?.amount === coin.amount}
-              onClick={() => setSelectedCoin(coin)}
-            />
+
+      <div className="mt-8 flex flex-col items-center gap-8">
+        <div className="flex justify-center gap-8">
+          {withdrawCoinOptions.slice(0, 3).map((coin, index) => (
+            <div key={`top-${index}`} className="w-[180px] sm:w-[200px]">
+              <WithdrawCard
+                coin={coin}
+                selected={selectedCoin?.amount === coin.amount}
+                onClick={() => setSelectedCoin(coin)}
+              />
+            </div>
           ))}
         </div>
-        <div className="mt-10 flex justify-end">
-          <Button
-            onClick={handleWithdraw}
-            isLoading={WithdrawMutation.isPending}
-            className="w-fit border-none bg-[#ff6740] hover:bg-orange-600 px-7 font-bold"
-            size="lg"
-          >
-            Rút ngay
-          </Button>
+        <div className="flex justify-center gap-8">
+          {withdrawCoinOptions.slice(3, 5).map((coin, index) => (
+            <div key={`bottom-${index}`} className="w-[180px] sm:w-[200px]">
+              <WithdrawCard
+                coin={coin}
+                selected={selectedCoin?.amount === coin.amount}
+                onClick={() => setSelectedCoin(coin)}
+              />
+            </div>
+          ))}
         </div>
       </div>
 
-      {showPopup && (
-        <BankSelectModal
-          banks={banksData!}
-          onSelect={(bank) => setSelectedBank(bank)}
-          onClose={() => setShowPopup(false)}
-        />
-      )}
+      <div className="mt-6 flex justify-end">
+        <Button
+          onClick={handleWithdraw}
+          isLoading={WithdrawMutation.isPending}
+          className="h-9 px-6 text-base font-bold border-none bg-[#ffffff] hover:bg-[#f5f5f5] rounded-xl"
+          size="sm"
+        >
+          Rút ngay
+        </Button>
+      </div>
 
       <ConfirmModal
         isOpen={confirmDefault}
@@ -322,14 +353,13 @@ export const Withdraw = () => {
         onCancel={() => setConfirmDefault(false)}
         onConfirm={handleConfirmSetDefault}
       />
-
       <ConfirmModal
         isOpen={deleteModal}
         title="Xóa tài khoản"
-        message="Xác nhận xóa tài khoản này ?"
+        message="Xác nhận xóa tài khoản này?"
         onCancel={() => setDeleteModal(false)}
         onConfirm={handleConfirmDeleteModal}
       />
-    </div>
+    </section>
   );
 };

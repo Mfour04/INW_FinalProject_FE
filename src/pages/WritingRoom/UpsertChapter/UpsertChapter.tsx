@@ -17,10 +17,14 @@ import { Title } from "./UpsertStep/Title";
 import { Content } from "./UpsertStep/Content";
 import Button from "../../../components/ButtonComponent";
 import { ScheduleAndPrice } from "./UpsertStep/ScheduleAndPrice";
-import type { ModerationAIRequest } from "../../../api/AI/ai.type";
+import type {
+  ModerationAIRequest,
+  ModerationAIResponse,
+} from "../../../api/AI/ai.type";
 import { ModerationContent } from "../../../api/AI/ai.api";
 import { stripHtmlTags } from "../../../utils/regex";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
+import { ModerationModal } from "./ModerationModal";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -58,6 +62,9 @@ export const UpsertChapter = () => {
     useState<ChapterForm>(initialChapterForm);
   const [step, setStep] = useState<number>(1);
   const [confirmUpsertModal, setConfirmUpsertModal] = useState<boolean>(false);
+  const [moderationData, setModerationData] =
+    useState<ModerationAIResponse | null>(null);
+  const [openModerationModal, setOpenModerationModal] = useState(false);
 
   const chapterFormRef = useRef(chapterForm);
 
@@ -123,8 +130,15 @@ export const UpsertChapter = () => {
         category: categoryMap[item.category] || item.category,
         score: Number(item.score),
       }));
-      if (mappedResult.length > 0) setConfirmUpsertModal(true);
-      else handleConfirmUpsert();
+      if (mappedResult.length > 0) {
+        setModerationData({
+          flagged: true,
+          sensitive: mappedResult,
+        });
+        setOpenModerationModal(true);
+      } else {
+        handleConfirmUpsert();
+      }
     },
   });
 
@@ -249,6 +263,15 @@ export const UpsertChapter = () => {
         message="nội dung của bạn chứa yếu cố nhạy cảm. Bạn có chắc chắn muốn đăng không?"
         onCancel={() => setConfirmUpsertModal(false)}
         onConfirm={handleConfirmUpsert}
+      />
+      <ModerationModal
+        open={openModerationModal}
+        onClose={() => {
+          setOpenModerationModal(false);
+          setModerationData(null);
+        }}
+        onConfirm={handleConfirmUpsert}
+        data={moderationData}
       />
     </div>
   );

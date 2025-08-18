@@ -4,11 +4,17 @@ import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import CharacterCount from "@tiptap/extension-character-count";
 import { useMutation } from "@tanstack/react-query";
-import type { PlagiarismAIRequest } from "../../../../api/AI/ai.type";
+import type {
+  Matches,
+  PlagiarismAIApiResponse,
+  PlagiarismAIRequest,
+} from "../../../../api/AI/ai.type";
 import { PlagiarismCheck } from "../../../../api/AI/ai.api";
 import Button from "../../../../components/ButtonComponent";
 import { stripHtmlTags } from "../../../../utils/regex";
 import { useToast } from "../../../../context/ToastContext/toast-context";
+import { useState } from "react";
+import { PlagiarismModal } from "./Content/PlagiarismModal";
 
 type ContentStepProps = {
   chapterForm: ChapterForm;
@@ -16,6 +22,9 @@ type ContentStepProps = {
 };
 
 export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
+  const [showPlagiarismModal, setShowPlagiarismModal] =
+    useState<boolean>(false);
+  const [plagiarismMatches, setPlagiarismMatches] = useState<Matches[]>([]);
   const toast = useToast();
   const editor = useEditor({
     extensions: [StarterKit, CharacterCount.configure({ limit: 5000 })],
@@ -46,9 +55,12 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
   const PlagiarismMutation = useMutation({
     mutationFn: (request: PlagiarismAIRequest) =>
       PlagiarismCheck(request).then((res) => res.data),
-    onSuccess: (data) => {
-      if (data.data.matchCount > 0) toast?.onOpen("Phát hiện đạo văn");
-      else
+    onSuccess: (data: PlagiarismAIApiResponse) => {
+      if (data.data.matchCount > 0) {
+        setShowPlagiarismModal(true);
+
+        setPlagiarismMatches(data.data.matches);
+      } else
         toast?.onOpen(
           "Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!"
         );
@@ -79,6 +91,11 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
           Kiểm tra đạo văn
         </Button>
       </div>
+      <PlagiarismModal
+        open={showPlagiarismModal}
+        onClose={() => setShowPlagiarismModal(false)}
+        matches={plagiarismMatches}
+      />
     </div>
   );
 };

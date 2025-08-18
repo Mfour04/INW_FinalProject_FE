@@ -8,7 +8,7 @@ import PostItem from "../Blogs/Post/PostItem";
 import ReportPopup from "../Blogs/Modals/ReportPopup";
 import ProfileSidebar from "../Blogs/Sidebar/ProfileSidebar";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
-import { useBlogPosts, useCreateBlogPost, useDeleteBlogPost, useUpdateBlogPost } from "../../hooks/useBlogs";
+import { useBlogPosts, useCreateBlogPost, useDeleteBlogPost, useUpdateBlogPost } from "./HooksBlog";
 import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
 import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
