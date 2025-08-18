@@ -1,5 +1,3 @@
-import React from "react";
-
 type Props = {
   title: string;
   subtitle?: string;
@@ -7,7 +5,12 @@ type Props = {
   onAction?: () => void;
 };
 
-export const EmptyState: React.FC<Props> = ({ title, subtitle, actionText, onAction }) => {
+export const EmptyState = ({
+  title,
+  subtitle,
+  actionText,
+  onAction,
+}: Props) => {
   return (
     <div className="mx-auto max-w-xl text-center py-16">
       <div className="mx-auto h-16 w-16 rounded-2xl bg-white/[0.04] ring-1 ring-white/10 grid place-items-center mb-4">

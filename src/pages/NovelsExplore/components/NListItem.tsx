@@ -1,23 +1,9 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import StarRate from "@mui/icons-material/StarRate";
 import Bookmark from "@mui/icons-material/Bookmark";
 import Visibility from "@mui/icons-material/Visibility";
 import type { Tag } from "../types";
-
-function variantFromSeed(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
-  const i = Math.abs(h) % 6;
-  const ring = [
-    "from-[#6ee7ff] via-[#3b82f6] to-[#0ea5e9]",
-    "from-[#f472b6] via-[#a855f7] to-[#6366f1]",
-    "from-[#f59e0b] via-[#f97316] to-[#ef4444]",
-    "from-[#34d399] via-[#22c55e] to-[#16a34a]",
-    "from-[#a3e635] via-[#22d3ee] to-[#60a5fa]",
-    "from-[#fde68a] via-[#fca5a5] to-[#c4b5fd]",
-  ][i];
-  return { ring };
-}
+import { fmt, variantFromSeedRing } from "../util";
 
 type Props = {
   title: string;
@@ -32,9 +18,7 @@ type Props = {
   onClick?: () => void;
 };
 
-const fmt = (n: number) => Intl.NumberFormat("en", { notation: "compact" }).format(n);
-
-export const NListItem: React.FC<Props> = ({
+export const NListItem = ({
   title,
   slug,
   image,
@@ -45,10 +29,11 @@ export const NListItem: React.FC<Props> = ({
   tags,
   author = "Mock Author",
   onClick,
-}) => {
-  const v = useMemo(() => variantFromSeed(slug || title), [slug, title]);
+}: Props) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const isCompleted = status === 1;
+
+  const v = useMemo(() => variantFromSeedRing(slug || title), [slug, title]);
 
   return (
     <div
@@ -59,7 +44,9 @@ export const NListItem: React.FC<Props> = ({
       title={title}
       className="group relative cursor-pointer select-none rounded-2xl"
     >
-      <div className={`absolute -inset-[1px] rounded-2xl bg-gradient-to-br ${v.ring} opacity-30 blur-[8px] group-hover:opacity-60 transition`} />
+      <div
+        className={`absolute -inset-[1px] rounded-2xl bg-gradient-to-br ${v.ring} opacity-30 blur-[8px] group-hover:opacity-60 transition`}
+      />
       <div className="relative z-0 h-[150px] overflow-hidden rounded-2xl bg-[#0b0d11]/90 ring-1 ring-white/10 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.75)] p-3 flex gap-3">
         <div className="relative w-[95px] aspect-[3/4] rounded-xl overflow-hidden shrink-0">
           {!imgLoaded && (
@@ -91,7 +78,7 @@ export const NListItem: React.FC<Props> = ({
                   WebkitBoxOrient: "vertical",
                 }}
               >
-                {title} 
+                {title}
               </h2>
 
               <div className="mt-2 flex items-center gap-1.5 min-h-[1.25em]">

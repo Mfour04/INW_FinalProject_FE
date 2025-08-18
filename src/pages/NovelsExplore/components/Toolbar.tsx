@@ -1,4 +1,3 @@
-import React from "react";
 import ViewList from "@mui/icons-material/ViewList";
 import Dashboard from "@mui/icons-material/Dashboard";
 import Refresh from "@mui/icons-material/Refresh";
@@ -11,7 +10,12 @@ type Props = {
   badgeText?: string;
 };
 
-export const Toolbar: React.FC<Props> = ({ view, onChangeView, onRefresh, badgeText }) => {
+export const Toolbar = ({
+  view,
+  onChangeView,
+  onRefresh,
+  badgeText,
+}: Props) => {
   return (
     <div className="flex items-center gap-3">
       {badgeText && (

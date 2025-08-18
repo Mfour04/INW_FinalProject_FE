@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Star, Bookmark, Eye } from "lucide-react";
-
-export type Tag = { tagId: string | number; name: string; slug?: string };
+import { fmt, variantFromSeed } from "../util";
 
 type Props = {
   title: string;
@@ -10,29 +9,11 @@ type Props = {
   rating: number;
   bookmarks: number;
   views: number;
-  status: number; 
+  status: number;
   onClick?: () => void;
 };
 
-function variantFromSeed(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
-  const i = Math.abs(h) % 6;
-  const ring = [
-    "from-[#6ee7ff] via-[#3b82f6] to-[#0ea5e9]",
-    "from-[#f472b6] via-[#a855f7] to-[#6366f1]",
-    "from-[#f59e0b] via-[#f97316] to-[#ef4444]",
-    "from-[#34d399] via-[#22c55e] to-[#16a34a]",
-    "from-[#a3e635] via-[#22d3ee] to-[#60a5fa]",
-    "from-[#fde68a] via-[#fca5a5] to-[#c4b5fd]",
-  ][i];
-  const chip = ["#7dd3fc", "#c4b5fd", "#fbbf24", "#86efac", "#93c5fd", "#fca5a5"][i];
-  return { ring, chip };
-}
-
-const fmt = (n: number) => Intl.NumberFormat("en", { notation: "compact" }).format(n);
-
-export const NCard: React.FC<Props> = ({
+export const NCard = ({
   title,
   slug,
   image,
@@ -41,11 +22,11 @@ export const NCard: React.FC<Props> = ({
   views,
   status,
   onClick,
-}) => {
-  const v = useMemo(() => variantFromSeed(slug || title), [slug, title]);
+}: Props) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const isCompleted = status === 1;
+  const v = useMemo(() => variantFromSeed(slug || title), [slug, title]);
 
   return (
     <div

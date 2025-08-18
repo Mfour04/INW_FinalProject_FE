@@ -1,5 +1,5 @@
 // src/pages/Novels/NovelsExplore.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,17 +12,18 @@ import { Pager } from "./components/Pager";
 import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 
-import type { ViewMode, NovelLite } from "./types";
+import type { ViewMode } from "./types";
 import { LayoutGrid, List, RotateCcw } from "lucide-react";
+import type { Novel } from "../../entity/novel";
 
-type Props = { sidebarCollapsed?: boolean }; // giữ nguyên, không dùng
+type Props = { sidebarCollapsed?: boolean };
 
 const VIEW_LS_KEY = "novels:view";
 
-export const NovelsExplore: React.FC<Props> = () => {
+export const NovelsExplore = ({}: Props) => {
   const [view, setView] = useState<ViewMode>("Grid");
   const [page, setPage] = useState<number>(0);
-  const limit = 12;
+  const limit = 20;
 
   const navigate = useNavigate();
   const [sp] = useSearchParams();
@@ -30,21 +31,6 @@ export const NovelsExplore: React.FC<Props> = () => {
   const searchTerm = sp.get("query") || "";
   const sortBy = sp.get("selectedSort") || "";
   const searchTagTerm = sp.get("tag") || "";
-
-  // Khởi tạo view từ localStorage
-  useEffect(() => {
-    try {
-      const saved = typeof window !== "undefined" ? window.localStorage.getItem(VIEW_LS_KEY) : null;
-      if (saved === "Grid" || saved === "List") setView(saved as ViewMode);
-    } catch {}
-  }, []);
-
-  // Lưu view vào localStorage
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined") window.localStorage.setItem(VIEW_LS_KEY, view);
-    } catch {}
-  }, [view]);
 
   const { data, isFetching, isError, refetch } = useQuery({
     queryKey: ["novels", { searchTerm, page, limit, sortBy, searchTagTerm }],
@@ -59,12 +45,12 @@ export const NovelsExplore: React.FC<Props> = () => {
     staleTime: 30_000,
   });
 
-  const novels: NovelLite[] = Array.isArray(data?.data?.data?.novels)
+  const novels: Novel[] = Array.isArray(data?.data?.data?.novels)
     ? data!.data.data.novels
     : [];
+
   const totalPages: number = data?.data?.data?.totalPages ?? 1;
 
-  // Grid view: giữ nguyên NCard để không ảnh hưởng style hiện tại
   const gridView = useMemo(
     () => (
       <div
@@ -80,7 +66,7 @@ export const NovelsExplore: React.FC<Props> = () => {
               slug={n.slug}
               image={n.novelImage}
               rating={Number(n.ratingAvg ?? 0)}
-              bookmarks={n.bookmarkCount ?? 0}
+              bookmarks={n.followers ?? 0}
               views={n.totalViews ?? 0}
               status={n.status}
               onClick={() => navigate(`/novels/${n.slug}`)}
@@ -98,7 +84,23 @@ export const NovelsExplore: React.FC<Props> = () => {
     [novels, isFetching, navigate]
   );
 
-  // Chips hiển thị filter (chỉ hiện nếu có)
+  useEffect(() => {
+    try {
+      const saved =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem(VIEW_LS_KEY)
+          : null;
+      if (saved === "Grid" || saved === "List") setView(saved as ViewMode);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined")
+        window.localStorage.setItem(VIEW_LS_KEY, view);
+    } catch {}
+  }, [view]);
+
   const filterChips = (
     <div className="flex flex-wrap items-center gap-2">
       {searchTerm && (
@@ -125,13 +127,11 @@ export const NovelsExplore: React.FC<Props> = () => {
   return (
     <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-[#0b0d11] text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4">
-
         {/* Header */}
-       <div className="flex top-0 z-20 mb-10">
+        <div className="flex top-0 z-20 mb-10">
           <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
             <div className="relative py-3">
               <div className="flex items-center justify-between">
-                {/* Bên trái: Back + Title */}
                 <div className="flex items-center gap-10">
                   <button
                     onClick={() => navigate(-1)}
@@ -152,7 +152,6 @@ export const NovelsExplore: React.FC<Props> = () => {
                   </div>
                 </div>
 
-                {/* Bên phải: Các icon actions */}
                 <div className="flex items-center gap-5">
                   <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-white/10">
                     <button
@@ -197,7 +196,6 @@ export const NovelsExplore: React.FC<Props> = () => {
           </div>
         </div>
 
-        {/* Content */}
         {isError ? (
           <EmptyState
             title="Không tải được danh sách"
@@ -219,10 +217,10 @@ export const NovelsExplore: React.FC<Props> = () => {
                 key={n.novelId}
                 title={n.title}
                 slug={n.slug}
-                author={(n as any).authorName || "Tên Tác Giả"}
+                author={n.authorName || "Tên Tác Giả"}
                 image={n.novelImage}
                 rating={Number(n.ratingAvg ?? 0)}
-                bookmarks={n.bookmarkCount ?? 0}
+                bookmarks={n.followers ?? 0}
                 views={n.totalViews ?? 0}
                 status={n.status}
                 tags={Array.isArray(n.tags) ? n.tags.slice(0, 8) : []}
@@ -236,7 +234,6 @@ export const NovelsExplore: React.FC<Props> = () => {
           </div>
         )}
 
-        {/* Pager */}
         <Pager
           page={page}
           totalPages={totalPages}
