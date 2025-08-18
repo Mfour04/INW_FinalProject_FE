@@ -1,4 +1,3 @@
-// src/pages/Novels/NovelsExplore.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -6,11 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import ArrowLeft02 from "../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
 import { GetNovels } from "../../api/Novels/novel.api";
 
-import { NCard } from "./components/NCard";
-import { NListItem } from "./components/NListItem";
-import { Pager } from "./components/Pager";
-import { SkeletonCard } from "./components/SkeletonCard";
-import { EmptyState } from "./components/EmptyState";
+import { NCard } from "../../components/ui/cards/NCard";
+import { NListItem } from "../../components/ui/cards/NListItem";
+import { Pager } from "../../components/ui/navigation/Pager";
+import { SkeletonCard } from "../../components/ui/feedback/SkeletonCard";
+import { EmptyState } from "../../components/ui/feedback/EmptyState";
 
 import type { ViewMode } from "./types";
 import { LayoutGrid, List, RotateCcw } from "lucide-react";
