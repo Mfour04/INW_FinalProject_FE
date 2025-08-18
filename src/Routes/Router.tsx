@@ -5,7 +5,7 @@ import { UserProfile } from "../pages/userProfile/UserProfile";
 import { ProtectedRoutes } from "./ProtectedRoutes";
 import { Unauthorized } from "../pages/Unauthorized";
 import { Roles } from "../context/AuthContext/AuthProvider";
-import { Novels } from "../pages/Novels/Novels";
+import { NovelsExplore } from "../pages/NovelsExplore/NovelsExplore";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelRead } from "../pages/novelRead/NovelRead";
@@ -40,7 +40,7 @@ export const Router = () => {
         <Route path="history" element={<ReadingProcess />} />
       </Route>
       <Route path="/novels">
-        <Route index element={<Novels />} />
+        <Route index element={<NovelsExplore />} />
         <Route path=":novelId" element={<NovelDetail />} />
         <Route path=":novelId/:chapterId" element={<NovelRead />} />
         <Route
