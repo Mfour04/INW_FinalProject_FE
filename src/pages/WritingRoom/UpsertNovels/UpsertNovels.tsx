@@ -1,21 +1,17 @@
 import { useNavigate, useParams } from "react-router-dom";
-import ArrowLeft02 from "../../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
-import Button from "../../../components/ButtonComponent";
 import type { CreateNovelRequest } from "../../../api/Novels/novel.type";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  CreateNovels,
-  GetNovelByUrl,
-  GetUrlChecked,
-  UpdateNovels,
-} from "../../../api/Novels/novel.api";
+import { CreateNovels, GetNovelByUrl, GetUrlChecked, UpdateNovels } from "../../../api/Novels/novel.api";
 import { useAuth } from "../../../hooks/useAuth";
 import { getTags } from "../../../api/Tags/tag.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { urlToFile } from "../../../utils/img";
-import { TagView } from "../../../components/TagComponent";
 import { isValidUrl } from "../../../utils/validation";
+import { ActionsBar } from "./components/ActionsBar";
+import { PreviewCard } from "./components/PreviewCard";
+
+const SLUG_MAX = 30;
 
 const initialCreateNovelForms: CreateNovelRequest = {
   title: "",
@@ -26,28 +22,39 @@ const initialCreateNovelForms: CreateNovelRequest = {
   novelBanner: null,
   tags: [],
   status: 0,
-  isPublic: true,
+  isPublic: false,
   isPaid: false,
   isLock: false,
   allowComment: true,
   price: 0,
 };
 
+const slugifyVi = (input: string) =>
+  input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, SLUG_MAX);
+
 export const UpsertNovels = () => {
-  const [createNovelForm, setCreateNovelForm] = useState<CreateNovelRequest>(
-    initialCreateNovelForms
-  );
+  const [form, setForm] = useState<CreateNovelRequest>(initialCreateNovelForms);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagQuery, setTagQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string>("");
+  const [urlOk, setUrlOk] = useState<string>("");
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [lastAutoSlug, setLastAutoSlug] = useState("");
 
   const navigate = useNavigate();
   const toast = useToast();
   const { auth } = useAuth();
-
   const { id } = useParams();
-
   const isUpdate = Boolean(id);
 
   const { data: novelData, isSuccess } = useQuery({
@@ -56,47 +63,10 @@ export const UpsertNovels = () => {
     enabled: !!id,
   });
 
-  console.log(novelData);
-
-  const {
-    data: slugChecked,
-    refetch: checkSlug,
-    isFetching: isChecking,
-  } = useQuery({
-    queryKey: ["check-slug", createNovelForm.slug],
-    queryFn: () =>
-      GetUrlChecked(createNovelForm.slug).then((res) => res.data.data),
+  const { data: slugChecked, refetch: checkSlug, isFetching: isChecking } = useQuery({
+    queryKey: ["check-slug", form.slug],
+    queryFn: () => GetUrlChecked(form.slug).then((res) => res.data.data),
     enabled: false,
-  });
-
-  const createNovelMutation = useMutation({
-    mutationFn: (formData: FormData) => CreateNovels(formData),
-    onSuccess: () => {
-      toast?.onOpen("Bạn đã tạo truyện thành công");
-      navigate("/novels/writing-room");
-    },
-    onError: () => {
-      toast?.onOpen("Có lỗi xảy ra trong lúc tạo truyện");
-    },
-  });
-
-  const toggleTag = (tagId: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
-    );
-  };
-
-  const updateNovelMutation = useMutation({
-    mutationFn: (formData: FormData) => UpdateNovels(formData),
-    onSuccess: () => {
-      toast?.onOpen("Cập nhật thành công");
-      navigate("/novels/writing-room");
-    },
-    onError: () => {
-      toast?.onOpen("Có lỗi xảy ra trong lúc cập nhật truyện");
-    },
   });
 
   const { data: tagData } = useQuery({
@@ -104,335 +74,353 @@ export const UpsertNovels = () => {
     queryFn: () => getTags().then((res) => res.data.data),
   });
 
+  const createNovelMutation = useMutation({
+    mutationFn: (fd: FormData) => CreateNovels(fd),
+    onSuccess: () => {
+      toast?.onOpen("Đã lưu vào kho của bạn");
+      navigate("/novels/writing-room");
+    },
+    onError: () => toast?.onOpen("Có lỗi khi tạo truyện"),
+  });
+
+  const updateNovelMutation = useMutation({
+    mutationFn: (fd: FormData) => UpdateNovels(fd),
+    onSuccess: () => {
+      toast?.onOpen("Cập nhật thành công");
+      navigate("/novels/writing-room");
+    },
+    onError: () => toast?.onOpen("Có lỗi khi cập nhật"),
+  });
+
+  const filteredTags = useMemo(() => {
+    if (!tagData) return [];
+    if (!tagQuery.trim()) return tagData;
+    const q = tagQuery.toLowerCase();
+    return tagData.filter((t: any) => (t.name || t.slug || "").toLowerCase().includes(q));
+  }, [tagData, tagQuery]);
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags((prev) => {
+      const has = prev.includes(tagId);
+      if (has) return prev.filter((x) => x !== tagId);
+      if (prev.length >= 3) return prev;
+      return [...prev, tagId];
+    });
+  };
+
+  const toFormData = (override: Partial<CreateNovelRequest>): FormData => {
+    const fd = new FormData();
+    const merged: CreateNovelRequest = { ...form, ...override, tags: selectedTags };
+    if (auth?.user?.userId) fd.append("authorId", auth.user.userId);
+    fd.append("title", merged.title);
+    fd.append("description", merged.description);
+    fd.append("slug", merged.slug);
+    if (merged.novelImage) fd.append("novelImage", merged.novelImage);
+    if (merged.novelBanner) fd.append("novelBanner", merged.novelBanner);
+    merged.tags.forEach((t) => fd.append("tags", t));
+    fd.append("status", String(merged.status));
+    fd.append("isPublic", String(merged.isPublic));
+    fd.append("isPaid", String(merged.isPaid));
+    fd.append("isLock", String(merged.isLock));
+    fd.append("allowComment", String(merged.allowComment));
+    fd.append("price", String(merged.price));
+    if (isUpdate && id) fd.append("novelId", id);
+    return fd;
+  };
+
+  const handleSaveDraft = () => {
+    const fd = toFormData({ isPublic: false });
+    if (isUpdate) updateNovelMutation.mutate(fd);
+    else createNovelMutation.mutate(fd);
+  };
+
+  const handlePublishNow = () => {
+    const fd = toFormData({ isPublic: true });
+    if (isUpdate) updateNovelMutation.mutate(fd);
+    else createNovelMutation.mutate(fd);
+  };
+
   const handleCheckSlug = () => {
-    if (!isValidUrl(createNovelForm.slug)) {
-      setUrlError(
-        "Slug không hợp lệ. Chỉ dùng chữ thường, số, và dấu gạch ngang."
-      );
+    if (!isValidUrl(form.slug)) {
+      setUrlError("Slug chỉ gồm chữ thường, số và dấu gạch ngang.");
+      setUrlOk("");
       return;
     }
+    setUrlError("");
+    setUrlOk("");
     checkSlug();
   };
 
-  const handleUpsertNovelClick = () => {
-    const formData = new FormData();
-    formData.append("title", createNovelForm.title);
-    formData.append("description", createNovelForm.description);
-    formData.append("slug", createNovelForm.slug);
-
-    if (auth?.user?.userId) {
-      formData.append("authorId", auth.user.userId);
+  useEffect(() => {
+    if (slugChecked == null) return;
+    if (slugChecked.exists) {
+      setUrlError("Đã tồn tại URL này!");
+      setUrlOk("");
+    } else {
+      setUrlError("");
+      setUrlOk(`URL khả dụng: inkwave.io/novels/${form.slug}`);
     }
-
-    if (createNovelForm.novelImage) {
-      formData.append("novelImage", createNovelForm.novelImage);
-    }
-
-    if (createNovelForm.novelBanner) {
-      formData.append("novelBanner", createNovelForm.novelBanner);
-    }
-
-    createNovelForm.tags.forEach((tag) => formData.append("tags", tag));
-
-    formData.append("status", createNovelForm.status.toString());
-    formData.append("isPublic", createNovelForm.isPublic.toString());
-    formData.append("isPaid", createNovelForm.isPaid.toString());
-    formData.append("isLock", createNovelForm.isLock.toString());
-    formData.append("price", createNovelForm.price.toString());
-
-    if (isUpdate && id) {
-      formData.append("novelId", id);
-      updateNovelMutation.mutate(formData);
-    } else createNovelMutation.mutate(formData);
-  };
+  }, [slugChecked, form.slug]);
 
   useEffect(() => {
-    if (slugChecked?.exists) setUrlError("Đã tồn lại Url này!");
-    else setUrlError("");
-  }, [slugChecked]);
+    setUrlError("");
+    setUrlOk("");
+  }, [form.slug]);
 
   useEffect(() => {
-    setCreateNovelForm((prev) => ({
-      ...prev,
-      tags: selectedTags,
-    }));
+    setForm((p) => ({ ...p, tags: selectedTags }));
   }, [selectedTags]);
 
   useEffect(() => {
-    if (createNovelForm.novelImage) {
-      const url = URL.createObjectURL(createNovelForm.novelImage);
+    if (form.novelImage) {
+      const url = URL.createObjectURL(form.novelImage);
       setImagePreview(url);
-
       return () => URL.revokeObjectURL(url);
-    } else {
-      setImagePreview(null);
     }
-  }, [createNovelForm.novelImage]);
+    setImagePreview(null);
+  }, [form.novelImage]);
 
   useEffect(() => {
-    if (createNovelForm.novelBanner) {
-      const url = URL.createObjectURL(createNovelForm.novelBanner);
+    if (form.novelBanner) {
+      const url = URL.createObjectURL(form.novelBanner);
       setBannerPreview(url);
-
       return () => URL.revokeObjectURL(url);
-    } else {
-      setBannerPreview(null);
     }
-  }, [createNovelForm.novelBanner]);
+    setBannerPreview(null);
+  }, [form.novelBanner]);
 
   useEffect(() => {
     if (isSuccess && novelData) {
-      const novel = novelData.data.data.novelInfo;
-      console.log(novel);
-      const tags = novel.tags.map((tag) => tag.tagId);
-
-      const fetchFile = async () => {
-        let file: File | null = null;
-        let banner: File | null = null;
-        if (novel.novelImage) {
-          file = await urlToFile(novel.novelImage, "novel-image.jpg");
-        }
-        if (novel.novelBanner) {
-          banner = await urlToFile(novel.novelBanner, "banner.jpg");
-        }
-        setCreateNovelForm({
-          title: novel.title,
-          description: novel.description,
-          slug: novel.slug,
-          authorId: novel.authorId,
-          novelImage: file,
-          novelBanner: banner,
-          tags: tags,
-          status: novel.status,
-          isPublic: novel.isPublic,
-          isPaid: novel.isPaid,
-          isLock: novel.isLock,
-          allowComment: novel.allowComment,
-          price: novel.price,
+      const n = novelData.data.data.novelInfo;
+      const tags = (n.tags || []).map((t: any) => t.tagId);
+      const loadFiles = async () => {
+        const img = n.novelImage ? await urlToFile(n.novelImage, "novel-image.jpg") : null;
+        const ban = n.novelBanner ? await urlToFile(n.novelBanner, "banner.jpg") : null;
+        setForm({
+          title: n.title,
+          description: n.description,
+          slug: n.slug,
+          authorId: n.authorId,
+          novelImage: img,
+          novelBanner: ban,
+          tags,
+          status: n.status,
+          isPublic: n.isPublic,
+          isPaid: n.isPaid,
+          isLock: n.isLock,
+          allowComment: n.allowComment,
+          price: n.price,
         });
-        let objectUrl: string | null = null;
-
-        if (file) {
-          objectUrl = URL.createObjectURL(file);
-        }
-        setImagePreview(objectUrl);
+        setSelectedTags(tags);
+        if (img) setImagePreview(URL.createObjectURL(img));
+        if (ban) setBannerPreview(URL.createObjectURL(ban));
+        setSlugTouched(true);
+        setLastAutoSlug(slugifyVi(n.title || ""));
       };
-
-      setSelectedTags(tags);
-
-      fetchFile();
+      loadFiles();
     }
   }, [isSuccess, novelData]);
+
+  const busy = createNovelMutation.isPending || updateNovelMutation.isPending;
+
+  const onTitleChange = (val: string) => {
+    const auto = slugifyVi(val);
+    setForm((prev) => {
+      const shouldAuto = !slugTouched || prev.slug === lastAutoSlug || !prev.slug;
+      const nextSlug = shouldAuto ? auto : prev.slug;
+      if (shouldAuto) setLastAutoSlug(auto);
+      return { ...prev, title: val, slug: nextSlug };
+    });
+  };
+
+  const onSlugChange = (val: string) => {
+    setSlugTouched(true);
+    const clean = slugifyVi(val);
+    setForm((p) => ({ ...p, slug: clean }));
+  };
+
+  const previewTitle = form.title || "Tên truyện";
+  const previewDesc = form.description?.trim() ? form.description.trim() : "Mô tả ngắn gọn hiển thị ở đây.";
+  const previewSlug = form.slug || "ten-truyen";
+
   return (
-    <div className="min-h-screen bg-[#1e1e21] text-white px-6 py-8 rounded-[10px] mx-[50px]">
-      <div className="relative flex items-center justify-center mb-8 h-[40px]">
-        <button onClick={() => navigate(-1)} className="absolute left-0">
-          <img src={ArrowLeft02} />
-        </button>
-        <h1 className="text-xl font-semibold text-center w-full">
-          Tạo truyện mới
-        </h1>
-      </div>
+    <section className="min-h-screen bg-[#0b0d11] text-white">
+      <div className="max-w-[71rem] mx-auto px-4 md:px-6 py-8">
+        <header className="mb-6">
+          <h1 className="text-[20px] md:text-[22px] font-semibold tracking-tight">{isUpdate ? "Chỉnh sửa truyện" : "Tạo truyện mới"}</h1>
+          <p className="text-white/80 text-[13px] mt-1">Viết chill — xuất bản liền tay.</p>
+        </header>
 
-      <div className="mb-4">
-        <label className="block text-xl mb-1">
-          Tên truyện <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={createNovelForm.title}
-          onChange={(e) =>
-            setCreateNovelForm((prev) => ({
-              ...prev,
-              title: e.target.value,
-            }))
-          }
-          className="w-full bg-[#1e1e21] border border-gray-600 rounded px-3 py-2 text-sm"
-          placeholder="Nhập tên truyện"
-        />
-        <p className="text-right text-xs text-gray-400 mt-1">
-          {createNovelForm.title.length}/100
-        </p>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-xl mb-1">URL</label>
-        <div className="flex items-center bg-[#1e1e21] border border-gray-600 rounded overflow-hidden h-10">
-          <span className="h-full flex items-center px-3 text-gray-500 text-sm bg-[#2a2a2d]">
-            🔗 https://Inkwave.io/Novels/
-          </span>
-          <input
-            type="text"
-            className="flex-1 bg-transparent px-2 py-2 text-sm text-white"
-            placeholder="ten-truyen"
-            value={createNovelForm.slug}
-            onChange={(e) =>
-              setCreateNovelForm((prev) => ({
-                ...prev,
-                slug: e.target.value,
-              }))
-            }
-          />
-          <button
-            onClick={handleCheckSlug}
-            disabled={isChecking || !createNovelForm.slug.trim()}
-            className="h-full px-4 bg-[#ff6740] text-white text-sm hover:bg-orange-600 disabled:opacity-50"
-          >
-            {isChecking ? "Đang kiểm tra..." : "Kiểm tra"}
-          </button>
-        </div>
-
-        <div className="flex justify-between mt-1">
-          <p
-            className={`text-xs ${urlError ? `text-red-700` : `text-gray-400`}`}
-          >
-            {urlError ?? urlError}
-          </p>
-          <p className="text-xs text-gray-400">
-            {createNovelForm.slug.length}/30
-          </p>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm mb-1">
-          Mô tả <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          rows={4}
-          value={createNovelForm.description}
-          onChange={(e) =>
-            setCreateNovelForm((prev) => ({
-              ...prev,
-              description: e.target.value,
-            }))
-          }
-          className="w-full bg-[#1e1e21] border border-gray-600 rounded px-3 py-2 text-sm resize-none"
-          placeholder="Nhập mô tả truyện..."
-        />
-        <p className="text-right text-xs text-gray-400 mt-1">
-          {createNovelForm.description.length}/1000
-        </p>
-      </div>
-
-      <div className="grid grid-cols-10 gap-6 mb-6">
-        <div className="col-span-3">
-          <label className="block text-xl mb-1">
-            Bìa truyện <span className="text-red-500">*</span>
-          </label>
-          <label className="border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] w-[150px] cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setCreateNovelForm((prev) => ({
-                    ...prev,
-                    novelImage: file,
-                  }));
-                }
-              }}
-            />
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Bìa truyện"
-                className="h-full object-cover"
-              />
-            ) : (
-              <span className="text-sm text-gray-400">+ Thêm bìa</span>
-            )}
-          </label>
-        </div>
-
-        {/* <div className="col-span-7">
-          <label className="block text-xl mb-1">Banner</label>
-          <label
-            htmlFor="banner-upload"
-            className="cursor-pointer border border-dashed border-gray-600 rounded-[8px] flex items-center justify-center h-[200px] text-center px-4 hover:border-blue-400 transition"
-          >
-            {bannerPreview ? (
-              <img
-                src={bannerPreview}
-                alt="Banner preview"
-                className="max-h-full max-w-full object-contain"
-              />
-            ) : (
-              <span className="text-sm text-gray-400">
-                + Thêm bìa
-                <br />
-                <span className="text-[10px] block mt-1 text-orange-300">
-                  Nếu không có ảnh banner truyện, hệ thống sẽ dùng ảnh mặc định.
-                </span>
-              </span>
-            )}
-          </label>
-          <input
-            id="banner-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              setCreateNovelForm((prev) => ({
-                ...prev,
-                banner: file,
-              }));
-
-              if (file) {
-                const previewUrl = URL.createObjectURL(file);
-                setBannerPreview(previewUrl);
-              } else {
-                setBannerPreview(null);
-              }
-            }}
-          />
-        </div> */}
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm mb-2">
-          Chủ đề{" "}
-          <span className="text-orange-300 text-xs ml-1">⚠️ Tối đa 3 thẻ</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {tagData?.map((tag) => {
-            const isSelected = selectedTags.includes(tag.tagId);
-            return (
-              <button
-                key={tag.tagId}
-                onClick={() => toggleTag(tag.tagId)}
-                // className={`px-3 py-1 rounded-full text-sm border transition
-                //                 ${
-                //                   isSelected
-                //                     ? "bg-[#ff6740] border-blue-400 text-white hover:bg-orange-600"
-                //                     : "bg-[#1e1e21] border-gray-600 text-white hover:bg-[#2e2e2e]"
-                //                 }`}
-              >
-                <TagView
-                  key={tag.tagId}
-                  tag={tag}
-                  className={`${
-                    isSelected && "bg-[#ff6740] text-white hover:bg-orange-600"
-                  }`}
+        <div className="grid grid-cols-12 gap-6">
+          <main className="col-span-12 md:col-span-8 space-y-6">
+            <div className="rounded-lg bg-[#0e1117]/92 ring-1 ring-white/8 backdrop-blur-sm shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)] p-5 md:p-6">
+              <div className="mb-5">
+                <label className="block text-[13px] mb-1.5 font-semibold">
+                  Tên truyện <span className="text-red-500 font-semibold">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => onTitleChange(e.target.value)}
+                  placeholder="Nhập tên truyện"
+                  className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35"
                 />
-              </button>
-            );
-          })}
+                <div className="mt-1 text-right text-xs text-white/50">{form.title.length}/100</div>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-[13px] mb-1.5 font-semibold">Đường dẫn</label>
+                <div className="flex items-stretch rounded-md overflow-hidden ring-1 ring-white/10 bg-[#0b0e13]">
+                  <span className="hidden sm:flex items-center px-3 text-white/70 text-[13px] bg-white/[0.04] ring-1 ring-inset ring-white/10">
+                    inkwave.io/novels/
+                  </span>
+                  <input
+                    type="text"
+                    className="flex-1 bg-transparent px-3 py-2.5 text-[14px] placeholder-white/40 outline-none"
+                    placeholder="ten-truyen"
+                    value={form.slug}
+                    onChange={(e) => onSlugChange(e.target.value)}
+                    maxLength={SLUG_MAX}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
+                  <button
+                    onClick={handleCheckSlug}
+                    disabled={isChecking || !form.slug.trim()}
+                    className="px-3 sm:px-4 text-[13px] font-medium bg-white/[0.06] hover:bg-white/[0.12] transition disabled:opacity-60"
+                  >
+                    {isChecking ? "Đang kiểm..." : "Kiểm tra"}
+                  </button>
+                </div>
+                <div className="mt-1 flex items-center justify-between">
+                  <p
+                    className={[
+                      "text-[12px] inline-flex items-center gap-1.5",
+                      urlError ? "text-red-400" : urlOk ? "text-emerald-400" : "text-white/55",
+                    ].join(" ")}
+                  >
+                    {urlOk && (
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    )}
+                    {urlError || urlOk || ""}
+                  </p>
+                  <p className="text-[12px] text-white/55">
+                    {form.slug.length}/{SLUG_MAX}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-[13px] mb-1.5 font-semibold">
+                  Mô tả <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={6}
+                  value={form.description}
+                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Viết tóm tắt 1–3 đoạn, nêu bật điểm khác biệt."
+                  className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35 resize-none"
+                />
+                <div className="mt-1 text-right text-xs text-white/50">{form.description.length}/1000</div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[13px] mb-2 font-semibold">
+                    Bìa truyện <span className="text-red-500 font-semibold">*</span>
+                  </label>
+                  <label className="relative inline-flex items-center justify-center w-[180px] h-[250px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        setForm((p) => ({ ...p, novelImage: f }));
+                      }}
+                    />
+                    {imagePreview ? (
+                      <img src={imagePreview} className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[13px] text-white/65">+ Tải ảnh bìa</span>
+                    )}
+                  </label>
+                  <p className="mt-2 text-[12px] text-white/55">3:4 • JPG/PNG • &lt; 5MB</p>
+                </div>
+
+                <div>
+                  <label className="block text-[13px] mb-2 font-semibold">Banner (tuỳ chọn)</label>
+                  <label className="relative inline-flex items-center justify-center w-full max-w-[340px] h-[110px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        setForm((p) => ({ ...p, novelBanner: f }));
+                      }}
+                    />
+                    {bannerPreview ? (
+                      <img src={bannerPreview} className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[13px] text-white/65">+ Tải banner</span>
+                    )}
+                  </label>
+                  <p className="mt-2 text-[12px] text-white/55">16:5 • JPG/PNG</p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[13px] font-semibold">Chủ đề</label>
+                  <span className="text-[12px] text-white/60">{selectedTags.length}/3</span>
+                </div>
+                <input
+                  value={tagQuery}
+                  onChange={(e) => setTagQuery(e.target.value)}
+                  placeholder="Tìm thẻ..."
+                  className="w-full mb-3 rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {filteredTags?.map((tag: any) => {
+                    const active = selectedTags.includes(tag.tagId);
+                    const disabled = !active && selectedTags.length >= 3;
+                    return (
+                      <button
+                        key={tag.tagId}
+                        type="button"
+                        onClick={() => toggleTag(tag.tagId)}
+                        disabled={disabled}
+                        className={[
+                          "px-3 py-1.5 rounded-full text-[13px] ring-1 transition",
+                          active
+                            ? "ring-transparent bg-[linear-gradient(90deg,#ff512f,0%,#ff6740,55%,#ff9966)] text-white shadow-[0_10px_26px_-14px_rgba(255,102,64,0.55)]"
+                            : "ring-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
+                          disabled ? "opacity-40 cursor-not-allowed" : "",
+                        ].join(" ")}
+                        title={active ? "Bỏ chọn" : disabled ? "Tối đa 3 thẻ" : "Chọn"}
+                      >
+                        {tag.name || tag.slug || "Tag"}
+                      </button>
+                    );
+                  })}
+                  {filteredTags?.length === 0 && <span className="text-[13px] text-white/50">Không có thẻ phù hợp.</span>}
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <aside className="col-span-12 md:col-span-4">
+            <div className="md:sticky md:top-4 max-h-[calc(100vh-2rem)] overflow-auto space-y-4">
+              <ActionsBar busy={busy} onCancel={() => navigate(-1)} onSaveDraft={handleSaveDraft} onPublish={handlePublishNow} />
+              <PreviewCard title={previewTitle} description={previewDesc} slug={previewSlug} imagePreview={imagePreview} bannerPreview={bannerPreview} />
+            </div>
+          </aside>
         </div>
       </div>
-
-      <Button
-        isLoading={
-          createNovelMutation.isPending || updateNovelMutation.isPending
-        }
-        onClick={handleUpsertNovelClick}
-        className="bg-[#ff6740] hover:bg-[#e14b2e] text-white px-5 py-2 rounded-md text-sm font-semibold"
-      >
-        {isUpdate ? "Cập nhật" : "Tạo truyện mới"}
-      </Button>
-    </div>
+    </section>
   );
 };
