@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, LayoutGrid, List, BookOpenCheck, Clock, CheckCheck, ChevronDown } from "lucide-react";
+import { ArrowLeft, LayoutGrid, List } from "lucide-react";
 
 import { GetFollowerNovels } from "../../../api/NovelFollow/novel-follow.api";
 import { NListItem } from "../../../components/ui/cards/NListItem";
 import { NCard } from "../../../components/ui/cards/NCard";
 import { Pager } from "../../../components/ui/navigation/Pager";
+import type { Tag } from "../../NovelsExplore/types";
+import { FilterMenu, type FilterKey } from "./FilterMenu";
 
 type ViewAction = "Grid" | "List";
-type FilterKey = "reading" | "wishlist" | "done";
 
 type NovelLite = {
   novelId: string;
@@ -23,76 +24,6 @@ type NovelLite = {
   tags?: Array<{ tagId: string | number; name?: string }>;
   authorName?: string | null;
 };
-
-const FILTER_LABEL: Record<FilterKey, string> = {
-  reading: "Đang đọc",
-  wishlist: "Sẽ đọc",
-  done: "Hoàn thành",
-};
-
-const FILTER_ICON: Record<FilterKey, React.ReactNode> = {
-  reading: <BookOpenCheck size={16} />,
-  wishlist: <Clock size={16} />,    
-  done: <CheckCheck size={16} />,
-};
-
-function useClickOutside<T extends HTMLElement>(onClose: () => void) {
-  const ref = useRef<T | null>(null);
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) onClose();
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
-  return ref;
-}
-
-function FilterMenu({
-  value,
-  onChange,
-}: {
-  value: FilterKey;
-  onChange: (v: FilterKey) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false));
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((s) => !s)}
-        className="group h-9 pl-3 pr-2 rounded-lg bg-white/[0.06] text-white ring-1 ring-white/10 hover:bg-white/[0.1] focus:outline-none inline-flex items-center gap-2 transition"
-      >
-        {FILTER_ICON[value]}
-        <span className="text-sm">{FILTER_LABEL[value]}</span>
-        <ChevronDown size={16} className="opacity-80 transition" />
-      </button>
-
-      {open && (
-          <div
-            className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] backdrop-blur-md z-50"
-            role="menu"
-          >
-          {(["reading", "wishlist", "done"] as FilterKey[]).map((k) => (
-            <button
-              key={k}
-              onClick={() => {
-                onChange(k);
-                setOpen(false);
-              }}
-              className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 hover:bg-white/[0.06] transition"
-            >
-              {FILTER_ICON[k]}
-              <span>{FILTER_LABEL[k]}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export const NovelLib = () => {
   const [actionState, setActionState] = useState<ViewAction>("Grid");
@@ -151,13 +82,13 @@ export const NovelLib = () => {
           </div>
         ))}
         {isFetching &&
-          Array.from({ length: Math.min(6, Math.max(0, limit - novels.length)) }).map(
-            (_, i) => (
-              <div key={`s-${i}`} className="aspect-[3/4]">
-                <div className="w-full h-full rounded-xl bg-white/5 animate-pulse" />
-              </div>
-            )
-          )}
+          Array.from({
+            length: Math.min(6, Math.max(0, limit - novels.length)),
+          }).map((_, i) => (
+            <div key={`s-${i}`} className="aspect-[3/4]">
+              <div className="w-full h-full rounded-xl bg-white/5 animate-pulse" />
+            </div>
+          ))}
       </div>
     ),
     [novels, isFetching, navigate]
@@ -177,14 +108,23 @@ export const NovelLib = () => {
             bookmarks={n.followers ?? 0}
             views={n.totalViews ?? 0}
             status={n.status}
-            tags={Array.isArray(n.tags) ? n.tags.slice(0, 8) : []}
+            tags={
+              Array.isArray(n.tags as Tag[])
+                ? (n.tags?.slice(0, 8) as Tag[])
+                : []
+            }
             onClick={() => navigate(`/novels/${n.slug}`)}
           />
         ))}
         {isFetching &&
-          Array.from({ length: Math.min(2, Math.max(0, limit - novels.length)) }).map(
-            (_, i) => <div key={`sk-${i}`} className="h-[150px] rounded-xl bg-white/5 animate-pulse" />
-          )}
+          Array.from({
+            length: Math.min(2, Math.max(0, limit - novels.length)),
+          }).map((_, i) => (
+            <div
+              key={`sk-${i}`}
+              className="h-[150px] rounded-xl bg-white/5 animate-pulse"
+            />
+          ))}
       </div>
     ),
     [novels, isFetching, navigate]

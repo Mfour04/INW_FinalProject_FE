@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutGrid, List, Trash , ArrowLeft } from "lucide-react";
+import { LayoutGrid, List, Trash, ArrowLeft } from "lucide-react";
 
 import { useAuth } from "../../../hooks/useAuth";
 import { GetReadingProcess } from "../../../api/ReadingHistory/reading.api";
@@ -11,6 +11,7 @@ import { NListItem } from "../../../components/ui/cards/NListItem";
 import { Pager } from "../../../components/ui/navigation/Pager";
 import { SkeletonCard } from "../../../components/ui/feedback/SkeletonCard";
 import { EmptyState } from "../../../components/ui/feedback/EmptyState";
+import type { Tag } from "../../NovelsExplore/types";
 
 type ViewMode = "Grid" | "List";
 type Props = { sidebarCollapsed?: boolean };
@@ -55,9 +56,53 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
     if (window.confirm("Bạn có chắc muốn xóa toàn bộ lịch sử đọc?")) {
       // gọi API xóa ở đây
       console.log("Clearing reading history...");
-      refetch(); // refresh lại để rỗng
+      refetch();
     }
   };
+
+  const items = Array.isArray(data) ? data : [];
+  const totalPages = Math.max(1, Math.ceil(items.length / limit));
+
+  const paged = useMemo(() => {
+    const start = page * limit;
+    return items.slice(start, start + limit);
+  }, [items, page, limit]);
+
+  const gridView = useMemo(
+    () => (
+      <div
+        className={[
+          "grid gap-x-8 gap-y-8",
+          "grid-cols-[repeat(auto-fill,minmax(200px,1fr))]",
+        ].join(" ")}
+      >
+        {paged.map((n) => (
+          <div key={`${n.novelId}-${n.chapterId}`} className="aspect-[3/4]">
+            <NCard
+              title={n.title}
+              slug={n.slug}
+              image={n.novelImage}
+              rating={Number(n.ratingAvg ?? 0)}
+              bookmarks={Number(n.followers ?? 0)}
+              views={Number(n.totalViews ?? 0)}
+              status={n.status}
+              onClick={() => navigate(`/novels/${n.slug}/${n.chapterId}`)}
+            />
+          </div>
+        ))}
+
+        {isFetching &&
+          Array.from({
+            length: Math.min(6, Math.max(0, limit - paged.length)),
+          }).map((_, i) => (
+            <div key={`s-${i}`} className="aspect-[3/4]">
+              <SkeletonCard />
+            </div>
+          ))}
+      </div>
+    ),
+    [paged, isFetching, navigate, limit]
+  );
 
   useEffect(() => {
     try {
@@ -68,6 +113,7 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
       if (saved === "Grid" || saved === "List") setView(saved as ViewMode);
     } catch {}
   }, []);
+
   useEffect(() => {
     try {
       if (typeof window !== "undefined")
@@ -75,54 +121,9 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
     } catch {}
   }, [view]);
 
-  const items = Array.isArray(data) ? data : [];
-  const totalPages = Math.max(1, Math.ceil(items.length / limit));
-
   useEffect(() => {
     if (page > totalPages - 1) setPage(0);
   }, [totalPages, page]);
-
-  const paged = useMemo(() => {
-    const start = page * limit;
-    return items.slice(start, start + limit);
-  }, [items, page, limit]);
-
-  const gridView = useMemo(
-  () => (
-    <div
-      className={[
-        "grid gap-x-8 gap-y-8",
-        "grid-cols-[repeat(auto-fill,minmax(200px,1fr))]",
-      ].join(" ")}
-    >
-      {paged.map((n) => (
-        <div key={`${n.novelId}-${n.chapterId}`} className="aspect-[3/4]">
-          <NCard
-            title={n.title}
-            slug={n.slug}
-            image={n.novelImage}
-            rating={Number(n.ratingAvg ?? 0)}
-            bookmarks={Number(n.followers ?? 0)}
-            views={Number(n.totalViews ?? 0)}
-            status={n.status}
-            onClick={() => navigate(`/novels/${n.slug}/${n.chapterId}`)}
-          />
-        </div>
-      ))}
-
-      {isFetching &&
-        Array.from({ length: Math.min(6, Math.max(0, limit - paged.length)) }).map(
-          (_, i) => (
-            <div key={`s-${i}`} className="aspect-[3/4]">
-              <SkeletonCard />
-            </div>
-          )
-        )}
-    </div>
-  ),
-  [paged, isFetching, navigate, limit]
-);
-
 
   return (
     <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-[#0b0d11] text-white">
@@ -219,7 +220,11 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
                 bookmarks={Number(n.followers ?? 0)}
                 views={Number(n.totalViews ?? 0)}
                 status={n.status}
-                tags={Array.isArray(n.tags) ? n.tags.slice(0, 8) : []}
+                tags={
+                  Array.isArray(n.tags as Tag[])
+                    ? (n.tags?.slice(0, 8) as Tag[])
+                    : []
+                }
                 onClick={() => navigate(`/novels/${n.slug}/${n.chapterId}`)}
               />
             ))}
