@@ -62,7 +62,7 @@ export const formatVietnamTimeFromTicks = (ticks: number): string => {
   const ticksPerMs = 10000;
   const jsUtcMs = (ticks - epochTicks) / ticksPerMs;
   const utcDate = new Date(jsUtcMs);
-  const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+  const vietnamDate = new Date(utcDate.getTime() - 7 * 60 * 60 * 1000);
   return vietnamDate.toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",

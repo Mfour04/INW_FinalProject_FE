@@ -71,7 +71,7 @@ export const Setting = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const { auth } = useAuth();
+    const { auth, setAuth } = useAuth();
     const { data: userInfo, isLoading: isLoadingUser, refetch: refetchUserInfo } = useGetCurrentUserInfo();
     const updateProfileMutation = useUpdateUserProfile();
     const changePasswordMutation = useChangePassword();
@@ -314,6 +314,25 @@ export const Setting = () => {
             setBio(profileData.Bio || "");
             setOriginalData(updatedOriginalData);
 
+            if (auth?.user && profileData) {
+                const updatedUser = {
+                    ...auth.user,
+                    displayName: profileData.DisplayName || auth.user.displayName,
+                    bio: profileData.Bio || auth.user.bio,
+                    avatarUrl: profileData.AvatarUrl || auth.user.avatarUrl,
+                    coverUrl: profileData.CoverUrl || auth.user.coverUrl,
+                };
+
+                const updatedAuth = {
+                    ...auth,
+                    user: updatedUser
+                };
+
+                if (JSON.stringify(auth.user) !== JSON.stringify(updatedUser)) {
+                    setAuth(updatedAuth);
+                }
+            }
+
             try {
                 const backupData = {
                     displayName: profileData.DisplayName || "",
@@ -326,7 +345,7 @@ export const Setting = () => {
             } catch (error) {
             }
         }
-    }, [userInfo?.data?.Data]);
+    }, [userInfo?.data?.Data, auth?.user]);
 
     const handleFileSelect = (file: File, type: 'avatar' | 'cover') => {
         if (file) {
@@ -572,9 +591,6 @@ export const Setting = () => {
 
                     setOriginalData(updatedOriginalData);
 
-                    setDisplayName(newDisplayName);
-                    setBio(newBio);
-
                     const currentUserInfo = userInfo?.data?.Data || {};
                     const updatedUserInfo = {
                         ...(userInfo || {}),
@@ -591,7 +607,7 @@ export const Setting = () => {
                     };
 
                     queryClient.setQueryData(["current-user-info"], updatedUserInfo);
-                } else {
+                    queryClient.invalidateQueries({ queryKey: ["auth"] });
                 }
 
                 if (backendData) {

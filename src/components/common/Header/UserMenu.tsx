@@ -47,7 +47,7 @@ export const UserMenu = ({ onClose }: Props) => {
             {auth.user.displayName}
           </div>
           <div className="text-xs text-zinc-400 truncate">
-            @{auth.user.displayName}
+            @{auth.user.userName}
           </div>
           <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-300">
             <span className="flex items-center gap-1">
