@@ -6,8 +6,8 @@ import { GetChapter, GetChapters } from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
 import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
-import { ChapterListModal } from "../../pages/novelRead/ChapterListModal";
-import { CommentUser } from "../../pages/commentUser/CommentUser";
+import { ChapterListModal } from "./ChapterListModal";
+import { CommentUser } from "../CommentUser/CommentUser";
 
 import { useSpeech } from "react-text-to-speech";
 import { htmlToPlainText } from "../../utils/text-speech";

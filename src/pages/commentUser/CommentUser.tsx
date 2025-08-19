@@ -1,16 +1,16 @@
 import { useContext, useMemo, useRef, useState, useCallback } from "react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
-import type { Comment } from "./types";
-import { AuthContext } from "../../context/AuthContext/AuthProvider";
+import type { Comment } from "./types.ts";
+import { AuthContext } from "../../context/AuthContext/AuthProvider.tsx";
 import { formatVietnamTimeFromTicks, getCurrentTicks } from "../../utils/date_format.ts";
 import defaultAvatar from "../../assets/img/th.png";
-import { Composer } from "./components/Composer";
-import { ReplyThread } from "./components/ReplyThread";
-import { useComments } from "./hooks/useComments";
-import { useCreateComment } from "./hooks/useCreateComment";
-import { useUpdateComment } from "./hooks/useUpdateComment";
-import { useDeleteComment } from "./hooks/useDeleteComment";
-import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api";
+import { Composer } from "./components/Composer.tsx";
+import { ReplyThread } from "./components/ReplyThread.tsx";
+import { useComments } from "./hooks/useComments.ts";
+import { useCreateComment } from "./hooks/useCreateComment.ts";
+import { useUpdateComment } from "./hooks/useUpdateComment.ts";
+import { useDeleteComment } from "./hooks/useDeleteComment.ts";
+import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api.ts";
 
 type Props = { novelId: string; chapterId: string };
 
