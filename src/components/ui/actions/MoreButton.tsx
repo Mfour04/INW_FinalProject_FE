@@ -4,9 +4,9 @@ import Grow from "@mui/material/Grow";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-import Flag02Icon from "../../../../assets/svg/CommentUser/flag-02-stroke-rounded.svg";
-import BlockIcon from "../../../../assets/svg/CommentUser/block.svg";
-import MoreDots from "../../../../assets/svg/CommentUser/more_horiz.svg";
+import Flag02Icon from "../../../assets/svg/CommentUser/flag-02-stroke-rounded.svg";
+import BlockIcon from "../../../assets/svg/CommentUser/block.svg";
+import MoreDots from "../../../assets/svg/CommentUser/more_horiz.svg";
 
 export const MoreButton = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

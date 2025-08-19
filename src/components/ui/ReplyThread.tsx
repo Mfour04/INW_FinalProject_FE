@@ -1,11 +1,11 @@
 import React, { useRef, useState } from "react";
-import defaultAvatar from "../../../assets/img/th.png";
+import defaultAvatar from "../../assets/img/th.png";
 import { Heart, MessageSquare, CornerDownRight, Smile } from "lucide-react";
 import { MoreButton } from "./actions/MoreButton";
 import { MoreUser } from "./actions/MoreUser";
 import { Reply } from "./Reply";
 import { EmojiPickerBox } from "./EmojiPickerBox";
-import type { Comment } from "../types";
+import type { Comment } from "../../pages/CommentUser/types";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
 type EditedMap = Record<
@@ -151,7 +151,7 @@ export const ReplyThread = ({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setEmojiOpenId((v) => (v === id ? null : id))}
-                className="inline-grid place-items-center h-7 w-7 rounded-md ring-1 ring-white/10 bg-white/[0.05] hover:bg-white/[0.1]"
+                className="inline-grid place-items-center h-7 w-7 rounded-md ring-1 ring-white/10 bg-white/[0.05] hover:bg-white/[0.1] mb-2"
               >
                 <Smile className="w-4 h-4" />
               </button>

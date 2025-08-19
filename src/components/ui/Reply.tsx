@@ -1,6 +1,5 @@
-// src/components/commentUser/components/Reply.tsx
 import React, { useEffect, useRef, useState } from "react";
-import avatarImage from "../../../assets/img/th.png";
+import avatarImage from "../../assets/img/th.png";
 import { Smile, SendHorizontal } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox";
 

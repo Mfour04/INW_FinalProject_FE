@@ -1,11 +1,9 @@
 import React from "react";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 import abc from "../../../assets/img/th.png";
-import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
-import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
-import ImageAdd02Icon from "../../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import Button from "../../../components/ButtonComponent";
-import EmojiPicker from "./EmojiPicker";
+import { EmojiPickerBox } from "../../../components/ui/EmojiPickerBox";
+import { ImagePlus, Smile, SendHorizontal, X, Loader2 } from "lucide-react";
 
 interface PostFormProps {
   content: string;
@@ -18,6 +16,34 @@ interface PostFormProps {
   resetFileInput?: React.MutableRefObject<(() => void) | null>;
 }
 
+const MAX_FILES = 10;
+const MAX_SIZE_MB = 5;
+const MAX_WORDS = 1500;
+
+function useAutoGrow(ref: React.RefObject<HTMLTextAreaElement | null>, value: string) {
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "0px";
+    const next = Math.min(el.scrollHeight, 240);
+    el.style.height = next + "px";
+  }, [ref, value]);
+}
+
+const splitWords = (text: string) =>
+  text
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+const countWords = (text: string) => splitWords(text).length;
+
+const clampToMaxWords = (text: string, maxWords = MAX_WORDS) => {
+  const parts = splitWords(text);
+  if (parts.length <= maxWords) return text;
+  return parts.slice(0, maxWords).join(" ");
+};
+
 const PostForm = ({
   content,
   setContent,
@@ -29,131 +55,249 @@ const PostForm = ({
   resetFileInput,
 }: PostFormProps) => {
   const { auth } = React.useContext(AuthContext);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = React.useState(false);
+  const [dragOver, setDragOver] = React.useState(false);
+  const [fileError, setFileError] = React.useState<string | null>(null);
+  const [focused, setFocused] = React.useState(false);
+  const [emojiOpen, setEmojiOpen] = React.useState(false);
+  const emojiBtnRef = React.useRef<HTMLButtonElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    const maxSize = 5 * 1024 * 1024;
+  useAutoGrow(textareaRef, content);
 
-    const validSizeFiles = imageFiles.filter(file => {
-      if (file.size > maxSize) {
-        alert(`File ${file.name} quá lớn. Kích thước tối đa là 5MB.`);
-        return false;
-      }
-      return true;
-    });
+  const wordCount = countWords(content);
+  const nearLimit = wordCount > MAX_WORDS - 30;
+  const remainingSlots = Math.max(0, MAX_FILES - selectedImages.length);
 
-    const maxImages = 10;
-    if (selectedImages.length + validSizeFiles.length > maxImages) {
-      alert(`Bạn chỉ có thể chọn tối đa ${maxImages} ảnh.`);
+  const setContentWithLimit = (text: string) => {
+    setContent(clampToMaxWords(text, MAX_WORDS));
+  };
 
+  const pickEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setContentWithLimit(content + emoji);
+      setEmojiOpen(false);
       return;
     }
+    const start = el.selectionStart ?? content.length;
+    const end = el.selectionEnd ?? content.length;
+    const next = content.slice(0, start) + emoji + content.slice(end);
+    setContentWithLimit(next);
+    setEmojiOpen(false);
+    requestAnimationFrame(() => {
+      el.focus();
+      const caret = Math.min(start + emoji.length, (next || "").length);
+      el.setSelectionRange(caret, caret);
+    });
+  };
 
-    if (setSelectedImages) {
-      setSelectedImages([...selectedImages, ...validSizeFiles]);
+  const acceptFiles = (incoming: File[]) => {
+    if (!setSelectedImages) return;
+    const errs: string[] = [];
+    const onlyImages = incoming.filter((f) => {
+      const ok = f.type.startsWith("image/");
+      if (!ok) errs.push(`"${f.name}" không phải ảnh hợp lệ.`);
+      return ok;
+    });
+    const sizeOk = onlyImages.filter((f) => {
+      const ok = f.size <= MAX_SIZE_MB * 1024 * 1024;
+      if (!ok) errs.push(`"${f.name}" vượt ${MAX_SIZE_MB}MB.`);
+      return ok;
+    });
+    const clipped = sizeOk.slice(0, remainingSlots);
+    if (sizeOk.length > remainingSlots) {
+      errs.push(`Chỉ thêm tối đa ${remainingSlots} ảnh nữa (tối đa ${MAX_FILES} ảnh).`);
     }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    if (clipped.length > 0) {
+      setSelectedImages([...(selectedImages || []), ...clipped]);
     }
+    setFileError(errs.length ? errs.join(" ") : null);
+  };
 
+  const handleSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length) acceptFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    if (!remainingSlots) {
+      setFileError(`Đã đạt tối đa ${MAX_FILES} ảnh.`);
+      return;
+    }
+    const dropped = Array.from(e.dataTransfer.files || []);
+    if (dropped.length) acceptFiles(dropped);
   };
 
   const removeImage = (index: number) => {
-    if (setSelectedImages) {
-      setSelectedImages(selectedImages.filter((_, i) => i !== index));
-    }
+    if (!setSelectedImages) return;
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
   };
 
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
-  };
+  const openFileDialog = () => fileInputRef.current?.click();
 
   React.useEffect(() => {
     if (resetFileInput) {
       resetFileInput.current = () => {
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
       };
     }
   }, [resetFileInput]);
 
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      if (!isPosting && (content.trim().length > 0 || selectedImages.length > 0)) {
+        handlePost();
+        setEmojiOpen(false);
+      }
+      return;
+    }
+  };
+
+  const disabledSubmit =
+    isPosting || (content.trim().length === 0 && selectedImages.length === 0);
+
   return (
-    <div className="bg-[#1e1e21] rounded-[10px] p-5 mb-5">
-      <div className="flex items-center gap-5 mb-4">
-        <img
-          src={auth?.user?.avatarUrl || abc}
-          alt="avatar"
-          className="w-[50px] h-[50px] rounded-full object-cover"
-        />
-        <div className="flex flex-col">
-          <h3 className="text-lg font-bold text-white">
-            {auth?.user?.displayName || auth?.user?.userName || "User"}
-          </h3>
-          <span className="text-base text-[#cecece]">
-            @{auth?.user?.userName || "user"}
-          </span>
+    <div
+      className={[
+        "rounded-2xl overflow-hidden transition-shadow",
+        "bg-[rgb(14,16,22)]/70 backdrop-blur",
+        "ring-1 ring-white/15",
+        dragOver ? "ring-2 ring-orange-400/70" : "",
+        "focus-within:ring-2 focus-within:ring-white/25",
+        "shadow-[0_0_0_0_rgba(0,0,0,0)] focus-within:shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]",
+      ].join(" ")}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+      }}
+      onDrop={handleDrop}
+    >
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img
+            src={auth?.user?.avatarUrl || abc}
+            alt="avatar"
+            className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+          />
+          <div className="leading-tight">
+            <div className="font-semibold text-[14px]">
+              {auth?.user?.displayName || auth?.user?.userName || "User"}
+            </div>
+            <div className="text-xs text-white/50">
+              @{auth?.user?.userName || "user"}
+            </div>
+          </div>
         </div>
+        <span
+          className={[
+            "text-[11px] tabular-nums transition-opacity",
+            nearLimit ? "text-white" : "text-white/70",
+            focused || nearLimit ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        >
+          {wordCount}/{MAX_WORDS} từ
+        </span>
       </div>
 
-      <div className="mb-6">
+      <div className="px-4">
+        <div className="h-px w-full bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
+        <div className="-mt-px h-px w-full bg-black/40 opacity-60" />
+      </div>
+
+      <div className="px-4 pt-4 pb-2 relative">
         <textarea
           ref={textareaRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Chia sẻ điều gì đó..."
-          className="w-full resize-none border-none border-b border-[#656565] outline-none text-white placeholder-gray-400 bg-transparent pb-2 focus:border-[#ff6740] transition-colors"
-          rows={3}
+          onChange={(e) => setContentWithLimit(e.target.value)}
+          onKeyDown={onKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Chia sẻ điều gì đó…"
+          className="w-full bg-transparent resize-none placeholder:text-white/35 focus:outline-none text-[15px] leading-6"
+          rows={1}
         />
       </div>
 
-      {/* Image Preview */}
-      {selectedImages.length > 0 && (
-        <div className="mb-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {selectedImages.map((image, index) => (
-              <div key={index} className="relative group aspect-square">
-                <img
-                  src={URL.createObjectURL(image)}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg border border-gray-600"
-                />
-                <button
-                  onClick={() => removeImage(index)}
-                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-sm font-bold"
-                  title="Xóa ảnh"
-                >
-                  ×
-                </button>
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                  {image.name.length > 15 ? image.name.substring(0, 15) + '...' : image.name}
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Đã chọn {selectedImages.length} ảnh
-          </p>
+      {fileError && (
+        <div className="px-4 -mt-1 pb-1">
+          <p className="text-[12px] text-red-300">{fileError}</p>
         </div>
       )}
 
-      <div className="border-t border-[#656565] pt-4 flex items-center justify-between">
-        <div className="flex items-center gap-4 relative">
+      {selectedImages.length > 0 && (
+        <div className="px-3 pb-3 grid [grid-template-columns:repeat(auto-fill,minmax(110px,1fr))] gap-2">
+          {selectedImages.map((image, index) => {
+            const url = URL.createObjectURL(image);
+            return (
+              <div
+                key={index}
+                className="relative group rounded-xl overflow-hidden ring-1 ring-white/10"
+              >
+                <div className="w-full aspect-[4/3]">
+                  <img
+                    src={url}
+                    alt={image.name}
+                    className="h-full w-full object-cover"
+                    onLoad={() => URL.revokeObjectURL(url)}
+                  />
+                </div>
+                <button
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 inline-flex items-center justify-center h-6 w-6 rounded-full bg-black/60 ring-1 ring-white/20 opacity-90 hover:opacity-100 transition"
+                  title="Xoá ảnh"
+                  type="button"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/45 backdrop-blur-[1px] text-white text-[11px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                  {image.name}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="px-4">
+        <div className="h-px w-full bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
+        <div className="-mt-px h-px w-full bg-black/40 opacity-60" />
+      </div>
+
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="relative flex items-center gap-2">
           <button
             type="button"
             onClick={openFileDialog}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors relative"
-            title="Thêm ảnh"
+            title={
+              remainingSlots
+                ? `Thêm ảnh (${remainingSlots} còn lại)`
+                : "Đã đạt giới hạn ảnh"
+            }
+            className={[
+              "h-9 px-3 inline-flex items-center gap-2 rounded-xl ring-1 ring-white/10",
+              "bg-white/[0.03] hover:bg-white/[0.06] transition",
+              remainingSlots ? "" : "opacity-50 cursor-not-allowed",
+            ].join(" ")}
+            aria-disabled={!remainingSlots}
           >
-            <img src={ImageAdd02Icon} alt="Add image icon" className="w-6 h-6" />
+            <ImagePlus className="h-4 w-4" />
+            <span className="text-xs hidden sm:inline">Ảnh</span>
             {selectedImages.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-[#ff6740] text-[10px]">
                 {selectedImages.length}
               </span>
             )}
@@ -163,40 +307,64 @@ const PostForm = ({
             type="file"
             multiple
             accept="image/*"
-            onChange={handleImageSelect}
+            onChange={handleSelect}
             className="hidden"
           />
-          <button
-            type="button"
-            onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-          >
-            <img src={SmileIcon} alt="Smile icon" className="w-6 h-6" />
-          </button>
+
+          <div className="relative">
+            <button
+              ref={emojiBtnRef}
+              type="button"
+              onClick={() => setEmojiOpen((v) => !v)}
+              className="h-9 w-9 inline-grid place-items-center rounded-xl ring-1 ring-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition"
+              title="Chèn emoji"
+            >
+              <Smile className="h-4 w-4" />
+            </button>
+
+            <EmojiPickerBox
+              open={emojiOpen}
+              onPick={pickEmoji}
+              anchorRef={emojiBtnRef}
+              align="left"
+              placement="top"
+              onRequestClose={() => setEmojiOpen(false)}
+              width={320}
+              height={260}
+            />
+          </div>
         </div>
 
         <Button
           isLoading={isPosting}
-          onClick={handlePost}
-          disabled={(!content.trim() && selectedImages.length === 0) || isPosting}
-          className="flex items-center gap-4 bg-[#ff6740] hover:bg-[#e55a36] disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-[16px] font-medium transition-colors"
+          onClick={() => {
+            if (disabledSubmit) return;
+            handlePost();
+            setEmojiOpen(false);
+          }}
+          disabled={disabledSubmit}
+          className={[
+            "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm shadow-black/10",
+            "whitespace-nowrap",
+            "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
+            disabledSubmit ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
+          ].join(" ")}
         >
-          <span className="inline-flex items-center">Đăng</span>
-          <img
-            src={SentHugeIcon}
-            alt="Sent icon"
-            className="inline-flex ml-1"
-          />
+          <span className="inline-flex items-center gap-2 whitespace-nowrap leading-none align-middle">
+            {isPosting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                <span>Đang đăng…</span>
+              </>
+            ) : (
+              <>
+                <span>Đăng</span>
+                <SendHorizontal className="h-4 w-4 shrink-0" />
+              </>
+            )}
+          </span>
         </Button>
       </div>
-
-      <EmojiPicker
-        isOpen={isEmojiPickerOpen}
-        setIsOpen={setIsEmojiPickerOpen}
-        textareaRef={textareaRef}
-        content={content}
-        setContent={setContent}
-      />
     </div>
   );
 };

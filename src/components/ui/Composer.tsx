@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { useAutoGrow } from "../hooks/useAutoGrow";
-import defaultAvatar from "../../../assets/img/th.png";
+import { useAutoGrow } from "../../pages/CommentUser/hooks/useAutoGrow";
+import defaultAvatar from "../../assets/img/th.png";
 import { ImagePlus, Smile, SendHorizontal, X, Loader2 } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox";
 
@@ -296,24 +296,6 @@ export const Composer = ({
           {/* HÀNG NÚT */}
           <div className="mt-2 px-4 pb-3 flex items-center justify-between">
             <div className="relative flex items-center gap-1.5">
-              {/* <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                title={
-                  remaining
-                    ? `Thêm ảnh (${remaining} còn lại)`
-                    : "Đã đạt giới hạn ảnh"
-                }
-                className={[
-                  "h-8 px-2 inline-flex items-center gap-2 rounded-xl ring-1 ring-white/10",
-                  "bg-white/[0.03] hover:bg-white/[0.06] transition",
-                  remaining ? "" : "opacity-50 cursor-not-allowed",
-                ].join(" ")}
-                aria-disabled={!remaining}
-              >
-                <ImagePlus className="h-4 w-4" />
-                <span className="text-xs hidden sm:inline">Ảnh</span>
-              </button> */}
               <input
                 ref={fileInputRef}
                 type="file"

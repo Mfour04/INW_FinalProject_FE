@@ -9,8 +9,8 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import EditRounded from "@mui/icons-material/EditRounded";
-import MoreDots from "../../../../assets/svg/CommentUser/more_horiz.svg";
-import DeleteSvg from "../../../../assets/svg/CommentUser/delete.svg";
+import MoreDots from "../../../assets/svg/CommentUser/more_horiz.svg";
+import DeleteSvg from "../../../assets/svg/CommentUser/delete.svg";
 
 interface MoreUserProps {
   commentId: string;

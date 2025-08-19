@@ -1,314 +1,167 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import avatarImage from '../../assets/img/th.png';
-import bannerImage from '../../assets/img/hlban.jpg';
-import '../../pages/userProfile/UserProfile.css';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import BlockIcon from '@mui/icons-material/Block';
-import { CalendarUserIcon, Flag02Icon, CommentAdd01Icon } from './UserProfileIcon';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import favorite from '../../assets/svg/CommentUser/favorite.svg';
-import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
-import { useAuth } from '../../hooks/useAuth';
-import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
-import { useUserBlogPosts } from '../Blogs/HooksBlog';
-import { useGetCurrentUserInfo } from '../setting/useUserSettings';
+// src/components/UserProfile/UserProfile.tsx
+import { useState } from "react";
+import { Menu, MenuItem } from "@mui/material";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import BlockIcon from "@mui/icons-material/Block";
+import { Flag } from "lucide-react";
+
+import avatarImage from "../../assets/img/th.png";
+import bannerImage from "../../assets/img/hlban.jpg";
+import { CalendarUserIcon } from "./UserProfileIcon";
 
 export const UserProfile = () => {
-
-  const [activeTab, setActiveTab] = useState<'posts' | 'followers' | 'following' | 'achievements'>('posts');
+  const [activeTab, setActiveTab] = useState<
+    "posts" | "followers" | "following" | "achievements"
+  >("posts");
   const [isFollowing, setIsFollowing] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
-  const navigate = useNavigate();
-  const { auth } = useAuth();
-  const { data: userInfo } = useGetCurrentUserInfo();
-  const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(auth?.user?.userId || "");
 
-  let backendData = null;
+  const isOwnProfile = true; // đổi sang false nếu là profile người khác
 
-  if (userInfo?.data?.Data) {
-    backendData = userInfo.data.Data;
-  } else if (userInfo?.data?.data) {
-    backendData = userInfo.data.data;
-  } else if (userInfo?.data) {
-    backendData = userInfo.data;
-  }
+  const handleFollowClick = () => setIsFollowing((v) => !v);
+  const handleMenuOpen = (e: React.MouseEvent<HTMLDivElement>) =>
+    setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
-  const normalizedData = {
-    AvatarUrl: backendData?.AvatarUrl || backendData?.avatarUrl,
-    CoverUrl: backendData?.CoverUrl || backendData?.coverUrl,
-    Bio: backendData?.Bio || backendData?.bio,
-    DisplayName: backendData?.DisplayName || backendData?.displayName,
-    UserName: backendData?.UserName || backendData?.userName,
-  };
-
-  const currentAvatar = normalizedData.AvatarUrl || auth?.user?.avatarUrl || avatarImage;
-  const currentCover = normalizedData.CoverUrl || bannerImage;
-  const currentBio = normalizedData.Bio || auth?.user?.bio || "";
-  const currentDisplayName = normalizedData.DisplayName || auth?.user?.displayName || 'Hít Lê';
-  const currentUserName = normalizedData.UserName || auth?.user?.userName || 'fromgermanwithlove';
-
-  const createdAt = backendData?.CreatedAt || backendData?.createdAt;
-  const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "Tháng 3/2025";
-
-  useEffect(() => {
-    if (userInfo) {
-
-      let availableFields: string | string[] = "No data";
-      if (userInfo?.data?.Data) {
-        availableFields = Object.keys(userInfo.data.Data);
-      } else if (userInfo?.data?.data) {
-        availableFields = Object.keys(userInfo.data.data);
-      } else if (userInfo?.data) {
-        availableFields = Object.keys(userInfo.data);
-      }
-    }
-  }, [userInfo]);
-
-  const handleFollowClick = () => {
-    setIsFollowing(!isFollowing);
-  };
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleNovelClick = (novelId: string) => {
-    navigate(`/novels/${novelId}`);
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'posts':
-        return (
-          <div className="mt-6">
-            {postsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-                <p className="text-gray-400 mt-2">Đang tải bài đăng...</p>
-              </div>
-            ) : userPosts.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-400">Chưa có bài đăng nào.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {userPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    onClick={() => navigate(`/blogs?post=${post.id}`)}
-                    className="bg-gray-900 p-4 rounded-lg border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3 mb-3">
-                      <img
-                        src={post.author?.avatar || "/images/default-avatar.png"}
-                        alt="Avatar"
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-semibold text-white">
-                          {post.author?.username || "Ẩn danh"}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian"}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-gray-300 text-sm line-clamp-3">{post.content}</p>
-                    {post.imgUrls && post.imgUrls.length > 0 && (
-                      <div className="mt-3">
-                        {post.imgUrls.length === 1 ? (
-                          <img
-                            src={post.imgUrls[0]}
-                            alt="Post image"
-                            className="max-h-96 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-2">
-                            {post.imgUrls.slice(0, 4).map((img, index) => (
-                              <img
-                                key={index}
-                                src={img}
-                                alt={`Post image ${index + 1}`}
-                                className="h-32 rounded-lg object-cover"
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
-                      <span>❤️ {post.likeCount || 0}</span>
-                      <span>💬 {post.commentCount || 0}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'followers':
-        return (
-          <div className="mt-6 grid grid-cols-5 gap-4">
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                <img src={bannerImage} alt="Follower" className="w-16 h-16 rounded-full mb-2" />
-                <p className="font-semibold text-white text-sm text-center">August {i + 1}</p>
-                <p className="text-xs text-gray-400 text-center">@nguoitheodoi{i + 1}</p>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded">Theo dõi</button>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'following':
-        return (
-          <div className="mt-6 grid grid-cols-5 gap-4">
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                <img src={avatarImage} alt="Follower" className="w-16 h-16 rounded-full mb-2" />
-                <p className="font-semibold text-white text-sm text-center">August {i + 1}</p>
-                <p className="text-xs text-gray-400 text-center">@nguoitheodoi{i + 1}</p>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded">Theo dõi</button>
-              </div>
-            ))}
-          </div>
-        );
-
-      default:
-        return <p className="mt-6 text-gray-400">Chưa có thành tựu.</p>;
-    }
-  };
+  const gradBtn =
+    "inline-flex items-center justify-center rounded-full px-4 py-2 text-[13px] font-semibold text-white bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177] transition";
+  const neutralBtn =
+    "inline-flex items-center justify-center rounded-full px-4 py-2 text-[13px] font-semibold text-white bg-white/10 hover:bg-white/20 ring-1 ring-white/10 transition";
 
   return (
-    <div className="profile bg-black text-white font-sans h-screen flex flex-col">
-      <div className="img_banner relative">
-        <img src={currentCover} alt="Banner" className="w-full h-70 object-cover rounded" />
-        <div className="absolute left-8 bottom-[-105px]">
-          <img src={currentAvatar} alt="Avatar" className="w-60 h-60 rounded-full border-5 border-white" />
-        </div>
+    <div className="min-h-screen bg-[#0f0f0f] text-white font-sans">
+      <div className="relative w-full h-60 md:h-60">
+        <img src={bannerImage} alt="Cover" className="w-full h-full object-cover" />
       </div>
 
-      <div className="flex justify-end items-center px-12 mt-4 space-x-4">
-        <Button
-          onClick={handleFollowClick}
-          variant="contained"
-          sx={{
-            width: '140px',
-            backgroundColor: isFollowing ? '#3a3a3a' : '#ff4500',
-            color: '#fff',
-            textTransform: 'none',
-            borderRadius: '6px',
-            padding: '6px 20px',
-            fontWeight: 600,
-            fontSize: '17px',
-            boxShadow: 'none',
-            '&:hover': {
-              backgroundColor: isFollowing ? '#555' : '#e03e00',
-            },
-          }}
-        >
-          {isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'}
-        </Button>
-
-        <div
-          onClick={handleMenuOpen}
-          className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
-        >
-          <MoreHorizIcon style={{ color: '#aaa' }} />
+      <div className="relative max-w-5xl mx-20 px-20">
+        <div className="absolute left-6 md:left-8 -top-12 md:-top-16">
+          <img
+            src={avatarImage}
+            alt="Avatar"
+            className="w-37.5 h-37.5 md:w-45 md:h-45 rounded-full border-4 border-[#0f0f0f] shadow-lg object-cover"
+          />
         </div>
 
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleMenuClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        <div className="pl-3 pt-2.5 md:pt-3">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div className="pl-0 md:pl-40">
+              <h1 className="text-3xl font-bold leading-tight">Hít Lê</h1>
+              <p className="text-gray-400">@fromgermanwithlove</p>
+            </div>
 
-          slotProps={{
-            paper: {
-              sx: {
-                bgcolor: '#1f1f1f',
-                color: '#fff',
-                borderRadius: 2,
-                minWidth: 200,
-                boxShadow: 4,
-              },
-            },
-          }}
-        >
-          <MenuItem
-            onClick={() => alert('Báo cáo người dùng')}
-            sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
-          >
-            <Flag02Icon />
-            Báo cáo
-          </MenuItem>
+            <div className="flex items-center gap-3">
+              {!isOwnProfile && (
+                <button
+                  onClick={handleFollowClick}
+                  className={isFollowing ? neutralBtn : gradBtn}
+                >
+                  {isFollowing ? "Bỏ theo dõi" : "Theo dõi"}
+                </button>
+              )}
 
-          <MenuItem
-            onClick={() => alert('Đã chặn người dùng')}
-            sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
-          >
-            <BlockIcon />
-            Chặn người dùng
-          </MenuItem>
-        </Menu>
-      </div>
+              {!isOwnProfile && (
+                <>
+                  <div
+                    onClick={handleMenuOpen}
+                    className="cursor-pointer border border-white/10 p-2 rounded-full hover:bg-white/10 transition"
+                    title="Tùy chọn khác"
+                  >
+                    <MoreHorizIcon sx={{ color: "#ddd" }} />
+                  </div>
 
-      <div className="-mt-10 px-80">
-        <div className="flex flex-col space-y-1">
-          <div>
-            <h1 className="text-4xl font-bold leading-tight">
-              {currentDisplayName}
-            </h1>
-            <p className="text-gray-400">
-              @{currentUserName}
-            </p>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          bgcolor: "#1f1f1f",
+                          color: "#fff",
+                          borderRadius: 2,
+                          minWidth: 200,
+                          boxShadow: 4,
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        alert("Báo cáo người dùng");
+                        handleMenuClose();
+                      }}
+                      sx={{ fontSize: 14, gap: 1 }}
+                    >
+                      <Flag size={16} /> Báo cáo
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        alert("Đã chặn người dùng");
+                        handleMenuClose();
+                      }}
+                      sx={{ fontSize: 14, gap: 1 }}
+                    >
+                      <BlockIcon fontSize="small" /> Chặn người dùng
+                    </MenuItem>
+                  </Menu>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Bio section */}
-          {currentBio && (
-            <p className="text-gray-300 text-lg mt-2 max-w-2xl break-words overflow-hidden">
-              {currentBio}
+          <div className="mt-3 md:pl-40">
+            <p className="text-gray-300 max-w-2xl">
+              Một chiếc bio thật ngầu, để giới thiệu bản thân trong thế giới sáng tác.
             </p>
-          )}
-
-          <p className="text-gray-400">
-            <strong className="text-gray-400">3</strong> Đang theo dõi
-            <span className="mx-2">•</span>
-            <strong className="text-gray-400">2</strong> Người theo dõi
-            <span className="mx-2">•</span>
-            <strong className="text-gray-400">{userPosts.length}</strong> Bài đăng
-          </p>
-
-          <p className="text-gray-400 flex items-center gap-1">
-            <CalendarUserIcon className="w-5 h-5" />
-            Tham gia từ {joinDate}
-          </p>
+            <p className="text-sm text-gray-400 mt-2 flex items-center gap-2">
+              <CalendarUserIcon className="w-4 h-4" /> Tham gia từ Tháng 3/2025
+            </p>
+            <div className="mt-2 text-gray-400 text-sm">
+              <span className="font-semibold text-white">3</span> Đang theo dõi
+              <span className="mx-2">•</span>
+              <span className="font-semibold text-white">2</span> Người theo dõi
+              <span className="mx-2">•</span>
+              <span className="font-semibold text-white">12</span> Bài đăng
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 border-b border-gray-700 flex space-x-9 text-sm px-10">
-        <div onClick={() => setActiveTab('posts')} className={`cursor-pointer ${activeTab === 'posts' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Bài đăng</div>
-        <div onClick={() => setActiveTab('followers')} className={`cursor-pointer ${activeTab === 'followers' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Người theo dõi</div>
-        <div onClick={() => setActiveTab('following')} className={`cursor-pointer ${activeTab === 'following' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Đang theo dõi</div>
-        <div onClick={() => setActiveTab('achievements')} className={`cursor-pointer ${activeTab === 'achievements' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Thành tựu</div>
-
+      <div className="flex justify-center mt-8 border-b border-white/10">
+        <div className="flex gap-10 text-[15px]">
+          {(["posts", "followers", "following", "achievements"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 transition ${
+                activeTab === tab
+                  ? "border-b-2 border-[#ff6740] text-[#ff8967] font-semibold"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              {tab === "posts"
+                ? "Bài đăng"
+                : tab === "followers"
+                ? "Người theo dõi"
+                : tab === "following"
+                ? "Đang theo dõi"
+                : "Thành tựu"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="follow overflow-y-auto px-10">
-        {renderTabContent()}
+      <div className="max-w-5xl mx-auto px-6 py-6">
+        {activeTab === "posts" && <div className="text-gray-400">Danh sách bài đăng...</div>}
+        {activeTab === "followers" && <div className="text-gray-400">Danh sách người theo dõi...</div>}
+        {activeTab === "following" && <div className="text-gray-400">Danh sách đang theo dõi...</div>}
+        {activeTab === "achievements" && <div className="text-gray-400">Chưa có thành tựu.</div>}
       </div>
-    </div >
-  )
+    </div>
+  );
 };
