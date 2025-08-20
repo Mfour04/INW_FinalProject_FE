@@ -11,24 +11,22 @@ interface SortConfig<T> {
 
 interface DataTableProps<T> {
   data: T[];
-  selectedItems: string[];
   sortConfig: SortConfig<T>;
-  onSelectItem: (id: string) => void;
-  onSelectAll: () => void;
   onSort: (key: string) => void;
   type: "novel" | "user";
   onOpenChapterPopup?: (novelId: string) => void;
+  onLockUnlockNovel?: (novelId: string, isLock: boolean) => void;
+  onLockUnlockUser?: (userId: string, isBanned: boolean) => void;
 }
 
 const DataTable = <T extends NovelAdmin | User>({
   data,
-  selectedItems,
   sortConfig,
-  onSelectItem,
-  onSelectAll,
   onSort,
   type,
   onOpenChapterPopup,
+  onLockUnlockNovel,
+  onLockUnlockUser,
 }: DataTableProps<T>) => {
   const headers =
     type === "novel"
@@ -95,8 +93,8 @@ const DataTable = <T extends NovelAdmin | User>({
           {
             key: "Actions",
             label: "Hành động",
-            width: "10%",
-            minWidth: "100px",
+            width: "15%",
+            minWidth: "150px",
             center: true,
           },
         ]
@@ -150,6 +148,13 @@ const DataTable = <T extends NovelAdmin | User>({
             width: "15%",
             minWidth: "120px",
           },
+          {
+            key: "Actions",
+            label: "Hành động",
+            width: "10%",
+            minWidth: "100px",
+            center: true,
+          },
         ];
 
   return (
@@ -157,16 +162,6 @@ const DataTable = <T extends NovelAdmin | User>({
       <table className="w-full table-fixed text-left text-sm text-gray-900 dark:text-white">
         <thead className="bg-gray-50 dark:bg-[#2c2c2c] text-base font-semibold h-16">
           <tr>
-            <th className="p-4 w-[5%] text-center">
-              <input
-                type="checkbox"
-                checked={
-                  selectedItems.length === data.length && data.length > 0
-                }
-                onChange={onSelectAll}
-                className="w-4 h-4 accent-[#ff4d4f] rounded"
-              />
-            </th>
             {headers.map((header) => (
               <th
                 key={header.key}
@@ -192,20 +187,6 @@ const DataTable = <T extends NovelAdmin | User>({
               transition={{ duration: 0.3 }}
               className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-[#2c2c2c]"
             >
-              <td className="p-4 text-center">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.includes(
-                    String(type === "novel" ? item.NovelId : item.userId)
-                  )}
-                  onChange={() =>
-                    onSelectItem(
-                      String(type === "novel" ? item.NovelId : item.userId)
-                    )
-                  }
-                  className="w-4 h-4 accent-[#ff4d4f] rounded"
-                />
-              </td>
               {headers.map((header) => (
                 <td
                   key={header.key}
@@ -232,15 +213,38 @@ const DataTable = <T extends NovelAdmin | User>({
                       {String(item.displayName)}
                     </Link>
                   ) : header.key === "Actions" && type === "novel" ? (
-                    <button
-                      onClick={() =>
-                        onOpenChapterPopup &&
-                        onOpenChapterPopup(String(item.NovelId))
-                      }
-                      className="bg-[#ff4d4f] text-white px-3 py-1 rounded-md hover:bg-[#e63939]"
-                    >
-                      Quản lý chương
-                    </button>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() =>
+                          onOpenChapterPopup &&
+                          onOpenChapterPopup(String(item.NovelId))
+                        }
+                        className="bg-[#ff4d4f] text-white px-3 py-1 rounded-md hover:bg-[#e63939]"
+                      >
+                        Quản lý chương
+                      </button>
+                      <button
+                        onClick={() =>
+                          onLockUnlockNovel &&
+                          onLockUnlockNovel(String(item.NovelId), !item.IsLock)
+                        }
+                        className="bg-[#ff4d4f] text-white px-3 py-1 rounded-md hover:bg-[#e63939]"
+                      >
+                        {item.IsLock ? "Mở khóa" : "Khóa"}
+                      </button>
+                    </div>
+                  ) : header.key === "Actions" && type === "user" ? (
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() =>
+                          onLockUnlockUser &&
+                          onLockUnlockUser(String(item.userId), !item.isBanned)
+                        }
+                        className="bg-[#ff4d4f] text-white px-3 py-1 rounded-md hover:bg-[#e63939]"
+                      >
+                        {item.isBanned ? "Mở khóa" : "Khóa"}
+                      </button>
+                    </div>
                   ) : header.key === "IsPublic" ||
                     header.key === "isVerified" ? (
                     item[header.key] ? (

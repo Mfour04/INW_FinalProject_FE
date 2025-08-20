@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DarkModeToggler } from "../../../components/DarkModeToggler";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import SearchBar from "../AdminModal/SearchBar";
-import ActionButtons from "../AdminModal/ActionButtons";
 import DataTable from "../AdminModal/DataTable";
 import Pagination from "../AdminModal/Pagination";
 import NovelTopSection from "./NovelTopSection";
@@ -12,6 +11,7 @@ import ChapterManagementPopup from "./ChapterManagementPopup";
 import { GetNovels, UpdateNovelLock } from "../../../api/Novels/novel.api";
 import { GetChaptersAdmin } from "../../../api/Chapters/chapter.api";
 import { formatTicksToDateString } from "../../../utils/date_format";
+import { memo } from "react";
 import type {
   ChapterAdmin,
   ChapterByNovel,
@@ -27,6 +27,7 @@ interface DialogState {
   isOpen: boolean;
   type: "lock" | "unlock" | "delete" | null;
   title: string;
+  novelId: string | null;
 }
 
 const novelsPerPage = 10;
@@ -53,9 +54,14 @@ const keyToApiField: Record<keyof NovelAdmin, string> = {
   ratingCount: "ratingCount",
 };
 
+// Memo hóa NovelTopSection
+const MemoizedNovelTopSection = memo(NovelTopSection);
+
+// Memo hóa Pagination
+const MemoizedPagination = memo(Pagination);
+
 const NovelList = () => {
   const queryClient = useQueryClient();
-  const [selectedNovels, setSelectedNovels] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "Title",
@@ -66,19 +72,11 @@ const NovelList = () => {
     isOpen: false,
     type: null,
     title: "",
+    novelId: null,
   });
   const [isChapterPopupOpen, setIsChapterPopupOpen] = useState(false);
   const [selectedNovelId, setSelectedNovelId] = useState<string | null>(null);
   const threeDaysAgo = Date.now() - 3 * 24 * 3600 * 1000;
-
-  useEffect(() => {
-    console.log(
-      "selectedNovelId:",
-      selectedNovelId,
-      "isChapterPopupOpen:",
-      isChapterPopupOpen
-    );
-  }, [selectedNovelId, isChapterPopupOpen]);
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
@@ -143,34 +141,37 @@ const NovelList = () => {
       ratingCount: novel.ratingCount,
     })) || [];
 
-  // Map API novel data to NovelAdmin interface for NovelTopSection
-  const mappedAllNovels: NovelAdmin[] =
-    allNovelsData?.data?.novels?.map((novel) => ({
-      NovelId: novel.novelId,
-      Title: novel.title,
-      AuthorName: novel.authorName,
-      NovelImage: novel.novelImage,
-      Status:
-        novel.status === 1
-          ? "Hoàn thành"
-          : novel.status === 2
-          ? "Gián đoạn"
-          : "Đang diễn ra",
-      IsPublic: novel.isPublic,
-      IsLock: novel.isLock,
-      TotalViews: novel.totalViews,
-      Followers: novel.followers,
-      RatingAvg: novel.ratingAvg,
-      CreateAt: formatTicksToDateString(novel.createAt),
-      UpdateAt: formatTicksToDateString(novel.updateAt),
-      description: novel.description,
-      authorId: novel.authorId,
-      tags: novel.tags,
-      isPaid: novel.isPaid,
-      price: novel.price,
-      totalChapters: novel.totalChapters,
-      ratingCount: novel.ratingCount,
-    })) || [];
+  // Memo hóa mappedAllNovels để tránh tính toán lại
+  const mappedAllNovels: NovelAdmin[] = useMemo(
+    () =>
+      allNovelsData?.data?.novels?.map((novel) => ({
+        NovelId: novel.novelId,
+        Title: novel.title,
+        AuthorName: novel.authorName,
+        NovelImage: novel.novelImage,
+        Status:
+          novel.status === 1
+            ? "Hoàn thành"
+            : novel.status === 2
+            ? "Gián đoạn"
+            : "Đang diễn ra",
+        IsPublic: novel.isPublic,
+        IsLock: novel.isLock,
+        TotalViews: novel.totalViews,
+        Followers: novel.followers,
+        RatingAvg: novel.ratingAvg,
+        CreateAt: formatTicksToDateString(novel.createAt),
+        UpdateAt: formatTicksToDateString(novel.updateAt),
+        description: novel.description,
+        authorId: novel.authorId,
+        tags: novel.tags,
+        isPaid: novel.isPaid,
+        price: novel.price,
+        totalChapters: novel.totalChapters,
+        ratingCount: novel.ratingCount,
+      })) || [],
+    [allNovelsData]
+  );
 
   // Fetch chapters for selected novel
   const {
@@ -197,10 +198,7 @@ const NovelList = () => {
     }) => UpdateNovelLock(novelId, isLocked),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["novels"] });
-      queryClient.invalidateQueries({ queryKey: ["allNovels"] }); // Invalidate allNovels query
-    },
-    onError: (error) => {
-      console.error("Failed to update novel lock status:", error);
+      queryClient.invalidateQueries({ queryKey: ["allNovels"] });
     },
   });
 
@@ -221,25 +219,6 @@ const NovelList = () => {
       updated_at: chapter.updateAt,
     })) || [];
 
-  console.log(chapterData);
-  console.log(mappedChapters);
-
-  const handleSelectNovel = (novelId: string) => {
-    setSelectedNovels((prev) =>
-      prev.includes(novelId)
-        ? prev.filter((id) => id !== novelId)
-        : [...prev, novelId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedNovels.length === mappedNovels.length) {
-      setSelectedNovels([]);
-    } else {
-      setSelectedNovels(mappedNovels.map((novel) => novel.NovelId));
-    }
-  };
-
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
       key: key as keyof NovelAdmin,
@@ -250,105 +229,102 @@ const NovelList = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= (novelData?.data?.totalPages || 1)) {
       setCurrentPage(page);
-      setSelectedNovels([]);
     }
   };
 
-  const handleLockUnlock = () => {
-    const selectedNovelObjects = mappedNovels.filter((novel) =>
-      selectedNovels.includes(novel.NovelId)
-    );
-    const allLocked = selectedNovelObjects.every((novel) => novel.IsLock);
-    const action = allLocked ? "unlock" : "lock";
-    const title = `Bạn muốn ${
-      action === "lock" ? "khóa" : "mở khóa"
-    } truyện: ${selectedNovelObjects.map((n) => n.Title).join(", ")} ?`;
-    setDialog({ isOpen: true, type: action, title });
+  const handleLockUnlock = (novelId: string, isLocked: boolean) => {
+    const novel = mappedNovels.find((n) => n.NovelId === novelId);
+    const action = isLocked ? "unlock" : "lock";
+    const title = `Bạn muốn ${action === "lock" ? "khóa" : "mở khóa"} truyện: ${
+      novel?.Title
+    } ?`;
+    setDialog({ isOpen: true, type: action, title, novelId });
   };
 
   const handleConfirmDialog = () => {
-    if (dialog.type === "lock") {
-      selectedNovels.forEach((novelId) => {
-        updateNovelLockMutation.mutate({ novelId, isLocked: true });
-      });
-      console.log(`Thực hiện lock cho truyện: ${selectedNovels.join(", ")}`);
-    } else if (dialog.type === "unlock") {
-      selectedNovels.forEach((novelId) => {
-        updateNovelLockMutation.mutate({ novelId, isLocked: false });
-      });
-      console.log(`Thực hiện unlock cho truyện: ${selectedNovels.join(", ")}`);
+    if (dialog.novelId && dialog.type) {
+      const isLocked = dialog.type === "lock";
+      updateNovelLockMutation.mutate({ novelId: dialog.novelId, isLocked });
     }
-    setSelectedNovels([]);
-    setDialog({ isOpen: false, type: null, title: "" });
+    setDialog({ isOpen: false, type: null, title: "", novelId: null });
   };
 
   const handleOpenChapterPopup = (novelId: string) => {
     setSelectedNovelId(novelId);
     setIsChapterPopupOpen(true);
-    console.log("Opening popup with novelId:", novelId);
   };
-
-  const handleLockChapter = (chapterId: string) => {
-    console.log(`Khóa chương: ${chapterId}`);
-  };
-
-  const handleUnlockChapter = (chapterId: string) => {
-    console.log(`Mở khóa chương: ${chapterId}`);
-  };
-
-  const selectedNovelObjects = mappedNovels.filter((novel) =>
-    selectedNovels.includes(novel.NovelId)
-  );
-  const canLock = selectedNovelObjects.every((novel) => !novel.IsLock);
-  const canUnlock = selectedNovelObjects.every((novel) => novel.IsLock);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen"
+      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white"
     >
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Quản lý truyện
-        </h1>
+        <h1 className="text-2xl font-bold">Quản lý truyện</h1>
         {/* <DarkModeToggler /> */}
       </div>
-      {isLoadingNovels || isLoadingAllNovels ? (
+      {isLoadingAllNovels ? (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      ) : novelError || allNovelsError ? (
-        <p className="text-red-600">Failed to load novels</p>
+      ) : allNovelsError ? (
+        <p className="text-red-600 dark:text-red-400">Failed to load novels</p>
       ) : (
         <>
-          <NovelTopSection
+          <MemoizedNovelTopSection
             novels={mappedAllNovels}
             threeDaysAgo={threeDaysAgo}
           />
-          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-            <ActionButtons
-              canLock={canLock}
-              canUnlock={canUnlock}
-              selectedCount={selectedNovels.length}
-              onLockUnlock={handleLockUnlock}
-            />
+          <div className="flex justify-end items-center mb-4 flex-wrap gap-2">
             <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} />
           </div>
-          <DataTable
-            data={mappedNovels}
-            selectedItems={selectedNovels}
-            sortConfig={sortConfig}
-            onSelectItem={handleSelectNovel}
-            onSelectAll={handleSelectAll}
-            onSort={handleSort}
-            type="novel"
-            onOpenChapterPopup={handleOpenChapterPopup}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={novelData?.data?.totalPages || 1}
-            onPageChange={handlePageChange}
-          />
+          {isLoadingNovels ? (
+            <div className="text-center">
+              <svg
+                className="animate-spin h-8 w-8 text-[#ff4d4f] mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Loading...
+              </p>
+            </div>
+          ) : novelError ? (
+            <p className="text-red-600 dark:text-red-400">
+              Failed to load novels
+            </p>
+          ) : (
+            <>
+              <DataTable
+                data={mappedNovels}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                type="novel"
+                onOpenChapterPopup={handleOpenChapterPopup}
+                onLockUnlockNovel={handleLockUnlock}
+              />
+              <MemoizedPagination
+                currentPage={currentPage}
+                totalPages={novelData?.data?.totalPages || 1}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
         </>
       )}
       {chapterData && (
@@ -359,13 +335,13 @@ const NovelList = () => {
           chapters={mappedChapters}
           isLoading={isLoadingChapters}
           error={chapterError}
-          onLockChapter={handleLockChapter}
-          onUnlockChapter={handleUnlockChapter}
         />
       )}
       <ConfirmDialog
         isOpen={dialog.isOpen}
-        onClose={() => setDialog({ isOpen: false, type: null, title: "" })}
+        onClose={() =>
+          setDialog({ isOpen: false, type: null, title: "", novelId: null })
+        }
         onConfirm={handleConfirmDialog}
         title={dialog.title}
         isLockAction={dialog.type === "lock"}

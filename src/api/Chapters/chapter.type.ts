@@ -104,10 +104,19 @@ export interface PublishStatus {
   Public: "PUBLIC";
 }
 
+export interface UpdateChapterLockRequest {
+  chapterIds: string[];
+  isLocked: boolean;
+}
+
 export interface UpdateChapterLockResponse {
   success: boolean;
   message: string;
-  data: {};
+  data: {
+    novelId: string;
+    authorId: string;
+    signalRSent: boolean;
+  };
 }
 
 export type BuyChapterApiResponse = ApiResponse<BuyChapterResponse>;
