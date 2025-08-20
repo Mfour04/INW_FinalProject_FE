@@ -1,7 +1,7 @@
 import ViewList from "@mui/icons-material/ViewList";
 import Dashboard from "@mui/icons-material/Dashboard";
 import Refresh from "@mui/icons-material/Refresh";
-import type { ViewMode } from "../types";
+import type { ViewMode } from "./types";
 
 type Props = {
   view: ViewMode;

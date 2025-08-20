@@ -1,35 +1,35 @@
-import { useEffect, useState } from "react";
-import BookSolid from "../../assets/svg/WritingRoom/clarity_book-solid.svg";
-import ModeEdit from "@mui/icons-material/ModeEdit";
-import ModeDelete from "@mui/icons-material/Delete";
-import Add from "@mui/icons-material/Add";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DeleteNovel, GetAuthorNovels } from "../../api/Novels/novel.api";
-import { formatTicksToDateString } from "../../utils/date_format";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../../context/ToastContext/toast-context";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
+import { useToast } from "../../context/ToastContext/toast-context";
+
+import { DeleteNovel, GetAuthorNovels } from "../../api/Novels/novel.api";
+import { Plus, BookOpenCheck, Eye, Users } from "lucide-react";
+
+import type { NovelsData, Novel, SortKey, StatusFilter } from "./types";
+import { ControlsBar } from "./components/ControlsBar";
+import { StatsMini } from "./components/StatsMini";
+import { NovelRowCard } from "./components/NovelRowCard";
 
 export const WritingRoom = () => {
-  const [isNull, setIsNull] = useState<boolean>(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [novelIdToDelete, setNovelIdToDelete] = useState<string | null>(null);
-
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
   const toast = useToast();
 
-  // const { data, isLoading, isSuccess } = useQuery({
-  //     queryKey: ['novel', selectedNovelId],
-  //     queryFn: () => GetNovelById(selectedNovelId!).then(res => res.data.data.novelInfo),
-  //     enabled: !!selectedNovelId,
-  // });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [novelIdToDelete, setNovelIdToDelete] = useState<string | null>(null);
 
-  const { data: novelsData } = useQuery({
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [sortBy, setSortBy] = useState<SortKey>("updated");
+
+  const { data, isLoading } = useQuery({
     queryKey: ["authorNovels"],
-    queryFn: () => GetAuthorNovels().then((res) => res.data.data),
+    queryFn: () => GetAuthorNovels().then((res) => res.data.data as NovelsData),
   });
+
+  const novels = data?.novels ?? [];
 
   const deleteNovelMutation = useMutation({
     mutationFn: (id: string) => DeleteNovel(id),
@@ -39,223 +39,161 @@ export const WritingRoom = () => {
     },
   });
 
-  const handleIsCreateNovelClick = () => {
-    navigate(`upsert-novel`);
-  };
+  const filtered = useMemo(() => {
+    let list = [...novels];
 
-  const handleEditNovelButtonClick = (novelId: string) => {
-    navigate(`upsert-novel/${novelId}`);
-  };
+    // search
+    const q = query.trim().toLowerCase();
+    if (q) list = list.filter((n) => n.title.toLowerCase().includes(q));
 
-  const handleDeleteNovelClick = (novelId: string) => {
-    setNovelIdToDelete(novelId);
-    setShowConfirmModal(true);
+    // status filter
+    if (status !== "all") {
+      list = list.filter((n) =>
+        status === "finished" ? n.status === 0 : n.status !== 0
+      );
+    }
+
+    // sort
+    list.sort((a, b) => {
+      switch (sortBy) {
+        case "views":
+          return (b.totalViews ?? 0) - (a.totalViews ?? 0);
+        case "followers":
+          return (b.followers ?? 0) - (a.followers ?? 0);
+        case "title":
+          return a.title.localeCompare(b.title, "vi");
+        case "updated":
+        default:
+          return (b.createAt ?? 0) - (a.createAt ?? 0);
+      }
+    });
+
+    return list;
+  }, [novels, query, status, sortBy]);
+
+  const stats = useMemo(() => {
+    const total = novels.length;
+    const views = novels.reduce((s, n) => s + (n.totalViews || 0), 0);
+    const followers = novels.reduce((s, n) => s + (n.followers || 0), 0);
+    return { total, views, followers };
+  }, [novels]);
+
+  const askDelete = (id: string) => {
+    setNovelIdToDelete(id);
+    setConfirmOpen(true);
   };
 
   const confirmDelete = () => {
-    if (novelIdToDelete) {
-      deleteNovelMutation.mutate(novelIdToDelete);
-    }
-    setShowConfirmModal(false);
+    if (novelIdToDelete) deleteNovelMutation.mutate(novelIdToDelete);
+    setConfirmOpen(false);
     setNovelIdToDelete(null);
   };
 
-  useEffect(() => {
-    if (!novelsData?.novels || novelsData.novels.length === 0) {
-      setIsNull(false);
-    } else {
-      setIsNull(true);
-    }
-  }, [novelsData]);
-
-  // useEffect(async () => {
-  //     let file
-  //     if (isSuccess && data) {
-  //         file = await urlToFile(data.novel_image, 'novel-image.jpg')
-  //         setCreateNovelForm({
-  //             title: data.title,
-  //             description: data.description,
-  //             authorId: data.author_id,
-  //             novelImage: file,
-  //             tags: ['256D3E460C401085FE2F4EF5', '256DA37C123346EB93C0E5F4'],
-  //             status: 1,
-  //             isPublic: true,
-  //             isPaid: false,
-  //             isLock: false,
-  //             purchaseType: 0,
-  //             price: 0
-  //         })
-  //     }
-
-  //     const url = URL.createObjectURL(file)
-  //     setImagePreview(url)
-
-  // }, [isSuccess, data]);
+  const goCreate = () => navigate("upsert-novel");
+  const goEdit = (idOrSlug: string) => navigate(`upsert-novel/${idOrSlug}`);
+  const goChapters = (novelId: string) => navigate(`${novelId}`);
 
   return (
-    <div className="bg-[#0f0f11] min-h-screen text-white px-4 py-6">
-      {!isNull ? (
-        <div className="bg-[#1e1e21] h-[244px] rounded-[10px] mx-[50px] flex flex-col justify-center items-center">
-          <img src={BookSolid} />
-          <p className="mt-4 mb-3 text-[20px]">Chưa có truyện nào!</p>
+    <div className="min-h-screen bg-[#0a0b0e] text-white px-4 md:px-6 py-4">
+      <div
+        className="fixed inset-0 -z-10 opacity-50 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.16), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.12), transparent 60%)",
+        }}
+      />
+
+      {/* Top bar */}
+      <header className="max-w-screen-2xl mx-auto px-4 pt-8 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[22px] md:text-[26px] font-bold tracking-tight">
+              Phòng sáng tác
+            </h1>
+            <p className="mt-1 text-white/70 text-[13.5px]">
+              Hôm nay viết gì?
+            </p>
+          </div>
+
           <button
-            onClick={handleIsCreateNovelClick}
-            className="w-[111px] h-[37px] rounded-[10px] bg-[#ff6740] "
+            onClick={goCreate}
+            className="inline-flex items-center gap-2 h-10 rounded-xl px-4 text-sm font-semibold text-white shadow-sm shadow-black/30
+                       bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]
+                       hover:brightness-110 active:brightness-95 transition"
           >
-            Tạo mới
+            <Plus className="h-4 w-4" />
+            Tạo truyện mới
           </button>
         </div>
-      ) : (
-        <div className="mx-[50px]">
-          <h1 className="text-center text-xl font-semibold mb-6">
-            Phòng sáng tác
-          </h1>
-          <div>
-            <h1 className="text-left text-sm font-semibold mb-6">Tổng quan</h1>
-            <div className="grid grid-cols-3 h-[125px] gap-4 mb-6 max-w mx-auto center">
-              <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
-                <p className="text-2xl font-bold">0</p>
-                <p className="text-sm text-gray-300">Tổng lượt xem</p>
-              </div>
-              <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
-                <p className="text-2xl font-bold">0</p>
-                <p className="text-sm text-gray-300">Tổng lượt like</p>
-              </div>
-              <div className="bg-[#45454e] rounded-lg py-4 px-6 text-center flex flex-col items-center justify-center">
-                <p className="text-2xl font-bold">0</p>
-                <p className="text-sm text-gray-300">Tổng lượt bình luận</p>
-              </div>
-            </div>
-          </div>
+      </header>
 
-          <div className="flex items-center justify-between mx-auto mb-4">
-            <h2 className="text-lg font-semibold">
-              Tủ truyện ({novelsData?.novels.length})
-            </h2>
-            <button
-              onClick={handleIsCreateNovelClick}
-              className="h-[37px] w-[175px] bg-[#ff6740] hover:bg-[#e14b2e] text-white px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Tạo truyện mới
-            </button>
+      {/* Controls + Stats */}
+      <section className="max-w-screen-2xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <ControlsBar
+              query={query}
+              setQuery={setQuery}
+              status={status}
+              setStatus={setStatus}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+            />
           </div>
-          <div className="flex flex-col gap-5">
-            {novelsData?.novels.map((novel) => (
-              <div
-                key={novel.novelId}
-                className="h-[200px] bg-[#1e1e21] rounded-[10px] p-4 "
-              >
-                <div className="flex gap-4">
-                  <img
-                    src={novel.novelImage || undefined}
-                    className="w-[120px] h-[150px] bg-[#d9d9d9] my-[10px] ml-[10px] rounded-[10px]"
-                  />
-
-                  <div className="flex-1 mt-[10px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="flex justify-between items-center w-full">
-                        <div className="w-[150px] h-[35px] text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                          <span
-                            className={`h-2 w-2 rounded-full inline-block ${
-                              novel.status === 0
-                                ? "bg-gray-400"
-                                : "bg-green-400"
-                            }`}
-                          />
-                          {novel.status === 0 ? "Hoàn thành" : "Đang diễn ra"}
-                        </div>
-                        <div className="flex gap-[25px]">
-                          <button
-                            onClick={() =>
-                              handleEditNovelButtonClick(novel.slug)
-                            }
-                            className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"
-                          >
-                            <ModeEdit sx={{ height: "20px", width: "20px" }} />
-                          </button>
-                          <button
-                            onClick={() => navigate(`${novel.novelId}`)}
-                            className="bg-[#555555] h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-gray-600"
-                          >
-                            <Add sx={{ height: "20px", width: "20px" }} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteNovelClick(novel.novelId)
-                            }
-                            className="bg-red-700 h-[35px] w-[35px] p-1 rounded-[5px] hover:bg-red-500"
-                          >
-                            <ModeDelete
-                              sx={{ height: "20px", width: "20px" }}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[18px] text-white line-clamp-1">
-                      {novel.title}
-                    </p>
-                    <div className="mt-[20px] text-xs text-gray-400 grid grid-cols-3 gap-y-4 gap-x-10">
-                      <div className="flex gap-[40px]">
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">Tổng chương</p>
-                          <p className="text-[15px]">Ngày cập nhật</p>
-                        </div>
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">
-                            <strong>1</strong>
-                          </p>
-                          <p className="text-[15px]">
-                            <strong>
-                              {formatTicksToDateString(novel.createAt)}
-                            </strong>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-[40px]">
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">Lượt đọc</p>
-                          <p className="text-[15px]">Lượt theo dõi</p>
-                        </div>
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">
-                            <strong>{novel.totalViews}</strong>
-                          </p>
-                          <p className="text-[15px]">
-                            <strong>{novel.followers}</strong>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-[40px]">
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">Lượt bình luận</p>
-                          <p className="text-[15px]">Lượt đánh giá</p>
-                        </div>
-                        <div className="flex flex-col gap-y-5">
-                          <p className="text-[15px]">
-                            <strong>1</strong>
-                          </p>
-                          <p className="text-[15px]">
-                            <strong>2</strong>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-3 gap-3">
+            <StatsMini label="Truyện" value={stats.total} />
+            <StatsMini label="Lượt xem" value={stats.views} icon={<Eye className="h-4 w-4" />} />
+            <StatsMini label="Theo dõi" value={stats.followers} icon={<Users className="h-4 w-4" />} />
           </div>
         </div>
-      )}
+      </section>
 
+      {/* List */}
+      <main className="max-w-screen-2xl mx-auto px-4 py-8">
+        {/* Empty */}
+        {!isLoading && filtered.length === 0 && (
+          <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] backdrop-blur-md p-8 text-center">
+            <BookOpenCheck className="h-10 w-10 mx-auto text-white/60" />
+            <p className="mt-3 text-[15px] text-white/80">Không tìm thấy truyện phù hợp.</p>
+            <p className="text-[13px] text-white/50">Hãy thử từ khóa khác, thay đổi bộ lọc hoặc tạo truyện mới.</p>
+          </div>
+        )}
+
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="space-y-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-[130px] rounded-2xl bg-white/[0.03] ring-1 ring-white/10 animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {/* Cards */}
+        {!isLoading && filtered.length > 0 && (
+          <div className="space-y-4">
+            {filtered.map((n: Novel) => (
+              <NovelRowCard
+                key={n.novelId}
+                novel={n}
+                onEdit={() => goEdit(n.slug || n.novelId)}
+                onChapters={() => goChapters(n.novelId)}
+                onDelete={() => askDelete(n.novelId)}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Confirm delete */}
       <ConfirmModal
-        isOpen={showConfirmModal}
+        isOpen={confirmOpen}
         title="Xóa truyện"
-        message="Bạn có chắc chắn muốn xóa truyện này không? Thao tác này không thể hoàn tác."
+        message={"Bạn có chắc chắn muốn xóa truyện này không?\nThao tác này không thể hoàn tác."}
         onConfirm={confirmDelete}
-        onCancel={() => setShowConfirmModal(false)}
+        onCancel={() => setConfirmOpen(false)}
       />
     </div>
   );
 };
+
+export default WritingRoom;
