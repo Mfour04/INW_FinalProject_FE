@@ -235,7 +235,7 @@ export const UpsertChapter = () => {
 
                 {/* Phải */}
                 <div className="flex items-center gap-3">
-                  <button
+                  {/* <button
                     onClick={() => refetch()}
                     className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] 
                               ring-1 ring-white/10 hover:bg-white/[0.12] transition"
@@ -243,7 +243,7 @@ export const UpsertChapter = () => {
                     aria-label="Làm mới"
                   >
                     <span className="i-lucide-rotate-ccw h-4 w-4" />
-                  </button>
+                  </button> */}
                   <SaveStatus
                     loading={
                       autoSaveMutation.isPending ||

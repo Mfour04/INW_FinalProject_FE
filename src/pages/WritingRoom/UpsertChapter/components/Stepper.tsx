@@ -55,7 +55,7 @@ export const Stepper = ({ current }: StepperProps) => {
                   done
                     ? "bg-white/90 text-black ring-white/80"
                     : active
-                    ? "bg-[linear-gradient(90deg,#ff6740,#ff9966)] text-white ring-white/40"
+                    ? "ring-white/40 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]"
                     : "bg-white/[0.08] text-white/70 ring-white/10",
                 ].join(" ")}
                 aria-hidden

@@ -1,169 +1,285 @@
-import StarRate from "@mui/icons-material/StarRate";
+import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import BookMark from "@mui/icons-material/Bookmark";
-import Comment from "@mui/icons-material/Comment";
 import ModeEdit from "@mui/icons-material/ModeEdit";
-import { useState } from "react";
+import SwapVert from "@mui/icons-material/SwapVert";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GetNovelById } from "../../../api/Novels/novel.api";
 import { formatTicksToRelativeTime } from "../../../utils/date_format";
-import { TagView } from "../../../components/TagComponent";
+import { MiniPager } from "./MiniPager";
+import NovelInfoCard from "./NovelInfoCard";
 
 type Tabs = "Chapter" | "Draft";
 
-const CreateChapters = () => {
-  const [tab, setTab] = useState<Tabs>("Chapter");
+type Chapter = {
+  chapterId: string;
+  chapterNumber: number;
+  title: string;
+  createAt: number;
+  updateAt?: number;
+  isDraft: boolean;
+  isPaid?: boolean;
+  price?: number;
+};
 
+export default function CreateChapters() {
+  const [tab, setTab] = useState<Tabs>("Chapter");
+  const [sortDesc, setSortDesc] = useState(false);
   const { novelId } = useParams();
   const navigate = useNavigate();
 
-  const { data } = useQuery({
+  const { data, isFetching, isLoading } = useQuery({
     queryKey: ["novel", novelId],
     queryFn: () => GetNovelById(novelId!).then((res) => res.data.data),
     enabled: !!novelId,
   });
 
   const novel = data?.novelInfo;
-  const chapters = data?.allChapters;
-  const lastChapter = chapters?.[chapters?.length - 1];
+  const chapters: Chapter[] = data?.allChapters ?? [];
+
+  const { published, drafts } = useMemo(() => {
+    const p = chapters.filter((c) => !c.isDraft);
+    const d = chapters.filter((c) => c.isDraft);
+    return { published: p, drafts: d };
+  }, [chapters]);
+
+  const activeList = tab === "Draft" ? drafts : published;
+  const sortedList = useMemo(
+    () =>
+      [...activeList].sort((a, b) =>
+        sortDesc ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber
+      ),
+    [activeList, sortDesc]
+  );
+
+  const lastChapter = chapters.length ? chapters[chapters.length - 1] : undefined;
+
+  const perPage = 20;
+  const totalPages = Math.max(Math.ceil(sortedList.length / perPage), 1);
+  const currentPage = 1;
+  const pageItems = sortedList.slice(0, perPage);
 
   return (
-    <div className="max-w-6xl mx-[50px] p-4 text-white">
-      <div className="flex flex-col md:flex-row gap-4 ">
-        <img
-          src={novel?.novelImage || undefined}
-          alt="Novel Cover"
-          className="w-[200px] h-[320px] rounded-lg shadow-md"
-        />
+    <div className="max-w-6xl mx-auto md:px-4 py-4 text-white space-y-5">
+      <div className="flex top-0 z-20">
+          <div className="relative py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 md:gap-6">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                  title="Quay lại"
+                  aria-label="Quay lại"
+                >
+                  <ArrowBackIosNew sx={{ width: 18, height: 18 }} />
+                </button>
 
-        <div className="flex-1 space-y-2">
-          <h1 className="text-[44px] font-bold">{novel?.title}</h1>
-          <div className="flex justify-between h-[40px]">
-            <p className="h-9 w-[198px] border border-white rounded-[10px] flex items-center justify-center text-xl text-white">
-              {novel?.authorName}
-            </p>
-            <div className="flex gap-2.5">
-              <div className="flex items-center gap-1 text-[20px]">
-                <StarRate sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">0</div>
+                <div className="flex flex-col">
+                  <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                    Quản lý chương — Tác giả
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-[20px]">
-                <BookMark sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">0</div>
-              </div>
-              <div className="flex items-center gap-1 text-[20px]">
-                <Comment sx={{ height: "20px", width: "20px" }} />
-                <div className="flex items-center">0</div>
-              </div>
-              <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                <span
-                  className={`h-2 w-2 rounded-full inline-block bg-green-400`}
-                />
-                Đang diễn ra
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-7 mt-10 h-[37px]">
-            {/* <button className="flex items-center justify-center gap-2.5 bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"><BookMark sx={{ height: '20px', width: '20px' }} /><p>Chỉnh sửa</p></button> */}
-            <button
-              onClick={() =>
-                navigate(`/novels/writing-room/${novelId}/upsert-chapter`)
-              }
-              className="flex items-center justify-center gap-2.5 bg-[#ff6740] w-[228px] hover:bg-orange-600 px-4 py-1 rounded text-[18px]"
-            >
-              <BookMark sx={{ height: "20px", width: "20px" }} />
-              <p>Chương mới</p>
-            </button>
-            {/* <button className="flex items-center justify-center gap-2.5 px-4 py-1 text-sm text-[#ff6740] text-[18px]">
-              <Share sx={{ height: "20px", width: "20px" }} />
-              <p>Chia sẻ</p>
-            </button> */}
-          </div>
-
-          <div className="flex flex-wrap mt-7 gap-2 text-xs text-gray-300">
-            {novel?.tags.map((tag) => (
-              <TagView key={tag.tagId} tag={tag} />
-            ))}
           </div>
         </div>
       </div>
 
-      <div className="text-[18px] text-white mt-7 h-[130px] line-clamp-5 overflow-hidden">
-        {novel?.description}
-      </div>
+      <NovelInfoCard
+        title={novel?.title}
+        description={novel?.description}
+        status={novel?.status}
+        novelImage={novel?.novelImage || undefined}
+        tags={novel?.tags ?? []}
+        stats={{ rating: 0, bookmark: 0, comment: 0 }}
+      />
 
-      {/* Tabs */}
-      <div className="flex gap-6 text-[20px] h-[44px] mt-6 mb-4">
-        <button
-          onClick={() => setTab("Chapter")}
-          className={`cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
-            tab === "Chapter" ? "bg-[#2e2e2e]" : undefined
-          } w-[263px]`}
-        >
-          Đã Đăng
-        </button>
-        <button
-          onClick={() => setTab("Draft")}
-          className={`cursor-pointer hover:bg-gray-800 flex items-center justify-center rounded-[10px] ${
-            tab === "Draft" ? "bg-[#2e2e2e]" : undefined
-          } w-[263px]`}
-        >
-          Bản Nháp{" "}
-        </button>
-      </div>
-
-      <div className="flex items-center h-[54px] text-[18px] gap-6 pb-[20px] border-b-2 border-[#d9d9d9]">
-        <p className="flex items-center">Cập nhật gần nhất:</p>
-        <p className="flex items-center text-[#ff6740]">
-          Chương {lastChapter?.chapterNumber}: {lastChapter?.title}
-        </p>
-        <p className="flex items-center text-[#cfcfcf]">
-          {formatTicksToRelativeTime(lastChapter?.createAt!)}
-        </p>
-      </div>
-
-      {/* Chapter List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-[25px]">
-        {chapters
-          ?.filter((chapter) =>
-            tab === "Draft" ? chapter.isDraft : !chapter.isDraft
-          )
-          .map((chapter) => (
-            <div
-              key={chapter.chapterId}
-              className="h-[72px] rounded cursor-pointer hover:bg-gray-700 transition-colors duration-200"
-            >
-              <div className="flex items-center h-full px-4 border-b-2 border-[#d9d9d9] mr-10 justify-between">
-                <div className="flex items-center">
-                  {chapter.chapterNumber > 0 ? (
-                    <h1 className="w-[60px] text-[20px]">
-                      {chapter.chapterNumber}
-                    </h1>
-                  ) : undefined}
-                  <div className="ml-2">
-                    <p className="text-[18px] font-normal">{chapter.title}</p>
-                    <p className="text-sm text-gray-400">
-                      {formatTicksToRelativeTime(chapter.createAt)}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    navigate(
-                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
-                    )
-                  }
-                  className="cursor-pointer"
-                >
-                  <ModeEdit />
-                </button>
-              </div>
+      <section className="rounded-2xl ring-1 ring-white/12 bg-[#121212]/80 backdrop-blur-md shadow-[0_16px_52px_-20px_rgba(0,0,0,0.6)]">
+        <div className="px-3 md:px-4 pt-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="inline-flex rounded-xl overflow-hidden ring-1 ring-white/10">
+              <button
+                onClick={() => setTab("Chapter")}
+                className={[
+                  "px-4 py-2 text-[13.5px] md:text-[14px] transition",
+                  tab === "Chapter"
+                    ? "bg-white/15 text-white"
+                    : "bg-white/[0.06] text-white/80 hover:bg-white/10",
+                ].join(" ")}
+              >
+                Đã đăng <span className="ml-1 text-white/70">({published.length})</span>
+              </button>
+              <button
+                onClick={() => setTab("Draft")}
+                className={[
+                  "px-4 py-2 text-[13.5px] md:text-[14px] border-l border-white/10 transition",
+                  tab === "Draft"
+                    ? "bg-white/15 text-white"
+                    : "bg-white/[0.06] text-white/80 hover:bg-white/10",
+                ].join(" ")}
+              >
+                Bản nháp <span className="ml-1 text-white/70">({drafts.length})</span>
+              </button>
             </div>
-          ))}
-      </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSortDesc((v) => !v)}
+                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[12.5px] hover:bg-white/10 transition"
+                title="Đổi thứ tự chương"
+              >
+                <SwapVert
+                  className={`transition-transform ${sortDesc ? "rotate-180" : "rotate-0"}`}
+                  sx={{ width: 18, height: 18 }}
+                />
+                <span className="hidden md:inline">
+                  {sortDesc ? "Mới → Cũ" : "Cũ → Mới"}
+                </span>
+              </button>
+
+              <button
+                onClick={() => navigate(`/novels/writing-room/${novelId}/upsert-chapter`)}
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] ring-1 ring-white/10 bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90 transition"
+              >
+                <BookMark sx={{ width: 18, height: 18 }} />
+                Chương mới
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 border-t border-white/10" />
+
+        <div className="px-3 md:px-4 mt-3">
+          <div className="rounded-xl border border-white/12 bg-[#151618]/85 backdrop-blur px-4 py-3 flex flex-wrap items-center gap-3 shadow-[0_14px_40px_-22px_rgba(0,0,0,0.7)]">
+            <span className="text-[12px] font-semibold tracking-wide text-white/85 uppercase">
+              Cập nhật gần nhất
+            </span>
+            <span className="text-[13px] text-[#ff8a5f]">
+              {lastChapter ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}` : "—"}
+            </span>
+            <span className="text-white/40">•</span>
+            <span className="text-[12px] text-gray-400">
+              {lastChapter?.updateAt
+                ? formatTicksToRelativeTime(lastChapter.updateAt)
+                : lastChapter?.createAt
+                ? formatTicksToRelativeTime(lastChapter.createAt)
+                : ""}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3 md:p-4">
+          {isLoading || isFetching ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-14 rounded-xl bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : pageItems.length === 0 ? (
+            <div className="text-center py-10 text-white/60">
+              {tab === "Draft" ? "Chưa có bản nháp nào." : "Chưa có chương đã đăng."}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {pageItems.map((chapter, idx) => {
+                const isDraft = chapter.isDraft;
+                const onCardClick = () => {
+                  if (isDraft) {
+                    navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                  } else {
+                    navigate(`/novels/${novelId}/${chapter.chapterId}`);
+                  }
+                };
+                const onEditClick = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                };
+                const numberShown = isDraft ? idx + 1 : chapter.chapterNumber;
+
+                return (
+                  <button
+                    key={chapter.chapterId}
+                    onClick={onCardClick}
+                    className={[
+                      "group relative w-full overflow-hidden text-left rounded-2xl border px-4 py-3 transition backdrop-blur",
+                      "bg-[#141416]/92 hover:bg-[#17181b]/92",
+                      "border-white/12",
+                      "shadow-[0_18px_52px_-24px_rgba(0,0,0,0.75)] hover:shadow-[0_26px_72px_-28px_rgba(0,0,0,0.78)]",
+                    ].join(" ")}
+                    title={isDraft ? "Sửa chương nháp" : "Đọc chương"}
+                  >
+                    <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
+                      <div className="absolute -inset-[1px] rounded-2xl bg-[conic-gradient(from_150deg_at_50%_0%,rgba(255,255,255,0.06),transparent_30%)]" />
+                    </div>
+
+                    <div className="relative flex items-center gap-3">
+                      <div
+                        className={[
+                          "shrink-0 grid place-items-center h-9 w-9 rounded-xl border text-[12px] font-semibold",
+                          isDraft
+                            ? "bg-white/[0.06] border-white/10 text-white/85"
+                            : "bg-white/[0.08] border-white/14 text-white",
+                        ].join(" ")}
+                      >
+                        {numberShown}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-medium text-white">
+                          {chapter.title}
+                        </p>
+                        <p className="mt-1 text-[12px] text-gray-400">
+                          {chapter.updateAt
+                            ? formatTicksToRelativeTime(chapter.updateAt)
+                            : formatTicksToRelativeTime(chapter.createAt)}
+                        </p>
+                      </div>
+
+                      <div className="ml-2 flex items-center gap-2">
+                        {typeof chapter.price === "number" && chapter.price > 0 && (
+                          <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
+                            {chapter.price.toLocaleString("vi-VN")} xu
+                          </span>
+                        )}
+                        {!isDraft && (
+                          <button
+                            onClick={onEditClick}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border bg-white/[0.06] border-white/14 text-white/90 hover:bg-white/[0.14] transition"
+                            title="Chỉnh sửa chương"
+                            aria-label="Chỉnh sửa chương"
+                          >
+                            <ModeEdit sx={{ width: 16, height: 16 }} />
+                          </button>
+                        )}
+                      </div>
+
+                      {isDraft && (
+                        <span
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[11px] font-semibold text-white bg-gradient-to-r from-[#6a6f78] to-[#545b66] ring-1 ring-white/10 shadow-md"
+                          title="Nháp"
+                        >
+                          Nháp
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4">
+            <MiniPager
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onChange={(p) => {
+                console.log("goto page", p);
+              }}
+            />
+          </div>
+        </div>
+      </section>
     </div>
   );
-};
-
-export default CreateChapters;
+}
