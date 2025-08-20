@@ -6,6 +6,7 @@ import { formatTicksToDateString } from "../../../utils/date_format";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateChapterLock } from "../../../api/Chapters/chapter.api";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 
 interface DialogState {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const ChapterManagementPopup = ({
   error,
 }: ChapterManagementPopupProps) => {
   const queryClient = useQueryClient();
+  const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>([]);
   const [loadingChapterIds, setLoadingChapterIds] = useState<string[]>([]);
@@ -172,15 +174,19 @@ const ChapterManagementPopup = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-[#1e1e21] rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4"
+            className={`rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4 ${
+              darkMode ? "bg-[#1e1e21] text-white" : "bg-white text-gray-900"
+            }`}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-white">
-                Quản lý chương
-              </h2>
+              <h2 className="text-2xl font-semibold">Quản lý chương</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className={`${
+                  darkMode
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                } transition-colors`}
               >
                 <svg
                   className="w-6 h-6"
@@ -205,7 +211,11 @@ const ChapterManagementPopup = ({
                 placeholder="Tìm kiếm theo tiêu đề hoặc số chương..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:flex-1 p-2.5 border border-gray-600 rounded-lg bg-[#2a2a2e] text-white focus:ring-2 focus:ring-[#ff4d4f] focus:border-[#ff4d4f] transition-all"
+                className={`w-full sm:flex-1 p-2.5 rounded-lg border focus:ring-2 focus:ring-[#ff4d4f] focus:border-[#ff4d4f] transition-all ${
+                  darkMode
+                    ? "bg-[#2a2a2e] text-white border-gray-600"
+                    : "bg-gray-100 text-gray-900 border-gray-300"
+                }`}
               />
               <div className="flex justify-end">
                 <ActionButtons
@@ -219,7 +229,11 @@ const ChapterManagementPopup = ({
             </div>
 
             {isLoading ? (
-              <p className="text-gray-400 text-center py-8">
+              <p
+                className={`text-center py-8 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Đang tải chương...
               </p>
             ) : error ? (
@@ -227,11 +241,21 @@ const ChapterManagementPopup = ({
                 Không tải được danh sách chương
               </p>
             ) : filteredChapters.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">
+              <p
+                className={`text-center py-8 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Không có chương nào
               </p>
             ) : (
-              <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pr-2">
+              <div
+                className={`max-h-[400px] overflow-y-auto scrollbar-thin ${
+                  darkMode
+                    ? "scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+                    : "scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                } pr-2`}
+              >
                 <div className="flex flex-col gap-3">
                   {paginatedChapters.map((chapter) => (
                     <motion.div
@@ -239,7 +263,11 @@ const ChapterManagementPopup = ({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-[#2a2a2e] rounded-lg p-3 flex items-center gap-3 hover:bg-[#333337] transition-colors"
+                      className={`rounded-lg p-3 flex items-center gap-3 transition-colors ${
+                        darkMode
+                          ? "bg-[#2a2a2e] hover:bg-[#333337]"
+                          : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                     >
                       <label className="relative flex items-center cursor-pointer">
                         <input
@@ -252,7 +280,9 @@ const ChapterManagementPopup = ({
                           className={`w-4 h-4 rounded flex items-center justify-center border-2 ${
                             selectedChapterIds.includes(chapter.id)
                               ? "bg-[#ff4d4f] border-[#ff4d4f]"
-                              : "bg-[#2a2a2e] border-gray-400"
+                              : darkMode
+                              ? "bg-[#2a2a2e] border-gray-400"
+                              : "bg-gray-100 border-gray-400"
                           }`}
                           animate={{
                             scale: selectedChapterIds.includes(chapter.id)
@@ -291,7 +321,7 @@ const ChapterManagementPopup = ({
                                 chapter.is_lock ? "bg-gray-400" : "bg-green-400"
                               }`}
                             />
-                            <span className="text-base text-white font-medium">
+                            <span className="text-base font-medium">
                               Chương {chapter.chapter_number}: {chapter.title}
                             </span>
                             {loadingChapterIds.includes(chapter.id) && (
@@ -300,12 +330,18 @@ const ChapterManagementPopup = ({
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.8 }}
                                 transition={{ duration: 0.2 }}
-                                className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"
+                                className={`animate-spin rounded-full h-4 w-4 border-t-2 ${
+                                  darkMode ? "border-white" : "border-gray-900"
+                                }`}
                               />
                             )}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div
+                          className={`text-sm ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
                           <span>
                             Ngày tạo:{" "}
                             {formatTicksToDateString(chapter.created_at)}
@@ -326,11 +362,17 @@ const ChapterManagementPopup = ({
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    darkMode
+                      ? "bg-[#2a2a2e] text-white hover:bg-[#333337]"
+                      : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  }`}
                 >
                   Trước
                 </button>
-                <span className="text-white">
+                <span
+                  className={`${darkMode ? "text-white" : "text-gray-900"}`}
+                >
                   Trang {currentPage} / {totalPages}
                 </span>
                 <button
@@ -338,7 +380,11 @@ const ChapterManagementPopup = ({
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    darkMode
+                      ? "bg-[#2a2a2e] text-white hover:bg-[#333337]"
+                      : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  }`}
                 >
                   Sau
                 </button>

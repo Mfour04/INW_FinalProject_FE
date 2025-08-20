@@ -106,7 +106,6 @@ const ReportList = () => {
     const fetchUsers = async () => {
       setIsUsersLoading(true);
       setUsersError(null);
-      console.log("Đang tải thông tin người dùng...");
 
       try {
         const userIds = Array.from(
@@ -126,7 +125,6 @@ const ReportList = () => {
         for (const userId of userIds) {
           try {
             const response = await GetUserById(userId).then((res) => res.data);
-            console.log(`Dữ liệu người dùng cho ${userId}:`, response);
             usersData[userId] = response.displayName ?? "Không tìm thấy";
           } catch (err) {
             console.error(`Lỗi khi lấy thông tin người dùng ${userId}:`, {});
@@ -134,7 +132,6 @@ const ReportList = () => {
           }
         }
         setUsersMap(usersData);
-        console.log("Đã cập nhật usersMap:", usersData);
       } catch (err) {
         console.error("Lỗi khi tải danh sách người dùng:", err);
         setUsersError(
@@ -155,7 +152,6 @@ const ReportList = () => {
     const fetchNovels = async () => {
       setIsNovelsLoading(true);
       setNovelsError(null);
-      console.log("Loading novels...");
 
       try {
         const novelIds = Array.from(
@@ -177,7 +173,6 @@ const ReportList = () => {
             );
             novelsData[novelId] =
               response.data?.novelInfo?.title ?? "Không tìm thấy";
-            console.log(`Novel data for ${novelId}:`, response.data);
           } catch (err) {
             console.error(`Error fetching novel ${novelId}:`, err);
             novelsData[novelId] = "Failed to load novel";
@@ -202,7 +197,6 @@ const ReportList = () => {
     const fetchComments = async () => {
       setIsCommentsLoading(true);
       setCommentsError(null);
-      console.log("Loading comments...");
 
       try {
         const commentIds = Array.from(
@@ -224,7 +218,6 @@ const ReportList = () => {
             );
             commentsData[commentId] =
               response.data?.content ?? "Không tìm thấy";
-            console.log(`Comment data for ${commentId}:`, response.data);
           } catch (err) {
             console.error(`Error fetching comment ${commentId}:`, err);
             commentsData[commentId] = "Failed to load comment";
@@ -251,7 +244,6 @@ const ReportList = () => {
     const fetchChapters = async () => {
       setIsChaptersLoading(true);
       setChaptersError(null);
-      console.log("Loading chapters...");
 
       try {
         const chapterIds = Array.from(
@@ -273,10 +265,6 @@ const ReportList = () => {
             );
             chaptersData[chapterId] =
               response.data?.chapter.title ?? "Không tìm thấy";
-            console.log(
-              `Chapter data for ${chapterId}:`,
-              response.data.chapter
-            );
           } catch (err) {
             console.error(`Error fetching chapter ${chapterId}:`, err);
             chaptersData[chapterId] = "Failed to load chapter";
@@ -303,7 +291,6 @@ const ReportList = () => {
     const fetchPosts = async () => {
       setIsForumPostsLoading(true);
       setForumPostsError(null);
-      console.log("Loading posts...");
 
       try {
         const postIds = Array.from(
@@ -324,7 +311,6 @@ const ReportList = () => {
               (res) => res.data
             );
             postsData[postId] = response.data?.title ?? "Không tìm thấy";
-            console.log(`Post data for ${postId}:`, response.data);
           } catch (err) {
             console.error(`Error fetching post ${postId}:`, err);
             postsData[postId] = "Failed to load post";
@@ -351,7 +337,6 @@ const ReportList = () => {
     const fetchForumComments = async () => {
       setIsForumPostCommentsLoading(true);
       setForumPostCommentsError(null);
-      console.log("Loading comments...");
 
       try {
         const forumCommentIds = Array.from(
@@ -373,7 +358,6 @@ const ReportList = () => {
             );
             forumCommentsData[forumCommentId] =
               response.data?.content ?? "Không tìm thấy";
-            console.log(`Comment data for ${forumCommentId}:`, response.data);
           } catch (err) {
             console.error(`Error fetching comment ${forumCommentId}:`, err);
             forumCommentsData[forumCommentId] = "Failed to load comment";
@@ -393,16 +377,6 @@ const ReportList = () => {
     fetchForumComments();
   }, [reportsData, isLoading]);
 
-  useEffect(() => {
-    if (isLoading) {
-      console.log("Loading reports...");
-    } else if (error) {
-      console.error("Error fetching reports:", error);
-    } else {
-      console.log("Reports data:", reportsData);
-    }
-  }, [isLoading, error, reportsData]);
-
   // Lọc báo cáo theo tìm kiếm, trạng thái và loại báo cáo
   const filteredReports = (reportsData?.data || []).filter(
     (report: ReportEntity) => {
@@ -413,12 +387,6 @@ const ReportList = () => {
       const matchesStatus =
         statusFilter === "All" || report.status === statusFilter;
       const matchesType = typeFilter === "All" || report.type === typeFilter;
-      console.log(`Filtering report ${report.id}:`, {
-        type: report.type,
-        typeLabel: ReportTypeStatusLabels[report.type],
-        typeFilter,
-        matchesType,
-      });
       return matchesSearch && matchesStatus && matchesType;
     }
   );
@@ -446,7 +414,6 @@ const ReportList = () => {
   const handleTypeFilter = (value: ReportTypeStatus | "All") => {
     setTypeFilter(value);
     setCurrentPage(1);
-    console.log("Type filter set to:", value);
   };
 
   // Xử lý hành động Resolve/Reject

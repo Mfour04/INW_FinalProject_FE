@@ -25,6 +25,7 @@ export interface NovelAdmin {
   price: number;
   totalChapters: number;
   ratingCount: number;
+  Slug: string;
   [key: string]: unknown;
 }
 

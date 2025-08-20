@@ -19,8 +19,9 @@ import { GetReports } from "../../api/Admin/Report/report.api";
 import { GetPendingWithdrawRequests } from "../../api/Admin/Request/request.api";
 import { ReportStatus } from "../../api/Admin/Report/report.type";
 import { PaymentStatus } from "../../api/Admin/Request/request.type";
+import { useDarkMode } from "../../context/ThemeContext/ThemeContext";
 
-// Đăng ký các thành phần Chart.js
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,36 +33,7 @@ ChartJS.register(
   Legend
 );
 
-// Tùy chọn chung cho biểu đồ
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      labels: {
-        color: "#ffffff",
-      },
-    },
-    tooltip: {
-      backgroundColor: "#1a1a1c",
-      titleColor: "#ffffff",
-      bodyColor: "#ffffff",
-    },
-  },
-  scales: {
-    x: {
-      ticks: { color: "#ffffff" },
-      grid: { color: "rgba(255, 255, 255, 0.1)" },
-    },
-    y: {
-      ticks: { color: "#ffffff" },
-      grid: { color: "rgba(255, 255, 255, 0.1)" },
-      beginAtZero: true,
-    },
-  },
-};
-
-// Hàm lấy tên ngày trong tuần bằng tiếng Việt
+// Function to get Vietnamese weekday names
 const getVietnameseWeekday = (date: Date): string => {
   const weekdays = [
     "Chủ Nhật",
@@ -76,6 +48,41 @@ const getVietnameseWeekday = (date: Date): string => {
 };
 
 const AdminHome = () => {
+  const { darkMode } = useDarkMode();
+
+  // Theme-aware chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: darkMode ? "#ffffff" : "#000000",
+        },
+      },
+      tooltip: {
+        backgroundColor: darkMode ? "#1a1a1c" : "#ffffff",
+        titleColor: darkMode ? "#ffffff" : "#000000",
+        bodyColor: darkMode ? "#ffffff" : "#000000",
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: darkMode ? "#ffffff" : "#000000" },
+        grid: {
+          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+        },
+      },
+      y: {
+        ticks: { color: darkMode ? "#ffffff" : "#000000" },
+        grid: {
+          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+        },
+        beginAtZero: true,
+      },
+    },
+  };
+
   // Fetch dashboard data
   const {
     data: dashboardData,
@@ -131,7 +138,7 @@ const AdminHome = () => {
       (item: { weekday: string }) => item.weekday === todayWeekday
     )?.count || 0;
 
-  // Dữ liệu cho biểu đồ Người dùng mới (Line Chart)
+  // Data for New Users chart (Line Chart)
   const userChartData = {
     labels:
       isLoadingDashboard || !dashboardData
@@ -156,7 +163,7 @@ const AdminHome = () => {
     ],
   };
 
-  // Dữ liệu cho biểu đồ Tiểu thuyết mới (Bar Chart)
+  // Data for New Novels chart (Bar Chart)
   const novelChartData = {
     labels:
       isLoadingDashboard || !dashboardData
@@ -180,7 +187,7 @@ const AdminHome = () => {
     ],
   };
 
-  // Ref để chart canvas
+  // Chart canvas refs
   const chartRefs = {
     line: useRef(null),
     bar: useRef(null),
@@ -195,7 +202,7 @@ const AdminHome = () => {
     >
       <h1 className="text-3xl font-bold mb-8">Tổng quan Admin</h1>
 
-      {/* Thẻ thống kê nhanh */}
+      {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link to="/admin/users" className="block">
           <motion.div
@@ -273,7 +280,7 @@ const AdminHome = () => {
         </Link>
       </div>
 
-      {/* Biểu đồ */}
+      {/* Charts */}
       <div className="space-y-8">
         <div className="bg-white dark:bg-[#1a1a1c] p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold mb-4">
@@ -309,7 +316,7 @@ const AdminHome = () => {
         </div>
       </div>
 
-      {/* Tổng quan hệ thống */}
+      {/* System Overview */}
       <div className="mt-8 bg-white dark:bg-[#1a1a1c] p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-semibold mb-4">Tổng quan hệ thống</h2>
         <p className="text-gray-600 dark:text-gray-400">

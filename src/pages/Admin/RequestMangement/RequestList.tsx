@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
+import { useToast } from "../../../context/ToastContext/toast-context";
 import ActionButtons from "../AdminModal/ActionButtons";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import RequestFilterButtons from "./RequestFilterButton";
@@ -44,6 +46,8 @@ const inputVariants: Variants = {
 
 const RequestList = () => {
   const queryClient = useQueryClient();
+  const { darkMode } = useDarkMode();
+  const toast = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<PaymentStatus | "All">(
@@ -146,13 +150,18 @@ const RequestList = () => {
       UpdateWithdrawRequestStatus(requestId, { isApproved, message }).then(
         (res) => res.data
       ),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["PendingWithdrawRequests"] });
+      toast?.onOpen(
+        data.message ||
+          (dialog.type === "approve"
+            ? "Duyệt yêu cầu rút tiền thành công"
+            : "Từ chối yêu cầu rút tiền thành công")
+      );
       setDialog({ isOpen: false, type: null, title: "", requestId: null });
     },
-    onError: (err) => {
-      console.error("Update status error:", err);
-      alert("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
+    onError: (error: Error) => {
+      toast?.onOpen(error.message || "Cập nhật trạng thái yêu cầu thất bại");
       setDialog({ isOpen: false, type: null, title: "", requestId: null });
     },
   });
@@ -256,7 +265,7 @@ const RequestList = () => {
       (r: WithdrawRequest) => r.id === requestId
     );
     if (!request?.bankInfo) {
-      alert("Không có thông tin ngân hàng để tạo mã QR!");
+      toast?.onOpen("Không có thông tin ngân hàng để tạo mã QR!");
       return;
     }
     setQrDialog({
@@ -305,7 +314,9 @@ const RequestList = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white overflow-x-hidden"
+      className={`p-6 min-h-screen ${
+        darkMode ? "bg-[#0f0f11] text-white" : "bg-gray-100 text-gray-900"
+      } overflow-x-hidden`}
     >
       <motion.div
         initial={{ opacity: 0 }}
@@ -329,13 +340,13 @@ const RequestList = () => {
             placeholder="Tìm kiếm theo tên người dùng hoặc tên tài khoản ngân hàng..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-2.5 border border-gray-200 dark:border-gray-700 rounded-[10px] bg-white dark:bg-[#2e2e2e] text-gray-900 dark:text-white focus:ring-[#ff4d4f] dark:focus:ring-[#ff6740] focus:border-[#ff4d4f] dark:focus:border-[#ff6740]"
+            className={`w-full p-2.5 border rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#ff4d4f] dark:focus:ring-[#ff6740] ${
+              darkMode
+                ? "bg-[#2e2e2e] text-white border-gray-700"
+                : "bg-white text-gray-900 border-gray-200"
+            }`}
             variants={inputVariants}
-            whileFocus={
-              document.documentElement.classList.contains("dark")
-                ? "darkFocus"
-                : "focus"
-            }
+            whileFocus={darkMode ? "darkFocus" : "focus"}
           />
         </div>
         <div className="w-full sm:w-auto sm:flex-none max-w-fit">
@@ -352,7 +363,9 @@ const RequestList = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="text-gray-600 dark:text-gray-400 text-center"
+          className={`text-center ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}
         >
           <Spinner />
           <p className="mt-2">Đang tải...</p>
@@ -362,7 +375,9 @@ const RequestList = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="text-red-600 dark:text-red-400 text-center"
+          className={`text-center ${
+            darkMode ? "text-red-400" : "text-red-600"
+          }`}
         >
           Không thể tải danh sách yêu cầu
         </motion.p>
@@ -371,7 +386,9 @@ const RequestList = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="text-gray-600 dark:text-gray-400 text-center"
+          className={`text-center ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}
         >
           Không có yêu cầu nào
         </motion.p>
@@ -391,7 +408,11 @@ const RequestList = () => {
                   animate="visible"
                   exit="hidden"
                   whileHover="hover"
-                  className="h-[120px] bg-white dark:bg-[#2e2e2e] rounded-[10px] p-4 flex items-center gap-4 border border-gray-200 dark:border-gray-700"
+                  className={`h-[120px] rounded-[10px] p-4 flex items-center gap-4 border ${
+                    darkMode
+                      ? "bg-[#2e2e2e] border-gray-700"
+                      : "bg-white border-gray-200"
+                  }`}
                 >
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
@@ -408,7 +429,7 @@ const RequestList = () => {
                               : "bg-yellow-400"
                           }`}
                         />
-                        <span className="text-[18px] text-gray-900 dark:text-white">
+                        <span className="text-[18px]">
                           {request.requesterId && usersMap[request.requesterId]
                             ? usersMap[request.requesterId]
                             : "Không tìm thấy"}
@@ -425,7 +446,11 @@ const RequestList = () => {
                         {request.bankInfo && (
                           <motion.button
                             onClick={() => handleOpenQrDialog(request.id)}
-                            className="px-4 py-2 rounded-[5px] bg-[#ff4d4f] dark:bg-[#ff6740] text-white hover:bg-[#e64547] dark:hover:bg-[#e14b2e] flex items-center justify-center h-[35px]"
+                            className={`px-4 py-2 rounded-[5px] text-white ${
+                              darkMode
+                                ? "bg-[#ff6740] hover:bg-[#e14b2e]"
+                                : "bg-[#ff4d4f] hover:bg-[#e64547]"
+                            } flex items-center justify-center h-[35px]`}
                             title="Xem mã QR"
                             variants={buttonVariants}
                             whileHover="hover"
@@ -440,7 +465,11 @@ const RequestList = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-10 text-sm text-gray-600 dark:text-gray-400">
+                    <div
+                      className={`flex gap-10 text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       <div className="flex gap-4">
                         <span>Số tiền:</span>
                         <span>
@@ -487,6 +516,7 @@ const RequestList = () => {
         title={dialog.title}
         isLockAction={false}
         type="request"
+        isLoading={updateStatusMutation.isPending}
       />
 
       <AnimatePresence>
@@ -496,16 +526,20 @@ const RequestList = () => {
             animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
             exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="bg-white dark:bg-[#1a1a1c] rounded-[10px] shadow-lg p-6 max-w-lg w-full border border-gray-200 dark:border-gray-700"
+              className={`rounded-[10px] shadow-lg p-6 max-w-lg w-full border ${
+                darkMode
+                  ? "bg-[#1a1a1c] text-white border-gray-700"
+                  : "bg-white text-gray-900 border-gray-200"
+              }`}
             >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-semibold mb-4">
                 Mã QR cho yêu cầu của{" "}
                 {(() => {
                   const request = requestsData?.data.find(
@@ -525,7 +559,9 @@ const RequestList = () => {
                 {isQrLoading ? (
                   <Spinner />
                 ) : qrError ? (
-                  <p className="text-red-600 dark:text-red-400">
+                  <p
+                    className={`${darkMode ? "text-red-400" : "text-red-600"}`}
+                  >
                     Không thể tải mã QR
                   </p>
                 ) : (
@@ -545,7 +581,11 @@ const RequestList = () => {
               <div className="flex justify-end">
                 <motion.button
                   onClick={handleCloseQrDialog}
-                  className="px-4 py-2 rounded-[10px] bg-gray-200 dark:bg-[#2c2e2e] text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className={`px-4 py-2 rounded-[10px] ${
+                    darkMode
+                      ? "bg-[#2c2e2e] text-white hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  } transition-transform duration-200`}
                   variants={buttonVariants}
                   whileHover="hover"
                   whileTap="tap"

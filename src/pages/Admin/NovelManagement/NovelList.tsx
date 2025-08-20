@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DarkModeToggler } from "../../../components/DarkModeToggler";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import SearchBar from "../AdminModal/SearchBar";
 import DataTable from "../AdminModal/DataTable";
@@ -52,16 +52,16 @@ const keyToApiField: Record<keyof NovelAdmin, string> = {
   price: "price",
   totalChapters: "totalChapters",
   ratingCount: "ratingCount",
+  Slug: "slug",
 };
 
-// Memo hóa NovelTopSection
+// Memoize components
 const MemoizedNovelTopSection = memo(NovelTopSection);
-
-// Memo hóa Pagination
 const MemoizedPagination = memo(Pagination);
 
 const NovelList = () => {
   const queryClient = useQueryClient();
+  const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "Title",
@@ -139,9 +139,10 @@ const NovelList = () => {
       price: novel.price,
       totalChapters: novel.totalChapters,
       ratingCount: novel.ratingCount,
+      Slug: novel.slug,
     })) || [];
 
-  // Memo hóa mappedAllNovels để tránh tính toán lại
+  // Memoize mappedAllNovels to avoid recalculation
   const mappedAllNovels: NovelAdmin[] = useMemo(
     () =>
       allNovelsData?.data?.novels?.map((novel) => ({
@@ -169,6 +170,7 @@ const NovelList = () => {
         price: novel.price,
         totalChapters: novel.totalChapters,
         ratingCount: novel.ratingCount,
+        Slug: novel.slug,
       })) || [],
     [allNovelsData]
   );
@@ -199,6 +201,10 @@ const NovelList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["novels"] });
       queryClient.invalidateQueries({ queryKey: ["allNovels"] });
+      setDialog({ isOpen: false, type: null, title: "", novelId: null });
+    },
+    onError: () => {
+      setDialog({ isOpen: false, type: null, title: "", novelId: null });
     },
   });
 
@@ -246,7 +252,6 @@ const NovelList = () => {
       const isLocked = dialog.type === "lock";
       updateNovelLockMutation.mutate({ novelId: dialog.novelId, isLocked });
     }
-    setDialog({ isOpen: false, type: null, title: "", novelId: null });
   };
 
   const handleOpenChapterPopup = (novelId: string) => {
@@ -259,16 +264,30 @@ const NovelList = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white"
+      className={`p-6 min-h-screen ${
+        darkMode ? "bg-[#0f0f11] text-white" : "bg-gray-100 text-gray-900"
+      }`}
     >
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Quản lý truyện</h1>
         {/* <DarkModeToggler /> */}
       </div>
       {isLoadingAllNovels ? (
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        <p
+          className={`text-center ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
+          Đang tải...
+        </p>
       ) : allNovelsError ? (
-        <p className="text-red-600 dark:text-red-400">Failed to load novels</p>
+        <p
+          className={`text-center ${
+            darkMode ? "text-red-400" : "text-red-600"
+          }`}
+        >
+          Không thể tải danh sách truyện
+        </p>
       ) : (
         <>
           <MemoizedNovelTopSection
@@ -281,7 +300,9 @@ const NovelList = () => {
           {isLoadingNovels ? (
             <div className="text-center">
               <svg
-                className="animate-spin h-8 w-8 text-[#ff4d4f] mx-auto"
+                className={`animate-spin h-8 w-8 mx-auto ${
+                  darkMode ? "text-[#ff4d4f]" : "text-[#ff4d4f]"
+                }`}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -300,13 +321,21 @@ const NovelList = () => {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Loading...
+              <p
+                className={`mt-2 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Đang tải...
               </p>
             </div>
           ) : novelError ? (
-            <p className="text-red-600 dark:text-red-400">
-              Failed to load novels
+            <p
+              className={`text-center ${
+                darkMode ? "text-red-400" : "text-red-600"
+              }`}
+            >
+              Không thể tải danh sách truyện
             </p>
           ) : (
             <>
@@ -346,6 +375,7 @@ const NovelList = () => {
         title={dialog.title}
         isLockAction={dialog.type === "lock"}
         type="novel"
+        isLoading={updateNovelLockMutation.isPending}
       />
     </motion.div>
   );

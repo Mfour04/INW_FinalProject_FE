@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import SearchBar from "../AdminModal/SearchBar";
 import DataTable from "../AdminModal/DataTable";
@@ -63,6 +64,7 @@ const MemoizedPagination = memo(Pagination);
 const UserList = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "displayName",
@@ -172,13 +174,14 @@ const UserList = () => {
         (res) => res.data
       ),
     onSuccess: (data) => {
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["users"] });
-        queryClient.invalidateQueries({ queryKey: ["allUsers"] });
-        toast?.onOpen(data.message);
-      } else {
-        toast?.onOpen(data.message || "Cập nhật trạng thái khóa thất bại");
-      }
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      toast?.onOpen(data.message);
+      setDialog({ isOpen: false, type: null, title: "", userId: null });
+    },
+    onError: (error: Error) => {
+      toast?.onOpen(error.message || "Cập nhật trạng thái khóa thất bại");
+      setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
   });
 
@@ -213,7 +216,6 @@ const UserList = () => {
         durationType: durationType || "",
       });
     }
-    setDialog({ isOpen: false, type: null, title: "", userId: null });
   };
 
   return (
@@ -221,16 +223,30 @@ const UserList = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white"
+      className={`p-6 min-h-screen ${
+        darkMode ? "bg-[#0f0f11] text-white" : "bg-gray-100 text-gray-900"
+      }`}
     >
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
         {/* <DarkModeToggler /> */}
       </div>
       {isLoadingAllUsers ? (
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        <p
+          className={`text-center ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
+          Đang tải...
+        </p>
       ) : allUsersError ? (
-        <p className="text-red-600 dark:text-red-400">Failed to load users</p>
+        <p
+          className={`text-center ${
+            darkMode ? "text-red-400" : "text-red-600"
+          }`}
+        >
+          Không thể tải danh sách người dùng
+        </p>
       ) : (
         <>
           <MemoizedUserTopSection users={mappedAllUsers} />
@@ -240,7 +256,9 @@ const UserList = () => {
           {isLoadingUsers ? (
             <div className="text-center">
               <svg
-                className="animate-spin h-8 w-8 text-[#ff4d4f] mx-auto"
+                className={`animate-spin h-8 w-8 mx-auto ${
+                  darkMode ? "text-[#ff4d4f]" : "text-[#ff4d4f]"
+                }`}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -259,13 +277,21 @@ const UserList = () => {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Loading...
+              <p
+                className={`mt-2 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Đang tải...
               </p>
             </div>
           ) : userError ? (
-            <p className="text-red-600 dark:text-red-400">
-              Failed to load users
+            <p
+              className={`text-center ${
+                darkMode ? "text-red-400" : "text-red-600"
+              }`}
+            >
+              Không thể tải danh sách người dùng
             </p>
           ) : (
             <>
@@ -294,6 +320,7 @@ const UserList = () => {
         title={dialog.title}
         isLockAction={dialog.type === "lock"}
         type="user"
+        isLoading={updateBanUserMutation.isPending}
       />
     </motion.div>
   );
