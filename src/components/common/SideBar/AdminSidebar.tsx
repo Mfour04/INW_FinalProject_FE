@@ -10,7 +10,14 @@ import MenuClose from "../../../assets/img/AdminSidebar/cancel-01-stroke-rounded
 import HomeIcon from "../../../assets/img/AdminSidebar/home-01-stroke-rounded.svg";
 import WebsiteIcon from "../../../assets/img/icon_logo.png";
 import TransactionIcon from "../../../assets/img/AdminSidebar/transaction-stroke-rounded.svg";
+import UsersIconBlack from "../../../assets/img/AdminSidebar/user-group-02-stroke-rounded-black.svg";
+import NovelsIconBlack from "../../../assets/img/AdminSidebar/book-02-stroke-rounded-black.svg";
+import HomeIconBlack from "../../../assets/img/AdminSidebar/home-01-stroke-rounded-black.svg";
+import ReportsIconBlack from "../../../assets/img/AdminSidebar/complaint-stroke-rounded-black.svg";
+import WalletsIconBlack from "../../../assets/img/AdminSidebar/wallet-done-01-stroke-rounded-black.svg";
+import TransactionIconBlack from "../../../assets/img/AdminSidebar/transaction-stroke-rounded-black.svg";
 import type { MenuItem } from "./type";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -19,40 +26,41 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const { darkMode } = useDarkMode();
 
   const menuItems: MenuItem[] = [
     {
-      icon: HomeIcon,
+      icon: darkMode ? HomeIcon : HomeIconBlack,
       label: "Trang chủ",
       path: "/admin",
       isHeader: true,
     },
     {
-      icon: UsersIcon,
+      icon: darkMode ? UsersIcon : UsersIconBlack,
       label: "Người dùng",
       path: "/admin/users",
       isHeader: true,
     },
     {
-      icon: NovelsIcon,
+      icon: darkMode ? NovelsIcon : NovelsIconBlack,
       label: "Tiểu thuyết",
       path: "/admin/novels",
       isHeader: true,
     },
     {
-      icon: TransactionIcon,
+      icon: darkMode ? TransactionIcon : TransactionIconBlack,
       label: "Ngân sách",
       path: "/admin/transaction",
       isHeader: true,
     },
     {
-      icon: ReportsIcon,
+      icon: darkMode ? ReportsIcon : ReportsIconBlack,
       label: "Báo cáo",
       path: "/admin/reports",
       isHeader: true,
     },
     {
-      icon: WalletsIcon,
+      icon: darkMode ? WalletsIcon : WalletsIconBlack,
       label: "Yêu cầu",
       path: "/admin/wallets",
       isHeader: true,
@@ -70,11 +78,8 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         display: isOpen ? "flex" : window.innerWidth < 1024 ? "none" : "flex",
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`bg-white text-black dark:bg-[#1a1a1c] dark:text-white
-        flex flex-col h-full
-        fixed top-0 left-0 z-40 h-screen
-        lg:static lg:h-full
-        overflow-hidden`}
+      className={`flex flex-col h-full fixed top-0 left-0 z-40 h-screen lg:static lg:h-full overflow-hidden
+        ${darkMode ? "bg-[#1a1a1c] text-white" : "bg-white text-black"}`}
     >
       <div className="p-5 flex items-center justify-between">
         <AnimatePresence>
@@ -122,7 +127,11 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         </AnimatePresence>
       </div>
 
-      <div className="border-t border-[#3d3d3d] "></div>
+      <div
+        className={`border-t ${
+          darkMode ? "border-[#3d3d3d]" : "border-gray-200"
+        }`}
+      ></div>
       <div className="flex flex-col flex-1 py-4">
         {menuItems.map((item, index) => (
           <div key={index} className="mb-2">
@@ -132,7 +141,13 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                   to={item.path}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-1.5 mx-1.5 rounded-md cursor-pointer ${
-                      isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
+                      isActive
+                        ? darkMode
+                          ? "bg-[#ff6740] text-white"
+                          : "bg-[#ff6740] text-white"
+                        : darkMode
+                        ? "hover:bg-[#2c2c2c]"
+                        : "hover:bg-gray-100"
                     }`
                   }
                   onClick={() =>
@@ -176,7 +191,13 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                       to={subItem.path}
                       className={({ isActive }) =>
                         `flex items-center px-5 py-2 ml-4 mt-1 mr-1.5 rounded-md ${
-                          isActive ? "bg-[#ff6740]" : "hover:bg-[#2c2c2c]"
+                          isActive
+                            ? darkMode
+                              ? "bg-[#ff6740] text-white"
+                              : "bg-[#ff6740] text-white"
+                            : darkMode
+                            ? "hover:bg-[#2c2c2c]"
+                            : "hover:bg-gray-100"
                         }`
                       }
                     >
