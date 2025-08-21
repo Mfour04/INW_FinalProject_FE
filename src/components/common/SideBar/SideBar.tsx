@@ -58,9 +58,10 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/inkwave",
       isHeader: true,
       subItems: [
-        { label: "Nội quy", path: "/inkwave/rules" },
-        { label: "Về chúng tôi", path: "/inkwave/about" },
-        { label: "Liên hệ", path: "/inkwave/contact" },
+        { label: "Giới thiệu", path: "/about" },
+        { label: "Liên hệ", path: "/rules" },
+        { label: "Nội quy", path: "/about" },
+        { label: "Điều khoản", path: "/contact" },
       ],
     },
   ];

@@ -26,11 +26,19 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
+import AboutUs from "../pages/Info/AboutUs";
+import Contact from "../pages/Info/Contact";
+import Rules from "../pages/Info/Rules";
+import Terms from "../pages/Info/Terms";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutUs />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/rules" element={<Rules />} />
+      <Route path="/terms" element={<Terms />} />
       <Route
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}
