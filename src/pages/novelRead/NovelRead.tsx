@@ -16,6 +16,7 @@ import { ReaderPrefs } from "./components/ReaderPrefs";
 import { SpeechControls } from "./components/SpeechControls";
 import { CommentUser } from "../commentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
+import { renderTextWithNewlines } from "./util";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
@@ -45,7 +46,6 @@ export const NovelRead = () => {
     DEFAULTS.widthIdx
   );
 
-  // 1) Tắt scrollRestoration để luôn chủ động cuộn
   useEffect(() => {
     const prev = history.scrollRestoration;
     try {
@@ -58,7 +58,6 @@ export const NovelRead = () => {
     };
   }, []);
 
-  // 2) Neo ở đầu trang để scroll mượt đến đúng phần header/tên truyện
   const pageTopRef = useRef<HTMLDivElement | null>(null);
 
   const { data: novelInfo } = useQuery({
@@ -324,7 +323,9 @@ export const NovelRead = () => {
                     <div
                       className="[&>p]:mb-3.5 [&>p]:leading-relaxed [&>h2]:mt-6 [&>h2]:mb-2.5 [&>h3]:mt-5 [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-6 [&_img]:rounded-xl [&_img]:my-4"
                       dangerouslySetInnerHTML={{
-                        __html: data?.chapter?.content || "",
+                        __html: renderTextWithNewlines(
+                          data?.chapter?.content || ""
+                        ),
                       }}
                     />
                   </div>
