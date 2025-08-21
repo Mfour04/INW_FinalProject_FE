@@ -27,9 +27,9 @@ import { NovelRead } from "../pages/novelRead/NovelRead";
 import { UserProfile } from "../pages/userProfile/UserProfile";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
-import { Contact } from "lucide-react";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
+import { Contact } from "../pages/Info/Contact";
 
 export const Router = () => {
   return (
