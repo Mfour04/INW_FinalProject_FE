@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { DarkModeToggler } from "../../../components/DarkModeToggler";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -16,6 +15,7 @@ import {
   GetTransactionSummary,
   GetTransactionChart,
 } from "../../../api/Transaction/transaction.api";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 
 ChartJS.register(
   CategoryScale,
@@ -27,51 +27,24 @@ ChartJS.register(
 );
 
 const TransactionList = () => {
+  const { darkMode } = useDarkMode();
   const [range, setRange] = useState<"day" | "month">("day");
   const startDate = "2025-08-01";
   const endDate = "2025-08-31";
 
-  // API cho card
-  const {
-    data: summaryData,
-    isLoading: isSummaryLoading,
-    error: summaryError,
-  } = useQuery({
+  // API for summary cards
+  const { data: summaryData, isLoading: isSummaryLoading } = useQuery({
     queryKey: ["TransactionSummary", startDate, endDate],
     queryFn: () =>
       GetTransactionSummary(startDate, endDate).then((res) => res.data),
   });
 
-  // API cho chart
-  const {
-    data: chartData,
-    isLoading: isChartLoading,
-    error: chartError,
-  } = useQuery({
+  // API for chart data
+  const { data: chartData, isLoading: isChartLoading } = useQuery({
     queryKey: ["TransactionChart", range, startDate, endDate],
     queryFn: () =>
       GetTransactionChart(range, startDate, endDate).then((res) => res.data),
   });
-
-  useEffect(() => {
-    if (isSummaryLoading || isChartLoading) {
-      console.log("Loading transaction data...");
-    } else if (summaryError) {
-      console.error("Error fetching summary data:", summaryError);
-    } else if (chartError) {
-      console.error("Error fetching chart data:", chartError);
-    } else {
-      console.log("Summary data:", summaryData);
-      console.log("Chart data:", chartData);
-    }
-  }, [
-    isSummaryLoading,
-    isChartLoading,
-    summaryError,
-    chartError,
-    summaryData,
-    chartData,
-  ]);
 
   const data = {
     labels:
@@ -113,33 +86,33 @@ const TransactionList = () => {
       legend: {
         position: "top" as const,
         labels: {
-          color: "#ffffff",
+          color: darkMode ? "#ffffff" : "#000000",
         },
       },
       tooltip: {
-        backgroundColor: "#1a1a1c",
-        titleColor: "#ffffff",
-        bodyColor: "#ffffff",
-        borderColor: "#4b4b4b",
+        backgroundColor: darkMode ? "#1a1a1c" : "#ffffff",
+        titleColor: darkMode ? "#ffffff" : "#000000",
+        bodyColor: darkMode ? "#ffffff" : "#000000",
+        borderColor: darkMode ? "#4b4b4b" : "#d1d5db",
         borderWidth: 1,
       },
     },
     scales: {
       x: {
         grid: {
-          color: "#4b4b4b",
+          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
         },
         ticks: {
-          color: "#ffffff",
+          color: darkMode ? "#ffffff" : "#000000",
         },
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: "#4b4b4b",
+          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
         },
         ticks: {
-          color: "#ffffff",
+          color: darkMode ? "#ffffff" : "#000000",
         },
       },
     },
@@ -212,7 +185,11 @@ const TransactionList = () => {
           <select
             value={range}
             onChange={(e) => setRange(e.target.value as "day" | "month")}
-            className="p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-[#1a1a1c] text-gray-900 dark:text-gray-100 focus:ring-[#ff4d4f] focus:border-[#ff4d4f]"
+            className={`p-2 border rounded-md focus:ring-[#ff4d4f] focus:border-[#ff4d4f] ${
+              darkMode
+                ? "bg-[#1a1a1c] text-gray-100 border-gray-700"
+                : "bg-white text-gray-900 border-gray-200"
+            }`}
           >
             <option value="day">Theo ngày</option>
             <option value="month">Theo tháng</option>
