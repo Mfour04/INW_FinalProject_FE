@@ -59,9 +59,9 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       isHeader: true,
       subItems: [
         { label: "Giới thiệu", path: "/about" },
-        { label: "Liên hệ", path: "/rules" },
-        { label: "Nội quy", path: "/about" },
-        { label: "Điều khoản", path: "/contact" },
+        { label: "Liên hệ", path: "/contact" },
+        { label: "Nội quy", path: "/rules" },
+        { label: "Điều khoản", path: "/terms" },
       ],
     },
   ];

@@ -1,12 +1,16 @@
 // Contact.tsx
 import React, { useState } from "react";
-import { Mail, Phone, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { gradient, textGradient } from "./constant";
 
-const gradient = "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a]";
-const textGradient =
-  "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] bg-clip-text text-transparent";
-
-export default function Contact() {
+export const Contact = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -15,7 +19,9 @@ export default function Contact() {
     website: "", // honeypot
   });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [statusMsg, setStatusMsg] = useState("");
 
   const onChange =
@@ -29,7 +35,8 @@ export default function Contact() {
     const next: typeof errors = {};
     if (!form.name.trim()) next.name = "Vui lòng nhập họ tên.";
     if (!form.email.trim()) next.email = "Vui lòng nhập email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = "Email không hợp lệ.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      next.email = "Email không hợp lệ.";
     if (!form.message.trim()) next.message = "Hãy nhập nội dung cần liên hệ.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -64,7 +71,8 @@ export default function Contact() {
             Liên hệ <span className={textGradient}>Inkwave</span>
           </h1>
           <p className="mt-2 text-sm md:text-base text-white/70 max-w-2xl">
-            Gửi câu hỏi, góp ý hoặc hợp tác. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+            Gửi câu hỏi, góp ý hoặc hợp tác. Chúng tôi sẽ phản hồi trong thời
+            gian sớm nhất.
           </p>
         </div>
       </header>
@@ -89,7 +97,9 @@ export default function Contact() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="text-sm text-white/70">Họ tên *</label>
+                  <label htmlFor="name" className="text-sm text-white/70">
+                    Họ tên *
+                  </label>
                   <input
                     id="name"
                     type="text"
@@ -98,10 +108,14 @@ export default function Contact() {
                     className="mt-1 w-full rounded-xl bg-[#101114] border border-white/10 px-4 py-3 text-sm outline-none focus:border-white/20"
                     placeholder="Nhập tên của bạn"
                   />
-                  {errors.name && <p className="mt-1 text-xs text-red-400">{errors.name}</p>}
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-red-400">{errors.name}</p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="email" className="text-sm text-white/70">Email *</label>
+                  <label htmlFor="email" className="text-sm text-white/70">
+                    Email *
+                  </label>
                   <input
                     id="email"
                     type="email"
@@ -110,12 +124,16 @@ export default function Contact() {
                     className="mt-1 w-full rounded-xl bg-[#101114] border border-white/10 px-4 py-3 text-sm outline-none focus:border-white/20"
                     placeholder="Nhập địa chỉ email của bạn"
                   />
-                  {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-400">{errors.email}</p>
+                  )}
                 </div>
               </div>
 
               <div className="mt-4">
-                <label htmlFor="subject" className="text-sm text-white/70">Tiêu đề</label>
+                <label htmlFor="subject" className="text-sm text-white/70">
+                  Tiêu đề
+                </label>
                 <input
                   id="subject"
                   type="text"
@@ -127,7 +145,9 @@ export default function Contact() {
               </div>
 
               <div className="mt-4">
-                <label htmlFor="message" className="text-sm text-white/70">Nội dung *</label>
+                <label htmlFor="message" className="text-sm text-white/70">
+                  Nội dung *
+                </label>
                 <textarea
                   id="message"
                   value={form.message}
@@ -137,7 +157,9 @@ export default function Contact() {
                   className="mt-1 w-full rounded-xl bg-[#101114] border border-white/10 px-4 py-3 text-sm outline-none focus:border-white/20 resize-none"
                   placeholder="Mô tả ngắn gọn, kèm thông tin cần thiết…"
                 />
-                {errors.message && <p className="mt-1 text-xs text-red-400">{errors.message}</p>}
+                {errors.message && (
+                  <p className="mt-1 text-xs text-red-400">{errors.message}</p>
+                )}
                 <p className="mt-1 text-xs text-white/50 text-right">
                   {form.message.length}/2000
                 </p>
@@ -184,13 +206,18 @@ export default function Contact() {
           {/* Info + Tips */}
           <aside className="lg:col-span-2 space-y-4">
             <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-5">
-              <h2 className="text-base font-semibold text-white">Thông tin liên hệ</h2>
+              <h2 className="text-base font-semibold text-white">
+                Thông tin liên hệ
+              </h2>
               <ul className="mt-3 space-y-3 text-sm">
                 <li className="flex items-start gap-3">
                   <Mail className="h-5 w-5 text-white/70 mt-0.5" />
                   <div>
                     <div className="text-white/70">Email</div>
-                    <a href="mailto:hello@your-domain.vn" className="text-white hover:underline">
+                    <a
+                      href="mailto:hello@your-domain.vn"
+                      className="text-white hover:underline"
+                    >
                       hello@your-domain.vn
                     </a>
                   </div>
@@ -230,4 +257,4 @@ export default function Contact() {
       </main>
     </div>
   );
-}
+};

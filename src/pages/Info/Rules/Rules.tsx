@@ -1,68 +1,12 @@
 // Rules.tsx
-import React from "react";
-import {
-  ShieldCheck,
-  AlertTriangle,
-  FileWarning,
-  Mail,
-  Info,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
+import { FileWarning, Mail, Info, Clock } from "lucide-react";
+import { textGradient } from "../constant";
+import { Section } from "./component/Section";
+import { RuleItem } from "./component/RuleItem";
+import { Good } from "./component/Good";
+import { Bad } from "./component/Bad";
 
-const gradient = "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a]";
-const textGradient =
-  "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] bg-clip-text text-transparent";
-
-const Section = ({
-  id,
-  title,
-  desc,
-  children,
-}: {
-  id: string;
-  title: string;
-  desc?: string;
-  children?: React.ReactNode;
-}) => (
-  <section
-    id={id}
-    className="scroll-mt-24 rounded-2xl bg-white/[0.03] border border-white/10 p-5 md:p-6"
-    aria-labelledby={`${id}-title`}
-  >
-    <h2
-      id={`${id}-title`}
-      className="text-lg md:text-xl font-semibold text-white"
-    >
-      {title}
-    </h2>
-    {desc && <p className="mt-2 text-sm text-white/70">{desc}</p>}
-    <div className="mt-4 space-y-3">{children}</div>
-  </section>
-);
-
-const RuleItem = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex gap-3">
-    <CheckCircle2 className="mt-0.5 h-4 w-4 text-white/60" />
-    <span className="text-sm text-white/80">{children}</span>
-  </li>
-);
-
-const Bad = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center gap-1 rounded-md border border-red-400/30 px-2 py-0.5 text-xs text-red-300 bg-red-400/10">
-    <AlertTriangle className="h-3.5 w-3.5" />
-    {children}
-  </span>
-);
-
-const Good = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/30 px-2 py-0.5 text-xs text-emerald-300 bg-emerald-400/10">
-    <ShieldCheck className="h-3.5 w-3.5" />
-    {children}
-  </span>
-);
-
-export default function Rules() {
+export const Rules = () => {
   const updatedAt = "21/08/2025";
 
   return (
@@ -162,8 +106,8 @@ export default function Rules() {
         >
           <ul className="space-y-2">
             <RuleItem>
-              Khuyến khích bạo lực cực đoan, khủng bố, buôn bán chất cấm, vũ khí,
-              hoặc hoạt động tội phạm.
+              Khuyến khích bạo lực cực đoan, khủng bố, buôn bán chất cấm, vũ
+              khí, hoặc hoạt động tội phạm.
             </RuleItem>
             <RuleItem>
               Ấn phẩm khiêu dâm trẻ vị thành niên, bóc lột, hoặc xâm phạm quyền
@@ -276,8 +220,8 @@ Ngày:`}</pre>
               Chúng tôi ưu tiên báo cáo có bằng chứng rõ ràng và mô tả chi tiết.
             </RuleItem>
             <RuleItem>
-              Không lạm dụng chức năng báo cáo; báo cáo sai sự thật có thể bị chế
-              tài.
+              Không lạm dụng chức năng báo cáo; báo cáo sai sự thật có thể bị
+              chế tài.
             </RuleItem>
           </ul>
           <a
@@ -325,7 +269,8 @@ Ngày:`}</pre>
               Đính kèm ID nội dung, lý do khiếu nại, lập luận và bằng chứng.
             </RuleItem>
             <RuleItem>
-              Chúng tôi sẽ phản hồi trong 7 ngày làm việc cho hầu hết trường hợp.
+              Chúng tôi sẽ phản hồi trong 7 ngày làm việc cho hầu hết trường
+              hợp.
             </RuleItem>
           </ul>
           <div className="mt-3 text-xs text-white/60">
@@ -355,7 +300,10 @@ Ngày:`}</pre>
         <Section id="contact" title="Liên hệ">
           <div className="text-sm text-white/80">
             Cần giải đáp thêm? Gửi email về{" "}
-            <a href="mailto:hello@your-domain.vn" className="underline text-white">
+            <a
+              href="mailto:hello@your-domain.vn"
+              className="underline text-white"
+            >
               hello@your-domain.vn
             </a>
             .
@@ -364,4 +312,4 @@ Ngày:`}</pre>
       </main>
     </div>
   );
-}
+};

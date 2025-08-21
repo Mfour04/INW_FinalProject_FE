@@ -1,49 +1,10 @@
 // Terms.tsx
-import React from "react";
-import {
-  ShieldCheck,
-  AlertTriangle,
-  Info,
-  CheckCircle2,
-  Clock,
-  Gavel,
-  Scale,
-  Receipt,
-  CreditCard,
-  UserCircle2,
-  Mail,
-} from "lucide-react";
+import { Clock, Receipt, CreditCard } from "lucide-react";
+import { textGradient } from "../constant";
+import { Section } from "./component/Section";
+import { Bullet } from "./component/Bullet";
 
-const textGradient =
-  "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] bg-clip-text text-transparent";
-const pill = "rounded-2xl bg-white/[0.03] border border-white/10";
-
-const Section = ({
-  id,
-  title,
-  children,
-}: {
-  id: string;
-  title: string;
-  children?: React.ReactNode;
-}) => (
-  <section id={id} className={`${pill} p-5 md:p-6 scroll-mt-24`}>
-    <h2 className="flex items-center gap-2 text-lg md:text-xl font-semibold text-white">
-      <ShieldCheck className="h-5 w-5" />
-      {title}
-    </h2>
-    <div className="mt-3 space-y-2 text-sm text-white/80">{children}</div>
-  </section>
-);
-
-const Bullet = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex gap-2">
-    <CheckCircle2 className="h-5 w-5 shrink-0 text-white/60" />
-    <span>{children}</span>
-  </li>
-);
-
-export default function Terms() {
+export const Terms = () => {
   const updatedAt = "21/08/2025";
 
   return (
@@ -54,7 +15,8 @@ export default function Terms() {
             Điều khoản <span className={textGradient}>Inkwave</span>
           </h1>
           <p className="mt-2 text-sm text-white/70">
-            Vui lòng đọc kỹ trước khi sử dụng dịch vụ đọc & sáng tác trên Inkwave.
+            Vui lòng đọc kỹ trước khi sử dụng dịch vụ đọc & sáng tác trên
+            Inkwave.
           </p>
           <div className="mt-3 flex items-center gap-2 text-xs text-white/50">
             <Clock className="h-4 w-4" />
@@ -66,7 +28,9 @@ export default function Terms() {
       <main className="mx-auto max-w-5xl px-2 py-5 md:py-7 space-y-4">
         <Section id="acceptance" title="1. Chấp nhận điều khoản">
           <ul className="space-y-1">
-            <Bullet>Sử dụng Inkwave đồng nghĩa bạn đồng ý với điều khoản này.</Bullet>
+            <Bullet>
+              Sử dụng Inkwave đồng nghĩa bạn đồng ý với điều khoản này.
+            </Bullet>
             <Bullet>Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.</Bullet>
           </ul>
         </Section>
@@ -74,32 +38,47 @@ export default function Terms() {
         <Section id="account" title="2. Tài khoản & Bảo mật">
           <ul className="space-y-1">
             <Bullet>Bạn cần từ 13 tuổi trở lên để tạo tài khoản.</Bullet>
-            <Bullet>Tự chịu trách nhiệm với mật khẩu và hoạt động trên tài khoản.</Bullet>
+            <Bullet>
+              Tự chịu trách nhiệm với mật khẩu và hoạt động trên tài khoản.
+            </Bullet>
             <Bullet>Thông tin đăng ký phải chính xác, không mạo danh.</Bullet>
           </ul>
         </Section>
 
         <Section id="content" title="3. Nội dung người dùng">
           <ul className="space-y-1">
-            <Bullet>Bạn giữ bản quyền nội dung mình tạo (truyện, bình luận...).</Bullet>
-            <Bullet>Khi đăng tải, bạn cho phép Inkwave hiển thị & phân phối nội dung.</Bullet>
-            <Bullet>Nội dung không được vi phạm pháp luật hoặc quyền của người khác.</Bullet>
+            <Bullet>
+              Bạn giữ bản quyền nội dung mình tạo (truyện, bình luận...).
+            </Bullet>
+            <Bullet>
+              Khi đăng tải, bạn cho phép Inkwave hiển thị & phân phối nội dung.
+            </Bullet>
+            <Bullet>
+              Nội dung không được vi phạm pháp luật hoặc quyền của người khác.
+            </Bullet>
           </ul>
         </Section>
 
         <Section id="prohibited" title="4. Hành vi cấm">
           <ul className="space-y-1">
             <Bullet>Phát tán mã độc, hack hệ thống, lừa đảo, gian lận.</Bullet>
-            <Bullet>Nội dung thù ghét, khiêu dâm trẻ vị thành niên, doxxing.</Bullet>
+            <Bullet>
+              Nội dung thù ghét, khiêu dâm trẻ vị thành niên, doxxing.
+            </Bullet>
             <Bullet>Sao chép, mạo danh hoặc vi phạm bản quyền.</Bullet>
           </ul>
         </Section>
 
         <Section id="payment" title="5. Thanh toán & Coin">
           <ul className="space-y-1">
-              <Bullet>Bạn nạp Coin qua các mệnh giá có sẵn trên web.</Bullet>
-              <Bullet>Coin dùng để mua truyện hoặc có thể yêu cầu rút ra tiền.</Bullet>
-              <Bullet>Yêu cầu rút Coin phải tuân thủ hướng dẫn và kiểm duyệt của Inkwave.</Bullet>
+            <Bullet>Bạn nạp Coin qua các mệnh giá có sẵn trên web.</Bullet>
+            <Bullet>
+              Coin dùng để mua truyện hoặc có thể yêu cầu rút ra tiền.
+            </Bullet>
+            <Bullet>
+              Yêu cầu rút Coin phải tuân thủ hướng dẫn và kiểm duyệt của
+              Inkwave.
+            </Bullet>
           </ul>
           <div className="mt-2 text-xs text-white/70 flex flex-col gap-1">
             <div className="flex items-center gap-2">
@@ -122,15 +101,24 @@ export default function Terms() {
 
         <Section id="moderation" title="7. Kiểm duyệt & Chấm dứt">
           <ul className="space-y-1">
-            <Bullet>Chúng tôi có thể xóa nội dung, khóa tài khoản khi vi phạm.</Bullet>
-            <Bullet>Bạn có thể khiếu nại qua email kèm ID và bằng chứng.</Bullet>
+            <Bullet>
+              Chúng tôi có thể xóa nội dung, khóa tài khoản khi vi phạm.
+            </Bullet>
+            <Bullet>
+              Bạn có thể khiếu nại qua email kèm ID và bằng chứng.
+            </Bullet>
           </ul>
         </Section>
 
         <Section id="disclaimer" title="8. Miễn trừ trách nhiệm">
           <ul className="space-y-1">
-            <Bullet>Dịch vụ có thể gián đoạn hoặc lỗi, không đảm bảo mọi nhu cầu.</Bullet>
-            <Bullet>Không chịu trách nhiệm với thiệt hại phát sinh ngoài khả năng pháp luật cho phép.</Bullet>
+            <Bullet>
+              Dịch vụ có thể gián đoạn hoặc lỗi, không đảm bảo mọi nhu cầu.
+            </Bullet>
+            <Bullet>
+              Không chịu trách nhiệm với thiệt hại phát sinh ngoài khả năng pháp
+              luật cho phép.
+            </Bullet>
           </ul>
         </Section>
 
@@ -144,13 +132,16 @@ export default function Terms() {
         <Section id="contact" title="Liên hệ">
           <div className="text-sm text-white/80">
             Cần giải đáp thêm? Gửi email về{" "}
-            <a href="mailto:hello@your-domain.vn" className="underline text-white">
+            <a
+              href="mailto:hello@your-domain.vn"
+              className="underline text-white"
+            >
               hello@your-domain.vn
             </a>
-              .
+            .
           </div>
         </Section>
       </main>
     </div>
   );
-}
+};
