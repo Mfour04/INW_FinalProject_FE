@@ -6,23 +6,25 @@ import { GetChapter, GetChapters } from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
 import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
-import { ChapterListModal } from "./ChapterListModal";
-import { CommentUser } from "../CommentUser/CommentUser";
 
 import { useSpeech } from "react-text-to-speech";
 import { htmlToPlainText } from "../../utils/text-speech";
 import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
 import { SpeechControls } from "./components/SpeechControls";
-import { useReadingProcess } from "./hooks/useReadingProcess";
+import { CommentUser } from "../commentUser/CommentUser";
+import { ChapterListModal } from "./ChapterListModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
 
 export const NovelRead = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [speechState, setSpeechState] = useState<"started" | "paused" | "stopped">("stopped");
+  const [speechState, setSpeechState] = useState<
+    "started" | "paused" | "stopped"
+  >("stopped");
   const [openPrefs, setOpenPrefs] = useState(false);
 
   const { novelId, chapterId } = useParams();
@@ -30,15 +32,30 @@ export const NovelRead = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const [fontSize, setFontSize] = useLocalStorageState<number>("reader:fontSize", DEFAULTS.fontSize);
-  const [lineHeight, setLineHeight] = useLocalStorageState<number>("reader:lineHeight", DEFAULTS.lineHeight);
-  const [widthIdx, setWidthIdx] = useLocalStorageState<number>("reader:widthIdx", DEFAULTS.widthIdx);
+  const [fontSize, setFontSize] = useLocalStorageState<number>(
+    "reader:fontSize",
+    DEFAULTS.fontSize
+  );
+  const [lineHeight, setLineHeight] = useLocalStorageState<number>(
+    "reader:lineHeight",
+    DEFAULTS.lineHeight
+  );
+  const [widthIdx, setWidthIdx] = useLocalStorageState<number>(
+    "reader:widthIdx",
+    DEFAULTS.widthIdx
+  );
 
   // 1) Tắt scrollRestoration để luôn chủ động cuộn
   useEffect(() => {
     const prev = history.scrollRestoration;
-    try { history.scrollRestoration = "manual"; } catch {}
-    return () => { try { history.scrollRestoration = prev as ScrollRestoration; } catch {} };
+    try {
+      history.scrollRestoration = "manual";
+    } catch {}
+    return () => {
+      try {
+        history.scrollRestoration = prev as ScrollRestoration;
+      } catch {}
+    };
   }, []);
 
   // 2) Neo ở đầu trang để scroll mượt đến đúng phần header/tên truyện
@@ -80,14 +97,17 @@ export const NovelRead = () => {
   const { data: ReadingProcess } = useQuery({
     queryKey: ["readingProcess", auth?.user?.userId],
     queryFn: () =>
-      import("../../api/ReadingHistory/reading.api").then(({ GetReadingProcess }) =>
-        GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
+      import("../../api/ReadingHistory/reading.api").then(
+        ({ GetReadingProcess }) =>
+          GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
       ),
     enabled: !!auth?.user?.userId,
   });
 
   const isCurrentNovel = Array.isArray(ReadingProcess?.data)
-    ? !!ReadingProcess.data.find((p: any) => p.novelId === novelInfo?.novelInfo?.novelId)
+    ? !!ReadingProcess.data.find(
+        (p: any) => p.novelId === novelInfo?.novelInfo?.novelId
+      )
     : false;
 
   useReadingProcess({
@@ -136,18 +156,21 @@ export const NovelRead = () => {
     0;
 
   const hasPrev = finalChapterList.some((chap: any) => {
-    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n =
+      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber - 1;
   });
   const hasNext = finalChapterList.some((chap: any) => {
-    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n =
+      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber + 1;
   });
 
   const handleGoToChapterNumber = (offset: number) => {
     if (!finalChapterList || currentNumber === 0) return;
     const next = finalChapterList.find((chap: any) => {
-      const cnum = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+      const cnum =
+        "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
       return cnum === currentNumber + offset;
     });
     if (!next) return;
@@ -171,7 +194,10 @@ export const NovelRead = () => {
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest?.("[data-reader-prefs]") && !target.closest?.("[data-reader-prefs-trigger]")) {
+      if (
+        !target.closest?.("[data-reader-prefs]") &&
+        !target.closest?.("[data-reader-prefs-trigger]")
+      ) {
         setOpenPrefs(false);
       }
     };
@@ -274,9 +300,15 @@ export const NovelRead = () => {
 
           <div className="px-0 md:px-6 py-6 bg-[#0f1013]/80">
             {isChapterLoading ? (
-              <div className="w-full mx-auto space-y-3 px-6" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+              <div
+                className="w-full mx-auto space-y-3 px-6"
+                style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+              >
                 {[...Array(10)].map((_, i) => (
-                  <div key={i} className="h-4.5 rounded bg-white/5 animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-4.5 rounded bg-white/5 animate-pulse"
+                  />
                 ))}
               </div>
             ) : (
@@ -284,11 +316,16 @@ export const NovelRead = () => {
                 className="w-full mx-auto text-gray-100"
                 style={{ fontSize: `${fontSize}px`, lineHeight }}
               >
-                <div className="mx-auto px-6" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+                <div
+                  className="mx-auto px-6"
+                  style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+                >
                   <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/[0.06] px-6 py-6">
                     <div
                       className="[&>p]:mb-3.5 [&>p]:leading-relaxed [&>h2]:mt-6 [&>h2]:mb-2.5 [&>h3]:mt-5 [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-6 [&_img]:rounded-xl [&_img]:my-4"
-                      dangerouslySetInnerHTML={{ __html: data?.chapter?.content || "" }}
+                      dangerouslySetInnerHTML={{
+                        __html: data?.chapter?.content || "",
+                      }}
                     />
                   </div>
                 </div>
@@ -297,16 +334,30 @@ export const NovelRead = () => {
           </div>
 
           <div className="px-6 pb-6 bg-[#0d0e12]/95">
-            <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+            <div
+              className="mx-auto"
+              style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+            >
               <div className="h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent mb-4" />
               <div className="flex items-center justify-center gap-2.5">
-                <button onClick={() => handleGoToChapterNumber(-1)} disabled={!hasPrev} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(-1)}
+                  disabled={!hasPrev}
+                  className={ghostBtn}
+                >
                   Chương trước
                 </button>
-                <button onClick={() => setIsModalOpen(true)} className={gradBtn}>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className={gradBtn}
+                >
                   Mục lục
                 </button>
-                <button onClick={() => handleGoToChapterNumber(1)} disabled={!hasNext} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(1)}
+                  disabled={!hasNext}
+                  className={ghostBtn}
+                >
                   Chương sau
                 </button>
               </div>
