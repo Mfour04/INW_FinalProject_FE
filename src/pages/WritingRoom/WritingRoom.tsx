@@ -7,10 +7,11 @@ import { useToast } from "../../context/ToastContext/toast-context";
 import { DeleteNovel, GetAuthorNovels } from "../../api/Novels/novel.api";
 import { Plus, BookOpenCheck, Eye, Users } from "lucide-react";
 
-import type { NovelsData, Novel, SortKey, StatusFilter } from "./types";
+import type { SortKey, StatusFilter } from "./types";
 import { ControlsBar } from "./components/ControlsBar";
 import { StatsMini } from "./components/StatsMini";
 import { NovelRowCard } from "./components/NovelRowCard";
+import type { Novel } from "../../entity/novel";
 
 export const WritingRoom = () => {
   const navigate = useNavigate();
@@ -26,10 +27,10 @@ export const WritingRoom = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["authorNovels"],
-    queryFn: () => GetAuthorNovels().then((res) => res.data.data as NovelsData),
+    queryFn: () => GetAuthorNovels().then((res) => res.data.data),
   });
 
-  const novels = data?.novels ?? [];
+  const novels: Novel[] = data?.novels ?? [];
 
   const deleteNovelMutation = useMutation({
     mutationFn: (id: string) => DeleteNovel(id),
@@ -110,9 +111,7 @@ export const WritingRoom = () => {
             <h1 className="text-[22px] md:text-[26px] font-bold tracking-tight">
               Phòng sáng tác
             </h1>
-            <p className="mt-1 text-white/70 text-[13.5px]">
-              Hôm nay viết gì?
-            </p>
+            <p className="mt-1 text-white/70 text-[13.5px]">Hôm nay viết gì?</p>
           </div>
 
           <button
@@ -127,7 +126,6 @@ export const WritingRoom = () => {
         </div>
       </header>
 
-      {/* Controls + Stats */}
       <section className="max-w-screen-2xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
@@ -142,36 +140,47 @@ export const WritingRoom = () => {
           </div>
           <div className="grid grid-cols-3 gap-3">
             <StatsMini label="Truyện" value={stats.total} />
-            <StatsMini label="Lượt xem" value={stats.views} icon={<Eye className="h-4 w-4" />} />
-            <StatsMini label="Theo dõi" value={stats.followers} icon={<Users className="h-4 w-4" />} />
+            <StatsMini
+              label="Lượt xem"
+              value={stats.views}
+              icon={<Eye className="h-4 w-4" />}
+            />
+            <StatsMini
+              label="Theo dõi"
+              value={stats.followers}
+              icon={<Users className="h-4 w-4" />}
+            />
           </div>
         </div>
       </section>
 
-      {/* List */}
       <main className="max-w-screen-2xl mx-auto px-4 py-8">
-        {/* Empty */}
         {!isLoading && filtered.length === 0 && (
           <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] backdrop-blur-md p-8 text-center">
             <BookOpenCheck className="h-10 w-10 mx-auto text-white/60" />
-            <p className="mt-3 text-[15px] text-white/80">Không tìm thấy truyện phù hợp.</p>
-            <p className="text-[13px] text-white/50">Hãy thử từ khóa khác, thay đổi bộ lọc hoặc tạo truyện mới.</p>
+            <p className="mt-3 text-[15px] text-white/80">
+              Không tìm thấy truyện phù hợp.
+            </p>
+            <p className="text-[13px] text-white/50">
+              Hãy thử từ khóa khác, thay đổi bộ lọc hoặc tạo truyện mới.
+            </p>
           </div>
         )}
 
-        {/* Loading skeleton */}
         {isLoading && (
           <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[130px] rounded-2xl bg-white/[0.03] ring-1 ring-white/10 animate-pulse" />
+              <div
+                key={i}
+                className="h-[130px] rounded-2xl bg-white/[0.03] ring-1 ring-white/10 animate-pulse"
+              />
             ))}
           </div>
         )}
 
-        {/* Cards */}
         {!isLoading && filtered.length > 0 && (
           <div className="space-y-4">
-            {filtered.map((n: Novel) => (
+            {filtered.map((n) => (
               <NovelRowCard
                 key={n.novelId}
                 novel={n}
@@ -184,11 +193,12 @@ export const WritingRoom = () => {
         )}
       </main>
 
-      {/* Confirm delete */}
       <ConfirmModal
         isOpen={confirmOpen}
         title="Xóa truyện"
-        message={"Bạn có chắc chắn muốn xóa truyện này không?\nThao tác này không thể hoàn tác."}
+        message={
+          "Bạn có chắc chắn muốn xóa truyện này không?\nThao tác này không thể hoàn tác."
+        }
         onConfirm={confirmDelete}
         onCancel={() => setConfirmOpen(false)}
       />

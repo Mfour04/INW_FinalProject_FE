@@ -1,6 +1,6 @@
 import { PencilLine, BookOpenCheck, Trash2, Star } from "lucide-react";
-import type { Novel } from "../types";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
+import type { Novel } from "../../../entity/novel";
 
 export const NovelRowCard = ({
   novel,
@@ -13,23 +13,16 @@ export const NovelRowCard = ({
   onChapters: () => void;
   onDelete: () => void;
 }) => {
-  const isCompleted = novel.status === 0; 
+  console.log(novel);
+  const isCompleted = novel.status === 0;
+  const isPublic = novel.isPublic;
   const statusLabel = isCompleted ? "Hoàn thành" : "Đang diễn ra";
+  const publicLabel = isPublic ? "Công khai" : "Chỉ mình tôi";
 
-  const ratingRaw =
-    (novel as any).ratingAvg ??
-    (novel as any).averageRating ??
-    (novel as any).rating ??
-    0;
+  const ratingRaw = novel.ratingAvg ?? 0;
   const rating = Math.max(0, Math.min(5, Number(ratingRaw) || 0));
-  const ratingCount =
-    (novel as any).ratingCount ??
-    (novel as any).reviewsCount ??
-    (novel as any).totalRatings ??
-    0;
-
-  const rawTags: any[] =
-    (novel as any).tags ?? (novel as any).tagList ?? (novel as any).genres ?? [];
+  const ratingCount = novel.ratingCount ?? 0;
+  const rawTags: any[] = novel.tags ?? [];
   const tags = (rawTags || [])
     .map((t) => (typeof t === "string" ? t : t?.name || t?.title || ""))
     .filter(Boolean);
@@ -65,24 +58,46 @@ export const NovelRowCard = ({
                 {novel.title}
               </h3>
 
-              <div className="mt-2">
-                <span
-                  className={[
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-                    "text-[10.5px] font-semibold backdrop-blur-sm border text-white",
-                    isCompleted
-                      ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
-                      : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
-                  ].join(" ")}
-                >
+              <div className="flex gap-2">
+                <div className="mt-2">
                   <span
                     className={[
-                      "h-1 w-1 rounded-full",
-                      isCompleted ? "bg-emerald-100" : "bg-rose-100",
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+                      "text-[10.5px] font-semibold backdrop-blur-sm border text-white",
+                      isCompleted
+                        ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
+                        : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
                     ].join(" ")}
-                  />
-                  {statusLabel}
-                </span>
+                  >
+                    <span
+                      className={[
+                        "h-1 w-1 rounded-full",
+                        isCompleted ? "bg-emerald-100" : "bg-rose-100",
+                      ].join(" ")}
+                    />
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="mt-2">
+                  <span
+                    className={[
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+                      "text-[10.5px] font-semibold backdrop-blur-sm border text-white",
+                      isPublic
+                        ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
+                        : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
+                    ].join(" ")}
+                  >
+                    <span
+                      className={[
+                        "h-1 w-1 rounded-full",
+                        isCompleted ? "bg-emerald-100" : "bg-rose-100",
+                      ].join(" ")}
+                    />
+                    {publicLabel}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -190,13 +205,27 @@ const StarRating = ({ rating }: { rating: number }) => {
     <div className="relative inline-flex items-center">
       <div className="flex gap-0.5 text-white/25">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={`bg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
+          <Star
+            key={`bg-${i}`}
+            className="h-4 w-4"
+            stroke="currentColor"
+            fill="currentColor"
+          />
         ))}
       </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${percent}%` }} aria-hidden>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ width: `${percent}%` }}
+        aria-hidden
+      >
         <div className="flex gap-0.5 text-yellow-300">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={`fg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
+            <Star
+              key={`fg-${i}`}
+              className="h-4 w-4"
+              stroke="currentColor"
+              fill="currentColor"
+            />
           ))}
         </div>
       </div>

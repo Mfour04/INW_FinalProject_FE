@@ -38,7 +38,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     {
       icon: BookOpenIcon,
       label: "Tiểu thuyết",
-      path: "/novels",
+      path: "/",
       isHeader: true,
       subItems: [
         { label: "Danh sách", path: "/novels" },
@@ -261,6 +261,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                     {item.subItems!.map((sub, sIdx) => (
                       <NavLink
                         key={`${idx}-${sIdx}`}
+                        end
                         to={sub.path}
                         className={({ isActive }) =>
                           [

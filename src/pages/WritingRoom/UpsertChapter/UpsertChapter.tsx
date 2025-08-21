@@ -29,6 +29,7 @@ import { ModerationModal } from "./ModerationModal";
 import { SaveStatus } from "./components/SaveStatus";
 import { Stepper } from "./components/Stepper"; // non-click version
 import { StatusSummary } from "./components/StatusSummary";
+import { ticksToDate } from "../../../utils/date_format";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -64,20 +65,23 @@ const categoryMap: Record<string, string> = {
 export const UpsertChapter = () => {
   const [chapterForm, setChapterForm] =
     useState<ChapterForm>(initialChapterForm);
+  const [currentForm, setCurrentForm] =
+    useState<ChapterForm>(initialChapterForm);
+  const [isDraftChange, setIsDraftChange] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
   const [confirmUpsertModal, setConfirmUpsertModal] = useState<boolean>(false);
   const [moderationData, setModerationData] =
     useState<ModerationAIResponse | null>(null);
   const [openModerationModal, setOpenModerationModal] = useState(false);
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
   const chapterFormRef = useRef(chapterForm);
 
   const toast = useToast();
   const navigate = useNavigate();
   const { novelId, chapterId } = useParams();
-  const isUpdate = Boolean(chapterId);
 
-  const { data, refetch } = useQuery({
+  const { data } = useQuery({
     queryKey: ["chapters", chapterId],
     queryFn: async () => {
       const res = await GetChapter(chapterId!);
@@ -115,9 +119,36 @@ export const UpsertChapter = () => {
       if (isUpdate) return UpdateChapter(request as UpdateChapterRequest);
       return CreateChapter(request as CreateChapterRequest);
     },
-    onSuccess: () => {
-      if (!isUpdate) toast?.onOpen("Tự động lưu bản nháp hiện tại.");
-      else toast?.onOpen("Tự động lưu chỉnh sửa hiện tại.");
+    onSuccess: (data) => {
+      const chapter = data.data.data.chapter;
+      setChapterForm({
+        chapterId: chapter.chapterId,
+        novelId: chapter.novelId,
+        title: chapter.title,
+        content: chapter.content,
+        chapterNumber: chapter.chapterNumber!,
+        isDraft: chapter.isDraft,
+        isPaid: chapter.isPaid,
+        isPublic: chapter.isPublic,
+        price: chapter.price,
+        scheduledAt: ticksToDate(chapter.scheduledAt),
+      });
+      setCurrentForm({
+        chapterId: chapter.chapterId,
+        novelId: chapter.novelId,
+        title: chapter.title,
+        content: chapter.content,
+        chapterNumber: chapter.chapterNumber!,
+        isDraft: chapter.isDraft,
+        isPaid: chapter.isPaid,
+        isPublic: chapter.isPublic,
+        price: chapter.price,
+        scheduledAt: ticksToDate(chapter.scheduledAt),
+      });
+      if (!isUpdate) {
+        setIsUpdate(true);
+        toast?.onOpen("Tự động lưu bản nháp hiện tại.");
+      } else toast?.onOpen("Tự động lưu chỉnh sửa hiện tại.");
     },
   });
 
@@ -141,7 +172,8 @@ export const UpsertChapter = () => {
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
   const handleUpsertButtonClick = () => {
     const rawContent = stripHtmlTags(chapterForm.content);
-    ModerationMutation.mutate({ content: rawContent });
+    if (!chapterForm.isDraft)
+      ModerationMutation.mutate({ content: rawContent });
   };
   const handleConfirmUpsert = () => {
     if (isUpdate)
@@ -153,11 +185,20 @@ export const UpsertChapter = () => {
   const content = useMemo(() => {
     switch (step) {
       case 1:
-        return <Title chapterForm={chapterForm} setChapterForm={setChapterForm} />;
+        return (
+          <Title chapterForm={chapterForm} setChapterForm={setChapterForm} />
+        );
       case 2:
-        return <Content chapterForm={chapterForm} setChapterForm={setChapterForm} />;
+        return (
+          <Content chapterForm={chapterForm} setChapterForm={setChapterForm} />
+        );
       case 3:
-        return <ScheduleAndPrice chapterForm={chapterForm} setChapterForm={setChapterForm} />;
+        return (
+          <ScheduleAndPrice
+            chapterForm={chapterForm}
+            setChapterForm={setChapterForm}
+          />
+        );
     }
   }, [step, chapterForm, setChapterForm]);
 
@@ -167,7 +208,20 @@ export const UpsertChapter = () => {
 
   useEffect(() => {
     if (data) {
+      setIsUpdate(true);
       setChapterForm({
+        chapterId: chapterId!,
+        novelId: data.chapter.novelId,
+        title: data.chapter.title,
+        content: data.chapter.content,
+        chapterNumber: data.chapter.chapterNumber,
+        isDraft: data.chapter.isDraft,
+        isPaid: data.chapter.isPaid,
+        isPublic: data.chapter.isPublic,
+        price: data.chapter.price,
+        scheduledAt: data.chapter.scheduledAt,
+      });
+      setCurrentForm({
         chapterId: chapterId!,
         novelId: data.chapter.novelId,
         title: data.chapter.title,
@@ -183,18 +237,22 @@ export const UpsertChapter = () => {
   }, [data, chapterId]);
 
   useEffect(() => {
+    setIsDraftChange(chapterForm === currentForm);
+  }, [chapterForm, currentForm]);
+
+  useEffect(() => {
     chapterFormRef.current = chapterForm;
   }, [chapterForm]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      const currentForm = chapterFormRef.current;
-      if (currentForm.title || currentForm.content) {
-        autoSaveMutation.mutate(currentForm);
-      }
-    }, 10 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [isUpdate, autoSaveMutation]);
+  // useEffect(() => {
+  //   const id = setInterval(() => {
+  //     const currentForm = chapterFormRef.current;
+  //     if (currentForm.title || currentForm.content) {
+  //       autoSaveMutation.mutate(currentForm);
+  //     }
+  //   }, 10 * 60 * 1000);
+  //   return () => clearInterval(id);
+  // }, [isUpdate, autoSaveMutation]);
 
   return (
     <div
@@ -251,6 +309,7 @@ export const UpsertChapter = () => {
                       updateChapterMutation.isPending
                     }
                     moderated={ModerationMutation.isPending}
+                    isDraftChange={isDraftChange}
                   />
                 </div>
               </div>
@@ -294,7 +353,9 @@ export const UpsertChapter = () => {
                 )}
 
                 {step < 3 ? (
-                  <PrimaryButton onClick={handleNextStep}>Tiếp theo</PrimaryButton>
+                  <PrimaryButton onClick={handleNextStep}>
+                    Tiếp theo
+                  </PrimaryButton>
                 ) : (
                   <PrimaryButton
                     onClick={handleUpsertButtonClick}
@@ -351,10 +412,10 @@ function PrimaryButton({
         "rounded-full text-[14px] font-semibold",
         "text-white ring-1 ring-white/10 shadow-sm shadow-black/10",
         "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]",
-        (disabled || loading)
+        disabled || loading
           ? "opacity-70 cursor-not-allowed"
           : "hover:brightness-110 active:brightness-95",
-        "transition"
+        "transition",
       ].join(" ")}
     >
       {loading && (
@@ -372,7 +433,11 @@ function PrimaryButton({
             stroke="currentColor"
             strokeWidth="4"
           />
-          <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" />
+          <path
+            d="M22 12a10 10 0 0 1-10 10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
         </svg>
       )}
       <span className="whitespace-nowrap">{children}</span>
@@ -408,10 +473,15 @@ function SecondaryButton({
   );
 }
 
-/* icon mini (chevron trái) để nút quay lại gọn gàng */
 function ChevronLeftMini() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M15 18l-6-6 6-6" />
     </svg>
   );

@@ -48,12 +48,16 @@ export default function CreateChapters() {
   const sortedList = useMemo(
     () =>
       [...activeList].sort((a, b) =>
-        sortDesc ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber
+        sortDesc
+          ? b.chapterNumber - a.chapterNumber
+          : a.chapterNumber - b.chapterNumber
       ),
     [activeList, sortDesc]
   );
 
-  const lastChapter = chapters.length ? chapters[chapters.length - 1] : undefined;
+  const lastChapter = chapters.length
+    ? chapters[chapters.length - 1]
+    : undefined;
 
   const perPage = 20;
   const totalPages = Math.max(Math.ceil(sortedList.length / perPage), 1);
@@ -63,24 +67,24 @@ export default function CreateChapters() {
   return (
     <div className="max-w-6xl mx-auto md:px-4 py-4 text-white space-y-5">
       <div className="flex top-0 z-20">
-          <div className="relative py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 md:gap-6">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
-                  title="Quay lại"
-                  aria-label="Quay lại"
-                >
-                  <ArrowBackIosNew sx={{ width: 18, height: 18 }} />
-                </button>
+        <div className="relative py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 md:gap-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                title="Quay lại"
+                aria-label="Quay lại"
+              >
+                <ArrowBackIosNew sx={{ width: 18, height: 18 }} />
+              </button>
 
-                <div className="flex flex-col">
-                  <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
-                    Quản lý chương — Tác giả
-                  </div>
+              <div className="flex flex-col">
+                <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                  Quản lý chương — Tác giả
                 </div>
               </div>
+            </div>
           </div>
         </div>
       </div>
@@ -107,7 +111,8 @@ export default function CreateChapters() {
                     : "bg-white/[0.06] text-white/80 hover:bg-white/10",
                 ].join(" ")}
               >
-                Đã đăng <span className="ml-1 text-white/70">({published.length})</span>
+                Đã đăng{" "}
+                <span className="ml-1 text-white/70">({published.length})</span>
               </button>
               <button
                 onClick={() => setTab("Draft")}
@@ -118,7 +123,8 @@ export default function CreateChapters() {
                     : "bg-white/[0.06] text-white/80 hover:bg-white/10",
                 ].join(" ")}
               >
-                Bản nháp <span className="ml-1 text-white/70">({drafts.length})</span>
+                Bản nháp{" "}
+                <span className="ml-1 text-white/70">({drafts.length})</span>
               </button>
             </div>
 
@@ -129,7 +135,9 @@ export default function CreateChapters() {
                 title="Đổi thứ tự chương"
               >
                 <SwapVert
-                  className={`transition-transform ${sortDesc ? "rotate-180" : "rotate-0"}`}
+                  className={`transition-transform ${
+                    sortDesc ? "rotate-180" : "rotate-0"
+                  }`}
                   sx={{ width: 18, height: 18 }}
                 />
                 <span className="hidden md:inline">
@@ -138,7 +146,9 @@ export default function CreateChapters() {
               </button>
 
               <button
-                onClick={() => navigate(`/novels/writing-room/${novelId}/upsert-chapter`)}
+                onClick={() =>
+                  navigate(`/novels/writing-room/${novelId}/upsert-chapter`)
+                }
                 className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] ring-1 ring-white/10 bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90 transition"
               >
                 <BookMark sx={{ width: 18, height: 18 }} />
@@ -156,7 +166,9 @@ export default function CreateChapters() {
               Cập nhật gần nhất
             </span>
             <span className="text-[13px] text-[#ff8a5f]">
-              {lastChapter ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}` : "—"}
+              {lastChapter
+                ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
+                : "—"}
             </span>
             <span className="text-white/40">•</span>
             <span className="text-[12px] text-gray-400">
@@ -173,12 +185,17 @@ export default function CreateChapters() {
           {isLoading || isFetching ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl bg-white/5 animate-pulse" />
+                <div
+                  key={i}
+                  className="h-14 rounded-xl bg-white/5 animate-pulse"
+                />
               ))}
             </div>
           ) : pageItems.length === 0 ? (
             <div className="text-center py-10 text-white/60">
-              {tab === "Draft" ? "Chưa có bản nháp nào." : "Chưa có chương đã đăng."}
+              {tab === "Draft"
+                ? "Chưa có bản nháp nào."
+                : "Chưa có chương đã đăng."}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -186,19 +203,23 @@ export default function CreateChapters() {
                 const isDraft = chapter.isDraft;
                 const onCardClick = () => {
                   if (isDraft) {
-                    navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                    navigate(
+                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
+                    );
                   } else {
                     navigate(`/novels/${novelId}/${chapter.chapterId}`);
                   }
                 };
                 const onEditClick = (e: React.MouseEvent) => {
                   e.stopPropagation();
-                  navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                  navigate(
+                    `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
+                  );
                 };
                 const numberShown = isDraft ? idx + 1 : chapter.chapterNumber;
 
                 return (
-                  <button
+                  <div
                     key={chapter.chapterId}
                     onClick={onCardClick}
                     className={[
@@ -237,11 +258,12 @@ export default function CreateChapters() {
                       </div>
 
                       <div className="ml-2 flex items-center gap-2">
-                        {typeof chapter.price === "number" && chapter.price > 0 && (
-                          <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
-                            {chapter.price.toLocaleString("vi-VN")} xu
-                          </span>
-                        )}
+                        {typeof chapter.price === "number" &&
+                          chapter.price > 0 && (
+                            <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
+                              {chapter.price.toLocaleString("vi-VN")} xu
+                            </span>
+                          )}
                         {!isDraft && (
                           <button
                             onClick={onEditClick}
@@ -263,7 +285,7 @@ export default function CreateChapters() {
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

@@ -75,7 +75,7 @@ export default function NovelInfoCard({
             className={[
               "absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
               "text-[11.5px] font-semibold backdrop-blur-sm border text-white",
-              status === 1
+              status === 0
                 ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
                 : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
             ].join(" ")}
@@ -83,10 +83,10 @@ export default function NovelInfoCard({
             <span
               className={[
                 "h-1.5 w-1.5 rounded-full",
-                status === 1 ? "bg-emerald-100" : "bg-rose-100",
+                status === 0 ? "bg-emerald-100" : "bg-rose-100",
               ].join(" ")}
             />
-            {status === 1 ? "Hoàn thành" : "Đang diễn ra"}
+            {status === 0 ? "Hoàn thành" : "Đang diễn ra"}
           </span>
         </div>
 

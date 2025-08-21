@@ -19,18 +19,9 @@ import { stripHtmlTags } from "../../../../utils/regex";
 import { useToast } from "../../../../context/ToastContext/toast-context";
 import { PlagiarismModal } from "./Content/PlagiarismModal";
 
-import {
-  FileText,
-  ShieldCheck,
-  Loader2,
-  Bold as BoldIcon,
-  Italic as ItalicIcon,
-  Underline as UnderlineIcon,
-  Undo2,
-  Redo2,
-} from "lucide-react";
+import { FileText, ShieldCheck, Loader2 } from "lucide-react";
+import { EditorToolbar } from "./Content/EditorToolBar";
 
-/* ===================== FIX TYPE: Augment tiptap Commands ===================== */
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     underline: {
@@ -41,7 +32,6 @@ declare module "@tiptap/core" {
   }
 }
 
-/* ============================ Underline Mark (custom) ============================ */
 const Underline = Mark.create({
   name: "underline",
   parseHTML() {
@@ -74,7 +64,6 @@ const Underline = Mark.create({
   },
 });
 
-/* ================ Simple Placeholder ================ */
 const SimplePlaceholder = Extension.create({
   name: "simplePlaceholder",
   addOptions() {
@@ -118,9 +107,8 @@ const SimplePlaceholder = Extension.create({
   },
 });
 
-const LIMIT = 5000;
+const LIMIT = 20000;
 
-/* ============================ Container width hook ============================ */
 function useContainerWidth<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [width, setWidth] = useState(0);
@@ -136,7 +124,7 @@ function useContainerWidth<T extends HTMLElement>() {
 
     const ro = new ResizeObserver((entries) => update(entries[0]));
     ro.observe(el);
-    update(); // initial
+    update();
 
     return () => ro.disconnect();
   }, []);
@@ -144,77 +132,13 @@ function useContainerWidth<T extends HTMLElement>() {
   return { ref, width };
 }
 
-const TBtn = ({
-  onClick,
-  active,
-  label,
-  children,
-}: {
-  onClick: () => void;
-  active?: boolean;
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    title={label}
-    aria-label={label}
-    className={[
-      "inline-flex items-center justify-center h-8 w-8 rounded-lg ring-1 transition",
-      active
-        ? "ring-white/25 bg-white/[0.14] text-white"
-        : "ring-white/10 bg-white/[0.06] hover:bg-white/[0.1] text-white/90",
-    ].join(" ")}
-  >
-    {children}
-  </button>
-);
-
-/** Toolbar chỉ gồm các nút định dạng */
-const EditorToolbar = ({ editor }: { editor: any }) => {
-  if (!editor) return null;
-  return (
-    <div className="flex items-center gap-2">
-      <TBtn
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        active={editor.isActive("bold")}
-        label="In đậm"
-      >
-        <BoldIcon className="h-4 w-4" />
-      </TBtn>
-      <TBtn
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        active={editor.isActive("italic")}
-        label="In nghiêng"
-      >
-        <ItalicIcon className="h-4 w-4" />
-      </TBtn>
-      <TBtn
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        active={editor.isActive("underline")}
-        label="Gạch chân"
-      >
-        <UnderlineIcon className="h-4 w-4" />
-      </TBtn>
-
-      <TBtn onClick={() => editor.chain().focus().undo().run()} label="Hoàn tác">
-        <Undo2 className="h-4 w-4" />
-      </TBtn>
-      <TBtn onClick={() => editor.chain().focus().redo().run()} label="Làm lại">
-        <Redo2 className="h-4 w-4" />
-      </TBtn>
-    </div>
-  );
-};
-
 type ContentStepProps = {
   chapterForm: ChapterForm;
   setChapterForm: (value: ChapterForm) => void;
 };
 
 export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
-  const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
+  const [showPlagiarismModal, setShowPlagiarismModal] = useState(true);
   const [plagiarismMatches, setPlagiarismMatches] = useState<Matches[]>([]);
   const toast = useToast();
 
@@ -264,7 +188,9 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
         setPlagiarismMatches(data.data.matches);
         setShowPlagiarismModal(true);
       } else {
-        toast?.onOpen("Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!");
+        toast?.onOpen(
+          "Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!"
+        );
       }
     },
   });
@@ -306,7 +232,7 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
               onClick={handleCheckPlagiarism}
               disabled={plagiarismMutation.isPending}
               className={[
-                "flex-shrink-0 whitespace-nowrap", 
+                "flex-shrink-0 whitespace-nowrap",
                 "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium text-white",
                 "ring-1 ring-white/10 shadow-sm shadow-black/10",
                 "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]",
@@ -333,7 +259,7 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
             <div
               className={[
                 "hidden sm:block h-2 rounded-full bg-white/[0.06] overflow-hidden ring-1 ring-white/10",
-                "transition-[width] duration-300 ease-out", 
+                "transition-[width] duration-300 ease-out",
               ].join(" ")}
               style={{
                 width: `${barPx}px`,
@@ -344,7 +270,7 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
                 className={[
                   "h-full",
                   nearLimit ? "bg-rose-500/85" : "bg-orange-500/85",
-                  "transition-[width] duration-250 ease-out", 
+                  "transition-[width] duration-250 ease-out",
                 ].join(" ")}
                 style={{
                   width: `${progress}%`,
@@ -353,27 +279,26 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
               />
             </div>
 
-          <span
-            className={[
-              "flex-shrink-0 whitespace-nowrap",
-              "ml-2 inline-flex items-center rounded-full px-2.5 py-1 text-[11px]",
-              "ring-1 ring-white/10 bg-white/[0.05]",
-              "transition-all duration-300 ease-out", 
-            ].join(" ")}
-          >
             <span
-              className="font-mono transition-opacity duration-300 ease-out"
-              key={charCount} 
+              className={[
+                "flex-shrink-0 whitespace-nowrap",
+                "ml-2 inline-flex items-center rounded-full px-2.5 py-1 text-[11px]",
+                "ring-1 ring-white/10 bg-white/[0.05]",
+                "transition-all duration-300 ease-out",
+              ].join(" ")}
             >
-              {charCount.toLocaleString()}/{LIMIT.toLocaleString()}
+              <span
+                className="font-mono transition-opacity duration-300 ease-out"
+                key={charCount}
+              >
+                {charCount.toLocaleString()}/{LIMIT.toLocaleString()}
+              </span>
+              <span className="ml-1 text-white/60">ký tự</span>
             </span>
-            <span className="ml-1 text-white/60">ký tự</span>
-          </span>
           </div>
         </div>
       </div>
 
-      {/* EDITOR */}
       <style>{`
         .ProseMirror { position: relative; }
         .tiptap-placeholder {
