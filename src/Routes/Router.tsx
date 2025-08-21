@@ -1,14 +1,12 @@
 import { Route, Routes } from "react-router-dom";
 import { HomePage } from "../pages/Home/HomePage";
 import { NotFound } from "../pages/NotFound";
-import { UserProfile } from "../pages/UserProfile/UserProfile";
 import { ProtectedRoutes } from "./ProtectedRoutes";
 import { Unauthorized } from "../pages/Unauthorized";
 import { Roles } from "../context/AuthContext/AuthProvider";
 import { NovelsExplore } from "../pages/NovelsExplore/NovelsExplore";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
-import { NovelRead } from "../pages/NovelRead/NovelRead";
 import { NovelDetail } from "../pages/Chapters/NovelDetail";
 import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
@@ -18,7 +16,6 @@ import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
 import { Setting } from "../pages/setting/Setting";
-import { TestUserProfile } from "../pages/UserProfile/TestUserProfile";
 import AdminHome from "../pages/Admin/AdminHome";
 import UserList from "../pages/Admin/UserManagement/UserList";
 import RequestList from "../pages/Admin/RequestMangement/RequestList";
@@ -26,11 +23,19 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
+import { NovelRead } from "../pages/novelRead/NovelRead";
+import { UserProfile } from "../pages/userProfile/UserProfile";
+import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
+import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
+import { Contact } from "lucide-react";
+import { Rules } from "../pages/Info/Rules/Rules";
+import { Terms } from "../pages/Info/Terms/Terms";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+
       <Route
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}
@@ -73,6 +78,10 @@ export const Router = () => {
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/test-profile" element={<TestUserProfile />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/about" element={<AboutUs />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/rules" element={<Rules />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
       <Route path="/setting" element={<Setting />} />
       <Route path="/*" element={<NotFound />} />
