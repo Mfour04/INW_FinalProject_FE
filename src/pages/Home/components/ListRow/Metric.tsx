@@ -19,7 +19,7 @@ export const Metric = ({ icon, value, suffix, className }: MetricProps) => (
     {icon ? (
       <span className="inline-flex items-center opacity-90">{icon}</span>
     ) : null}
-    <span>
+    <span className="font-bold text-gray-700 dark:text-white/80">
       {formatNumber(value)}
       {suffix ? ` ${suffix}` : ""}
     </span>
