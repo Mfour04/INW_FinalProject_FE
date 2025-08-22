@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, X, ChevronDown, Search as SearchIcon } from "lucide-react";
+import { Check, X as XIcon, ChevronDown, Search as SearchIcon } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
 
 type SortOption = { value: string; label: string };
@@ -11,9 +11,10 @@ type SearchProps = {
 
   sortOptions?: SortOption[];
 
-  searchIcon: string;   
-  clearIcon: string;
-  filterIcon: string;
+  // ⬇️ icon có thể là URL string hoặc ReactNode (vd: <SearchIcon />)
+  searchIcon?: string | ReactNode;
+  clearIcon?: string | ReactNode;
+  filterIcon?: string | ReactNode;
 
   onApplyFilters?: (filters: { sort: string; tags: string[] }) => void;
 
@@ -31,7 +32,11 @@ const MOCK_TAG_OPTIONS: { value: string; label: string }[] = [
   { value: "drama", label: "Drama" },
 ];
 
-function useOnClickOutside(refs: RefObject<HTMLElement>[], handler: () => void, when = true) {
+function useOnClickOutside(
+  refs: RefObject<HTMLElement>[],
+  handler: () => void,
+  when = true
+) {
   useEffect(() => {
     if (!when) return;
     const onDown = (e: MouseEvent) => {
@@ -103,7 +108,7 @@ function TagChip({
           }}
           className="ml-2 inline-flex items-center justify-center align-middle rounded-full bg-white/15 hover:bg-white/25 w-4 h-4"
         >
-          <X className="w-3 h-3" />
+          <XIcon className="w-3 h-3" />
         </span>
       )}
       {active && (
@@ -114,7 +119,6 @@ function TagChip({
 }
 
 /* ===================== ModernSelect (custom, kbd nav) ===================== */
-/* Dùng viền gradient -inset-px để không bị “mất khúc” */
 function ModernSelect({
   value,
   onChange,
@@ -278,28 +282,33 @@ export const SearchBar = ({
     [selectedSort, selectedTags]
   );
 
-  const popupWidth = useElementWidth(containerRef, 720, 24); 
+  const popupWidth = useElementWidth(containerRef, 720, 24);
 
   return (
     <div className="relative w-full max-w-[760px]" ref={containerRef}>
-      <div className="h-12 rounded-2xl bg-[#0f1115]/70 backdrop-blur-md ring-1 ring-white/10 flex items-center px-2 gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.65)]">
+      <div className="bg-[#f5f5f5]/70 dark:bg-[#232023]/90 h-12 rounded-2xl backdrop-blur-md dark:backdrop-blur-md ring-1 ring-white/10 flex items-center px-2 gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.65)]">
+        {/* Search button */}
         <button
           onClick={onSubmit}
           aria-label="Tìm kiếm"
-          className="h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition"
+          className="h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-black hover:bg-white/5 transition"
         >
-          <SearchIcon className="w-4 h-4 opacity-85" />
+          {typeof searchIcon === "string"
+            ? <img src={searchIcon} alt="" className="w-4 h-4 opacity-85" />
+            : (searchIcon ?? <SearchIcon className="w-4 h-4 opacity-85" />)}
         </button>
 
+        {/* Input */}
         <input
           type="text"
           placeholder="Tìm kiếm truyện, tác giả…"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSubmit()}
-          className="flex-1 h-full bg-transparent text-white placeholder-zinc-400 outline-none px-1 text-[15px]"
+          className="flex-1 h-full bg-transparent text-gray-800 dark:text-white placeholder-zinc-400 outline-none px-1 text-[15px]"
         />
 
+        {/* Clear button */}
         {searchTerm && (
           <button
             onClick={() => onSearchTermChange("")}
@@ -307,10 +316,13 @@ export const SearchBar = ({
             className="h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition"
             title="Xóa"
           >
-            <img src={clearIcon} alt="" className="w-4 h-4 opacity-80" />
+            {typeof clearIcon === "string"
+              ? <img src={clearIcon} alt="" className="w-4 h-4 opacity-80" />
+              : (clearIcon ?? <XIcon className="w-4 h-4 opacity-80" />)}
           </button>
         )}
 
+        {/* Filter button */}
         <button
           onClick={() => setShowDropdown((v) => !v)}
           aria-haspopup="dialog"
@@ -319,7 +331,9 @@ export const SearchBar = ({
           className="relative h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition"
           title="Bộ lọc"
         >
-          <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
+          {typeof filterIcon === "string"
+            ? <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
+            : (filterIcon ?? <SearchIcon className="w-5 h-5 opacity-85" />)}
           {activeFilterCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-[#ff6f45] text-white text-[10px] leading-5 text-center ring-1 ring-white/20">
               {activeFilterCount}
@@ -328,14 +342,15 @@ export const SearchBar = ({
         </button>
       </div>
 
+      {/* Dropdown */}
       {showDropdown && (
         <div
           ref={dropdownRef}
           className="absolute right-0 top-[calc(100%+10px)] rounded-3xl
                      bg-[#0f1115]/95 backdrop-blur-2xl ring-1 ring-white/10 shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)] z-50 p-5"
           style={{
-            width: popupWidth || undefined,           
-            minWidth: Math.min(320, popupWidth || 320), 
+            width: popupWidth || undefined,
+            minWidth: Math.min(320, popupWidth || 320),
           }}
         >
           <div className="mb-4">

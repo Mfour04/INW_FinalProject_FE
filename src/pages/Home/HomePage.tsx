@@ -160,18 +160,18 @@ export const HomePage = () => {
         <div className="mt-10 grid gap-7 md:grid-cols-2">
           <VerticalColumn
             title="Đọc nhiều nhất"
-            icon={<BookOpen className="h-5 w-5 text-gray-700" />}
+            icon={<BookOpen className="h-5 w-5 text-white" />}
             items={(mostViewed as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
               <Metric
-                icon={<Eye className="h-4 w-4 shrink-0 text-gray-600" />}
+                icon={<Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
                 value={n.totalViews}
               />
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<Bookmark className="h-4 w-4 shrink-0 text-gray-600" />}
+                icon={<Bookmark className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
                 value={n.ratingCount}
               />
             )}
@@ -179,7 +179,7 @@ export const HomePage = () => {
 
           <VerticalColumn
             title="Đánh giá cao"
-            icon={<Star className="h-5 w-5 text-gray-700" fill="currentColor"/>} 
+            icon={<Star className="h-5 w-5 text-white" fill="currentColor"/>} 
             items={(topRated as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
@@ -196,7 +196,7 @@ export const HomePage = () => {
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<PencilLine className="h-4 w-4 shrink-0 text-gray-600" />}
+                icon={<PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
                 value={n.totalViews}
               />
             )}

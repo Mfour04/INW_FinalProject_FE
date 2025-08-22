@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
-import ArrowLeft02 from "../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
 import { GetNovels } from "../../api/Novels/novel.api";
 
 import { NCard } from "../../components/ui/cards/NCard";
@@ -12,7 +11,7 @@ import { SkeletonCard } from "../../components/ui/feedback/SkeletonCard";
 import { EmptyState } from "../../components/ui/feedback/EmptyState";
 
 import type { ViewMode } from "./types";
-import { LayoutGrid, List, RotateCcw } from "lucide-react";
+import { LayoutGrid, List, RotateCcw, ChevronLeft } from "lucide-react";
 import type { Novel } from "../../entity/novel";
 
 type Props = { sidebarCollapsed?: boolean };
@@ -103,93 +102,106 @@ export const NovelsExplore = ({}: Props) => {
   const filterChips = (
     <div className="flex flex-wrap items-center gap-2">
       {searchTerm && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] bg-white/[0.07] border border-white/10 text-white/90">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+                         bg-gray-100 border border-gray-200 text-gray-700
+                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
           Từ khóa:
-          <span className="font-medium text-white">{searchTerm}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{searchTerm}</span>
         </span>
       )}
       {searchTagTerm && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] bg-white/[0.07] border border-white/10 text-white/90">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+                         bg-gray-100 border border-gray-200 text-gray-700
+                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
           Thẻ:
-          <span className="font-medium text-white">{searchTagTerm}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{searchTagTerm}</span>
         </span>
       )}
       {sortBy && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] bg-white/[0.07] border border-white/10 text-white/90">
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+                         bg-gray-100 border border-gray-200 text-gray-700
+                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
           Sắp xếp:
-          <span className="font-medium text-white">{sortBy}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{sortBy}</span>
         </span>
       )}
     </div>
   );
 
   return (
-    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-[#0b0d11] text-white">
+    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4">
         {/* Header */}
         <div className="flex top-0 z-20 mb-10">
-          <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
-            <div className="relative py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-10">
-                  <button
-                    onClick={() => navigate(-1)}
-                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
-                    title="Quay lại"
-                    aria-label="Quay lại"
-                  >
-                    <img src={ArrowLeft02} className="h-4 w-4" />
-                  </button>
+          <div className="w-full rounded-2xl backdrop-blur-md overflow-hidden
+                          dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]">
+            <div className="relative py-3 px-1 flex items-center justify-between">
+              <div className="flex items-center gap-10">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="h-9 w-9 grid place-items-center rounded-lg 
+                              bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
+                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
+                  title="Quay lại"
+                  aria-label="Quay lại"
+                >
+                  <ChevronLeft size={16} />
+                </button>
 
-                  <div className="flex flex-col">
-                    <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
-                      Khám phá tiểu thuyết
-                    </div>
-                    {(searchTerm || searchTagTerm || sortBy) && (
-                      <div className="mt-1">{filterChips}</div>
-                    )}
+                <div className="flex flex-col">
+                  <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                    Khám phá tiểu thuyết
                   </div>
+                  {(searchTerm || searchTagTerm || sortBy) && (
+                    <div className="mt-1">{filterChips}</div>
+                  )}
                 </div>
+              </div>
 
-                <div className="flex items-center gap-5">
-                  <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-white/10">
-                    <button
-                      onClick={() => setView("Grid")}
-                      className={[
-                        "h-9 w-9 grid place-items-center",
-                        view === "Grid"
-                          ? "bg-white/15 text-white"
-                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
-                      ].join(" ")}
-                      title="Xem dạng lưới"
-                      aria-label="Xem dạng lưới"
-                    >
-                      <LayoutGrid size={18} />
-                    </button>
-                    <button
-                      onClick={() => setView("List")}
-                      className={[
-                        "h-9 w-9 grid place-items-center border-l border-white/10",
-                        view === "List"
-                          ? "bg-white/15 text-white"
-                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
-                      ].join(" ")}
-                      title="Xem dạng danh sách"
-                      aria-label="Xem dạng danh sách"
-                    >
-                      <List size={18} />
-                    </button>
-                  </div>
-
+              <div className="flex items-center gap-5">
+                <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
                   <button
-                    onClick={() => refetch()}
-                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
-                    title="Làm mới"
-                    aria-label="Làm mới"
+                    onClick={() => setView("Grid")}
+                    className={[
+                      "h-9 w-9 grid place-items-center",
+                      view === "Grid"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                      "dark:text-white dark:bg-white/[0.06] dark:hover:bg-white/[0.1]",
+                      view === "Grid" ? "dark:bg-white/15 dark:text-white" : "",
+                    ].join(" ")}
+                    title="Xem dạng lưới"
+                    aria-label="Xem dạng lưới"
                   >
-                    <RotateCcw size={18} />
+                    <LayoutGrid size={18} />
+                  </button>
+                  <button
+                    onClick={() => setView("List")}
+                    className={[
+                      "h-9 w-9 grid place-items-center border-l border-gray-200",
+                      view === "List"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                      "dark:border-white/10 dark:text-white dark:bg-white/[0.06] dark:hover:bg-white/[0.1]",
+                      view === "List" ? "dark:bg-white/15 dark:text-white" : "",
+                    ].join(" ")}
+                    title="Xem dạng danh sách"
+                    aria-label="Xem dạng danh sách"
+                  >
+                    <List size={18} />
                   </button>
                 </div>
+
+                <button
+                  onClick={() => refetch()}
+                  className="h-9 w-9 grid place-items-center rounded-lg
+                              bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
+                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
+                  title="Làm mới"
+                  aria-label="Làm mới"
+                >
+                  <RotateCcw size={18} />
+                </button>
               </div>
             </div>
           </div>

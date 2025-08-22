@@ -1,4 +1,4 @@
-import SwapVert from "@mui/icons-material/SwapVert";
+import { ArrowUpDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -231,7 +231,7 @@ export const NovelDetail = () => {
   }, [showFollowPopup]);
 
   return (
-    <div className="mx-auto max-w-5xl px-2 py-4 text-white">
+    <div className="mx-auto max-w-5xl px-2 py-4 text-gray-900 dark:text-white">
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr] gap-5">
         <AsidePanel
           novelInfo={novelInfo}
@@ -273,13 +273,27 @@ export const NovelDetail = () => {
             onToggleExpand={() => setExpandedDesc((v) => !v)}
           />
 
-          <section className="rounded-2xl ring-1 ring-white/12 bg-[#121212]/80 backdrop-blur-md shadow-[0_16px_52px_-20px_rgba(0,0,0,0.6)]">
+          {/* Section danh sách chương */}
+          <section
+            className="
+              rounded-2xl overflow-hidden backdrop-blur-md
+              border bg-white border-gray-200 text-gray-900
+              shadow-[0_16px_52px_-20px_rgba(0,0,0,0.08)]
+              dark:border-white/10 dark:bg-[#121212]/80 dark:text-white
+              dark:shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)]
+            "
+          >
             <div className="flex items-center justify-between px-3 md:px-4 pt-3">
-              <h2 className="text-[15px] font-semibold tracking-wide uppercase text-white/90">
+              <h2 className="text-[15px] font-semibold tracking-wide uppercase">
                 Danh sách chương
               </h2>
               <button
-                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[12.5px] hover:bg-white/10 transition"
+                className="
+                  group inline-flex items-center gap-1.5 rounded-full
+                  border bg-white hover:bg-gray-50 border-gray-200 text-gray-800
+                  px-3 py-1.5 text-[12.5px] transition
+                  dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white
+                "
                 onClick={() =>
                   setParams((prev) => ({
                     ...prev,
@@ -291,13 +305,12 @@ export const NovelDetail = () => {
                 }
                 title="Đổi thứ tự chương"
               >
-                <SwapVert
-                  className={`transition-transform ${
+                <ArrowUpDown
+                  className={`w-[18px] h-[18px] transition-transform ${
                     params.sortBy === "chapter_number:desc"
                       ? "rotate-180"
                       : "rotate-0"
                   }`}
-                  sx={{ width: 18, height: 18 }}
                 />
                 <span className="hidden md:inline">
                   {params.sortBy === "chapter_number:desc"
@@ -307,7 +320,7 @@ export const NovelDetail = () => {
               </button>
             </div>
 
-            <div className="mt-3 border-t border-white/10" />
+            <div className="mt-3 border-t border-gray-200 dark:border-white/10" />
 
             <div className="p-3 md:p-4">
               {isFetching ? (
@@ -315,7 +328,7 @@ export const NovelDetail = () => {
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
-                      className="h-12 rounded-lg bg-white/5 animate-pulse"
+                      className="h-12 rounded-lg bg-gray-100 animate-pulse dark:bg-white/5"
                     />
                   ))}
                 </div>
