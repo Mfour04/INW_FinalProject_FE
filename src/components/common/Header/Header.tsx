@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 
-import { Bell, X, Search, FunnelPlus } from "lucide-react";
+import { Bell, X, Search, ListFilter } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -134,7 +134,7 @@ export const Header = ({
             // ⬇️ truyền ReactNode icon từ lucide-react
             searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
             clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
-            filterIcon={<FunnelPlus className="h-5 w-5 text-gray-600 dark:text-white" />}
+            filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
             initialSort=""
             initialTags={[]}
           />

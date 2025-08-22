@@ -1,4 +1,4 @@
-import { Play, Pause, Square } from "lucide-react";
+import { Play, Pause, Square, Volume2 } from "lucide-react";
 
 interface Props {
   state: "started" | "paused" | "stopped";
@@ -17,29 +17,23 @@ export function SpeechControls({ state, onStart, onPause, onResume, onStop }: Pr
 
   if (state === "stopped") {
     return (
-      <button onClick={onStart} className={iconBtn} title="Phát">
-        <Play size={18} />
+      <button onClick={onStart} className={iconBtn} title="Bắt đầu đọc">
+        <Volume2 size={18} />
       </button>
-    );
-  }
-  if (state === "started") {
-    return (
-      <div className="flex items-center gap-2">
-        <button onClick={onPause} className={iconBtn} title="Tạm dừng">
-          <Pause size={18} />
-        </button>
-        <button onClick={onStop} className={iconBtn} title="Dừng">
-          <Square size={18} />
-        </button>
-      </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <button onClick={onResume} className={iconBtn} title="Tiếp tục">
-        <Play size={18} />
-      </button>
+    <div className="flex flex-col items-center gap-2">
+      {state === "started" ? (
+        <button onClick={onPause} className={iconBtn} title="Tạm dừng">
+          <Pause size={18} />
+        </button>
+      ) : (
+        <button onClick={onResume} className={iconBtn} title="Tiếp tục">
+          <Play size={18} />
+        </button>
+      )}
       <button onClick={onStop} className={iconBtn} title="Dừng">
         <Square size={18} />
       </button>

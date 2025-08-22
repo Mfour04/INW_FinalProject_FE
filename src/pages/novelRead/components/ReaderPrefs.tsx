@@ -35,7 +35,7 @@ export const ReaderPrefs = ({
   return (
     <div
       className="
-        absolute right-0 z-50 mt-2 w-[320px] rounded-2xl p-3
+        absolute right-0 z-50 mt-2 w-[320px] rounded-2xl p-3 mr-2
         ring-1 bg-white/95 text-gray-900 ring-gray-200 backdrop-blur-md shadow-[0_28px_80px_-24px_rgba(0,0,0,0.18)]
         dark:bg-[#0c0d10]/95 dark:text-white dark:ring-white/12 dark:shadow-[0_28px_80px_-24px_rgba(0,0,0,0.85)]
       "

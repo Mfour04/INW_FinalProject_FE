@@ -175,7 +175,7 @@ export const Composer = ({
 
           <div className="px-4">
             <div className="h-px w-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-white/5 dark:via-white/15 dark:to-white/5" />
-            <div className="-mt-px h-px w-full bg-black/5 opacity-60 dark:bg-black/40" />
+            <div className="-mt-px h-px w-full bg-black/5 opacity-20 dark:bg-black/30 dark:opacity-25" />
           </div>
 
           <div className="mt-2 px-4 pb-3 flex items-center justify-between">
