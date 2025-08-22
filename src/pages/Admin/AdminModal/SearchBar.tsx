@@ -1,12 +1,24 @@
+import { useRef, useEffect } from "react";
+
 interface SearchBarProps {
   searchTerm: string;
   onSearch: (term: string) => void;
 }
 
 const SearchBar = ({ searchTerm, onSearch }: SearchBarProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Duy trì focus sau re-render
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   return (
     <div className="relative w-full max-w-[300px]">
       <input
+        ref={inputRef}
         type="text"
         placeholder="Tìm kiếm..."
         value={searchTerm}
