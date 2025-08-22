@@ -9,7 +9,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Button from "../../../components/ButtonComponent";
-import { FollowPopup } from "../FollowPopup";
 import { buyBtn } from "../constants";
 
 type Props = {
@@ -37,13 +36,9 @@ export const AsidePanel = ({
   novelData,
   follower,
   isCompleted,
-  showFollowPopup,
   followBtnRef,
   onFollow,
   onToggleFollow,
-  onUnfollow,
-  onNotifyChange,
-  onStatusChange,
   onOpenBuyNovel,
   onJumpToRating,
   gradientBtn,
@@ -92,13 +87,13 @@ export const AsidePanel = ({
             <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
               <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] leading-none">
                 <StarIcon className="w-[13px] h-[13px] text-yellow-500 fill-yellow-500" fill="currentColor" />
-                <span className="tabular-nums">
+                <span className="tabular-nums dark:text-white">
                   {novelData?.novelInfo.ratingAvg ?? 0}
                 </span>
               </div>
             </div>
             <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
-              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] leading-none">
+              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
                 <BookmarkIcon className="w-[13px] h-[13px]" />
                 <span className="tabular-nums">
                   {novelData?.novelInfo.totalViews ?? 0}
@@ -106,8 +101,8 @@ export const AsidePanel = ({
               </div>
             </div>
             <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
-              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] leading-none">
-                <MessageSquare className="w-[13px] h-[13px]" />
+              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
+                <MessageSquare className="w-[13px] h-[13px] = dark:text-white" />
                 <span className="tabular-nums">
                   {novelData?.novelInfo.commentCount ?? 0}
                 </span>
@@ -149,18 +144,6 @@ export const AsidePanel = ({
                   <ChevronDown className="w-[15px] h-[15px]" />
                 </span>
               </Button>
-
-              {showFollowPopup && (
-                <div className="absolute right-0 z-50 mt-2 rounded-xl border border-gray-200 bg-white text-gray-900 shadow-2xl dark:border-white/10 dark:bg-[#161617] dark:text-white">
-                  <FollowPopup
-                    notify={follower!.isNotification}
-                    status={follower!.readingStatus}
-                    onUnfollow={onUnfollow}
-                    onNotifyChange={onNotifyChange}
-                    onStatusChange={onStatusChange}
-                  />
-                </div>
-              )}
             </div>
           )}
 

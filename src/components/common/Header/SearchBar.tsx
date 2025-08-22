@@ -11,7 +11,7 @@ type SearchProps = {
 
   sortOptions?: SortOption[];
 
-  // ⬇️ icon có thể là URL string hoặc ReactNode (vd: <SearchIcon />)
+  // icon có thể là URL string hoặc ReactNode (vd: <SearchIcon />)
   searchIcon?: string | ReactNode;
   clearIcon?: string | ReactNode;
   filterIcon?: string | ReactNode;
@@ -96,7 +96,9 @@ function TagChip({
         "group relative overflow-hidden h-8 px-3 rounded-full text-xs font-medium transition",
         active
           ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
-          : "text-zinc-300 bg-white/5 ring-1 ring-white/10 hover:bg-white/10 hover:text-white",
+          : // Inactive rõ ở cả 2 mode:
+            "text-gray-700 bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 hover:text-gray-900 " +
+            "dark:text-zinc-300 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10 dark:hover:text-white",
       ].join(" ")}
     >
       <span className="relative z-10">{children}</span>
@@ -106,7 +108,7 @@ function TagChip({
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-2 inline-flex items-center justify-center align-middle rounded-full bg-white/15 hover:bg-white/25 w-4 h-4"
+          className="ml-2 inline-flex items-center justify-center align-middle rounded-full bg-white/20 hover:bg-white/30 w-4 h-4"
         >
           <XIcon className="w-3 h-3" />
         </span>
@@ -177,10 +179,11 @@ function ModernSelect({
 
   return (
     <div className="relative" onKeyDown={onKeyDown}>
+      {/* Light subtle, Dark giữ gradient brand */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-px rounded-2xl
-                   bg-[linear-gradient(135deg,rgba(255,87,46,.7),rgba(255,153,102,.3))]"
+                   bg-[linear-gradient(135deg,rgba(0,0,0,.04),rgba(0,0,0,.02))] dark:bg-[linear-gradient(135deg,rgba(255,87,46,.7),rgba(255,153,102,.3))]"
       />
       <button
         ref={btnRef}
@@ -188,15 +191,18 @@ function ModernSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="relative w-full h-12 rounded-2xl bg-[#111114]/90 backdrop-blur-md
-                   ring-1 ring-white/10 px-4 pr-10 flex items-center justify-between text-sm text-white
-                   hover:bg-[#151518]/90 transition"
+        className="relative w-full h-12 rounded-2xl
+                   bg-white/90 ring-1 ring-gray-200 text-sm text-gray-800
+                   px-4 pr-10 flex items-center justify-between hover:bg-white
+                   dark:bg-[#111114]/90 dark:ring-white/10 dark:text-white dark:hover:bg-[#151518]/90 transition"
       >
         <span className="truncate">
           {selected ? selected.label : placeholder}
         </span>
-        <span className="absolute right-2 inline-flex items-center justify-center w-8 h-8 rounded-xl bg-white/5 ring-1 ring-white/10">
-          <ChevronDown className="w-4 h-4 opacity-80" />
+        <span className="absolute right-2 inline-flex items-center justify-center w-8 h-8 rounded-xl
+                         bg-gray-100 ring-1 ring-gray-200
+                         dark:bg-white/5 dark:ring-white/10">
+          <ChevronDown className="w-4 h-4 text-gray-600 dark:opacity-80" />
         </span>
       </button>
 
@@ -205,7 +211,8 @@ function ModernSelect({
           ref={popRef}
           role="listbox"
           className="absolute z-50 mt-2 w-full rounded-2xl overflow-hidden
-                     bg-[#111114]/96 backdrop-blur-xl ring-1 ring-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,.65)]"
+                     bg-white ring-1 ring-gray-200 shadow-[0_24px_64px_-24px_rgba(0,0,0,.2)]
+                     dark:bg-[#111114]/96 dark:ring-white/10 dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,.65)] backdrop-blur-xl"
         >
           <div className="max-h-64 overflow-auto p-1">
             {fullOptions.map((opt, idx) => {
@@ -226,8 +233,8 @@ function ModernSelect({
                     active
                       ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
                       : focused
-                      ? "text-white bg-white/6"
-                      : "text-zinc-300 hover:text-white hover:bg-white/6",
+                      ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/6",
                   ].join(" ")}
                 >
                   <span className="truncate">{opt.label}</span>
@@ -286,12 +293,13 @@ export const SearchBar = ({
 
   return (
     <div className="relative w-full max-w-[760px]" ref={containerRef}>
-      <div className="bg-[#f5f5f5]/70 dark:bg-[#232023]/90 h-12 rounded-2xl backdrop-blur-md dark:backdrop-blur-md ring-1 ring-white/10 flex items-center px-2 gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.65)]">
+      {/* Thanh tìm kiếm */}
+      <div className="bg-white/90 dark:bg-[#232023]/90 h-12 rounded-2xl backdrop-blur-md ring-1 ring-gray-200 dark:ring-white/10 flex items-center px-2 gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.15)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.65)]">
         {/* Search button */}
         <button
           onClick={onSubmit}
           aria-label="Tìm kiếm"
-          className="h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-black hover:bg-white/5 transition"
+          className="h-10 w-10 grid place-items-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
         >
           {typeof searchIcon === "string"
             ? <img src={searchIcon} alt="" className="w-4 h-4 opacity-85" />
@@ -305,7 +313,7 @@ export const SearchBar = ({
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSubmit()}
-          className="flex-1 h-full bg-transparent text-gray-800 dark:text-white placeholder-zinc-400 outline-none px-1 text-[15px]"
+          className="flex-1 h-full bg-transparent text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 outline-none px-1 text-[15px]"
         />
 
         {/* Clear button */}
@@ -313,8 +321,8 @@ export const SearchBar = ({
           <button
             onClick={() => onSearchTermChange("")}
             aria-label="Xóa"
-            className="h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition"
             title="Xóa"
+            className="h-10 w-10 grid place-items-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
           >
             {typeof clearIcon === "string"
               ? <img src={clearIcon} alt="" className="w-4 h-4 opacity-80" />
@@ -328,8 +336,8 @@ export const SearchBar = ({
           aria-haspopup="dialog"
           aria-expanded={showDropdown}
           aria-label="Bộ lọc tìm kiếm"
-          className="relative h-10 w-10 grid place-items-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition"
           title="Bộ lọc"
+          className="relative h-10 w-10 grid place-items-center rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
         >
           {typeof filterIcon === "string"
             ? <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
@@ -347,19 +355,22 @@ export const SearchBar = ({
         <div
           ref={dropdownRef}
           className="absolute right-0 top-[calc(100%+10px)] rounded-3xl
-                     bg-[#0f1115]/95 backdrop-blur-2xl ring-1 ring-white/10 shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)] z-50 p-5"
+                     bg-white ring-1 ring-gray-200 shadow-[0_40px_120px_-30px_rgba(0,0,0,.2)]
+                     dark:bg-[#0f1115]/95 dark:ring-white/10 dark:shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)]
+                     backdrop-blur-2xl z-50 p-5 text-gray-800 dark:text-white"
           style={{
             width: popupWidth || undefined,
             minWidth: Math.min(320, popupWidth || 320),
           }}
         >
+          {/* Sort */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold tracking-wide text-zinc-400 uppercase">Sắp xếp theo</span>
+              <span className="text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">Sắp xếp theo</span>
               {tempSort && (
                 <button
                   onClick={() => setTempSort("")}
-                  className="text-xs text-zinc-400 hover:text-zinc-200 transition"
+                  className="text-xs text-gray-500 hover:text-gray-700 transition dark:text-zinc-400 dark:hover:text-zinc-200"
                 >
                   Bỏ sắp xếp
                 </button>
@@ -373,83 +384,95 @@ export const SearchBar = ({
             />
           </div>
 
+          {/* Tags */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold tracking-wide text-zinc-400 uppercase">Tag (chọn nhiều)</span>
+              <span className="text:[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">Tag (chọn nhiều)</span>
               {tempTags.length > 0 && (
                 <button
                   onClick={() => setTempTags([])}
-                  className="text-xs text-zinc-400 hover:text-zinc-200 transition"
+                  className="text-xs text-gray-500 hover:text-gray-700 transition dark:text-zinc-400 dark:hover:text-zinc-200"
                 >
                   Bỏ chọn tất cả
                 </button>
               )}
             </div>
 
+            {/* Lưới tag: CHỈ hiện tag CHƯA chọn */}
             <div className="flex flex-wrap gap-2">
-              {MOCK_TAG_OPTIONS.map((tag) => {
-                const active = tempTags.includes(tag.value);
-                return (
+              {MOCK_TAG_OPTIONS
+                .filter(tag => !tempTags.includes(tag.value))
+                .map((tag) => (
                   <TagChip
                     key={tag.value}
-                    active={active}
                     onClick={() => toggleTempTag(tag.value)}
-                    onRemove={active ? () => toggleTempTag(tag.value) : undefined}
                   >
                     {tag.label}
                   </TagChip>
-                );
-              })}
+                ))}
             </div>
 
+            {/* Dải "Đã chọn" (nếu có) */}
             {tempTags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {tempTags.map((t) => {
-                  const label = MOCK_TAG_OPTIONS.find((x) => x.value === t)?.label || t;
-                  return (
-                    <TagChip key={`sel-${t}`} active onRemove={() => toggleTempTag(t)}>
-                      {label}
-                    </TagChip>
-                  );
-                })}
+              <div className="mt-4">
+                <div className="mb-2 text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">
+                  Đã chọn
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {tempTags.map((t) => {
+                    const label = MOCK_TAG_OPTIONS.find((x) => x.value === t)?.label || t;
+                    return (
+                      <TagChip key={`sel-${t}`} active onRemove={() => toggleTempTag(t)}>
+                        {label}
+                      </TagChip>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => {
-                setTempSort("");
-                setTempTags([]);
-              }}
-              className="text-xs text-zinc-400 hover:text-zinc-200 transition"
-            >
-              Đặt lại
-            </button>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowDropdown(false)}
-                className="h-10 px-4 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/5 transition"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => {
-                  onApplyFilters?.({
-                    sort: tempSort || "",
-                    tags: tempTags || [],
-                  });
-                  setSelectedSort(tempSort || "");
-                  setSelectedTags(tempTags || []);
-                  setShowDropdown(false);
-                }}
-                className="h-10 px-4 rounded-xl text-sm font-semibold text-black
-                           bg-gradient-to-r from-white to-white/90 hover:brightness-[.98] transition"
-              >
-                Áp dụng
-              </button>
-            </div>
-          </div>
+         {/* Actions */}
+<div className="flex items-center justify-between">
+  <button
+    onClick={() => {
+      setTempSort("");
+      setTempTags([]);
+    }}
+    className="text-xs px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 
+               dark:text-zinc-400 dark:hover:text-white/90 dark:hover:bg-white/10 transition"
+  >
+    Đặt lại
+  </button>
+
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => setShowDropdown(false)}
+      className="h-8 px-4 rounded-full text-xs text-gray-600 ring-1 ring-gray-200
+                 hover:text-gray-900 hover:bg-gray-50 hover:ring-gray-300
+                 dark:text-zinc-400 dark:ring-white/10 dark:hover:text-white dark:hover:bg-white/10 transition"
+    >
+      Hủy
+    </button>
+    <button
+      onClick={() => {
+        onApplyFilters?.({
+          sort: tempSort || "",
+          tags: tempTags || [],
+        });
+        setSelectedSort(tempSort || "");
+        setSelectedTags(tempTags || []);
+        setShowDropdown(false);
+      }}
+      className="h-8 px-4 rounded-full text-xs font-semibold text-white 
+                 bg-[#ff6f45] hover:bg-[#e85d37] active:scale-[0.97] transition
+                 dark:text-black dark:bg-white dark:hover:bg-white/90"
+    >
+      Áp dụng
+    </button>
+  </div>
+</div>
+
         </div>
       )}
     </div>

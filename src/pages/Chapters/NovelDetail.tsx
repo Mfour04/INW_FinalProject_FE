@@ -1,5 +1,5 @@
 import { ArrowUpDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -31,6 +31,7 @@ import { AsidePanel } from "./components/AsidePanel";
 import { InfoCard } from "./components/InfoCard";
 import { gradientBtn } from "./constants";
 import type { Tag } from "../../entity/tag";
+import { FollowPopup } from "./FollowPopup"; // <== import popup
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -64,9 +65,7 @@ export const NovelDetail = () => {
         page: params.page,
         limit: params.limit,
         sortBy: params.sortBy,
-        ...(params.chapterNumber
-          ? { chapterNumber: params.chapterNumber }
-          : {}),
+        ...(params.chapterNumber ? { chapterNumber: params.chapterNumber } : {}),
       }).then((res) => res.data.data),
     enabled: !!novelId,
   });
@@ -219,17 +218,6 @@ export const NovelDetail = () => {
     ratingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!followBtnRef.current) return;
-      if (!followBtnRef.current.contains(e.target as Node)) {
-        setShowFollowPopup(false);
-      }
-    };
-    if (showFollowPopup) document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [showFollowPopup]);
-
   return (
     <div className="mx-auto max-w-5xl px-2 py-4 text-gray-900 dark:text-white">
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr] gap-5">
@@ -240,10 +228,9 @@ export const NovelDetail = () => {
           isCompleted={isCompleted}
           showFollowPopup={showFollowPopup}
           setShowFollowPopup={setShowFollowPopup}
-          followBtnRef={followBtnRef}
           onFollow={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
           onToggleFollow={() => setShowFollowPopup((v) => !v)}
-          onUnfollow={() => handleUnfollowNovel(follower!.followerId)}
+          onUnfollow={() => follower && handleUnfollowNovel(follower.followerId)}
           onNotifyChange={handleNotifyChange}
           onStatusChange={(s) => handleStatusChange(s)}
           onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
@@ -259,6 +246,8 @@ export const NovelDetail = () => {
             isFollowersLoading ||
             isFollowersFetching
           }
+          /** 👇 dùng đúng tên prop theo AsidePanel của bạn */
+          followBtnRef={followBtnRef}
         />
 
         <main className="space-y-5">
@@ -298,7 +287,7 @@ export const NovelDetail = () => {
                   setParams((prev) => ({
                     ...prev,
                     sortBy:
-                      params.sortBy === "chapter_number:desc"
+                      prev.sortBy === "chapter_number:desc"
                         ? "chapter_number:asc"
                         : "chapter_number:desc",
                   }))
@@ -349,6 +338,7 @@ export const NovelDetail = () => {
         </main>
       </div>
 
+      {/* Mua chương */}
       <ConfirmModal
         isOpen={isBuyModalOpen}
         title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
@@ -357,12 +347,24 @@ export const NovelDetail = () => {
         onCancel={() => setIsBuyModalOpen(false)}
       />
 
+      {/* Mua trọn bộ */}
       <ConfirmModal
         isOpen={isBuyNovelOpen}
         title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
         message={`Tiểu thuyết này có giá ${novelInfo?.price} coin. Bạn có muốn mua không?`}
         onConfirm={confirmBuyNovel}
         onCancel={() => setIsBuyNovelOpen(false)}
+      />
+
+      <FollowPopup
+        open={showFollowPopup}
+        anchorRef={followBtnRef as React.RefObject<HTMLElement>}
+        notify={!!follower?.isNotification}
+        status={follower?.readingStatus ?? 0}
+        onNotifyChange={handleNotifyChange}
+        onStatusChange={(s) => handleStatusChange(s)}
+        onUnfollow={() => follower && handleUnfollowNovel(follower.followerId)}
+        onClose={() => setShowFollowPopup(false)}
       />
     </div>
   );

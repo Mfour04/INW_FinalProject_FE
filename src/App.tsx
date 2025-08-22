@@ -126,7 +126,7 @@ function App() {
       <main
         className={[
           isSidebarOpen ? "lg:col-start-2" : "lg:col-start-1",
-          "col-start-1 h-full min-h-0 flex flex-col bg-amber-50 dark:bg-[#0f0f11]",
+          "col-start-1 h-full min-h-0 flex flex-col bg-amber-50 bg-white dark:bg-[#0f0f11]",
         ].join(" ")}
       >
         <Header

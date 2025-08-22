@@ -106,9 +106,9 @@ export const EmojiPickerBox = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onRequestClose]);
 
+  // dịch nhãn category sang tiếng Việt
   useEffect(() => {
     if (!open) return;
-
     const translations: Record<string, string> = {
       "Frequently Used": "Thường dùng",
       "Smileys & People": "Mặt cười & Con người",
@@ -124,31 +124,17 @@ export const EmojiPickerBox = ({
     const translateLabels = () => {
       const root = panelRef.current;
       if (!root) return;
-
       root.querySelectorAll(".epr-emoji-category-label").forEach((el) => {
-        const raw = (el.textContent || "").trim().replace(/\s+/g, " ");
+        const raw = (el.textContent || "").trim();
         const vi = translations[raw];
-        if (vi && el.textContent !== vi) el.textContent = vi;
+        if (vi) el.textContent = vi;
       });
-
-      root
-        .querySelectorAll(".epr-header span, .epr-preview span")
-        .forEach((el) => {
-          const raw = (el.textContent || "").trim().replace(/\s+/g, " ");
-          const vi = translations[raw];
-          if (vi && el.textContent !== vi) el.textContent = vi;
-        });
     };
 
     const t = setTimeout(translateLabels, 0);
     const obs = new MutationObserver(() => translateLabels());
     const node = panelRef.current;
-    if (node)
-      obs.observe(node, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      });
+    if (node) obs.observe(node, { childList: true, subtree: true });
     observerRef.current = obs;
 
     return () => {
@@ -159,6 +145,8 @@ export const EmojiPickerBox = ({
   }, [open]);
 
   if (!open || !pos) return null;
+
+  const isDark = document.documentElement.classList.contains("dark");
 
   const backdropStyle: React.CSSProperties = {
     position: "fixed",
@@ -175,12 +163,14 @@ export const EmojiPickerBox = ({
     height,
     padding: 2,
     borderRadius: 16,
-    background:
-      "linear-gradient(140deg, rgba(255,255,255,0.28), rgba(255,255,255,0.12))",
-    boxShadow:
-      "0 18px 48px rgba(0,0,0,0.55), 0 6px 18px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.10)",
-    backdropFilter: "blur(3px)",
-    WebkitBackdropFilter: "blur(3px)",
+    background: isDark
+      ? "linear-gradient(140deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10))"
+      : "linear-gradient(140deg, rgba(0,0,0,0.06), rgba(0,0,0,0.04))",
+    boxShadow: isDark
+      ? "0 18px 48px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.08)"
+      : "0 10px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.08)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
     pointerEvents: "auto",
     zIndex: 10001,
     transform: mounted
@@ -195,29 +185,47 @@ export const EmojiPickerBox = ({
     height: "100%",
     borderRadius: 14,
     overflow: "hidden",
-    background: "rgba(15,17,23,0.94)",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08)",
-    ["--epr-emoji-size" as any]: "16px",
-    ["--epr-emoji-gap" as any]: "4px",
+    background: isDark ? "rgba(15,17,23,0.96)" : "rgba(255,255,255,0.97)",
+    boxShadow: isDark
+      ? "inset 0 1px 0 rgba(255,255,255,0.06)"
+      : "inset 0 1px 0 rgba(0,0,0,0.06)",
+    ["--epr-emoji-size" as any]: "18px",
+    ["--epr-emoji-gap" as any]: "5px",
   };
 
   const inlineCss = `
-    .EmojiPickerReact .epr-header { padding: 0px 0px !important; }
-    .EmojiPickerReact .epr-category-nav .epr-cat-btn { border: none !important; outline: none !important; box-shadow: none !important; border-radius: 6px !important; }
-    .EmojiPickerReact .epr-category-nav .epr-cat-btn .epr-cat-icon { color: #B9C0CC !important; transition: color .15s ease; }
-    .EmojiPickerReact .epr-category-nav .epr-cat-btn.epr-active .epr-cat-icon { color: #FFFFFF !important; }
-    .EmojiPickerReact .epr-category-nav .epr-cat-btn:focus,
-    .EmojiPickerReact .epr-category-nav .epr-cat-btn:active { border: none !important; outline: none !important; box-shadow: none !important; }
-    .EmojiPickerReact .epr-search { font-size: 12px !important; padding: 6px 8px !important; border-radius: 8px !important; }
-    .EmojiPickerReact .epr-body { padding: 4px !important; }
-    .EmojiPickerReact .epr-emoji-category-content { gap: 4px !important; }
-    .EmojiPickerReact .epr-emoji { padding: 2px !important; }
-    .EmojiPickerReact .epr-emoji-category-label { font-size: 12px !important; font-weight: 600 !important; position: relative !important; top: auto !important; background: transparent !important; padding: 0 6px !important; color: #D8DEE9 !important; }
-    .EmojiPickerReact ::-webkit-scrollbar { width: 8px; height: 8px; }
-    .EmojiPickerReact ::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); border-radius: 999px; }
-    .EmojiPickerReact ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.55); border-radius: 999px; border: 2px solid rgba(0,0,0,0); }
-    .EmojiPickerReact ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.75); }
+    .EmojiPickerReact .epr-header { padding: 2px 4px !important; }
+    .EmojiPickerReact .epr-category-nav .epr-cat-btn {
+      border: none !important;
+      border-radius: 6px !important;
+    }
+    .EmojiPickerReact .epr-cat-icon {
+      color: ${isDark ? "#B9C0CC" : "#555"} !important;
+    }
+    .EmojiPickerReact .epr-cat-btn.epr-active .epr-cat-icon {
+      color: ${isDark ? "#fff" : "#000"} !important;
+    }
+    .EmojiPickerReact .epr-search {
+      font-size: 13px !important;
+      padding: 6px 8px !important;
+      border-radius: 8px !important;
+      background: ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)"};
+      color: ${isDark ? "#fff" : "#000"};
+    }
+    .EmojiPickerReact .epr-emoji-category-label {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: ${isDark ? "#D8DEE9" : "#333"} !important;
+      background: transparent !important;
+    }
+    .EmojiPickerReact ::-webkit-scrollbar { width: 8px; }
+    .EmojiPickerReact ::-webkit-scrollbar-thumb {
+      background: ${isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.3)"};
+      border-radius: 999px;
+    }
+    .EmojiPickerReact ::-webkit-scrollbar-thumb:hover {
+      background: ${isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.5)"};
+    }
   `;
 
   const node = (
@@ -240,7 +248,7 @@ export const EmojiPickerBox = ({
                 style={{
                   padding: 10,
                   fontSize: 12,
-                  color: "rgba(255,255,255,0.75)",
+                  color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.6)",
                 }}
               >
                 Đang tải biểu tượng…
@@ -248,7 +256,7 @@ export const EmojiPickerBox = ({
             }
           >
             <Picker
-              theme={Theme.DARK}
+              theme={isDark ? Theme.DARK : Theme.LIGHT}
               width="100%"
               height={height}
               searchDisabled={false}
