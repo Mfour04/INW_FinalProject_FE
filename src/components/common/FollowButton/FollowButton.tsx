@@ -19,6 +19,10 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 }) => {
     const { isFollowing, toggleFollow, isPending } = useFollow(targetUserId, enabled);
 
+    if (!enabled) {
+        return null;
+    }
+
     const getButtonStyles = () => {
         const baseStyles = {
             textTransform: 'none' as const,

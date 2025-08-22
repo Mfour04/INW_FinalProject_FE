@@ -18,6 +18,7 @@ import { useUserBlogPosts } from '../Blogs/HooksBlog';
 import { useGetCurrentUserInfo } from '../setting/useUserSettings';
 import { GetUserProfile } from '../../api/User/user-search.api';
 import { FollowButton } from '../../components/common/FollowButton';
+import { GetFollowers, GetFollowing } from '../../api/UserFollow/user-follow.api';
 import type { UserProfileResponse } from '../../api/User/user-search.type';
 
 export const UserProfile = () => {
@@ -42,6 +43,21 @@ export const UserProfile = () => {
   const userError = isOwnProfile ? currentUserQuery.error : otherUserQuery.error;
   const userId = (userInfo as any)?.data?.id || (userInfo as any)?.data?.data?.id || auth?.user?.userId || "";
   const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(userId);
+
+  // Get followers and following data
+  const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
+    queryKey: ['followers', targetUsername || auth?.user?.userName],
+    queryFn: () => GetFollowers(targetUsername || auth?.user?.userName!),
+    enabled: !!(targetUsername || auth?.user?.userName),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const { data: followingData, isLoading: isLoadingFollowing } = useQuery({
+    queryKey: ['following', targetUsername || auth?.user?.userName],
+    queryFn: () => GetFollowing(targetUsername || auth?.user?.userName!),
+    enabled: !!(targetUsername || auth?.user?.userName),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   useEffect(() => {
     if (userInfo) {
@@ -142,10 +158,13 @@ export const UserProfile = () => {
   const currentBio = normalizedData.Bio || auth?.user?.bio || "";
   const currentDisplayName = normalizedData.DisplayName || auth?.user?.displayName || 'Unknown User';
   const currentUserName = backendData?.username || username || auth?.user?.userName || 'unknown';
-  const currentFollowerCount = normalizedData.FollowerCount;
-  const currentFollowingCount = normalizedData.FollowingCount;
+  const currentFollowerCount = Array.isArray(followersData?.data) ? followersData.data.length : 0;
+  const currentFollowingCount = Array.isArray(followingData?.data) ? followingData.data.length : 0;
   const createdAt = backendData?.CreatedAt || backendData?.createdAt;
   const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "Tháng 3/2025";
+
+  // Get targetUserId for FollowButton
+  const targetUserId = backendData?.id || backendData?.Id || backendData?.UserId || backendData?.userId || '';
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget);
@@ -232,29 +251,91 @@ export const UserProfile = () => {
 
       case 'followers':
         return (
-          <div className="mt-6 grid grid-cols-5 gap-4">
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                <img src={bannerImage} alt="Follower" className="w-16 h-16 rounded-full mb-2" />
-                <p className="font-semibold text-white text-sm text-center">August {i + 1}</p>
-                <p className="text-xs text-gray-400 text-center">@nguoitheodoi{i + 1}</p>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded">Theo dõi</button>
+          <div className="mt-6">
+            {isLoadingFollowers ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Đang tải danh sách người theo dõi...</p>
               </div>
-            ))}
+            ) : !followersData?.data || !Array.isArray(followersData.data) || followersData.data.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Chưa có người theo dõi nào.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {followersData.data.map((follower: any) => (
+                  <div key={follower.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
+                    <img
+                      src={follower.avatar || avatarImage}
+                      alt={follower.displayName}
+                      className="w-16 h-16 rounded-full mb-2 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = avatarImage;
+                      }}
+                    />
+                    <p className="font-semibold text-white text-sm text-center truncate w-full">{follower.displayName}</p>
+                    <p className="text-xs text-gray-400 text-center">@{follower.userName}</p>
+                    <button
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded text-sm"
+                      onClick={() => {
+                        if (follower.userName) {
+                          navigate(`/profile/${follower.userName}`);
+                        } else {
+                          console.error('Username is missing for follower user:', follower);
+                        }
+                      }}
+                    >
+                      Xem profile
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
       case 'following':
         return (
-          <div className="mt-6 grid grid-cols-5 gap-4">
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                <img src={avatarImage} alt="Follower" className="w-16 h-16 rounded-full mb-2" />
-                <p className="font-semibold text-white text-sm text-center">August {i + 1}</p>
-                <p className="text-xs text-gray-400 text-center">@nguoitheodoi{i + 1}</p>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded">Theo dõi</button>
+          <div className="mt-6">
+            {isLoadingFollowing ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Đang tải danh sách đang theo dõi...</p>
               </div>
-            ))}
+            ) : !followingData?.data || !Array.isArray(followingData.data) || followingData.data.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Chưa theo dõi ai.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {followingData.data.map((following: any) => (
+                  <div key={following.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
+                    <img
+                      src={following.avatar || avatarImage}
+                      alt={following.displayName}
+                      className="w-16 h-16 rounded-full mb-2 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = avatarImage;
+                      }}
+                    />
+                    <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
+                    <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
+                    <button
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded text-sm"
+                      onClick={() => {
+                        if (following.userName) {
+                          navigate(`/profile/${following.userName}`);
+                        } else {
+                          console.error('Username is missing for following user:', following);
+                        }
+                      }}
+                    >
+                      Xem profile
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
@@ -286,59 +367,62 @@ export const UserProfile = () => {
         </div>
       </div>
 
-      {/* Chỉ hiển thị nút follow và menu khi không phải profile của chính mình */}
-      {!isOwnProfile && (
-        <div className="flex justify-end items-center px-12 mt-4 space-x-4">
-          <FollowButton
-            targetUserId={backendData?.id || backendData?.Id || ''}
-            enabled={!isOwnProfile && !!(backendData?.id || backendData?.Id)}
-            size="medium"
-            variant="contained"
-          />
+      {/* Luôn render FollowButton để tránh hooks order violation */}
+      <div className="flex justify-end items-center px-12 mt-4 space-x-4">
+        <FollowButton
+          targetUserId={targetUserId}
+          enabled={!isOwnProfile && !!targetUserId}
+          size="medium"
+          variant="contained"
+        />
 
-          <div
-            onClick={handleMenuOpen}
-            className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
-          >
-            <MoreHorizIcon style={{ color: '#aaa' }} />
-          </div>
+        {/* Chỉ hiển thị menu khi không phải profile của chính mình */}
+        {!isOwnProfile && (
+          <>
+            <div
+              onClick={handleMenuOpen}
+              className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
+            >
+              <MoreHorizIcon style={{ color: '#aaa' }} />
+            </div>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            slotProps={{
-              paper: {
-                sx: {
-                  bgcolor: '#1f1f1f',
-                  color: '#fff',
-                  borderRadius: 2,
-                  minWidth: 200,
-                  boxShadow: 4,
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    bgcolor: '#1f1f1f',
+                    color: '#fff',
+                    borderRadius: 2,
+                    minWidth: 200,
+                    boxShadow: 4,
+                  },
                 },
-              },
-            }}
-          >
-            <MenuItem
-              onClick={() => alert('Báo cáo người dùng')}
-              sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+              }}
             >
-              <Flag02Icon />
-              Báo cáo
-            </MenuItem>
+              <MenuItem
+                onClick={() => alert('Báo cáo người dùng')}
+                sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+              >
+                <Flag02Icon />
+                Báo cáo
+              </MenuItem>
 
-            <MenuItem
-              onClick={() => alert('Đã chặn người dùng')}
-              sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
-            >
-              <BlockIcon />
-              Chặn người dùng
-            </MenuItem>
-          </Menu>
-        </div>
-      )}
+              <MenuItem
+                onClick={() => alert('Đã chặn người dùng')}
+                sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
+              >
+                <BlockIcon />
+                Chặn người dùng
+              </MenuItem>
+            </Menu>
+          </>
+        )}
+      </div>
 
       {/* Thêm margin-top để tránh bị che khuất bởi avatar */}
       <div className="mt-20 px-80">

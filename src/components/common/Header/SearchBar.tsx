@@ -4,6 +4,7 @@ import { SearchUsers } from "../../../api/User/user-search.api";
 import type { UserSearchResult } from "../../../api/User/user-search.type";
 import { useNavigate } from "react-router-dom";
 import { FollowButton } from "../FollowButton";
+import { ClickableUserInfo } from "../ClickableUserInfo";
 
 type SortOption = { value: string; label: string };
 
@@ -204,35 +205,21 @@ export const SearchBar = ({
                   key={user.id}
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zinc-800/40 transition-colors"
                 >
-                  <div
-                    className="flex items-center space-x-3 flex-1 cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleUserClick(user.username);
-                    }}
-                  >
-                    <img
-                      src={user.avatarUrl || ""}
-                      alt={user.displayName}
-                      className="w-10 h-10 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "";
-                      }}
+                  <div className="flex-1">
+                    <ClickableUserInfo
+                      userId={user.id}
+                      username={user.username}
+                      displayName={user.displayName}
+                      avatarUrl={user.avatarUrl}
+                      size="medium"
+                      showUsername={true}
+                      className="cursor-pointer"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white text-sm truncate">
-                        {user.displayName}
+                    {user.bio && (
+                      <p className="text-xs text-gray-500 truncate mt-1 ml-12">
+                        {user.bio}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">
-                        @{user.username}
-                      </p>
-                      {user.bio && (
-                        <p className="text-xs text-gray-500 truncate mt-1">
-                          {user.bio}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
                   <div className="flex-shrink-0">
                     <FollowButton

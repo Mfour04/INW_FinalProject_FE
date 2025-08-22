@@ -16,11 +16,11 @@ export const SearchUsers = async (query: string) => {
 
         const mappedUsers = users.map((user: any) => {
             return {
-                id: user.userId || user.UserId,
-                username: user.userName || user.UserName,
-                displayName: user.displayName || user.DisplayName,
-                avatarUrl: user.avatarUrl || user.AvatarUrl,
-                bio: user.bio || user.Bio,
+                id: user.userId || user.UserId || user.id || '',
+                username: user.userName || user.UserName || user.username || '',
+                displayName: user.displayName || user.DisplayName || '',
+                avatarUrl: user.avatarUrl || user.AvatarUrl || '',
+                bio: user.bio || user.Bio || '',
                 followerCount: user.followerCount || user.FollowerCount || 0,
                 followingCount: user.followingCount || user.FollowingCount || 0
             };

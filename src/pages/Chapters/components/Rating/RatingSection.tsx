@@ -23,6 +23,7 @@ import { formatTicksToRelativeTime } from "../../../../utils/date_format";
 import { MAX_LEN, scoreKeys } from "../../constants";
 import { Segmented } from "./Segment";
 import type { Rating } from "../../../../entity/rating";
+import { ClickableUserInfo } from "../../../../components/common/ClickableUserInfo";
 
 const initialNovelRatingRequest: CreateNovelRatingRequest = {
   novelId: "",
@@ -313,11 +314,10 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={`w-4 h-4 cursor-pointer transition-all ${
-                          (hoverRating || ratingRequest.score) >= star
+                        className={`w-4 h-4 cursor-pointer transition-all ${(hoverRating || ratingRequest.score) >= star
                             ? "text-yellow-400 fill-yellow-400 scale-110"
                             : "text-gray-300"
-                        }`}
+                          }`}
                         onClick={() =>
                           setRatingRequest((prev) => ({
                             ...prev,
@@ -356,11 +356,10 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                 />
                 <div className="flex items-center justify-end px-3 pb-2 -mt-1">
                   <span
-                    className={`text-[11px] tabular-nums ${
-                      (ratingRequest.content ?? "").length > MAX_LEN - 25
+                    className={`text-[11px] tabular-nums ${(ratingRequest.content ?? "").length > MAX_LEN - 25
                         ? "text-white"
                         : "text-white/60"
-                    }`}
+                      }`}
                   >
                     {(ratingRequest.content ?? "").length}/{MAX_LEN}
                   </span>
@@ -410,20 +409,15 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                     className="p-4 hover:bg-white/[0.02] transition"
                   >
                     <div className="flex items-start gap-2.5">
-                      <img
-                        className="h-7 w-7 rounded-full object-cover bg-white"
-                        src={
-                          (rev.author?.avatarUrl ??
-                            rev.author?.avatar ??
-                            DefaultAvatar) as string
-                        }
-                        alt={rev.author?.displayName ?? "user"}
+                      <ClickableUserInfo
+                        username={rev.author?.userName || rev.author?.username}
+                        displayName={rev.author?.DisplayName || rev.author?.displayName || "Người dùng"}
+                        avatarUrl={rev.author?.avatarUrl || rev.author?.avatar}
+                        size="small"
+                        showUsername={false}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[13px] font-semibold">
-                            {rev.author?.displayName ?? "Người dùng"}
-                          </span>
                           <div className="text-yellow-400 flex items-center">
                             {renderStars(rev.score, 14)}
                             <span className="ml-2 text-[11px] text-gray-400">
