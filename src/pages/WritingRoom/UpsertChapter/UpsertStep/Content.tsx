@@ -138,7 +138,7 @@ type ContentStepProps = {
 };
 
 export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
-  const [showPlagiarismModal, setShowPlagiarismModal] = useState(true);
+  const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
   const [plagiarismMatches, setPlagiarismMatches] = useState<Matches[]>([]);
   const toast = useToast();
 
