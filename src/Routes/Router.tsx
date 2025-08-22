@@ -30,6 +30,7 @@ import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
+import { Income } from "../pages/Income/Income";
 
 export const Router = () => {
   return (
@@ -60,6 +61,7 @@ export const Router = () => {
             element={<UpsertChapter />}
           />
         </Route>
+        <Route path="income" element={<Income />} />
       </Route>
       <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
         <Route index element={<AdminHome />} />

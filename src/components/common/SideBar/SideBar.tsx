@@ -43,6 +43,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       subItems: [
         { label: "Danh sách", path: "/novels" },
         { label: "Phòng sáng tác", path: "/novels/writing-room" },
+        { label: "Doanh thu", path: "/novels/income" },
       ],
     },
     {
