@@ -14,7 +14,7 @@ const base =
 const styles = {
   container: [
     base,
-    "bg-white border border-orange-100 shadow-sm",
+    "bg-white dark:bg-gray-500 border border-orange-100 shadow-sm",
     "hover:bg-orange-50/70 hover:shadow-md hover:-translate-y-0.5",
     "focus-visible:ring-2 focus-visible:ring-orange-300/60",
     "transition-transform duration-200",
