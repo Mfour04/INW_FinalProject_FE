@@ -30,7 +30,7 @@ import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
-import { Income } from "../pages/Income/Income";
+import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
 
 export const Router = () => {
   return (
@@ -48,7 +48,7 @@ export const Router = () => {
       <Route path="/novels">
         <Route index element={<NovelsExplore />} />
         <Route path=":novelId" element={<NovelDetail />} />
-        <Route path=":novelId/:chapterId" element={<NovelRead />} />
+        {/* <Route path=":novelId/:chapterId" element={<NovelRead />} /> */}
         <Route
           path="writing-room"
           element={<ProtectedRoutes role={[Roles.User]} />}
@@ -61,7 +61,7 @@ export const Router = () => {
             element={<UpsertChapter />}
           />
         </Route>
-        <Route path="income" element={<Income />} />
+        <Route path="analytics" element={<AuthorAnalytics />} />
       </Route>
       <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
         <Route index element={<AdminHome />} />
@@ -71,7 +71,7 @@ export const Router = () => {
         <Route path="reports" element={<ReportList />} />
         <Route path="wallets" element={<RequestList />} />
       </Route>
-      {/* <Route path="/novelRead" element={<NovelRead />} /> */}
+      <Route path="/novelRead" element={<NovelRead />} />
       <Route path="/deposite" element={<Deposite />} />
       <Route path="/transaction-history" element={<TransactionHistory />} />
       <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
