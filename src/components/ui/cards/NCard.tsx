@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Star, Bookmark, Eye } from "lucide-react";
-import { fmt, variantFromSeed } from "../util";
+import { fmt, variantFromSeed } from "../../../pages/NovelsExplore/util";
 
 type Props = {
   title: string;
