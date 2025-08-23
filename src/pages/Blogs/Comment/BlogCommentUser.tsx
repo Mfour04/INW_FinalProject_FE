@@ -595,7 +595,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                             <div className="flex justify-between items-start">
                                 <div className="flex items-start space-x-3 min-w-0 flex-1">
                                     <img
-                                        src={comment.avatarUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"}
+                                        src={comment.avatarUrl || ""}
                                         alt={comment.name || 'User'}
                                         className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                         onClick={() => {
@@ -605,7 +605,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                                             }
                                         }}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+                                            (e.target as HTMLImageElement).src = "";
                                         }}
                                     />
                                     <div className="min-w-0 flex-1">

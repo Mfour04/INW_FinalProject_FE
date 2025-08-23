@@ -162,8 +162,6 @@ export const UserProfile = () => {
   const currentFollowingCount = Array.isArray(followingData?.data) ? followingData.data.length : 0;
   const createdAt = backendData?.CreatedAt || backendData?.createdAt;
   const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "Tháng 3/2025";
-
-  // Get targetUserId for FollowButton
   const targetUserId = backendData?.id || backendData?.Id || backendData?.UserId || backendData?.userId || '';
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -345,7 +343,7 @@ export const UserProfile = () => {
   };
 
   return (
-    <div className="profile bg-black text-white font-sans h-screen flex flex-col">
+    <div className="bg-black text-white font-sans h-screen flex flex-col">
       <div className="img_banner relative">
         <img
           src={currentCover}
@@ -367,8 +365,7 @@ export const UserProfile = () => {
         </div>
       </div>
 
-      {/* Luôn render FollowButton để tránh hooks order violation */}
-      <div className="flex justify-end items-center px-12 mt-4 space-x-4">
+      <div className="profile flex justify-end items-center px-12 space-x-4">
         <FollowButton
           targetUserId={targetUserId}
           enabled={!isOwnProfile && !!targetUserId}
@@ -424,8 +421,7 @@ export const UserProfile = () => {
         )}
       </div>
 
-      {/* Thêm margin-top để tránh bị che khuất bởi avatar */}
-      <div className="mt-20 px-80">
+      <div className="px-80">
         <div className="flex flex-col space-y-1">
           <div>
             <h1 className="text-4xl font-bold leading-tight">
@@ -436,7 +432,6 @@ export const UserProfile = () => {
             </p>
           </div>
 
-          {/* Bio section */}
           {currentBio && (
             <p className="text-gray-300 text-lg mt-2 max-w-2xl break-words overflow-hidden">
               {currentBio}
