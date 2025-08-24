@@ -13,52 +13,48 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
-import { SpeechControls } from "./components/SpeechControls";
-import { CommentUser } from "../commentUser/CommentUser";
+import { CommentUser } from "../CommentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
-import { renderTextWithNewlines } from "./util";
+import { renderTextWithNewlines } from "../NovelRead/util";
+
+import { Type, Flag, Settings2 } from "lucide-react";
+import { SpeechControls } from "./components/SpeechControls";
+
+// ⬇️ Thêm import ReportModal
+import { ReportModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
 
+// --- (tuỳ chọn) scale mượt khi khung hẹp ---
+const calcScale = (available: number, base: number) => {
+  const minScale = 0.24;
+  const minW = base * 0.4;
+  if (available >= base) return 1;
+  if (available <= minW) return minScale;
+  const t = (available - minW) / (base - minW);
+  return Math.max(minScale, Math.min(1, minScale + t * (1 - minScale)));
+};
+const TOOL_BASE_W = 56;
+
 export const NovelRead = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [speechState, setSpeechState] = useState<
-    "started" | "paused" | "stopped"
-  >("stopped");
+  const [speechState, setSpeechState] = useState<"started" | "paused" | "stopped">("stopped");
   const [openPrefs, setOpenPrefs] = useState(false);
+  const [openReport, setOpenReport] = useState(false);
 
   const { novelId, chapterId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { auth } = useAuth();
 
-  const [fontSize, setFontSize] = useLocalStorageState<number>(
-    "reader:fontSize",
-    DEFAULTS.fontSize
-  );
-  const [lineHeight, setLineHeight] = useLocalStorageState<number>(
-    "reader:lineHeight",
-    DEFAULTS.lineHeight
-  );
-  const [widthIdx, setWidthIdx] = useLocalStorageState<number>(
-    "reader:widthIdx",
-    DEFAULTS.widthIdx
-  );
-
-  useEffect(() => {
-    const prev = history.scrollRestoration;
-    try {
-      history.scrollRestoration = "manual";
-    } catch {}
-    return () => {
-      try {
-        history.scrollRestoration = prev as ScrollRestoration;
-      } catch {}
-    };
-  }, []);
+  const [fontSize, setFontSize] = useLocalStorageState<number>("reader:fontSize", DEFAULTS.fontSize);
+  const [lineHeight, setLineHeight] = useLocalStorageState<number>("reader:lineHeight", DEFAULTS.lineHeight);
+  const [widthIdx, setWidthIdx] = useLocalStorageState<number>("reader:widthIdx", DEFAULTS.widthIdx);
 
   const pageTopRef = useRef<HTMLDivElement | null>(null);
+  const contentWrapRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
 
   const { data: novelInfo } = useQuery({
     queryKey: ["novel-by-slug", novelId],
@@ -96,17 +92,14 @@ export const NovelRead = () => {
   const { data: ReadingProcess } = useQuery({
     queryKey: ["readingProcess", auth?.user?.userId],
     queryFn: () =>
-      import("../../api/ReadingHistory/reading.api").then(
-        ({ GetReadingProcess }) =>
-          GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
+      import("../../api/ReadingHistory/reading.api").then(({ GetReadingProcess }) =>
+        GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
       ),
     enabled: !!auth?.user?.userId,
   });
 
   const isCurrentNovel = Array.isArray(ReadingProcess?.data)
-    ? !!ReadingProcess.data.find(
-        (p: any) => p.novelId === novelInfo?.novelInfo?.novelId
-      )
+    ? !!ReadingProcess.data.find((p: any) => p.novelId === novelInfo?.novelInfo?.novelId)
     : false;
 
   useReadingProcess({
@@ -117,7 +110,6 @@ export const NovelRead = () => {
   });
 
   const finalChapterList = novelInfo?.allChapters || chapterList || [];
-
   const adaptedChapterList = useMemo(
     () =>
       finalChapterList.map((chap: any) =>
@@ -148,28 +140,22 @@ export const NovelRead = () => {
 
   const currentNumber =
     data?.chapter?.chapterNumber ||
-    (currentChapter &&
-      ("chapter_number" in currentChapter
-        ? (currentChapter as any).chapter_number
-        : (currentChapter as any).chapterNumber)) ||
+    (currentChapter && ("chapter_number" in currentChapter ? (currentChapter as any).chapter_number : (currentChapter as any).chapterNumber)) ||
     0;
 
   const hasPrev = finalChapterList.some((chap: any) => {
-    const n =
-      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber - 1;
   });
   const hasNext = finalChapterList.some((chap: any) => {
-    const n =
-      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber + 1;
   });
 
   const handleGoToChapterNumber = (offset: number) => {
     if (!finalChapterList || currentNumber === 0) return;
     const next = finalChapterList.find((chap: any) => {
-      const cnum =
-        "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+      const cnum = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
       return cnum === currentNumber + offset;
     });
     if (!next) return;
@@ -186,179 +172,276 @@ export const NovelRead = () => {
   const { start, pause, stop } = useSpeech({ text: cleanText, lang: "vi-VN" });
 
   const ghostBtn =
-    "inline-flex items-center justify-center rounded-full border border-white/12 bg-white/[0.05] hover:bg-white/[0.1] px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed border bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 dark:border-white/12 dark:bg:white/[0.05] dark:hover:bg-white/[0.1] dark:text-white";
   const gradBtn =
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-[13px] font-semibold text-white !bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177] transition";
 
   useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        !target.closest?.("[data-reader-prefs]") &&
-        !target.closest?.("[data-reader-prefs-trigger]")
-      ) {
-        setOpenPrefs(false);
-      }
-    };
-    if (openPrefs) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [openPrefs]);
-
-  // 3) Chỉ cuộn khi chương mới đã load xong → mượt, giống reload
-  useEffect(() => {
     if (!chapterId || isChapterLoading) return;
     const el = pageTopRef.current;
-    // Đảm bảo DOM render xong rồi mới cuộn
     requestAnimationFrame(() => {
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [chapterId, isChapterLoading]);
 
+  // styles toolbar
+  const toolBtn =
+    "h-9 w-9 grid place-items-center rounded-xl border border-black/5 bg-white hover:bg-white/90 text-gray-800 shadow-sm transition " +
+    "dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white";
+  const toolGroup =
+    "flex flex-col items-stretch gap-1 rounded-2xl p-2 bg-white/90 ring-1 ring-black/5 shadow-[0_10px_26px_rgba(0,0,0,.08)] backdrop-blur " +
+    "dark:bg-[#0b0c0e]/80 dark:ring-white/10 dark:shadow-[0_10px_26px_rgba(0,0,0,.5)]";
+
+  // đo khoảng trống thực tế giữa mép phải section & mép phải content để scale gọn
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const update = () => {
+      const s = sectionRef.current;
+      const c = contentWrapRef.current;
+      if (!s || !c) return;
+      const sr = s.getBoundingClientRect();
+      const cr = c.getBoundingClientRect();
+      const gutter = Math.max(0, sr.right - cr.right - 12); // trống bên phải content nhưng vẫn trong section
+      const available = gutter + TOOL_BASE_W; // tối thiểu cần bằng chiều rộng tool
+      setScale(calcScale(available, TOOL_BASE_W));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (sectionRef.current) ro.observe(sectionRef.current);
+    if (contentWrapRef.current) ro.observe(contentWrapRef.current);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  // Handlers cho SpeechControls
+  const handleStart = () => {
+    setSpeechState("started");
+    start();
+  };
+  const handlePause = () => {
+    setSpeechState("paused");
+    pause();
+  };
+  const handleResume = () => {
+    setSpeechState("started");
+    try {
+      (window as any)?.speechSynthesis?.resume?.();
+    } catch {
+      start();
+    }
+  };
+  const handleStop = () => {
+    setSpeechState("stopped");
+    stop();
+  };
+
+  const chapterTitle = data?.chapter?.title ?? "";
+  const chapterNumber = data?.chapter?.chapterNumber ?? "—";
+  const novelTitle = novelInfo?.novelInfo?.title ?? "Tiểu thuyết";
+
+  // Tiêu đề hiển thị trong modal để phân biệt "báo cáo chương"
+  const reportTitleForChapter =
+    chapterNumber !== "—"
+      ? `Chương ${chapterNumber}: ${chapterTitle || "—"} – ${novelTitle}`
+      : `${chapterTitle || "—"} – ${novelTitle}`;
+
   return (
-    <div className="min-h-screen text-white antialiased bg-[#090a0c]">
-      {/* neo scroll */}
+    <div className="min-h-screen antialiased bg-[#f7f7f9] text-gray-900 dark:bg-[#090a0c] dark:text-white">
       <div ref={pageTopRef} />
 
       <div className="relative mx-auto w-full px-4 py-6">
-        <section className="relative overflow-hidden rounded-2xl bg-[#0b0c0e]/90 backdrop-blur-md shadow-[0_32px_100px_-28px_rgba(0,0,0,0.85)]">
-          <header className="px-6 pt-6 pb-4 bg-[#0d0e12]/95">
+        {/* SECTION: toolbar sẽ được gắn vào mép phải của khung trắng này */}
+        <section
+          ref={sectionRef}
+          className="relative rounded-2xl backdrop-blur-md bg-white ring-1 ring-gray-200 shadow-md dark:bg-[#0b0c0e]/90 dark:ring-white/12"
+        >
+          <header className="px-6 pt-6 pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
+                {/* Breadcrumb rút gọn: [Novel] / Chương {n} */}
                 <div className="flex items-center gap-2 text-[13px]">
                   <Link
                     to={`/novels/${novelId}`}
-                    className="truncate max-w-[50vw] rounded-full border border-white/10 bg-white/5 px-3 py-1 hover:bg-white/10 transition"
-                    title={novelInfo?.novelInfo?.title}
+                    className="truncate max-w-[50vw] rounded-full px-3 py-1 border bg-gray-50 hover:bg-gray-200 border-gray-300 text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                    title={novelTitle}
                   >
-                    {novelInfo?.novelInfo?.title ?? "Tiểu thuyết"}
+                    {novelTitle}
                   </Link>
-                  <span className="text-white/50">/</span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                    Chương {data?.chapter?.chapterNumber ?? "—"}
+                  <span className="text-gray-500 dark:text-white/50">/</span>
+                  <span className="rounded-full px-3 py-1 border bg-gray-50 border-gray-300 text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                    Chương {chapterNumber}
                   </span>
                 </div>
-                <h1 className="mt-2 text-[22px] md:text-[24px] font-extrabold tracking-tight">
-                  {data?.chapter?.title ?? "Đang tải chương…"}
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative" data-reader-prefs>
-                  <button
-                    data-reader-prefs-trigger
-                    onClick={() => setOpenPrefs((s) => !s)}
-                    className="h-9 w-9 grid place-items-center rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-[13px]"
-                    aria-haspopup="dialog"
-                    aria-expanded={openPrefs}
-                  >
-                    Aa
-                  </button>
-
-                  <ReaderPrefs
-                    open={openPrefs}
-                    onClose={() => setOpenPrefs(false)}
-                    fontSize={fontSize}
-                    setFontSize={setFontSize}
-                    lineHeight={lineHeight}
-                    setLineHeight={setLineHeight}
-                    widthIdx={widthIdx}
-                    setWidthIdx={setWidthIdx}
-                    widthLevels={WIDTH_LEVELS}
-                    defaults={DEFAULTS}
-                  />
-                </div>
-
-                <SpeechControls
-                  state={speechState}
-                  onStart={() => {
-                    setSpeechState("started");
-                    start();
-                  }}
-                  onPause={() => {
-                    setSpeechState("paused");
-                    pause();
-                  }}
-                  onResume={() => {
-                    setSpeechState("started");
-                    window.speechSynthesis.resume();
-                  }}
-                  onStop={() => {
-                    setSpeechState("stopped");
-                    stop();
-                  }}
-                />
               </div>
             </div>
 
-            <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+            {/* Title tách riêng & căn giữa */}
+            <div className="my-2 w-full flex justify-center">
+              <h1 className="text-[22px] md:text-[24px] font-extrabold tracking-tight text-center max-w-[min(90vw,1100px)]">
+                {chapterTitle || "Đang tải chương…"}
+              </h1>
+            </div>
           </header>
 
-          <div className="px-0 md:px-6 py-6 bg-[#0f1013]/80">
-            {isChapterLoading ? (
-              <div
-                className="w-full mx-auto space-y-3 px-6"
-                style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
-              >
-                {[...Array(10)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-4.5 rounded bg-white/5 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <article
-                className="w-full mx-auto text-gray-100"
-                style={{ fontSize: `${fontSize}px`, lineHeight }}
-              >
-                <div
-                  className="mx-auto px-6"
-                  style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
-                >
-                  <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/[0.06] px-6 py-6">
-                    <div
-                      className="[&>p]:mb-3.5 [&>p]:leading-relaxed [&>h2]:mt-6 [&>h2]:mb-2.5 [&>h3]:mt-5 [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-6 [&_img]:rounded-xl [&_img]:my-4"
-                      dangerouslySetInnerHTML={{
-                        __html: renderTextWithNewlines(
-                          data?.chapter?.content || ""
-                        ),
-                      }}
-                    />
-                  </div>
-                </div>
-              </article>
-            )}
-          </div>
-
-          <div className="px-6 pb-6 bg-[#0d0e12]/95">
-            <div
-              className="mx-auto"
-              style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
-            >
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent mb-4" />
+          {/* ===== TOP NAV (giống footer) ===== */}
+          <div className="px-6 pb-2">
+            <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
               <div className="flex items-center justify-center gap-2.5">
-                <button
-                  onClick={() => handleGoToChapterNumber(-1)}
-                  disabled={!hasPrev}
-                  className={ghostBtn}
-                >
+                <button onClick={() => handleGoToChapterNumber(-1)} disabled={!hasPrev} className={ghostBtn}>
                   Chương trước
                 </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className={gradBtn}
-                >
+                <button onClick={() => setIsModalOpen(true)} className={gradBtn}>
                   Mục lục
                 </button>
-                <button
-                  onClick={() => handleGoToChapterNumber(1)}
-                  disabled={!hasNext}
-                  className={ghostBtn}
+                <button onClick={() => handleGoToChapterNumber(1)} disabled={!hasNext} className={ghostBtn}>
+                  Chương sau
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ===== TOOLBAR: sticky TRONG section, mép phải của section ===== */}
+          <div className="hidden md:block sticky top-20 z-40">
+            <div className="relative">
+              <div
+                className="absolute right-3"
+                style={{ transform: `scale(${scale})`, transformOrigin: "top right" }}
+              >
+                <div className={toolGroup}>
+                  {/* Reader Prefs */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenPrefs((s) => !s)}
+                      className={toolBtn}
+                      title="Thiết lập hiển thị (Aa)"
+                      aria-haspopup="dialog"
+                      aria-expanded={openPrefs}
+                    >
+                      <Type size={18} />
+                    </button>
+                    {openPrefs && (
+                      <div className="absolute right-full top-0 mr-2 z-50">
+                        <div className="rounded-xl ring-1 ring-black/5 shadow-xl bg-white dark:bg-[#0b0c0e] dark:ring-white/10">
+                          <ReaderPrefs
+                            open={openPrefs}
+                            onClose={() => setOpenPrefs(false)}
+                            fontSize={fontSize}
+                            setFontSize={setFontSize}
+                            lineHeight={lineHeight}
+                            setLineHeight={setLineHeight}
+                            widthIdx={widthIdx}
+                            setWidthIdx={setWidthIdx}
+                            widthLevels={WIDTH_LEVELS}
+                            defaults={DEFAULTS}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Speech Controls */}
+                  <SpeechControls
+                    state={speechState}
+                    onStart={handleStart}
+                    onPause={handlePause}
+                    onResume={handleResume}
+                    onStop={handleStop}
+                  />
+
+                  {/* Report */}
+                  <button
+                    onClick={() => setOpenReport(true)}
+                    className={toolBtn}
+                    title="Báo cáo chương này"
+                  >
+                    <Flag size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-2 text-[11px] text-gray-500 dark:text-white/50 text-right pr-1 select-none">
+                  Công cụ
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ===== CONTENT WRAPPER ===== */}
+          <div className="px-0 md:px-6 py-6 bg-white dark:bg-[#0f1013]/80">
+            <div
+              ref={contentWrapRef}
+              className="mx-auto px-6"
+              style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+            >
+              {isChapterLoading ? (
+                <div className="w-full mx-auto space-y-3">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="h-4.5 rounded bg-gray-200 animate-pulse dark:bg-white/5" />
+                  ))}
+                </div>
+              ) : (
+                <article
+                  className="w-full mx-auto text-gray-900 dark:text-gray-100"
+                  style={{ fontSize: `${fontSize}px`, lineHeight }}
                 >
+                  <div className="rounded-xl px-6 py-6 bg-white ring-1 ring-black/10 dark:bg-white/[0.03] dark:ring-white/15">
+                    <div
+                      className="[&>p]:mb-3.5 [&>p]:leading-relaxed [&_img]:rounded-xl [&_img]:my-4"
+                      dangerouslySetInnerHTML={{ __html: renderTextWithNewlines(data?.chapter?.content || "") }}
+                    />
+                  </div>
+                </article>
+              )}
+            </div>
+          </div>
+
+          {/* MOBILE bottom bar */}
+          <div className="md:hidden sticky bottom-0 inset-x-0 z-50 border-t border-black/5 bg-white/95 backdrop-blur px-3 py-2 dark:bg-[#0b0c0e]/90 dark:border-white/10">
+            <div className="mx-auto max-w-[680px] flex items-center justify-between gap-2">
+              <button
+                onClick={() => setOpenPrefs((s) => !s)}
+                className="flex-1 h-10 rounded-xl border border-black/5 bg-white text-gray-800 grid place-items-center dark:border-white/10 dark:bg-white/5 dark:text-white"
+                title="Thiết lập hiển thị"
+              >
+                <Settings2 size={18} />
+              </button>
+
+              <div className="flex-1 grid place-items-center">
+                <SpeechControls
+                  state={speechState}
+                  onStart={handleStart}
+                  onPause={handlePause}
+                  onResume={handleResume}
+                  onStop={handleStop}
+                />
+              </div>
+
+              <button
+                onClick={() => setOpenReport(true)}
+                className="flex-1 h-10 rounded-xl border border-black/5 bg-white text-gray-800 grid place-items-center dark:border-white/10 dark:bg:white/5 dark:text-white"
+                title="Báo cáo chương này"
+              >
+                <Flag size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Footer nav */}
+          <div className="px-6 pt-2 pb-8">
+            <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+              <div className="flex items-center justify-center gap-2.5">
+                <button onClick={() => handleGoToChapterNumber(-1)} disabled={!hasPrev} className={ghostBtn}>
+                  Chương trước
+                </button>
+                <button onClick={() => setIsModalOpen(true)} className={gradBtn}>
+                  Mục lục
+                </button>
+                <button onClick={() => handleGoToChapterNumber(1)} disabled={!hasNext} className={ghostBtn}>
                   Chương sau
                 </button>
               </div>
@@ -382,6 +465,23 @@ export const NovelRead = () => {
           />
         )}
       </div>
+
+      {/* ReportModal cho CHƯƠNG */}
+      <ReportModal
+        isOpen={openReport}
+        novelId={novelId!}
+        onClose={() => setOpenReport(false)}
+        onSubmit={async (payload: ReportPayload) => {
+          const finalPayload: ReportPayload = {
+            ...payload,
+            chapterId, // gắn thêm chapterId để backend biết là báo cáo chapter
+          };
+          // TODO: Gọi API thực tế, ví dụ:
+          // await ReportApi.create(finalPayload);
+          console.log("Báo cáo chương:", finalPayload);
+          toast?.onOpen("Đã gửi báo cáo chương. Cảm ơn bạn!");
+        }}
+      />
     </div>
   );
 };
