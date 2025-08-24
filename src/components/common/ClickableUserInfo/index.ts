@@ -1,0 +1,1 @@
+export { ClickableUserInfo } from './ClickableUserInfo';

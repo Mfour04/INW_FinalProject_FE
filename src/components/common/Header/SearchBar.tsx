@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { SearchUsers } from "../../../api/User/user-search.api";
+import type { UserSearchResult } from "../../../api/User/user-search.type";
+import { useNavigate } from "react-router-dom";
+import { FollowButton } from "../FollowButton";
+import { ClickableUserInfo } from "../ClickableUserInfo";
 import { Check, X, ChevronDown, Search as SearchIcon } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
 
@@ -11,7 +17,7 @@ type SearchProps = {
 
   sortOptions?: SortOption[];
 
-  searchIcon: string;   
+  searchIcon: string;
   clearIcon: string;
   filterIcon: string;
 
@@ -222,8 +228,8 @@ function ModernSelect({
                     active
                       ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
                       : focused
-                      ? "text-white bg-white/6"
-                      : "text-zinc-300 hover:text-white hover:bg-white/6",
+                        ? "text-white bg-white/6"
+                        : "text-zinc-300 hover:text-white hover:bg-white/6",
                   ].join(" ")}
                 >
                   <span className="truncate">{opt.label}</span>
@@ -256,9 +262,34 @@ export const SearchBar = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [tempSort, setTempSort] = useState<string>(selectedSort);
   const [tempTags, setTempTags] = useState<string[]>(selectedTags);
+  const [showUserResults, setShowUserResults] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null!);
+  const navigate = useNavigate();
+
+  // Query để tìm kiếm user
+  const { data: userSearchResults, isLoading: isSearchingUsers } = useQuery({
+    queryKey: ["userSearch", searchTerm],
+    queryFn: async () => {
+      const result = await SearchUsers(searchTerm);
+      return result;
+    },
+    enabled: searchTerm.length >= 2, // Chỉ gọi API khi searchTerm >= 2
+    staleTime: 5 * 60 * 1000, // 5 phút
+    gcTime: 10 * 60 * 1000, // 10 phút (thay thế cacheTime)
+    refetchOnWindowFocus: false, // Không refetch khi focus window
+    refetchOnMount: false, // Không refetch khi mount
+  });
+
+  // Hiển thị kết quả tìm kiếm user khi có searchTerm
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      setShowUserResults(true);
+    } else {
+      setShowUserResults(false);
+    }
+  }, [searchTerm]);
 
   // Auto sync temp khi mở
   useEffect(() => {
@@ -278,7 +309,34 @@ export const SearchBar = ({
     [selectedSort, selectedTags]
   );
 
-  const popupWidth = useElementWidth(containerRef, 720, 24); 
+  const handleUserClick = (username: string) => {
+    try {
+      // Kiểm tra xem navigate có hoạt động không
+      if (typeof navigate === 'function') {
+        navigate(`/profile/${username}`);
+        setShowUserResults(false);
+        onSearchTermChange("");
+      } else {
+        // Fallback: sử dụng window.location
+        window.location.href = `/profile/${username}`;
+      }
+    } catch (error) {
+      // Fallback: sử dụng window.location
+      window.location.href = `/profile/${username}`;
+    }
+  };
+
+  const users = userSearchResults?.data?.users || [];
+
+  // Thêm type guard để đảm bảo an toàn
+  const hasValidData = userSearchResults &&
+    typeof userSearchResults === 'object' &&
+    userSearchResults !== null &&
+    'data' in userSearchResults &&
+    userSearchResults.data &&
+    typeof userSearchResults.data === 'object' &&
+    'users' in userSearchResults.data;
+  const popupWidth = useElementWidth(containerRef, 720, 24);
 
   return (
     <div className="relative w-full max-w-[760px]" ref={containerRef}>
@@ -328,14 +386,63 @@ export const SearchBar = ({
         </button>
       </div>
 
+      {/* Dropdown kết quả tìm kiếm user */}
+      {showUserResults && (
+        <div className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-2xl border border-zinc-800 bg-[#1c1c1f] shadow-xl z-[9999] max-h-96 overflow-y-auto">
+          {isSearchingUsers ? (
+            <div className="p-4 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+              <p className="text-gray-400 mt-2 text-sm">Đang tìm kiếm...</p>
+            </div>
+          ) : users.length > 0 ? (
+            <div className="p-2">
+              {users.map((user: UserSearchResult) => (
+                <div
+                  key={user.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zinc-800/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <ClickableUserInfo
+                      userId={user.id}
+                      username={user.username}
+                      displayName={user.displayName}
+                      avatarUrl={user.avatarUrl}
+                      size="medium"
+                      showUsername={true}
+                      className="cursor-pointer"
+                    />
+                    {user.bio && (
+                      <p className="text-xs text-gray-500 truncate mt-1 ml-12">
+                        {user.bio}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0">
+                    <FollowButton
+                      targetUserId={user.id}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : searchTerm.length >= 2 && hasValidData ? (
+            <div className="p-4 text-center">
+              <p className="text-gray-400 text-sm">Không tìm thấy kết quả</p>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {showDropdown && (
         <div
           ref={dropdownRef}
           className="absolute right-0 top-[calc(100%+10px)] rounded-3xl
                      bg-[#0f1115]/95 backdrop-blur-2xl ring-1 ring-white/10 shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)] z-50 p-5"
           style={{
-            width: popupWidth || undefined,           
-            minWidth: Math.min(320, popupWidth || 320), 
+            width: popupWidth || undefined,
+            minWidth: Math.min(320, popupWidth || 320),
           }}
         >
           <div className="mb-4">
@@ -379,6 +486,21 @@ export const SearchBar = ({
                     key={tag.value}
                     active={active}
                     onClick={() => toggleTempTag(tag.value)}
+                    className={[
+                      "px-3 h-8 rounded-full text-xs font-medium transition relative overflow-hidden",
+                      active
+                        ? [
+                          "text-white border-0",
+                          "bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+                          "hover:brightness-110",
+                          "shadow-[0_8px_20px_rgba(255,103,64,0.35)]",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/60",
+                          "before:content-[''] before:absolute before:inset-0",
+                          "before:bg-[radial-gradient(120%_60%_at_0%_0%,rgba(255,255,255,0.18),transparent_55%)]",
+                          "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
+                        ].join(" ")
+                        : "border border-zinc-700 text-zinc-300 bg-[#121214] hover:border-zinc-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/40",
+                    ].join(" ")}
                     onRemove={active ? () => toggleTempTag(tag.value) : undefined}
                   >
                     {tag.label}

@@ -74,7 +74,7 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       const latest = Math.max(createdTicks, updatedTicks, localTicks);
       const timestamp = latest > 0 ? formatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
       const author = c.author;
-      const name = author?.displayName || author?.username || "Ẩn danh";
+      const name = author?.DisplayName || author?.displayName || author?.username || "Ẩn danh";
       const user = author?.username ? `@${author.username}` : "@user";
       flat.push({
         id: c.id,
