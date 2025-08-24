@@ -46,7 +46,6 @@ export const VerticalItem = ({
   leftMeta,
   rightMeta,
 }: VerticalItemProps) => {
-  console.log(n);
   return (
     <button onClick={() => onClick(n)} className={styles.container}>
       <div className={styles.thumb}>

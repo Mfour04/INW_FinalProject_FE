@@ -211,10 +211,6 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   }, [ratingData?.items]);
 
   useEffect(() => {
-    console.log("loaded Review", loadedReviews);
-  }, [loadedReviews]);
-
-  useEffect(() => {
     if (novelInfo?.novelId) {
       setRatingRequest((prev) => ({ ...prev, novelId: novelInfo.novelId }));
       setLoadedReviews([]);
