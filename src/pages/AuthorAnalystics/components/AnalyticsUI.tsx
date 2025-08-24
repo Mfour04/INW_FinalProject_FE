@@ -1,7 +1,13 @@
-import React from "react";
+import {
+  useMemo,
+  type InputHTMLAttributes,
+  type PropsWithChildren,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react";
 import { BarChart3 } from "lucide-react";
 
-export const Shell = ({ children }: React.PropsWithChildren) => (
+export const Shell = ({ children }: PropsWithChildren) => (
   <div className="min-h-screen bg-[#0a0f16] text-white">
     <div
       className="fixed inset-0 -z-10 opacity-60 pointer-events-none"
@@ -14,31 +20,57 @@ export const Shell = ({ children }: React.PropsWithChildren) => (
   </div>
 );
 
-export const Container = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => (
-  <div className={`max-w-screen-2xl mx-auto px-4 md:px-6 ${className}`}>{children}</div>
+export const Container = ({
+  children,
+  className = "",
+}: PropsWithChildren<{ className?: string }>) => (
+  <div className={`max-w-screen-2xl mx-auto px-4 md:px-6 ${className}`}>
+    {children}
+  </div>
 );
 
-export const Card = ({ className = "", children }: React.PropsWithChildren<{ className?: string }>) => (
-  <div className={`rounded-2xl ring-1 ring-white/10 bg-white/[0.035] ${className}`}>{children}</div>
+export const Card = ({
+  className = "",
+  children,
+}: PropsWithChildren<{ className?: string }>) => (
+  <div
+    className={`rounded-2xl ring-1 ring-white/10 bg-white/[0.035] ${className}`}
+  >
+    {children}
+  </div>
 );
 
-export const SoftInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+export const SoftInput = (props: InputHTMLAttributes<HTMLInputElement>) => (
   <input
     {...props}
-    className={`h-9 rounded-xl bg-white/5 ring-1 ring-white/10 px-3 text-sm placeholder:text-white/40 outline-none ${props.className ?? ""}`}
+    className={`h-9 rounded-xl bg-white/5 ring-1 ring-white/10 px-3 text-sm placeholder:text-white/40 outline-none ${
+      props.className ?? ""
+    }`}
   />
 );
 
-export const SoftSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+export const SoftSelect = (props: SelectHTMLAttributes<HTMLSelectElement>) => (
   <select
     {...props}
-    className={`h-9 rounded-xl bg-white/5 ring-1 ring-white/10 px-3 text-sm outline-none ${props.className ?? ""}`}
+    className={`h-9 rounded-xl bg-white/5 ring-1 ring-white/10 px-3 text-sm outline-none ${
+      props.className ?? ""
+    }`}
   />
 );
 
-export const KpiPill = ({ label, value, icon }: { label: string; value: string | number; icon?: React.ReactNode }) => (
+export const KpiPill = ({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon?: ReactNode;
+}) => (
   <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] ring-1 ring-white/10 px-4 py-3">
-    <div className="h-8 w-8 rounded-lg bg-white/5 ring-1 ring-white/10 grid place-items-center">{icon}</div>
+    <div className="h-8 w-8 rounded-lg bg-white/5 ring-1 ring-white/10 grid place-items-center">
+      {icon}
+    </div>
     <div>
       <div className="text-xs text-white/60">{label}</div>
       <div className="text-xl font-semibold tabular-nums">{value}</div>
@@ -46,10 +78,20 @@ export const KpiPill = ({ label, value, icon }: { label: string; value: string |
   </div>
 );
 
-export const AreaChart = ({ series, yKey, height = 220 }: { series: any[]; yKey: string; height?: number }) => {
-  const { dArea, dLine, ticks } = React.useMemo(() => {
+export const AreaChart = ({
+  series,
+  yKey,
+  height = 220,
+}: {
+  series: any[];
+  yKey: string;
+  height?: number;
+}) => {
+  const { dArea, dLine, ticks } = useMemo(() => {
     if (!series.length) return { dArea: "", dLine: "", ticks: [] as string[] };
-    const w = 800, h = height, pad = 24;
+    const w = 800,
+      h = height,
+      pad = 24;
     const xs = series.map((_: any, i: number) => i);
     const ys = series.map((d: any) => d[yKey] as number);
     const maxX = xs[xs.length - 1] || 1;
@@ -58,7 +100,10 @@ export const AreaChart = ({ series, yKey, height = 220 }: { series: any[]; yKey:
     const sy = (v: number) => h - pad - (v / maxY) * (h - pad * 2);
     const a: (string | number)[] = ["M", sx(0), sy(ys[0])];
     const l: (string | number)[] = ["M", sx(0), sy(ys[0])];
-    for (let i = 1; i < xs.length; i++) { a.push("L", sx(xs[i]), sy(ys[i])); l.push("L", sx(xs[i]), sy(ys[i])); }
+    for (let i = 1; i < xs.length; i++) {
+      a.push("L", sx(xs[i]), sy(ys[i]));
+      l.push("L", sx(xs[i]), sy(ys[i]));
+    }
     a.push("L", sx(maxX), sy(0), "L", sx(0), sy(0), "Z");
     const step = Math.max(1, Math.floor(series.length / 6));
     const tks: string[] = [];
@@ -78,7 +123,14 @@ export const AreaChart = ({ series, yKey, height = 220 }: { series: any[]; yKey:
       <path d={dLine} stroke="#ff6740" strokeWidth="2" fill="none" />
       <g className="text-[10px] fill-white/60">
         {ticks.map((t, i) => (
-          <text key={i} x={24 + (i / Math.max(1, ticks.length - 1)) * (800 - 48)} y={height - 6} textAnchor="middle">{t}</text>
+          <text
+            key={i}
+            x={24 + (i / Math.max(1, ticks.length - 1)) * (800 - 48)}
+            y={height - 6}
+            textAnchor="middle"
+          >
+            {t}
+          </text>
         ))}
       </g>
     </svg>
