@@ -18,6 +18,7 @@ import Flag02Icon from "../../../assets/svg/CommentUser/flag-02-stroke-rounded.s
 import block from "../../../assets/svg/CommentUser/block.svg";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 
+
 interface PostItemProps {
   post: Post;
   menuOpenPostId: string | null;
@@ -186,20 +187,38 @@ const PostItem = ({
       className="bg-[#1e1e21] rounded-[10px] p-5"
     >
       <div className="flex items-start justify-between sm:items-center mb-4 gap-3">
-        <div className="flex items-start sm:items-center gap-4">
+        <div className="flex items-start gap-4">
           <img
             src={post.user.avatar}
             alt={post.user.name}
-            className="w-[50px] h-[50px] rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => {
+              const username = post.user.username?.replace('@', '');
+              if (username) {
+                window.location.href = `/profile/${username}`;
+              }
+            }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+            }}
           />
-          <div className="flex flex-col">
-            <h3 className="text-base sm:text-lg font-bold text-white">
+          <div className="min-w-0 flex-1">
+            <h3
+              className="text-base font-semibold text-white truncate hover:text-orange-400 transition-colors cursor-pointer"
+              onClick={() => {
+                const username = post.user.username?.replace('@', '');
+                if (username) {
+                  window.location.href = `/profile/${username}`;
+                }
+              }}
+              title={`Xem profile của ${post.user.name}`}
+            >
               {post.user.name}
             </h3>
-            <div className="flex items-center gap-2 text-[#cecece] text-sm sm:text-base">
-              <span>{post.user.username}</span>
-              <div className="w-[6px] h-[6px] bg-[#cecece] rounded-full"></div>
-              <span>{updatedTimestamp || post.timestamp}</span>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>@{post.user.username?.replace('@', '')}</span>
+              <div className="w-[4px] h-[4px] bg-gray-400 rounded-full"></div>
+              <span className="text-[#cecece]">{updatedTimestamp || post.timestamp}</span>
             </div>
           </div>
         </div>
