@@ -74,6 +74,7 @@ export const Router = () => {
       <Route path="/transaction-history" element={<TransactionHistory />} />
       <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
         <Route index element={<UserProfile />} />
+        <Route path=":username" element={<UserProfile />} />
       </Route>
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/test-profile" element={<TestUserProfile />} />

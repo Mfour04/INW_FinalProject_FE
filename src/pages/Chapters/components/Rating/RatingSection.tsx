@@ -23,6 +23,7 @@ import { formatTicksToRelativeTime } from "../../../../utils/date_format";
 import { MAX_LEN, scoreKeys } from "../../constants";
 import { Segmented } from "./Segment";
 import type { Rating } from "../../../../entity/rating";
+import { ClickableUserInfo } from "../../../../components/common/ClickableUserInfo";
 
 const initialNovelRatingRequest: CreateNovelRatingRequest = {
   novelId: "",
@@ -131,7 +132,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
       return;
     }
     const content = (ratingRequest.content ?? "").slice(0, MAX_LEN);
-       const normalized = content.trim().length === 0 ? null : content;
+    const normalized = content.trim().length === 0 ? null : content;
 
     if (myRating) {
       const req: UpdateNovelRatingRequest = {
@@ -191,7 +192,11 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
             />
             <StarIcon
               className="absolute text-yellow-400 fill-yellow-400"
-              style={{ width: size, height: size, clipPath: "inset(0 50% 0 0)" }}
+              style={{
+                width: size,
+                height: size,
+                clipPath: "inset(0 50% 0 0)",
+              }}
               fill="currentColor"
             />
           </span>
@@ -282,12 +287,10 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                   {renderStars(ratingSummary?.ratingAvg ?? 0, 16)}
                 </div>
                 <div className="mt-1 text-[11px] text-gray-600 dark:text-white/70">
-                  {
-                    scoreKeys.reduce(
-                      (s, k) => s + (ratingSummary?.scoreDistribution?.[k] ?? 0),
-                      0
-                    )
-                  }{" "}
+                  {scoreKeys.reduce(
+                    (s, k) => s + (ratingSummary?.scoreDistribution?.[k] ?? 0),
+                    0
+                  )}{" "}
                   lượt đánh giá
                 </div>
               </div>
@@ -295,23 +298,24 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
 
             <div className="w-full md:w-[380px] space-y-1.5">
               {scoreKeys.map((k) => {
-                const item =
-                  (ratingSummary &&
-                    ratingSummary.scoreDistribution &&
-                    (() => {
-                      const count = ratingSummary.scoreDistribution[k] ?? 0;
-                      const total = scoreKeys.reduce(
-                        (s, kk) =>
-                          s + (ratingSummary.scoreDistribution?.[kk] ?? 0),
-                        0
-                      );
-                      const pct = total === 0 ? 0 : (count / total) * 100;
-                      return { percentage: +pct.toFixed(2) };
-                    })()) || { percentage: 0 };
+                const item = (ratingSummary &&
+                  ratingSummary.scoreDistribution &&
+                  (() => {
+                    const count = ratingSummary.scoreDistribution[k] ?? 0;
+                    const total = scoreKeys.reduce(
+                      (s, kk) =>
+                        s + (ratingSummary.scoreDistribution?.[kk] ?? 0),
+                      0
+                    );
+                    const pct = total === 0 ? 0 : (count / total) * 100;
+                    return { percentage: +pct.toFixed(2) };
+                  })()) || { percentage: 0 };
 
                 return (
                   <div key={k} className="flex items-center gap-2 text-[12px]">
-                    <span className="w-3 text-right text-gray-700 dark:text-white">{k}</span>
+                    <span className="w-3 text-right text-gray-700 dark:text-white">
+                      {k}
+                    </span>
                     <div className="relative flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden dark:bg-white/10">
                       <div
                         className="absolute inset-y-0 left-0 rounded-full bg-yellow-400"
@@ -438,23 +442,31 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
             {isRatingLoading && loadedReviews.length === 0 ? (
               <div className="p-4 space-y-2">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-14 rounded-md bg-gray-100 animate-pulse dark:bg-white/6" />
+                  <div
+                    key={i}
+                    className="h-14 rounded-md bg-gray-100 animate-pulse dark:bg-white/6"
+                  />
                 ))}
               </div>
             ) : displayed.length ? (
               displayed.map((rev) => {
                 const isMine = myRating && rev.ratingId === myRating.ratingId;
                 return (
-                  <div key={rev.ratingId} className="p-4 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition">
+                  <div
+                    key={rev.ratingId}
+                    className="p-4 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition"
+                  >
                     <div className="flex items-start gap-2.5">
-                      <img
-                        className="h-7 w-7 rounded-full object-cover bg-white"
-                        src={
-                          (rev.author?.avatarUrl ??
-                            rev.author?.avatar ??
-                            DefaultAvatar) as string
+                      <ClickableUserInfo
+                        username={rev.author?.userName || rev.author?.username}
+                        displayName={
+                          rev.author?.DisplayName ||
+                          rev.author?.displayName ||
+                          "Người dùng"
                         }
-                        alt={rev.author?.displayName ?? "user"}
+                        avatarUrl={rev.author?.avatarUrl || rev.author?.avatar}
+                        size="small"
+                        showUsername={false}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -470,7 +482,9 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                             </span>
                             {isMine && (
                               <button
-                                onClick={() => handleDeleteNovelRating(rev.ratingId)}
+                                onClick={() =>
+                                  handleDeleteNovelRating(rev.ratingId)
+                                }
                                 className="ml-3 text-[11px] text-red-600 hover:underline dark:text-red-400"
                               >
                                 Xoá

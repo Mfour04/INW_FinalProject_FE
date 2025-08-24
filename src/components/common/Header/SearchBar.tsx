@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, X as XIcon, ChevronDown, Search as SearchIcon } from "lucide-react";
+import {
+  Check,
+  X as XIcon,
+  ChevronDown,
+  Search as SearchIcon,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { SearchUsers } from "../../../api/User/user-search.api";
+import type { UserSearchResult } from "../../../api/User/user-search.type";
+import { useNavigate } from "react-router-dom";
+import { FollowButton } from "../FollowButton";
+import { ClickableUserInfo } from "../ClickableUserInfo";
 import type { ReactNode, RefObject } from "react";
 
 type SortOption = { value: string; label: string };
@@ -48,7 +59,11 @@ function useOnClickOutside(
   }, [refs, handler, when]);
 }
 
-function useElementWidth(ref: RefObject<HTMLElement>, maxCap = 720, sidePadding = 24) {
+function useElementWidth(
+  ref: RefObject<HTMLElement>,
+  maxCap = 720,
+  sidePadding = 24
+) {
   const [width, setWidth] = useState<number>(0);
 
   useEffect(() => {
@@ -144,7 +159,12 @@ function ModernSelect({
 
   useEffect(() => {
     if (!open) return;
-    setFocusIndex(Math.max(0, fullOptions.findIndex((o) => o.value === value)));
+    setFocusIndex(
+      Math.max(
+        0,
+        fullOptions.findIndex((o) => o.value === value)
+      )
+    );
   }, [open, value]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -199,9 +219,11 @@ function ModernSelect({
         <span className="truncate">
           {selected ? selected.label : placeholder}
         </span>
-        <span className="absolute right-2 inline-flex items-center justify-center w-8 h-8 rounded-xl
+        <span
+          className="absolute right-2 inline-flex items-center justify-center w-8 h-8 rounded-xl
                          bg-gray-100 ring-1 ring-gray-200
-                         dark:bg-white/5 dark:ring-white/10">
+                         dark:bg-white/5 dark:ring-white/10"
+        >
           <ChevronDown className="w-4 h-4 text-gray-600 dark:opacity-80" />
         </span>
       </button>
@@ -267,9 +289,34 @@ export const SearchBar = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [tempSort, setTempSort] = useState<string>(selectedSort);
   const [tempTags, setTempTags] = useState<string[]>(selectedTags);
+  const [showUserResults, setShowUserResults] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null!);
+  const navigate = useNavigate();
+
+  // Query để tìm kiếm user
+  const { data: userSearchResults, isLoading: isSearchingUsers } = useQuery({
+    queryKey: ["userSearch", searchTerm],
+    queryFn: async () => {
+      const result = await SearchUsers(searchTerm);
+      return result;
+    },
+    enabled: searchTerm.length >= 2, // Chỉ gọi API khi searchTerm >= 2
+    staleTime: 5 * 60 * 1000, // 5 phút
+    gcTime: 10 * 60 * 1000, // 10 phút (thay thế cacheTime)
+    refetchOnWindowFocus: false, // Không refetch khi focus window
+    refetchOnMount: false, // Không refetch khi mount
+  });
+
+  // Hiển thị kết quả tìm kiếm user khi có searchTerm
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      setShowUserResults(true);
+    } else {
+      setShowUserResults(false);
+    }
+  }, [searchTerm]);
 
   // Auto sync temp khi mở
   useEffect(() => {
@@ -279,16 +326,50 @@ export const SearchBar = ({
     }
   }, [showDropdown, selectedSort, selectedTags]);
 
-  useOnClickOutside([dropdownRef as any, containerRef as any], () => setShowDropdown(false), showDropdown);
+  useOnClickOutside(
+    [dropdownRef as any, containerRef as any],
+    () => setShowDropdown(false),
+    showDropdown
+  );
 
   const toggleTempTag = (v: string) =>
-    setTempTags((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
+    setTempTags((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+    );
 
   const activeFilterCount = useMemo(
     () => (selectedSort ? 1 : 0) + selectedTags.length,
     [selectedSort, selectedTags]
   );
 
+  const handleUserClick = (username: string) => {
+    try {
+      // Kiểm tra xem navigate có hoạt động không
+      if (typeof navigate === "function") {
+        navigate(`/profile/${username}`);
+        setShowUserResults(false);
+        onSearchTermChange("");
+      } else {
+        // Fallback: sử dụng window.location
+        window.location.href = `/profile/${username}`;
+      }
+    } catch (error) {
+      // Fallback: sử dụng window.location
+      window.location.href = `/profile/${username}`;
+    }
+  };
+
+  const users = userSearchResults?.data?.users || [];
+
+  // Thêm type guard để đảm bảo an toàn
+  const hasValidData =
+    userSearchResults &&
+    typeof userSearchResults === "object" &&
+    userSearchResults !== null &&
+    "data" in userSearchResults &&
+    userSearchResults.data &&
+    typeof userSearchResults.data === "object" &&
+    "users" in userSearchResults.data;
   const popupWidth = useElementWidth(containerRef, 720, 24);
 
   return (
@@ -301,9 +382,11 @@ export const SearchBar = ({
           aria-label="Tìm kiếm"
           className="h-10 w-10 grid place-items-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
         >
-          {typeof searchIcon === "string"
-            ? <img src={searchIcon} alt="" className="w-4 h-4 opacity-85" />
-            : (searchIcon ?? <SearchIcon className="w-4 h-4 opacity-85" />)}
+          {typeof searchIcon === "string" ? (
+            <img src={searchIcon} alt="" className="w-4 h-4 opacity-85" />
+          ) : (
+            searchIcon ?? <SearchIcon className="w-4 h-4 opacity-85" />
+          )}
         </button>
 
         {/* Input */}
@@ -324,9 +407,11 @@ export const SearchBar = ({
             title="Xóa"
             className="h-10 w-10 grid place-items-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
           >
-            {typeof clearIcon === "string"
-              ? <img src={clearIcon} alt="" className="w-4 h-4 opacity-80" />
-              : (clearIcon ?? <XIcon className="w-4 h-4 opacity-80" />)}
+            {typeof clearIcon === "string" ? (
+              <img src={clearIcon} alt="" className="w-4 h-4 opacity-80" />
+            ) : (
+              clearIcon ?? <XIcon className="w-4 h-4 opacity-80" />
+            )}
           </button>
         )}
 
@@ -339,9 +424,11 @@ export const SearchBar = ({
           title="Bộ lọc"
           className="relative h-10 w-10 grid place-items-center rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5"
         >
-          {typeof filterIcon === "string"
-            ? <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
-            : (filterIcon ?? <SearchIcon className="w-5 h-5 opacity-85" />)}
+          {typeof filterIcon === "string" ? (
+            <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
+          ) : (
+            filterIcon ?? <SearchIcon className="w-5 h-5 opacity-85" />
+          )}
           {activeFilterCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-[#ff6f45] text-white text-[10px] leading-5 text-center ring-1 ring-white/20">
               {activeFilterCount}
@@ -350,7 +437,55 @@ export const SearchBar = ({
         </button>
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown kết quả tìm kiếm user */}
+      {showUserResults && (
+        <div className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-2xl border border-zinc-800 bg-[#1c1c1f] shadow-xl z-[9999] max-h-96 overflow-y-auto">
+          {isSearchingUsers ? (
+            <div className="p-4 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+              <p className="text-gray-400 mt-2 text-sm">Đang tìm kiếm...</p>
+            </div>
+          ) : users.length > 0 ? (
+            <div className="p-2">
+              {users.map((user: UserSearchResult) => (
+                <div
+                  key={user.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zinc-800/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <ClickableUserInfo
+                      userId={user.id}
+                      username={user.username}
+                      displayName={user.displayName}
+                      avatarUrl={user.avatarUrl}
+                      size="medium"
+                      showUsername={true}
+                      className="cursor-pointer"
+                    />
+                    {user.bio && (
+                      <p className="text-xs text-gray-500 truncate mt-1 ml-12">
+                        {user.bio}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0">
+                    <FollowButton
+                      targetUserId={user.id}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : searchTerm.length >= 2 && hasValidData ? (
+            <div className="p-4 text-center">
+              <p className="text-gray-400 text-sm">Không tìm thấy kết quả</p>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {showDropdown && (
         <div
           ref={dropdownRef}
@@ -366,7 +501,9 @@ export const SearchBar = ({
           {/* Sort */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">Sắp xếp theo</span>
+              <span className="text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">
+                Sắp xếp theo
+              </span>
               {tempSort && (
                 <button
                   onClick={() => setTempSort("")}
@@ -387,7 +524,9 @@ export const SearchBar = ({
           {/* Tags */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text:[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">Tag (chọn nhiều)</span>
+              <span className="text:[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">
+                Tag (chọn nhiều)
+              </span>
               {tempTags.length > 0 && (
                 <button
                   onClick={() => setTempTags([])}
@@ -400,16 +539,16 @@ export const SearchBar = ({
 
             {/* Lưới tag: CHỈ hiện tag CHƯA chọn */}
             <div className="flex flex-wrap gap-2">
-              {MOCK_TAG_OPTIONS
-                .filter(tag => !tempTags.includes(tag.value))
-                .map((tag) => (
-                  <TagChip
-                    key={tag.value}
-                    onClick={() => toggleTempTag(tag.value)}
-                  >
-                    {tag.label}
-                  </TagChip>
-                ))}
+              {MOCK_TAG_OPTIONS.filter(
+                (tag) => !tempTags.includes(tag.value)
+              ).map((tag) => (
+                <TagChip
+                  key={tag.value}
+                  onClick={() => toggleTempTag(tag.value)}
+                >
+                  {tag.label}
+                </TagChip>
+              ))}
             </div>
 
             {/* Dải "Đã chọn" (nếu có) */}
@@ -420,9 +559,14 @@ export const SearchBar = ({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tempTags.map((t) => {
-                    const label = MOCK_TAG_OPTIONS.find((x) => x.value === t)?.label || t;
+                    const label =
+                      MOCK_TAG_OPTIONS.find((x) => x.value === t)?.label || t;
                     return (
-                      <TagChip key={`sel-${t}`} active onRemove={() => toggleTempTag(t)}>
+                      <TagChip
+                        key={`sel-${t}`}
+                        active
+                        onRemove={() => toggleTempTag(t)}
+                      >
                         {label}
                       </TagChip>
                     );
@@ -432,47 +576,46 @@ export const SearchBar = ({
             )}
           </div>
 
-         {/* Actions */}
-<div className="flex items-center justify-between">
-  <button
-    onClick={() => {
-      setTempSort("");
-      setTempTags([]);
-    }}
-    className="text-xs px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 
+          {/* Actions */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => {
+                setTempSort("");
+                setTempTags([]);
+              }}
+              className="text-xs px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 
                dark:text-zinc-400 dark:hover:text-white/90 dark:hover:bg-white/10 transition"
-  >
-    Đặt lại
-  </button>
+            >
+              Đặt lại
+            </button>
 
-  <div className="flex items-center gap-2">
-    <button
-      onClick={() => setShowDropdown(false)}
-      className="h-8 px-4 rounded-full text-xs text-gray-600 ring-1 ring-gray-200
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowDropdown(false)}
+                className="h-8 px-4 rounded-full text-xs text-gray-600 ring-1 ring-gray-200
                  hover:text-gray-900 hover:bg-gray-50 hover:ring-gray-300
                  dark:text-zinc-400 dark:ring-white/10 dark:hover:text-white dark:hover:bg-white/10 transition"
-    >
-      Hủy
-    </button>
-    <button
-      onClick={() => {
-        onApplyFilters?.({
-          sort: tempSort || "",
-          tags: tempTags || [],
-        });
-        setSelectedSort(tempSort || "");
-        setSelectedTags(tempTags || []);
-        setShowDropdown(false);
-      }}
-      className="h-8 px-4 rounded-full text-xs font-semibold text-white 
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  onApplyFilters?.({
+                    sort: tempSort || "",
+                    tags: tempTags || [],
+                  });
+                  setSelectedSort(tempSort || "");
+                  setSelectedTags(tempTags || []);
+                  setShowDropdown(false);
+                }}
+                className="h-8 px-4 rounded-full text-xs font-semibold text-white 
                  bg-[#ff6f45] hover:bg-[#e85d37] active:scale-[0.97] transition
                  dark:text-black dark:bg-white dark:hover:bg-white/90"
-    >
-      Áp dụng
-    </button>
-  </div>
-</div>
-
+              >
+                Áp dụng
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
