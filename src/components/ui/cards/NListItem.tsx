@@ -10,7 +10,7 @@ type Props = {
   rating: number;
   bookmarks: number;
   views: number;
-  status: number; 
+  status: number;
   tags: Tag[];
   author?: string;
   onClick?: () => void;
@@ -46,15 +46,19 @@ export const NListItem = ({
         className={`absolute -inset-[1px] rounded-2xl bg-gradient-to-br ${v.ring} opacity-30 blur-[8px] group-hover:opacity-60 transition`}
       />
 
-      <div className="relative z-0 h-[150px] overflow-hidden rounded-2xl 
+      <div
+        className="relative z-0 h-[150px] overflow-hidden rounded-2xl 
                       bg-white ring-1 ring-gray-200 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.18)] p-3 flex gap-3
-                      dark:bg-[#0b0d11]/90 dark:ring-white/10 dark:shadow-[0_10px_30px_-18px_rgba(0,0,0,0.75)]">
+                      dark:bg-[#0b0d11]/90 dark:ring-white/10 dark:shadow-[0_10px_30px_-18px_rgba(0,0,0,0.75)]"
+      >
         {/* thumbnail */}
         <div className="relative w-[95px] aspect-[3/4] rounded-xl overflow-hidden shrink-0">
           {!imgLoaded && (
-            <div className="absolute inset-0 animate-pulse 
+            <div
+              className="absolute inset-0 animate-pulse 
                             bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100
-                            dark:from-white/[0.06] dark:via-white/[0.09] dark:to-white/[0.06]" />
+                            dark:from-white/[0.06] dark:via-white/[0.09] dark:to-white/[0.06]"
+            />
           )}
           {image ? (
             <img
@@ -65,9 +69,11 @@ export const NListItem = ({
               loading="lazy"
             />
           ) : (
-            <div className="absolute inset-0 grid place-items-center text-xs 
+            <div
+              className="absolute inset-0 grid place-items-center text-xs 
                             text-gray-500 bg-gray-100
-                            dark:text-white/60 dark:bg-white/6">
+                            dark:text-white/60 dark:bg-white/6"
+            >
               No cover
             </div>
           )}
@@ -89,9 +95,13 @@ export const NListItem = ({
             </h2>
 
             <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-[12.5px] text-gray-500 dark:text-white/55">Người đăng:</span>
-              <span className="text-[12.5px] font-medium text-gray-900 truncate
-                               dark:text-orange-300">
+              <span className="text-[12.5px] text-gray-500 dark:text-white/55">
+                Người đăng:
+              </span>
+              <span
+                className="text-[12.5px] font-medium text-gray-900 truncate
+                               dark:text-orange-300"
+              >
                 {author}
               </span>
             </div>
@@ -109,7 +119,10 @@ export const NListItem = ({
               ].join(" ")}
             >
               <span
-                className={["h-1 w-1 rounded-full", isCompleted ? "bg-emerald-100" : "bg-rose-100"].join(" ")}
+                className={[
+                  "h-1 w-1 rounded-full",
+                  isCompleted ? "bg-emerald-100" : "bg-rose-100",
+                ].join(" ")}
               />
               {isCompleted ? "Hoàn thành" : "Đang diễn ra"}
             </span>
@@ -137,7 +150,11 @@ export const NListItem = ({
           <div className="col-span-2 row-start-3 self-end">
             <div className="mt-1 flex flex-wrap items-center gap-3 text-[12px] text-gray-900 dark:text-white/90">
               <span className="inline-flex items-center gap-1">
-                <Star size={16} className="text-yellow-400" fill="currentColor" />
+                <Star
+                  size={16}
+                  className="text-yellow-400"
+                  fill="currentColor"
+                />
                 {Number.isFinite(rating) ? rating.toFixed(1) : "0.0"}
               </span>
               <span className="inline-flex items-center gap-1">

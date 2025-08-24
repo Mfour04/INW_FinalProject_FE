@@ -152,7 +152,6 @@ export const HomePage = () => {
           onPrev={handlePrevNovels}
           onNext={handleNextNovels}
           onRead={() => {
-            console.log(hero.slug);
             navigate(`/novels/${hero.slug}`);
           }}
         />

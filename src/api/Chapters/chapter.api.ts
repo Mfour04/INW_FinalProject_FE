@@ -10,6 +10,7 @@ import type {
   UpdateChapterLockApiResponse,
   UpdateChapterLockRequest,
   UpdateChapterRequest,
+  UpdateChapterResponse,
 } from "./chapter.type";
 
 export const GetChapter = (id: string) => {
@@ -25,7 +26,7 @@ export const CreateChapter = (request: CreateChapterRequest) =>
   http.privateHttp.post<CreateChapterResponse>("Chapters/created", request);
 
 export const UpdateChapter = (request: UpdateChapterRequest) =>
-  http.privateHttp.put<UpdateChapterRequest>("Chapters/updated", request);
+  http.privateHttp.put<UpdateChapterResponse>("Chapters/updated", request);
 
 export const BuyChapter = (chapterId: string, request: BuyChapterRequest) =>
   http.privateHttp.post<BuyChapterApiResponse>(
