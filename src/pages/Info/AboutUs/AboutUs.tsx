@@ -25,47 +25,39 @@ const row2: Member[] = [
 
 export const AboutUs = () => {
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans overflow-x-hidden dark:bg-[#0b0c0e] dark:text-gray-100">
+    <div className="min-h-screen bg-[#0b0c0e] text-gray-100 font-sans overflow-x-hidden">
       <section className="relative">
-        {/* light/dark ambient blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute left-0 top-0 h-[28rem] w-[28rem] -translate-x-1/3 -translate-y-1/3 rounded-full
-                          bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.08),transparent_60%)]
-                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.18),transparent_60%)]" />
-          <div className="absolute right-0 bottom-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full
-                          bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.07),transparent_60%)]
-                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.16),transparent_60%)]" />
+          <div className="absolute left-0 top-0 h-[28rem] w-[28rem] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.18),transparent_60%)] blur-2xl" />
+          <div className="absolute right-0 bottom-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.16),transparent_60%)] blur-2xl" />
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 py-10 text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] tracking-wider uppercase
-                          ring-1 ring-gray-200 bg-gray-100 text-gray-700
-                          dark:ring-white/10 dark:bg-white/5 dark:text-white/70">
+        <div className="mx-auto max-w-6xl px-4 py-10 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] tracking-wider uppercase ring-1 ring-white/10 bg-white/5 text-white/70">
             <BookOpen className="w-4 h-4" />
             Nền tảng truyện số
           </div>
 
-          <h1 className="mt-4 text-3xl md:text-4xl font-extrabold leading-tight">
+          <h1 className="mt-4 text-3xl md:text-4xl font-extrabold leading-tight text-white">
             Đọc truyện{" "}
             <span className={textGradient}>
               liền tay — tác giả nhận trực tiếp
             </span>
           </h1>
-          <p className="mt-3 text-gray-600 max-w-2xl mx-auto text-sm md:text-base dark:text-white/70">
+          <p className="mt-3 text-white/70 max-w-2xl mx-auto text-sm md:text-base">
             Tập trung vào tốc độ, trải nghiệm gọn và quy trình mua cực nhanh.
           </p>
 
           <div className="mt-6 flex justify-center gap-3">
             <a
               href="#differ"
-              className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium shadow-sm hover:opacity-95 transition`}
+              className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium`}
             >
               Khám phá <ArrowRight className="inline w-4 h-4 ml-1" />
             </a>
             <a
               href="#contact"
-              className="px-5 py-2 rounded-xl text-sm ring-1 ring-gray-200 bg-gray-100 text-gray-900 hover:bg-gray-200 transition
-                         dark:ring-white/20 dark:bg-white/5 dark:text-white/90"
+              className="px-5 py-2 rounded-xl text-sm ring-1 ring-white/20 bg-white/5 text-white/90"
             >
               Liên hệ <Mail className="inline w-4 h-4 ml-1" />
             </a>
@@ -95,8 +87,8 @@ export const AboutUs = () => {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <Quote className="w-8 h-8 text-gray-400 mx-auto mb-3 dark:text-white/50" />
-        <p className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed dark:text-white/85">
+        <Quote className="w-8 h-8 text-white/50 mx-auto mb-3" />
+        <p className="text-lg md:text-xl text-white/85 font-medium leading-relaxed">
           “Nơi câu chữ đến tay độc giả nhanh nhất, và giá trị quay về với tác
           giả trọn vẹn nhất.”
         </p>
@@ -116,19 +108,22 @@ export const AboutUs = () => {
         </div>
       </section>
 
-      <section id="contact" className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <section
+        id="contact"
+        className="mx-auto max-w-3xl px-4 py-16 text-center"
+      >
         <h3 className="text-xl md:text-2xl font-bold">
           Tham gia xây dựng nền tảng{" "}
           <span className={textGradient}>đọc & xuất bản trực tiếp</span>
         </h3>
-        <p className="mt-2 text-gray-600 text-sm md:text-base dark:text-white/70">
+        <p className="mt-2 text-white/70 text-sm md:text-base">
           Nếu bạn là tác giả hoặc người đọc yêu thích sự gọn nhẹ, chúng ta hợp
           gu.
         </p>
         <div className="mt-5 flex justify-center gap-3">
           <a
             href="mailto:hello@your-domain.vn"
-            className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium shadow-sm hover:opacity-95 transition`}
+            className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium`}
           >
             Liên hệ ngay
           </a>

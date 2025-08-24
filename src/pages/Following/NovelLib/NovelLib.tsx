@@ -86,7 +86,7 @@ export const NovelLib = () => {
             length: Math.min(6, Math.max(0, limit - novels.length)),
           }).map((_, i) => (
             <div key={`s-${i}`} className="aspect-[3/4]">
-              <div className="w-full h-full rounded-xl bg-gray-100 animate-pulse dark:bg-white/5" />
+              <div className="w-full h-full rounded-xl bg-white/5 animate-pulse" />
             </div>
           ))}
       </div>
@@ -122,7 +122,7 @@ export const NovelLib = () => {
           }).map((_, i) => (
             <div
               key={`sk-${i}`}
-              className="h-[150px] rounded-xl bg-gray-100 animate-pulse dark:bg-white/5"
+              className="h-[150px] rounded-xl bg-white/5 animate-pulse"
             />
           ))}
       </div>
@@ -133,67 +133,57 @@ export const NovelLib = () => {
   const isEmpty = !isFetching && novels.length === 0;
 
   return (
-    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
+    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-[#0b0d11] text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4">
         <div className="mb-8">
-          <div
-            className="w-full rounded-2xl backdrop-blur-md overflow-visible
-                       bg-white shadow-[0_16px_56px_-28px_rgba(0,0,0,0.18)]
-                       dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]"
-          >
-            <div className="relative py-3 px-1 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-10">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="h-9 w-9 grid place-items-center rounded-lg
-                              bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
-                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
-                  title="Quay lại"
-                  aria-label="Quay lại"
-                >
-                  <ArrowLeft size={18} />
-                </button>
-                <h1 className="text-[18px] md:text-[20px] font-semibold leading-tight">
-                  Thư viện của tôi
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-5">
-                <FilterMenu value={filter} onChange={(v) => setFilter(v)} />
-
-                <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
+          <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-visible">
+            <div className="relative py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-10">
                   <button
-                    onClick={() => setActionState("Grid")}
-                    className={[
-                      "h-9 w-9 grid place-items-center transition",
-                      actionState === "Grid"
-                        ? "bg-gray-200 text-gray-900"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                      actionState === "Grid"
-                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
-                    ].join(" ")}
-                    title="Xem dạng lưới"
-                    aria-label="Xem dạng lưới"
+                    onClick={() => navigate(-1)}
+                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                    title="Quay lại"
+                    aria-label="Quay lại"
                   >
-                    <LayoutGrid size={18} />
+                    <ArrowLeft size={18} />
                   </button>
-                  <button
-                    onClick={() => setActionState("List")}
-                    className={[
-                      "h-9 w-9 grid place-items-center border-l border-gray-200 transition dark:border-white/10",
-                      actionState === "List"
-                        ? "bg-gray-200 text-gray-900"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                      actionState === "List"
-                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
-                    ].join(" ")}
-                    title="Xem dạng danh sách"
-                    aria-label="Xem dạng danh sách"
-                  >
-                    <List size={18} />
-                  </button>
+                  <h1 className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                    Thư viện của tôi
+                  </h1>
+                </div>
+
+                <div className="flex items-center gap-5">
+                  <FilterMenu value={filter} onChange={(v) => setFilter(v)} />
+
+                  <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-white/10">
+                    <button
+                      onClick={() => setActionState("Grid")}
+                      className={[
+                        "h-9 w-9 grid place-items-center",
+                        actionState === "Grid"
+                          ? "bg-white/15 text-white"
+                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
+                      ].join(" ")}
+                      title="Xem dạng lưới"
+                      aria-label="Xem dạng lưới"
+                    >
+                      <LayoutGrid size={18} />
+                    </button>
+                    <button
+                      onClick={() => setActionState("List")}
+                      className={[
+                        "h-9 w-9 grid place-items-center border-l border-white/10",
+                        actionState === "List"
+                          ? "bg-white/15 text-white"
+                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
+                      ].join(" ")}
+                      title="Xem dạng danh sách"
+                      aria-label="Xem dạng danh sách"
+                    >
+                      <List size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,11 +191,11 @@ export const NovelLib = () => {
         </div>
 
         {isEmpty ? (
-          <div className="py-20 text-center text-gray-700 dark:text-white/80">
+          <div className="py-20 text-center text-white/80">
             <div className="mx-auto max-w-sm">
               <div className="mb-4 h-20 w-20 mx-auto rounded-2xl bg-[linear-gradient(135deg,#ff7a18_0%,#af002d_100%)] opacity-70" />
               <div className="text-lg font-medium mb-1">Chưa có truyện</div>
-              <div className="text-sm text-gray-500 dark:text-white/60">
+              <div className="text-sm text-white/60">
                 Hãy theo dõi vài truyện để xuất hiện ở đây — hoặc đổi bộ lọc.
               </div>
             </div>
@@ -216,7 +206,7 @@ export const NovelLib = () => {
           <div className="mb-10">{listView}</div>
         )}
 
-        {!isEmpty && totalPages > 0 && (
+        {!isEmpty && totalPages > 1 && (
           <Pager
             page={page}
             totalPages={totalPages}

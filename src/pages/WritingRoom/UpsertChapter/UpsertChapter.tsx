@@ -116,40 +116,10 @@ export const UpsertChapter = () => {
         return CreateChapter(request as CreateChapterRequest);
       }
     },
-    onSuccess: (data) => {
-      const chapter = data.data.data.chapter;
-      setChapterForm({
-        chapterId: chapter.chapterId,
-        novelId: chapter.novelId,
-        title: chapter.title,
-        content: chapter.content,
-        chapterNumber: chapter.chapterNumber!,
-        isDraft: chapter.isDraft,
-        isPaid: chapter.isPaid,
-        isPublic: chapter.isPublic,
-        price: chapter.price,
-        scheduledAt: chapter.scheduledAt
-          ? ticksToDate(chapter.scheduledAt)
-          : null,
-      });
-      setCurrentForm({
-        chapterId: chapter.chapterId,
-        novelId: chapter.novelId,
-        title: chapter.title,
-        content: chapter.content,
-        chapterNumber: chapter.chapterNumber!,
-        isDraft: chapter.isDraft,
-        isPaid: chapter.isPaid,
-        isPublic: chapter.isPublic,
-        price: chapter.price,
-        scheduledAt: chapter.scheduledAt
-          ? ticksToDate(chapter.scheduledAt)
-          : null,
-      });
-      if (!isUpdate) {
-        setIsUpdate(true);
-        toast?.onOpen("Tự động lưu bản nháp hiện tại.");
-      } else toast?.onOpen("Tự động lưu chỉnh sửa hiện tại.");
+    onSuccess: () => {
+      if (!isUpdate)
+        toast?.onOpen("Tự động lưu tiến trình hiện tại dưới dạng bản nháp");
+      else toast?.onOpen("Tự động lưu tiến trình chỉnh sửa hiện tại!");
     },
   });
 
@@ -242,14 +212,25 @@ export const UpsertChapter = () => {
   }, [chapterForm]);
 
   useEffect(() => {
-    const id = setInterval(() => {
+    const interval = setInterval(() => {
       const currentForm = chapterFormRef.current;
       if (currentForm.title || currentForm.content) {
         autoSaveMutation.mutate(currentForm);
       }
-    }, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [isUpdate, autoSaveMutation]);
+    }, 10 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isUpdate]);
+
+  // <div className="flex gap-3">
+  //         {/* <button>Đã lưu</button> */}
+  //         <button
+  //           onClick={handleUpsertButtonClick}
+  //           className="h-[36px] w-[100px] rounded-[10px] bg-[#ff6740] hover:bg-[#e14b2e] text-white"
+  //         >
+  //           {TEXT.PUBLISH}
+  //         </button>
+  //       </div>
 
   return (
     <div className="h-full bg-[#0f0f11] text-white px-6 py-2">

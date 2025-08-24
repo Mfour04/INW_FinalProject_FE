@@ -1,14 +1,13 @@
-import {
-  Star as StarIcon,
-  Bookmark as BookmarkIcon,
-  MessageSquare,
-  Pencil,
-  Flag,
-  ShoppingCart,
-  Bell,
-  ChevronDown,
-} from "lucide-react";
+import StarRate from "@mui/icons-material/StarRate";
+import BookMark from "@mui/icons-material/Bookmark";
+import Comment from "@mui/icons-material/Comment";
+import ModeEdit from "@mui/icons-material/ModeEdit";
+import Report from "@mui/icons-material/Report";
+import ShoppingCart from "@mui/icons-material/ShoppingCart";
+import NotificationsActive from "@mui/icons-material/NotificationsActive";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import Button from "../../../components/ButtonComponent";
+import { FollowPopup } from "../FollowPopup";
 import { buyBtn } from "../constants";
 
 type Props = {
@@ -16,11 +15,15 @@ type Props = {
   novelData: any;
   follower: any;
   isCompleted: boolean;
+  showFollowPopup: boolean;
+  setShowFollowPopup: (v: boolean) => void;
   followBtnRef: React.Ref<HTMLDivElement>;
   onFollow: () => void;
   onToggleFollow: () => void;
+  onUnfollow: () => void;
+  onNotifyChange: () => void;
+  onStatusChange: (s: number) => void;
   onOpenBuyNovel: () => void;
-  onOpenReport: () => void;
   onJumpToRating: () => void;
   gradientBtn: string;
   loadingFollow: boolean;
@@ -32,12 +35,15 @@ export const AsidePanel = ({
   novelData,
   follower,
   isCompleted,
+  showFollowPopup,
+  setShowFollowPopup,
   followBtnRef,
   onFollow,
   onToggleFollow,
-
+  onUnfollow,
+  onNotifyChange,
+  onStatusChange,
   onOpenBuyNovel,
-  onOpenReport,
   onJumpToRating,
   gradientBtn,
   loadingFollow,
@@ -45,7 +51,7 @@ export const AsidePanel = ({
 }: Props) => {
   return (
     <aside className="md:sticky md:top-5 self-start">
-      <div className="rounded-xl overflow-hidden backdrop-blur-md border bg-white border-gray-200 text-gray-900 shadow-[0_16px_56px_-28px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#121212]/80 dark:text-white dark:shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)]">
+      <div className="rounded-xl ring-1 ring-white/12 bg-[#0b0c0e]/90 backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
         <div className="relative">
           <img
             src={novelInfo?.novelImage || undefined}
@@ -56,17 +62,16 @@ export const AsidePanel = ({
           <span
             className={[
               "absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-              "text-[11.5px] font-semibold backdrop-blur-sm border",
+              "text-[11.5px] font-semibold backdrop-blur-sm border text-white",
               isCompleted
-                ? "bg-emerald-100 text-emerald-800 border-emerald-300 shadow-sm dark:bg-emerald-500/75 dark:text-white dark:border-emerald-300"
-                : "bg-rose-100 text-rose-800 border-rose-300 shadow-sm dark:bg-rose-500/75 dark:text-white dark:border-rose-300",
+                ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
+                : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
             ].join(" ")}
           >
             <span
               className={[
                 "h-1.5 w-1.5 rounded-full",
-                isCompleted ? "bg-emerald-500" : "bg-rose-500",
-                "dark:!bg-white",
+                isCompleted ? "bg-emerald-100" : "bg-rose-100",
               ].join(" ")}
             />
             {isCompleted ? "Hoàn thành" : "Đang diễn ra"}
@@ -75,28 +80,25 @@ export const AsidePanel = ({
 
         <div className="px-2.5 pt-2">
           <div className="grid grid-cols-3 gap-1.5">
-            <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
-              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] leading-none">
-                <StarIcon
-                  className="w-[13px] h-[13px] text-yellow-500 fill-yellow-500"
-                  fill="currentColor"
-                />
-                <span className="tabular-nums dark:text-white">
+            <div className="h-6 rounded-lg border border-white/10 bg-white/[0.05] px-1.5 text-center">
+              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] text-gray-200 leading-none">
+                <StarRate sx={{ fontSize: 13 }} />
+                <span className="tabular-nums">
                   {novelData?.novelInfo.ratingAvg ?? 0}
                 </span>
               </div>
             </div>
-            <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
-              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
-                <BookmarkIcon className="w-[13px] h-[13px]" />
+            <div className="h-6 rounded-lg border border-white/10 bg-white/[0.05] px-1.5 text-center">
+              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] text-gray-200 leading-none">
+                <BookMark sx={{ fontSize: 13 }} />
                 <span className="tabular-nums">
                   {novelData?.novelInfo.totalViews ?? 0}
                 </span>
               </div>
             </div>
-            <div className="h-6 rounded-lg border px-1.5 text-center border-gray-200 bg-gray-100 text-gray-700 dark:border-white/10 dark:bg-white/[0.05]">
-              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
-                <MessageSquare className="w-[13px] h-[13px]" />
+            <div className="h-6 rounded-lg border border-white/10 bg-white/[0.05] px-1.5 text-center">
+              <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] text-gray-200 leading-none">
+                <Comment sx={{ fontSize: 13 }} />
                 <span className="tabular-nums">
                   {novelData?.novelInfo.commentCount ?? 0}
                 </span>
@@ -116,7 +118,7 @@ export const AsidePanel = ({
               )}
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
-                <Pencil className="w-[15px] h-[15px]" />
+                <ModeEdit sx={{ fontSize: 15 }} />
                 Theo dõi
               </span>
             </Button>
@@ -126,14 +128,26 @@ export const AsidePanel = ({
                 onClick={onToggleFollow}
                 isLoading={loadingUnfollow}
                 aria-label="Tùy chọn theo dõi"
-                className="w-full rounded-full text-[12px] px-3 py-1.5 transition border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
+                className="w-full rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-[12px] px-3 py-1.5 transition"
               >
                 <span className="inline-flex items-center justify-center gap-1.5 leading-none">
-                  <Bell className="w-[15px] h-[15px]" />
+                  <NotificationsActive sx={{ fontSize: 15 }} />
                   Đang theo dõi
-                  <ChevronDown className="w-[15px] h-[15px]" />
+                  <KeyboardArrowDown sx={{ fontSize: 15 }} />
                 </span>
               </Button>
+
+              {showFollowPopup && (
+                <div className="absolute right-0 z-50 mt-2 rounded-xl border border-white/10 bg-[#161617] shadow-2xl">
+                  <FollowPopup
+                    notify={follower!.isNotification}
+                    status={follower!.readingStatus}
+                    onUnfollow={onUnfollow}
+                    onNotifyChange={onNotifyChange}
+                    onStatusChange={onStatusChange}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -144,12 +158,12 @@ export const AsidePanel = ({
               aria-label="Mua trọn bộ"
               className={
                 novelData?.isAccessFull
-                  ? "w-full rounded-full bg-gray-100 text-gray-500 text-[12px] px-3 py-1.5 dark:bg:white/5 dark:text-gray-300"
+                  ? "w-full rounded-full bg-white/5 text-gray-300 text-[12px] px-3 py-1.5"
                   : buyBtn
               }
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
-                <ShoppingCart className="w-[15px] h-[15px]" />
+                <ShoppingCart sx={{ fontSize: 15 }} />
                 {novelData?.isAccessFull ? "Đã mua" : "Mua trọn bộ"}
               </span>
             </Button>
@@ -158,27 +172,23 @@ export const AsidePanel = ({
           <div className="grid grid-cols-2 gap-2.5">
             <button
               onClick={onJumpToRating}
-              className="h-7 rounded-full transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
+              className="h-7 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap"
               aria-label="Đánh giá"
               type="button"
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
-                <StarIcon
-                  className="w-[13px] h-[13px] text-yellow-500 fill-yellow-500"
-                  fill="currentColor"
-                />
+                <StarRate sx={{ fontSize: 13 }} />
                 <span className="leading-none">Đánh giá</span>
               </span>
             </button>
 
             <button
-              onClick={onOpenReport}
-              className="h-7 rounded-full transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg:white/10 dark:text:white"
+              className="h-7 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap"
               aria-label="Báo cáo"
               type="button"
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
-                <Flag className="w-[13px] h-[13px]" />
+                <Report sx={{ fontSize: 13 }} />
                 <span className="leading-none">Báo cáo</span>
               </span>
             </button>

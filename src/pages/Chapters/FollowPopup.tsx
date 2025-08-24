@@ -1,12 +1,8 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Bell, BellOff, BookOpen, Bookmark, Check, Slash } from "lucide-react";
-import { GAP, labelBase, PADDING, tileBase } from "./components/constant";
-import { BRAND } from "../Home/constant";
+import { useState } from "react";
+
+type FollowStatus = "Đang đọc" | "Sẽ đọc" | "Hoàn thành";
 
 type FollowPopupProps = {
-  open: boolean;
-  anchorRef: React.RefObject<HTMLElement | null>;
   notify: boolean;
   status: number;
   onNotifyChange?: () => void;
@@ -15,271 +11,76 @@ type FollowPopupProps = {
   onClose?: () => void;
 };
 
-type Side = "bottom" | "top";
-
 export const FollowPopup = ({
-  open,
-  anchorRef,
-  notify,
-  status,
+  notify: initialNotify,
+  status: initialStatus,
   onNotifyChange,
   onStatusChange,
   onUnfollow,
   onClose,
 }: FollowPopupProps) => {
-  const popupRef = useRef<HTMLDivElement | null>(null);
-  const arrowRef = useRef<HTMLDivElement | null>(null);
+  const [notify, setNotify] = useState(initialNotify);
+  const [status, setStatus] = useState<number>(initialStatus);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const [pos, setPos] = useState<{
-    top: number;
-    left: number;
-    side: Side;
-    width: number;
-    height: number;
-  }>({
-    top: -9999,
-    left: -9999,
-    side: "bottom",
-    width: 0,
-    height: 0,
-  });
+  const statusOptions: FollowStatus[] = ["Đang đọc", "Sẽ đọc", "Hoàn thành"];
 
-  const placePopup = () => {
-    const anchor = anchorRef.current;
-    const popup = popupRef.current;
-    if (!anchor || !popup) return;
-
-    const rect = anchor.getBoundingClientRect();
-
-    const w = popup.offsetWidth || 224;
-    const h = popup.offsetHeight || 176;
-
-    const vw = window.visualViewport?.width ?? window.innerWidth;
-    const vh = window.visualViewport?.height ?? window.innerHeight;
-
-    const enoughBottom = rect.bottom + GAP + h + PADDING <= vh;
-    const side: Side = enoughBottom ? "bottom" : "top";
-
-    let left = rect.left + rect.width / 2 - w / 2;
-
-    left = Math.max(PADDING, Math.min(left, vw - w - PADDING));
-
-    const top = side === "bottom" ? rect.bottom + GAP : rect.top - h - GAP;
-
-    setPos({ top, left, side, width: w, height: h });
-
-    requestAnimationFrame(() => {
-      const arrow = arrowRef.current;
-      if (arrow) {
-        const anchorCenterX = rect.left + rect.width / 2;
-        const arrowHalf = arrow.offsetWidth / 2;
-        let arrowLeft = anchorCenterX - left - arrowHalf;
-
-        arrowLeft = Math.max(
-          12,
-          Math.min(arrowLeft, w - 12 - arrow.offsetWidth)
-        );
-        arrow.style.left = `${arrowLeft}px`;
-      }
-    });
-  };
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    const id = requestAnimationFrame(placePopup);
-
-    const onResize = () => placePopup();
-    const onScroll = () => placePopup();
-
-    window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", onScroll, true);
-
-    const ro = new ResizeObserver(() => placePopup());
-    if (popupRef.current) ro.observe(popupRef.current);
-    if (anchorRef.current) ro.observe(anchorRef.current);
-
-    return () => {
-      cancelAnimationFrame(id);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onScroll, true);
-      ro.disconnect();
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const onDocClick = (e: MouseEvent) => {
-      const p = popupRef.current;
-      const a = anchorRef.current;
-      const t = e.target as Node;
-      if (!p) return;
-      if (p.contains(t)) return;
-      if (a && a.contains(t)) return;
-      onClose?.();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose?.();
-    };
-
-    document.addEventListener("mousedown", onDocClick);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDocClick);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose, anchorRef]);
-
-  if (!open) return null;
-
-  return createPortal(
-    <div
-      ref={popupRef}
-      style={{
-        position: "fixed",
-        top: pos.top,
-        left: pos.left,
-        willChange: "top,left",
-      }}
-      className={[
-        "z-[9999] w-[224px] select-none rounded-xl border bg-white shadow-lg",
-        "border-gray-200 dark:border-white/10 dark:bg-[#1a1a1a] dark:shadow-none",
-        "p-2",
-      ].join(" ")}
-      role="menu"
-      aria-orientation="vertical"
-    >
-      <div
-        ref={arrowRef}
-        aria-hidden
-        className={[
-          "pointer-events-none absolute h-2 w-2 rotate-45",
-          pos.side === "bottom"
-            ? "-top-1 border-l border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a]"
-            : "-bottom-1 border-r border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a]",
-        ].join(" ")}
-      />
-
-      <div className="grid grid-cols-2 gap-2 dark:text-white">
+  return (
+    <div className="absolute z-50 right-0 top-0 mt-12 bg-[#2e2e2e] text-white px-4 py-2 rounded-md w-[228px] shadow-lg">
+      <div className="flex justify-between items-center mb-2">
+        <span>Thông báo</span>
         <button
-          role="menuitem"
-          onClick={onNotifyChange}
-          className={tileBase}
-          title={notify ? "Tắt thông báo" : "Bật thông báo"}
+          className={`w-10 h-5 rounded-full flex items-center px-1 ${
+            notify ? "bg-[#ff6740]" : "bg-gray-400"
+          }`}
+          onClick={() => {
+            setNotify((prev) => !prev);
+            onNotifyChange?.();
+          }}
         >
-          {notify ? (
-            <Bell className="h-5 w-5" style={{ color: BRAND }} />
-          ) : (
-            <BellOff className="h-5 w-5 text-gray-600 dark:text-white/80" />
-          )}
-          <span
-            className={[
-              labelBase,
-              notify ? "font-semibold" : "text-gray-700 dark:text-white/80",
-            ].join(" ")}
-            style={notify ? { color: BRAND } : {}}
-          >
-            {notify ? "Thông báo" : "Tắt báo"}
-          </span>
-        </button>
-
-        {/* Đang đọc */}
-        <button
-          role="menuitemradio"
-          aria-checked={status === 0}
-          onClick={() => onStatusChange?.(0)}
-          className={[
-            tileBase,
-            status === 0 ? "bg-[rgba(255,106,60,0.08)]" : "",
-          ].join(" ")}
-        >
-          <BookOpen
-            className="h-5 w-5"
-            style={{ color: status === 0 ? BRAND : undefined }}
+          <div
+            className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
+              notify ? "translate-x-4" : ""
+            }`}
           />
-          <span
-            className={[
-              labelBase,
-              status === 0
-                ? "font-semibold"
-                : "text-gray-700 dark:text-white/80",
-            ].join(" ")}
-            style={status === 0 ? { color: BRAND } : {}}
-          >
-            Đang đọc
-          </span>
-        </button>
-
-        <button
-          role="menuitemradio"
-          aria-checked={status === 1}
-          onClick={() => onStatusChange?.(1)}
-          className={[
-            tileBase,
-            status === 1 ? "bg-[rgba(255,106,60,0.08)]" : "",
-          ].join(" ")}
-        >
-          <Bookmark
-            className="h-5 w-5"
-            style={{ color: status === 1 ? BRAND : undefined }}
-          />
-          <span
-            className={[
-              labelBase,
-              status === 1
-                ? "font-semibold"
-                : "text-gray-700 dark:text-white/80",
-            ].join(" ")}
-            style={status === 1 ? { color: BRAND } : {}}
-          >
-            Sẽ đọc
-          </span>
-        </button>
-
-        <button
-          role="menuitemradio"
-          aria-checked={status === 2}
-          onClick={() => onStatusChange?.(2)}
-          className={[
-            tileBase,
-            status === 2 ? "bg-[rgba(255,106,60,0.08)]" : "",
-          ].join(" ")}
-        >
-          <Check
-            className="h-5 w-5"
-            style={{ color: status === 2 ? BRAND : undefined }}
-          />
-          <span
-            className={[
-              labelBase,
-              status === 2
-                ? "font-semibold"
-                : "text-gray-700 dark:text-white/80",
-            ].join(" ")}
-            style={status === 2 ? { color: BRAND } : {}}
-          >
-            Hoàn thành
-          </span>
-        </button>
-
-        <button
-          role="menuitem"
-          onClick={onUnfollow}
-          className={[
-            "col-span-2",
-            "flex items-center justify-center gap-2 rounded-lg px-2 py-2.5",
-            "text-[13px] font-medium text-red-600 ring-1 ring-transparent",
-            "hover:bg-red-50 active:scale-[0.98]",
-            "dark:text-red-400 dark:hover:bg-red-500/10",
-            "transition",
-          ].join(" ")}
-          title="Bỏ theo dõi"
-        >
-          <Slash className="h-4 w-4" />
-          Bỏ theo dõi
         </button>
       </div>
-    </div>,
-    document.body
+
+      <div className="relative mb-2">
+        <div className="flex justify-between items-center mb-1">
+          <p className="mr-2">Trạng thái</p>
+          <button
+            className="bg-[#444] px-3 py-1 w-[55%] rounded text-left"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            {statusOptions[status]}
+          </button>
+        </div>
+        {showDropdown && (
+          <div className="absolute bg-[#555] min-w-[55%] right-0 mt-1 rounded shadow z-10">
+            {statusOptions.map((option, index) => (
+              <div
+                key={option}
+                className="px-3 py-1 hover:bg-[#666] cursor-pointer"
+                onClick={() => {
+                  setStatus(index);
+                  onStatusChange?.(index);
+                  setShowDropdown(false);
+                }}
+              >
+                {option}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        className="text-red-500 hover:underline mt-2 w-full text-center"
+        onClick={onUnfollow}
+      >
+        Bỏ theo dõi
+      </button>
+    </div>
   );
 };

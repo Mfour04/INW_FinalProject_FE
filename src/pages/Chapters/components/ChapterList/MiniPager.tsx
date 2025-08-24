@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import ArrowLeft02 from "../../../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
+import ArrowRight02 from "../../../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
 import { clamp } from "../../utils";
 
 type MiniPagerProps = {
@@ -29,12 +30,9 @@ export const MiniPager = ({
     <div className="flex justify-center">
       <div
         className={[
-          "inline-flex items-center gap-2 rounded-full px-2.5 py-2",
-          // light
-          "border bg-gray-50 border-gray-200 shadow-[0_16px_44px_-22px_rgba(0,0,0,0.06)]",
-          // dark
-          "dark:border-white/12 dark:bg-[#141517]/85 dark:shadow-[0_16px_44px_-22px_rgba(0,0,0,0.75)]",
-          "backdrop-blur-xl",
+          "inline-flex items-center gap-2 rounded-full",
+          "border border-white/12 bg-[#141517]/85 backdrop-blur-xl",
+          "px-2.5 py-2 shadow-[0_16px_44px_-22px_rgba(0,0,0,0.75)]",
         ].join(" ")}
         role="group"
         aria-label="Phân trang"
@@ -42,19 +40,14 @@ export const MiniPager = ({
         <button
           onClick={() => onChange(clamp(currentPage - 1, 1, totalPages))}
           disabled={currentPage === 1}
-          className="
-            h-8 w-8 grid place-items-center rounded-full transition
-            bg-gray-100 border border-gray-200 hover:bg-gray-200 text-gray-800
-            disabled:opacity-40 disabled:cursor-not-allowed
-            dark:bg-white/[0.06] dark:border-white/14 dark:hover:bg-white/10 dark:text-white
-          "
+          className="h-8 w-8 grid place-items-center rounded-full border border-white/14 bg-white/[0.06] hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
           title="Trang trước"
           aria-label="Trang trước"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <img src={ArrowLeft02} alt="prev" />
         </button>
 
-        <div className="inline-flex items-center gap-1.5 text-[12px] text-gray-800 dark:text-white/85">
+        <div className="inline-flex items-center gap-1.5 text-[12px] text-white/85">
           <span className="hidden sm:inline">Trang</span>
           <input
             type="text"
@@ -69,30 +62,25 @@ export const MiniPager = ({
             onKeyDown={(e) => {
               if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             }}
-            className="
-              w-12 h-8 text-center rounded-md tabular-nums appearance-none
-              bg-white border border-gray-300 text-gray-900 text-[13px]
-              focus:outline-none focus:ring-2 focus:ring-[#ff784f]/30 focus:border-[#ff784f]/50
-              dark:bg-black/25 dark:border-white/12 dark:text-white
-            "
+            className={[
+              "w-12 h-8 text-center rounded-md tabular-nums",
+              "bg-black/25 border border-white/12 text-white text-[13px]",
+              "focus:outline-none focus:ring-2 focus:ring-[#ff784f]/40",
+              "appearance-none",
+            ].join(" ")}
             aria-label="Đi tới trang"
           />
-          <span className="text-gray-500 dark:text-white/60">/ {totalPages}</span>
+          <span className="text-white/60">/ {totalPages}</span>
         </div>
 
         <button
           onClick={() => onChange(clamp(currentPage + 1, 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="
-            h-8 w-8 grid place-items-center rounded-full transition
-            bg-gray-100 border border-gray-200 hover:bg-gray-200 text-gray-800
-            disabled:opacity-40 disabled:cursor-not-allowed
-            dark:bg-white/[0.06] dark:border-white/14 dark:hover:bg-white/10 dark:text-white
-          "
+          className="h-8 w-8 grid place-items-center rounded-full border border-white/14 bg-white/[0.06] hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
           title="Trang sau"
           aria-label="Trang sau"
         >
-          <ChevronRight className="w-4 h-4" />
+          <img src={ArrowRight02} alt="next" />
         </button>
       </div>
     </div>

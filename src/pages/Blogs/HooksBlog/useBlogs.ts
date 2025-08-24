@@ -2,17 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     GetBlogPosts,
     GetUserBlogPosts,
-    GetFollowingBlogPosts,
     CreateBlogPost,
     LikeBlogPost,
     UnlikeBlogPost,
     DeleteBlogPost,
     UpdateBlogPost,
+    type BlogPost,
+    type CreateBlogPostRequest,
 } from "../../../api/Blogs/blogs.api";
-import type {
-    BlogPost,
-    CreateBlogPostRequest,
-} from "../../../api/Blogs/blogs.type";
 
 export const useBlogPosts = () => {
     return useQuery({
@@ -55,28 +52,6 @@ export const useUserBlogPosts = (userId: string) => {
     });
 };
 
-export const useFollowingBlogPosts = () => {
-    return useQuery({
-        queryKey: ["following-blog-posts"],
-        queryFn: async () => {
-            try {
-                const res = await GetFollowingBlogPosts({
-                    page: 0,
-                    limit: 50,
-                    sortBy: "created_at:desc",
-                });
-                return res.data.data || [];
-            } catch (error) {
-                console.error("Error fetching following blog posts:", error);
-                return [];
-            }
-        },
-        staleTime: 1000 * 60,
-        refetchOnWindowFocus: true,
-        retry: 1,
-    });
-};
-
 export const useCreateBlogPost = () => {
     const queryClient = useQueryClient();
 
@@ -89,7 +64,6 @@ export const useCreateBlogPost = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
-            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
         },
     });
 };

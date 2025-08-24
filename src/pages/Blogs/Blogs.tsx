@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useContext } from "react";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import BlogHeader from "../Blogs/Post/BlogHeader";
 import PostForm from "../Blogs/Post/PostForm";
 import PostItem from "../Blogs/Post/PostItem";
@@ -9,9 +9,7 @@ import ReportPopup from "../Blogs/Modals/ReportPopup";
 import ProfileSidebar from "../Blogs/Sidebar/ProfileSidebar";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { useBlogPosts, useCreateBlogPost, useDeleteBlogPost, useUpdateBlogPost } from "./HooksBlog";
-import { GetFollowing } from "../../api/UserFollow/user-follow.api";
 import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
-import { useQuery } from "@tanstack/react-query";
 import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
 
@@ -123,7 +121,6 @@ const postsFollowing: Post[] = [
 
 export const Blogs = () => {
   const { auth } = useContext(AuthContext);
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetPostId = searchParams.get('post');
   const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
@@ -161,14 +158,6 @@ export const Blogs = () => {
   const [commentInput, setCommentInput] = useState<string>("");
   const toast = useToast();
   const { data: blogPosts = [], isLoading, refetch } = useBlogPosts();
-  const { data: followingData, isLoading: isLoadingFollowing } = useQuery({
-    queryKey: ['following', auth?.user?.userName],
-    queryFn: () => GetFollowing(auth?.user?.userName!),
-    enabled: !!auth?.user?.userName,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const followingPosts = followingData?.data || [];
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -288,7 +277,7 @@ export const Blogs = () => {
 
   const handleUpdatePost = (postId: string, content: string) => {
     updateBlogPostMutation.mutate(
-      { postId, content },
+      { postId, data: { content } },
       {
         onSuccess: () => {
           const currentTime = blogGetCurrentTicks();
@@ -353,20 +342,16 @@ export const Blogs = () => {
             </div>
           ) : (
             (Array.isArray(blogPosts) ? blogPosts : []).map((post) => {
-              // Debug: log mapping result
-              const mappedUser = {
-                name: post.author?.DisplayName || post.author?.displayName || post.author?.username || "Ẩn danh",
-                username: post.author?.username || "user",
-                avatar: post.author?.avatar || "/images/default-avatar.png",
-                displayName: post.author?.DisplayName || post.author?.displayName || post.author?.username || "Ẩn danh",
-              };
-
               return (
                 <div key={post.id} id={`post-${post.id}`}>
                   <PostItem
                     post={{
                       id: post.id,
-                      user: mappedUser,
+                      user: {
+                        name: post.author?.username || "Ẩn danh",
+                        username: post.author?.username || "user",
+                        avatar: post.author?.avatar || "/images/default-avatar.png",
+                      },
                       content: post.content,
                       timestamp: post.createdAt ? blogFormatVietnamTimeFromTicks(post.createdAt) : "Không rõ thời gian",
                       likes: post.likeCount || 0,
@@ -406,50 +391,6 @@ export const Blogs = () => {
                 </div>
               );
             })
-          )}
-        </div>
-      );
-    } else if (tab === "following") {
-      return (
-        <div className="space-y-5">
-          {isLoadingFollowing ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-              <p className="text-gray-400 mt-2">Đang tải danh sách người theo dõi...</p>
-            </div>
-          ) : !followingPosts || followingPosts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400">Chưa theo dõi ai.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {followingPosts.map((following: any) => (
-                <div key={following.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                  <img
-                    src={following.avatar || "/images/default-avatar.png"}
-                    alt={following.displayName}
-                    className="w-16 h-16 rounded-full mb-2 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/images/default-avatar.png";
-                    }}
-                  />
-                  <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
-                  <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
-                  <button
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded text-sm"
-                    onClick={() => {
-                      if (following.userName) {
-                        navigate(`/profile/${following.userName}`);
-                      } else {
-                        console.error('Username is missing for following user:', following);
-                      }
-                    }}
-                  >
-                    Xem profile
-                  </button>
-                </div>
-              ))}
-            </div>
           )}
         </div>
       );

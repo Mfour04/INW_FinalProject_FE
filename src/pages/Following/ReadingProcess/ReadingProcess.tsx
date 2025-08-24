@@ -54,7 +54,7 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
 
   const handleClearHistory = () => {
     if (window.confirm("Bạn có chắc muốn xóa toàn bộ lịch sử đọc?")) {
-      // TODO: gọi API xóa ở đây
+      // gọi API xóa ở đây
       console.log("Clearing reading history...");
       refetch();
     }
@@ -126,92 +126,73 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
   }, [totalPages, page]);
 
   return (
-    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
+    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-[#0b0d11] text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4">
-        {/* Header */}
         <div className="flex top-0 z-20 mb-10">
-          <div
-            className="w-full rounded-2xl backdrop-blur-md overflow-hidden
-                       bg-white shadow-[0_16px_56px_-28px_rgba(0,0,0,0.18)]
-                       dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]"
-          >
-            <div className="relative py-3 px-1 flex items-center justify-between">
-              <div className="flex items-center gap-10">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="h-9 w-9 grid place-items-center rounded-lg
-                              bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
-                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
-                  title="Quay lại"
-                  aria-label="Quay lại"
-                >
-                  <ArrowLeft size={18} />
-                </button>
+          <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
+            <div className="relative py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-10">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                    title="Quay lại"
+                    aria-label="Quay lại"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
 
-                <div className="flex flex-col">
-                  <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
-                    Lịch sử đọc
+                  <div className="flex flex-col">
+                    <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                      Lịch sử đọc
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-5">
-                {/* View toggle */}
-                <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
+                <div className="flex items-center gap-5">
+                  <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-white/10">
+                    <button
+                      onClick={() => setView("Grid")}
+                      className={[
+                        "h-9 w-9 grid place-items-center",
+                        view === "Grid"
+                          ? "bg-white/15 text-white"
+                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
+                      ].join(" ")}
+                      title="Xem dạng lưới"
+                      aria-label="Xem dạng lưới"
+                    >
+                      <LayoutGrid size={18} />
+                    </button>
+                    <button
+                      onClick={() => setView("List")}
+                      className={[
+                        "h-9 w-9 grid place-items-center border-l border-white/10",
+                        view === "List"
+                          ? "bg-white/15 text-white"
+                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1]",
+                      ].join(" ")}
+                      title="Xem dạng danh sách"
+                      aria-label="Xem dạng danh sách"
+                    >
+                      <List size={18} />
+                    </button>
+                  </div>
+
                   <button
-                    onClick={() => setView("Grid")}
-                    className={[
-                      "h-9 w-9 grid place-items-center transition",
-                      view === "Grid"
-                        ? "bg-gray-200 text-gray-900"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                      // dark states
-                      view === "Grid"
-                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
-                    ].join(" ")}
-                    title="Xem dạng lưới"
-                    aria-label="Xem dạng lưới"
+                    onClick={handleClearHistory}
+                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-red-500/20 text-red-400 transition"
+                    title="Xóa lịch sử"
+                    aria-label="Xóa lịch sử"
                   >
-                    <LayoutGrid size={18} />
-                  </button>
-                  <button
-                    onClick={() => setView("List")}
-                    className={[
-                      "h-9 w-9 grid place-items-center border-l border-gray-200 transition",
-                      view === "List"
-                        ? "bg-gray-200 text-gray-900"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                      "dark:border-white/10",
-                      // dark states
-                      view === "List"
-                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
-                    ].join(" ")}
-                    title="Xem dạng danh sách"
-                    aria-label="Xem dạng danh sách"
-                  >
-                    <List size={18} />
+                    <Trash size={18} />
                   </button>
                 </div>
-
-                {/* Clear history */}
-                <button
-                  onClick={handleClearHistory}
-                  className="h-9 w-9 grid place-items-center rounded-lg
-                              text-red-600 bg-red-50 ring-1 ring-red-200 hover:bg-red-100 transition
-                              dark:text-red-400 dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-red-500/20"
-                  title="Xóa lịch sử"
-                  aria-label="Xóa lịch sử"
-                >
-                  <Trash size={18} />
-                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Body */}
         {isError ? (
           <EmptyState
             title="Không tải được lịch sử đọc"

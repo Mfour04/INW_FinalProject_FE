@@ -11,14 +11,7 @@ type Props = {
 };
 
 const TagGhost = ({ label }: { label: string }) => (
-  <span
-    className="
-      inline-flex items-center rounded-full px-2.5 py-1 text-[11.5px] leading-none
-      border bg-gray-100 text-gray-800 border-gray-200
-      hover:bg-gray-200 hover:border-gray-300 transition-colors
-      dark:text-gray-200 dark:bg-white/[0.045] dark:border-white/12 dark:hover:bg-white/[0.08] dark:hover:border-white/20
-    "
-  >
+  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11.5px] leading-none border border-white/12 bg-white/[0.045] text-gray-200 hover:bg-white/[0.08] hover:border-white/20 transition-colors">
     {label}
   </span>
 );
@@ -50,23 +43,13 @@ export const InfoCard = ({
   }, [description, expanded]);
 
   return (
-    <section
-      className="
-        relative rounded-2xl overflow-hidden
-        border bg-white text-gray-900
-        border-gray-200
-        shadow-[0_24px_64px_-28px_rgba(0,0,0,0.08)]
-        dark:border-white/10 dark:bg-[#121212]/80 dark:text-white
-        dark:shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)]
-        backdrop-blur-md
-      "
-    >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/20 to-transparent dark:via-white/15" />
-      <div className="pointer-events-none absolute -top-28 -right-16 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.06),transparent_60%)] blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,103,64,0.22),transparent_60%)]" />
+    <section className="relative rounded-2xl border border-white/10 bg-[#121212]/80 backdrop-blur-md shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)] overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+      <div className="pointer-events-none absolute -top-28 -right-16 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,103,64,0.22),transparent_60%)] blur-2xl" />
 
       <div className="p-5 md:p-6">
         <h1
-          className="text-[22px] md:text-[26px] leading-tight font-extrabold tracking-tight font-sans antialiased"
+          className="text-[22px] md:text-[26px] leading-tight font-extrabold tracking-tight font-sans antialiased text-white"
           style={{
             fontSynthesis: "none",
             WebkitFontSmoothing: "antialiased",
@@ -77,15 +60,15 @@ export const InfoCard = ({
           {title}
         </h1>
 
-        <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-black/15 to-transparent dark:via-white/15" />
-        <div className="mt-[2px] h-px w-1/3 bg-gradient-to-r from-[#ff875f]/30 to-transparent blur-[0.5px]" />
+        <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+        <div className="mt-[2px] h-px w-1/3 bg-gradient-to-r from-[#ff875f]/40 to-transparent blur-[0.5px]" />
 
         {author && (
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-[12px] font-medium tracking-wide text-[#e35d3b] dark:text-[#ff875f]">
+            <span className="text-[12px] font-medium tracking-wide text-[#ff875f]">
               Người đăng:
             </span>
-            <span className="relative text-[13px] font-medium">
+            <span className="relative text-[13px] font-medium text-white">
               <span className="relative z-10">{author}</span>
             </span>
           </div>
@@ -99,7 +82,7 @@ export const InfoCard = ({
           </div>
         )}
 
-        <div className="mt-4 text-[14px] leading-7 text-gray-800 dark:text-gray-200 relative">
+        <div className="mt-4 text-[14px] leading-7 text-gray-200 relative">
           <div
             ref={contentRef}
             className={expanded ? "max-h-none" : "max-h-40 overflow-hidden"}
@@ -108,13 +91,13 @@ export const InfoCard = ({
           </div>
 
           {!expanded && canExpand && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#121212]/95 dark:via-[#121212]/50" />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#121212]/95 via-[#121212]/50 to-transparent" />
           )}
 
           {canExpand && (
             <button
               onClick={onToggleExpand}
-              className="relative mt-2 text-[12px] font-semibold text-[#e35d3b] hover:text-[#ff6740] dark:text-[#ff875f] dark:hover:text-[#ff6740] transition"
+              className="relative mt-2 text-[12px] font-semibold text-[#ff875f] hover:text-[#ff6740] transition"
             >
               {expanded ? "Thu gọn" : "Xem thêm"}
             </button>

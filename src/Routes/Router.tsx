@@ -23,6 +23,7 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
+import { NovelRead } from "../pages/novelRead/NovelRead";
 import { UserProfile } from "../pages/userProfile/UserProfile";
 import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
@@ -30,7 +31,6 @@ import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
 import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
-import { NovelRead } from "../pages/novelRead/NovelRead";
 
 export const Router = () => {
   return (
@@ -76,7 +76,6 @@ export const Router = () => {
       <Route path="/transaction-history" element={<TransactionHistory />} />
       <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
         <Route index element={<UserProfile />} />
-        <Route path=":username" element={<UserProfile />} />
       </Route>
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/test-profile" element={<TestUserProfile />} />

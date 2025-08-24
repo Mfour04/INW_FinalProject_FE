@@ -18,15 +18,12 @@ import {
 } from "./hooks/useSortedNovels";
 import type { TagType as Tag, Novel } from "./types";
 
-// === Lucide icons (thay thế toàn bộ MUI & svg cũ) ===
-import {
-  TrendingUp,
-  Star,
-  BookOpen,
-  Eye,
-  Bookmark,
-  PencilLine,
-} from "lucide-react";
+import TrendingUp from "@mui/icons-material/TrendingUp";
+import StarRate from "@mui/icons-material/StarRate";
+import MenuBook from "@mui/icons-material/MenuBook";
+import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
+import BookMark from "@mui/icons-material/Bookmark";
+import PencilEdit from "../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
 
 import VerticalColumn from "./discovery/VerticalColumn";
 import HorizontalRail from "./discovery/HorizontalRail";
@@ -143,7 +140,7 @@ export const HomePage = () => {
   const hero = trending[nNovelsIndex];
 
   return (
-    <div className="min-h-screen w-full bg-white text-white dark:bg-[#0f0f11]">
+    <div className="min-h-screen w-full bg-white dark:bg-[#0f0f11] dark:text-white">
       <div className={`mx-auto ${TOKENS.container} px-6 lg:px-10 py-10`}>
         <Hero
           title="Truyện Vừa Ra Mắt"
@@ -160,18 +157,18 @@ export const HomePage = () => {
         <div className="mt-10 grid gap-7 md:grid-cols-2">
           <VerticalColumn
             title="Đọc nhiều nhất"
-            icon={<BookOpen className="h-5 w-5 text-white" />}
+            icon={<MenuBook />}
             items={(mostViewed as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
               <Metric
-                icon={<Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                icon={<RemoveRedEye sx={{ height: 16 }} />}
                 value={n.totalViews}
               />
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<Bookmark className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                icon={<BookMark sx={{ height: 16 }} />}
                 value={n.ratingCount}
               />
             )}
@@ -179,24 +176,18 @@ export const HomePage = () => {
 
           <VerticalColumn
             title="Đánh giá cao"
-            icon={<Star className="h-5 w-5 text-white" fill="currentColor"/>} 
+            icon={<StarRate />}
             items={(topRated as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
               <Metric
-                icon={
-                  <Star
-                    className="h-4 w-4 shrink-0 text-yellow-400"
-                    fill="currentColor"
-                    stroke="none"
-                  />
-                }
+                icon={<StarRate sx={{ height: 16 }} />}
                 value={n.ratingCount}
               />
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                icon={<img className="h-4" src={PencilEdit} />}
                 value={n.totalViews}
               />
             )}
@@ -204,7 +195,7 @@ export const HomePage = () => {
 
           <HorizontalRail
             title="Xu hướng mới"
-            icon={<TrendingUp className="h-4 w-4" />}
+            icon={<TrendingUp fontSize="small" />}
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             onSeeMore={() => navigate("/trending")}

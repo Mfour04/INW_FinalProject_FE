@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
-
-import { Bell, X, Search, ListFilter } from "lucide-react";
+import Notification from "../../../assets/svg/SearchBar/notification-02-stroke-rounded.svg";
+import Delete from "../../../assets/svg/SearchBar/multiplication-sign-stroke-rounded.svg";
+import Search from "../../../assets/svg/SearchBar/search-02-stroke-rounded.svg";
+import SearchArea from "../../../assets/svg/SearchBar/search-area-stroke-rounded.svg";
 
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -131,10 +133,9 @@ export const Header = ({
             onSearchTermChange={setSearchTerm}
             onSubmit={handleSearchNovels}
             sortOptions={sortOptions}
-            // ⬇️ truyền ReactNode icon từ lucide-react
-            searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
-            clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
-            filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
+            searchIcon={Search}
+            clearIcon={Delete}
+            filterIcon={SearchArea}
             initialSort=""
             initialTags={[]}
           />
@@ -151,7 +152,7 @@ export const Header = ({
             aria-expanded={isNotificationOpen}
             aria-label="Thông báo"
           >
-            <Bell className="h-5 w-5 text-black dark:text-white" />
+            <img src={Notification} alt="Notification" className="h-5 w-5" />
           </button>
           {isNotificationOpen && (
             <NotificationDropdown notifications={userNotifications} />
