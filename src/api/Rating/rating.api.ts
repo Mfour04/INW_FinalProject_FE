@@ -3,6 +3,7 @@ import type {
   CreateNovelRatingRequest,
   DeleteNovelRatingRequest,
   GetNovelRatingApiResponse,
+  GetNovelRatingKeysetApiResponse,
   GetNovelRatingSummaryApiRes,
   UpdateNovelRatingRequest,
   UpsertNovelRatingApiResponse,
@@ -13,6 +14,11 @@ export type GetNovelRatingParams = {
   limit?: number;
 };
 
+export type GetNovelRatingsKeyParams = {
+  limit?: number;
+  afterId?: string | null;
+};
+
 export const GetNovelRating = (
   novelId: string,
   params?: GetNovelRatingParams
@@ -20,6 +26,17 @@ export const GetNovelRating = (
   http.http.get<GetNovelRatingApiResponse>(`novels/${novelId}/ratings`, {
     params,
   });
+
+export const GetNovelRatingKeyset = (
+  novelId: string,
+  params: GetNovelRatingsKeyParams
+) =>
+  http.http.get<GetNovelRatingKeysetApiResponse>(
+    `novels/${novelId}/ratings/keyset`,
+    {
+      params,
+    }
+  );
 
 export const GetNovelRatingSummary = (novelId: string) =>
   http.http.get<GetNovelRatingSummaryApiRes>(

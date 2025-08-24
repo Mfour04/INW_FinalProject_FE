@@ -7,10 +7,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CreateNovelRating,
   DeleteNovelRating,
-  GetNovelRating,
+  GetNovelRatingKeyset,
   GetNovelRatingSummary,
   UpdateNovelRating,
-  type GetNovelRatingParams,
+  type GetNovelRatingsKeyParams,
 } from "../../../../api/Rating/rating.api";
 import type { Novel } from "../../../../entity/novel";
 import type {
@@ -47,10 +47,11 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     initialNovelRatingRequest
   );
   const [hoverRating, setHoverRating] = useState(0);
-  const [params, setParams] = useState<GetNovelRatingParams>({
-    limit: 10,
-    page: 0,
-  });
+  const [loadMoreParams, setLoadMoreParams] =
+    useState<GetNovelRatingsKeyParams>({
+      limit: 5,
+      afterId: null,
+    });
 
   const [loadedReviews, setLoadedReviews] = useState<any[]>([]);
   const [filterStar, setFilterStar] = useState<number | "all">("all");
@@ -58,15 +59,17 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   const { auth } = useAuth();
   const toast = useToast();
 
-  const { data: ratingData, isLoading: isRatingLoading } = useQuery({
-    queryKey: [
-      "ratingNovels",
-      novelInfo?.novelId ?? "",
-      params.page,
-      params.limit,
-    ],
+  const {
+    data: ratingData,
+    isLoading: isRatingLoading,
+    isFetching: isRatingFetching,
+    refetch: ratingRefetch,
+  } = useQuery({
+    queryKey: ["ratingNovels", novelInfo.novelId ?? "", loadMoreParams],
     queryFn: () =>
-      GetNovelRating(novelInfo!.novelId, params).then((res) => res.data.data),
+      GetNovelRatingKeyset(novelInfo.novelId, loadMoreParams).then(
+        (res) => res.data.data
+      ),
     enabled: !!novelInfo?.novelId,
   });
 
@@ -82,35 +85,20 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     enabled: !!novelInfo?.novelId,
   });
 
-  const ratingsDistribution = ratingSummary?.scoreDistribution ?? {};
-  const totalRating = useMemo(
-    () => scoreKeys.reduce((s, k) => s + (ratingsDistribution[k] ?? 0), 0),
-    [ratingsDistribution]
-  );
-  const percentages = useMemo(
-    () =>
-      scoreKeys.map((k) => {
-        const count = ratingsDistribution[k] ?? 0;
-        const pct = totalRating === 0 ? 0 : (count / totalRating) * 100;
-        return { star: k, count, percentage: +pct.toFixed(2) };
-      }),
-    [ratingsDistribution, totalRating]
-  );
-
   const CreateNovelRatingMutation = useMutation({
     mutationFn: (request: CreateNovelRatingRequest) =>
       CreateNovelRating(request),
     onSuccess: (data) => {
+      ratingRefetch();
       toast?.onOpen(data.data.message);
-      setParams((p) => ({ ...p, page: 0 }));
     },
   });
   const UpdateNovelRatingMutation = useMutation({
     mutationFn: (request: UpdateNovelRatingRequest) =>
       UpdateNovelRating(request),
     onSuccess: (data) => {
+      ratingRefetch();
       toast?.onOpen(data.data.message);
-      setParams((p) => ({ ...p, page: 0 }));
     },
   });
   const DeleteNovelRatingMutation = useMutation({
@@ -122,7 +110,6 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
         ...prev,
         novelId: novelInfo.novelId,
       }));
-      setParams((p) => ({ ...p, page: 0 }));
     },
   });
 
@@ -214,22 +201,22 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     });
 
   useEffect(() => {
-    if (!ratingData?.ratings) return;
-    if ((params.page ?? 0) === 0) {
-      setLoadedReviews(ratingData.ratings);
-    } else {
-      setLoadedReviews((prev) => {
-        const map = new Map<string, any>();
-        [...prev, ...ratingData.ratings].forEach((r) => map.set(r.ratingId, r));
-        return Array.from(map.values());
-      });
-    }
-  }, [ratingData?.ratings, params.page]);
+    if (!ratingData?.items) return;
+
+    setLoadedReviews((prev) => {
+      const map = new Map<string, any>();
+      [...prev, ...ratingData?.items].forEach((r) => map.set(r.ratingId, r));
+      return Array.from(map.values());
+    });
+  }, [ratingData?.items]);
+
+  useEffect(() => {
+    console.log("loaded Review", loadedReviews);
+  }, [loadedReviews]);
 
   useEffect(() => {
     if (novelInfo?.novelId) {
       setRatingRequest((prev) => ({ ...prev, novelId: novelInfo.novelId }));
-      setParams({ limit: 10, page: 0 });
       setLoadedReviews([]);
       setFilterStar("all");
     }
@@ -240,11 +227,6 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
     if (filterStar === "all") return base;
     return base.filter((r) => Number(r.score) === filterStar);
   }, [loadedReviews, filterStar]);
-
-  const totalPages = Math.max(ratingData?.totalPage ?? 1, 1);
-  const canLoadMore =
-    (params.page ?? 0) < (ratingData?.totalPage ?? 1) - 1 &&
-    filterStar === "all";
 
   return (
     <section
@@ -464,7 +446,11 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                           rev.author?.displayName ||
                           "Người dùng"
                         }
-                        avatarUrl={rev.author?.avatarUrl || rev.author?.avatar}
+                        avatarUrl={
+                          rev.author?.avatarUrl ||
+                          rev.author?.avatar ||
+                          DefaultAvatar
+                        }
                         size="small"
                         showUsername={false}
                       />
@@ -509,15 +495,17 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
             )}
           </div>
 
-          {canLoadMore && (
+          {ratingData?.hasMore && (
             <div className="p-3">
-              <button
+              <Button
                 onClick={() =>
-                  setParams((prev) => ({
+                  setLoadMoreParams((prev) => ({
                     ...prev,
-                    page: (prev.page ?? 0) + 1,
+                    afterId: ratingData.nextAfterId,
                   }))
                 }
+                isLoading={isRatingFetching}
+                disabled={isRatingFetching}
                 className="
                   w-full rounded-full text-[12.5px] font-semibold
                   px-3 py-2 border bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-900
@@ -528,10 +516,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                 "
               >
                 Xem thêm đánh giá
-                <span className="ml-2 text-gray-600 dark:text-white/60">
-                  ({(params.page ?? 0) + 1}/{totalPages})
-                </span>
-              </button>
+              </Button>
             </div>
           )}
         </div>
