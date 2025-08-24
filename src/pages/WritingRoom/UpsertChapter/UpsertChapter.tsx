@@ -253,7 +253,7 @@ export const UpsertChapter = () => {
       if (currentForm.title || currentForm.content) {
         autoSaveMutation.mutate(currentForm);
       }
-    }, 10 * 60 * 1000);
+    }, 5 * 60 * 1000);
     return () => clearInterval(id);
   }, [isUpdate, autoSaveMutation]);
 
