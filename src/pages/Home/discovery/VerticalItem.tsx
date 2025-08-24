@@ -1,5 +1,5 @@
-import type { Novel } from "../types";
 import { ChevronRight } from "lucide-react";
+import type { Novel } from "../../../entity/novel";
 
 export type VerticalItemProps = {
   n: Novel;
@@ -37,10 +37,8 @@ const styles = {
   ].join(" "),
   title:
     "mt-1 truncate text-[14px] font-semibold leading-tight text-gray-900 dark:text-white",
-  meta:
-    "mt-3 flex items-center gap-2 text-[12px] text-left text-gray-700 dark:text-gray-400",
+  meta: "mt-3 flex items-center gap-2 text-[12px] text-left text-gray-700 dark:text-gray-400",
 };
-
 
 export const VerticalItem = ({
   n,
@@ -48,6 +46,7 @@ export const VerticalItem = ({
   leftMeta,
   rightMeta,
 }: VerticalItemProps) => {
+  console.log(n);
   return (
     <button onClick={() => onClick(n)} className={styles.container}>
       <div className={styles.thumb}>
