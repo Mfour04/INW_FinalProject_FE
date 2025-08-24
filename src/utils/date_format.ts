@@ -56,7 +56,9 @@ export const formatTicksToRelativeTime = (
   return vietnamTime.fromNow();
 };
 
-export const ticksToDate = (ticks: number) => {
+export const ticksToDate = (ticks: number | null | undefined): Date | null => {
+  if (!ticks || ticks <= 0) return null;
+
   const epochTicks = 621355968000000000;
   const ticksPerMillisecond = 10000;
 

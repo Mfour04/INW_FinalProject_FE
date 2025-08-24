@@ -131,7 +131,9 @@ export const UpsertChapter = () => {
         isPaid: chapter.isPaid,
         isPublic: chapter.isPublic,
         price: chapter.price,
-        scheduledAt: ticksToDate(chapter.scheduledAt),
+        scheduledAt: chapter.scheduledAt
+          ? ticksToDate(chapter.scheduledAt)
+          : null,
       });
       setCurrentForm({
         chapterId: chapter.chapterId,
@@ -143,7 +145,9 @@ export const UpsertChapter = () => {
         isPaid: chapter.isPaid,
         isPublic: chapter.isPublic,
         price: chapter.price,
-        scheduledAt: ticksToDate(chapter.scheduledAt),
+        scheduledAt: chapter.scheduledAt
+          ? ticksToDate(chapter.scheduledAt)
+          : null,
       });
       if (!isUpdate) {
         setIsUpdate(true);
@@ -172,8 +176,7 @@ export const UpsertChapter = () => {
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
   const handleUpsertButtonClick = () => {
     const rawContent = stripHtmlTags(chapterForm.content);
-    if (!chapterForm.isDraft)
-      ModerationMutation.mutate({ content: rawContent });
+    ModerationMutation.mutate({ content: rawContent });
   };
   const handleConfirmUpsert = () => {
     if (isUpdate)
@@ -244,15 +247,15 @@ export const UpsertChapter = () => {
     chapterFormRef.current = chapterForm;
   }, [chapterForm]);
 
-  // useEffect(() => {
-  //   const id = setInterval(() => {
-  //     const currentForm = chapterFormRef.current;
-  //     if (currentForm.title || currentForm.content) {
-  //       autoSaveMutation.mutate(currentForm);
-  //     }
-  //   }, 10 * 60 * 1000);
-  //   return () => clearInterval(id);
-  // }, [isUpdate, autoSaveMutation]);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const currentForm = chapterFormRef.current;
+      if (currentForm.title || currentForm.content) {
+        autoSaveMutation.mutate(currentForm);
+      }
+    }, 10 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [isUpdate, autoSaveMutation]);
 
   return (
     <div
