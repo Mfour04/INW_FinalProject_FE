@@ -1,12 +1,14 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bell, BellOff, BookOpen, Bookmark, Check, Slash } from "lucide-react";
+import { GAP, labelBase, PADDING, tileBase } from "./components/constant";
+import { BRAND } from "../Home/constant";
 
 type FollowPopupProps = {
   open: boolean;
   anchorRef: React.RefObject<HTMLElement | null>;
   notify: boolean;
-  status: number; // 0: Đang đọc, 1: Sẽ đọc, 2: Hoàn thành
+  status: number;
   onNotifyChange?: () => void;
   onStatusChange?: (status: number) => void;
   onUnfollow?: () => void;
@@ -15,7 +17,7 @@ type FollowPopupProps = {
 
 type Side = "bottom" | "top";
 
-export const FollowPopup: React.FC<FollowPopupProps> = ({
+export const FollowPopup = ({
   open,
   anchorRef,
   notify,
@@ -24,11 +26,17 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
   onStatusChange,
   onUnfollow,
   onClose,
-}) => {
+}: FollowPopupProps) => {
   const popupRef = useRef<HTMLDivElement | null>(null);
   const arrowRef = useRef<HTMLDivElement | null>(null);
 
-  const [pos, setPos] = useState<{ top: number; left: number; side: Side; width: number; height: number }>({
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    side: Side;
+    width: number;
+    height: number;
+  }>({
     top: -9999,
     left: -9999,
     side: "bottom",
@@ -36,63 +44,46 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
     height: 0,
   });
 
-  const PADDING = 8;          // khoảng cách mép viewport
-  const GAP = 10;             // khoảng cách anchor <-> popup
-  const BRAND = "#ff6a3c";
-
-  const tileBase =
-    "group flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2.5 ring-1 ring-transparent transition hover:bg-gray-100 active:scale-[0.98] dark:hover:bg-white/10";
-  const labelBase = "text-[12px] leading-tight truncate";
-
-  // ---- Positioning ----
   const placePopup = () => {
     const anchor = anchorRef.current;
     const popup = popupRef.current;
     if (!anchor || !popup) return;
 
-    // Lưu ý: getBoundingClientRect theo viewport => hợp với position: fixed
     const rect = anchor.getBoundingClientRect();
 
-    // đo thực tế popup (nếu ẩn lần đầu thì dùng offsetWidth/Height)
     const w = popup.offsetWidth || 224;
     const h = popup.offsetHeight || 176;
 
     const vw = window.visualViewport?.width ?? window.innerWidth;
     const vh = window.visualViewport?.height ?? window.innerHeight;
 
-    // Ưu tiên đặt BOTTOM nếu đủ, ngược lại TOP
     const enoughBottom = rect.bottom + GAP + h + PADDING <= vh;
     const side: Side = enoughBottom ? "bottom" : "top";
 
-    // Căn CENTER theo anchor
     let left = rect.left + rect.width / 2 - w / 2;
 
-    // Clamp để không tràn màn hình
     left = Math.max(PADDING, Math.min(left, vw - w - PADDING));
 
-    // top theo side
     const top = side === "bottom" ? rect.bottom + GAP : rect.top - h - GAP;
 
     setPos({ top, left, side, width: w, height: h });
 
-    // Căn mũi tên (nếu có)
     requestAnimationFrame(() => {
       const arrow = arrowRef.current;
       if (arrow) {
-        // Tọa độ trung tâm anchor theo viewport
         const anchorCenterX = rect.left + rect.width / 2;
-        // Vị trí left của arrow bên trong popup
         const arrowHalf = arrow.offsetWidth / 2;
         let arrowLeft = anchorCenterX - left - arrowHalf;
 
-        // Clamp arrow trong viền popup
-        arrowLeft = Math.max(12, Math.min(arrowLeft, w - 12 - arrow.offsetWidth));
+        arrowLeft = Math.max(
+          12,
+          Math.min(arrowLeft, w - 12 - arrow.offsetWidth)
+        );
         arrow.style.left = `${arrowLeft}px`;
       }
     });
   };
 
-  // Đặt vị trí khi mở + khi scroll/resize
   useLayoutEffect(() => {
     if (!open) return;
     const id = requestAnimationFrame(placePopup);
@@ -101,10 +92,8 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
     const onScroll = () => placePopup();
 
     window.addEventListener("resize", onResize);
-    // dùng capture = true để bắt cả scroll container
     window.addEventListener("scroll", onScroll, true);
 
-    // Quan sát kích thước popup/anchor thay đổi -> re-calc
     const ro = new ResizeObserver(() => placePopup());
     if (popupRef.current) ro.observe(popupRef.current);
     if (anchorRef.current) ro.observe(anchorRef.current);
@@ -115,10 +104,8 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
       window.removeEventListener("scroll", onScroll, true);
       ro.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Close on outside / ESC
   useEffect(() => {
     if (!open) return;
 
@@ -147,19 +134,21 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
 
   return createPortal(
     <div
-  ref={popupRef}
-  style={{ position: "fixed", top: pos.top, left: pos.left, willChange: "top,left" }}
-  className={[
-    "z-[9999] w-[224px] select-none rounded-xl border bg-white shadow-lg",
-    "border-gray-200 dark:border-white/10 dark:bg-[#1a1a1a] dark:shadow-none",
-    // ❌ bỏ "max-h-[60vh] overflow-auto"
-    "p-2"
-  ].join(" ")}
-  role="menu"
-  aria-orientation="vertical"
->
-
-      {/* Arrow */}
+      ref={popupRef}
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        willChange: "top,left",
+      }}
+      className={[
+        "z-[9999] w-[224px] select-none rounded-xl border bg-white shadow-lg",
+        "border-gray-200 dark:border-white/10 dark:bg-[#1a1a1a] dark:shadow-none",
+        "p-2",
+      ].join(" ")}
+      role="menu"
+      aria-orientation="vertical"
+    >
       <div
         ref={arrowRef}
         aria-hidden
@@ -169,14 +158,9 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
             ? "-top-1 border-l border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a]"
             : "-bottom-1 border-r border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a]",
         ].join(" ")}
-        style={{
-          // left set ở placePopup()
-        }}
       />
 
-      {/* Grid actions: 2 columns */}
       <div className="grid grid-cols-2 gap-2 dark:text-white">
-        {/* Notify */}
         <button
           role="menuitem"
           onClick={onNotifyChange}
@@ -204,50 +188,80 @@ export const FollowPopup: React.FC<FollowPopupProps> = ({
           role="menuitemradio"
           aria-checked={status === 0}
           onClick={() => onStatusChange?.(0)}
-          className={[tileBase, status === 0 ? "bg-[rgba(255,106,60,0.08)]" : ""].join(" ")}
+          className={[
+            tileBase,
+            status === 0 ? "bg-[rgba(255,106,60,0.08)]" : "",
+          ].join(" ")}
         >
-          <BookOpen className="h-5 w-5" style={{ color: status === 0 ? BRAND : undefined }} />
+          <BookOpen
+            className="h-5 w-5"
+            style={{ color: status === 0 ? BRAND : undefined }}
+          />
           <span
-            className={[labelBase, status === 0 ? "font-semibold" : "text-gray-700 dark:text-white/80"].join(" ")}
+            className={[
+              labelBase,
+              status === 0
+                ? "font-semibold"
+                : "text-gray-700 dark:text-white/80",
+            ].join(" ")}
             style={status === 0 ? { color: BRAND } : {}}
           >
             Đang đọc
           </span>
         </button>
 
-        {/* Sẽ đọc */}
         <button
           role="menuitemradio"
           aria-checked={status === 1}
           onClick={() => onStatusChange?.(1)}
-          className={[tileBase, status === 1 ? "bg-[rgba(255,106,60,0.08)]" : ""].join(" ")}
+          className={[
+            tileBase,
+            status === 1 ? "bg-[rgba(255,106,60,0.08)]" : "",
+          ].join(" ")}
         >
-          <Bookmark className="h-5 w-5" style={{ color: status === 1 ? BRAND : undefined }} />
+          <Bookmark
+            className="h-5 w-5"
+            style={{ color: status === 1 ? BRAND : undefined }}
+          />
           <span
-            className={[labelBase, status === 1 ? "font-semibold" : "text-gray-700 dark:text-white/80"].join(" ")}
+            className={[
+              labelBase,
+              status === 1
+                ? "font-semibold"
+                : "text-gray-700 dark:text-white/80",
+            ].join(" ")}
             style={status === 1 ? { color: BRAND } : {}}
           >
             Sẽ đọc
           </span>
         </button>
 
-        {/* Hoàn thành */}
         <button
           role="menuitemradio"
           aria-checked={status === 2}
           onClick={() => onStatusChange?.(2)}
-          className={[tileBase, status === 2 ? "bg-[rgba(255,106,60,0.08)]" : ""].join(" ")}
+          className={[
+            tileBase,
+            status === 2 ? "bg-[rgba(255,106,60,0.08)]" : "",
+          ].join(" ")}
         >
-          <Check className="h-5 w-5" style={{ color: status === 2 ? BRAND : undefined }} />
+          <Check
+            className="h-5 w-5"
+            style={{ color: status === 2 ? BRAND : undefined }}
+          />
           <span
-            className={[labelBase, status === 2 ? "font-semibold" : "text-gray-700 dark:text-white/80"].join(" ")}
+            className={[
+              labelBase,
+              status === 2
+                ? "font-semibold"
+                : "text-gray-700 dark:text-white/80",
+            ].join(" ")}
             style={status === 2 ? { color: BRAND } : {}}
           >
             Hoàn thành
           </span>
         </button>
 
-        {/* Danger: full width */}
         <button
           role="menuitem"
           onClick={onUnfollow}
