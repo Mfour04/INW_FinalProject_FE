@@ -5,6 +5,7 @@ import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import Button from "../../../components/ButtonComponent";
 import ReactPicker from "../Modals/ReactPicker";
 import { type Comment, type User } from "../types";
+import { ClickableUserInfo } from "../../../components/common/ClickableUserInfo";
 
 const users: { [key: string]: User } = {
   user_001: {
@@ -119,7 +120,6 @@ const CommentItem = ({
   const handleMouseEnter = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setShowEmojiPicker(true);
-      console.log("Show emoji picker for comment", comment.id);
     }, 1000);
   };
 
@@ -128,12 +128,10 @@ const CommentItem = ({
       clearTimeout(hoverTimeoutRef.current);
     }
     setShowEmojiPicker(false);
-    console.log("Hide emoji picker for comment", comment.id);
   };
 
   const handleEmojiClick = (emoji: string) => {
     setSelectedEmoji(emoji);
-    console.log(`Selected emoji ${emoji} for comment ${comment.id}`);
     setShowEmojiPicker(false);
   };
 
@@ -212,16 +210,13 @@ const CommentItem = ({
 
           {/* User info section with proper spacing for menu button */}
           <div className="pr-8">
-            <div className="flex flex-col">
-              <h4 className="font-semibold text-white text-sm sm:text-base truncate">
-                {user.name}
-              </h4>
-              {user.username && (
-                <small className="text-xs text-gray-400 truncate">
-                  {user.username}
-                </small>
-              )}
-            </div>
+            <ClickableUserInfo
+              username={user.username?.replace('@', '')}
+              displayName={user.name}
+              avatarUrl={user.avatar}
+              size="medium"
+              showUsername={true}
+            />
           </div>
 
           <AnimatePresence mode="wait">
@@ -260,7 +255,6 @@ const CommentItem = ({
                     <Button
                       isLoading={false}
                       onClick={() => {
-                        console.log("Saving comment:", editedContent);
                         setEditingCommentId(null);
                       }}
                       className="bg-[#ff6740] text-white px-3 py-1 rounded transition-colors duration-200 hover:bg-[#ff5722] border-none"
@@ -304,12 +298,8 @@ const CommentItem = ({
                         onClick={() => {
                           if (selectedEmoji) {
                             setSelectedEmoji(null);
-                            console.log(`Unliked comment ${comment.id}`);
                           } else {
                             setSelectedEmoji("❤️");
-                            console.log(
-                              `Selected default emoji ❤️ for comment ${comment.id}`
-                            );
                           }
                         }}
                         className="flex items-center gap-1 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"

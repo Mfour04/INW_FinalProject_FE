@@ -15,6 +15,15 @@ export const GetBlogPosts = (params?: {
         params,
     });
 
+export const GetFollowingBlogPosts = (params?: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+}) =>
+    http.privateHttp.get<BlogPostResponse>("forums/posts/following", {
+        params,
+    });
+
 export const GetUserBlogPosts = (userId: string, params?: {
     page?: number;
     limit?: number;

@@ -11,7 +11,7 @@ export const isProbablyHTML = (input?: string) => {
   if (!input) return false;
   const s = input.trim();
   if (!s.includes("<") || !s.includes(">")) return false;
-  const tagLike = /<\s*\/?\s*[a-zA-Z][^>]*>/; // generic tag
+  const tagLike = /<\s*\/?\s*[a-zA-Z][^>]*>/; 
   const knownTag =
     /<\s*(p|div|h[1-6]|ul|ol|li|br|img|strong|em|span|a|blockquote|pre|code|table)\b/i;
   return tagLike.test(s) && knownTag.test(s);
