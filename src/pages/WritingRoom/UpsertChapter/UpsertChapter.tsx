@@ -23,13 +23,13 @@ import type {
 import { ModerationContent } from "../../../api/AI/ai.api";
 import { stripHtmlTags } from "../../../utils/regex";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
-import { ModerationModal } from "./ModerationModal";
 
 // new
 import { SaveStatus } from "./components/SaveStatus";
 import { Stepper } from "./components/Stepper"; // non-click version
 import { StatusSummary } from "./components/StatusSummary";
 import { ticksToDate } from "../../../utils/date_format";
+import { ModerationReviewModal } from "./ModerationReviewModal";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -247,15 +247,15 @@ export const UpsertChapter = () => {
     chapterFormRef.current = chapterForm;
   }, [chapterForm]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      const currentForm = chapterFormRef.current;
-      if (currentForm.title || currentForm.content) {
-        autoSaveMutation.mutate(currentForm);
-      }
-    }, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [isUpdate, autoSaveMutation]);
+  // useEffect(() => {
+  //   const id = setInterval(() => {
+  //     const currentForm = chapterFormRef.current;
+  //     if (currentForm.title || currentForm.content) {
+  //       autoSaveMutation.mutate(currentForm);
+  //     }
+  //   }, 5 * 60 * 1000);
+  //   return () => clearInterval(id);
+  // }, [isUpdate, autoSaveMutation]);
 
   return (
     <div
@@ -364,7 +364,9 @@ export const UpsertChapter = () => {
                     onClick={handleUpsertButtonClick}
                     loading={ModerationMutation.isPending}
                   >
-                    Xác nhận
+                    {ModerationMutation.isPending
+                      ? `Đang kiểm duyệt`
+                      : `Xác nhận`}
                   </PrimaryButton>
                 )}
               </div>
@@ -380,20 +382,19 @@ export const UpsertChapter = () => {
         onCancel={() => setConfirmUpsertModal(false)}
         onConfirm={handleConfirmUpsert}
       />
-      <ModerationModal
+      <ModerationReviewModal
         open={openModerationModal}
         onClose={() => {
           setOpenModerationModal(false);
           setModerationData(null);
         }}
-        onConfirm={handleConfirmUpsert}
+        onContinue={handleConfirmUpsert}
         data={moderationData}
       />
     </div>
   );
 };
 
-/* ================= UI buttons (tự tạo, nhỏ gọn) ================ */
 function PrimaryButton({
   children,
   onClick,

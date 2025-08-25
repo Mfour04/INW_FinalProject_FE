@@ -1,40 +1,22 @@
-import React, { useState } from "react";
-
-export type MatchChunk = { inputChunk: string; matchedChunk: string; similarity: number };
-export type MatchItem = {
-  novelSlug: string;
-  novelTitle: string;
-  chapterId: string;
-  chapterTitle: string;
-  similarity: number; // 0..1
-  matches: MatchChunk[];
-};
+import { useState } from "react";
+import type { Matches } from "../../../api/AI/ai.type";
+import { badge, pct } from "./util";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  matches: MatchItem[];
+  matches: Matches[];
   onGoNovel?: (slug: string) => void;
   onGoChapter?: (slug: string, chapterId: string) => void;
 };
 
-const pct = (x: number) => Math.round(x * 100);
-const badge = (s: number) =>
-  s >= 0.8
-    ? "bg-red-50 text-red-700 ring-red-200"
-    : s >= 0.6
-    ? "bg-orange-50 text-orange-700 ring-orange-200"
-    : s >= 0.4
-    ? "bg-amber-50 text-amber-700 ring-amber-200"
-    : "bg-emerald-50 text-emerald-700 ring-emerald-200";
-
-export default function PlagiarismModalMinimal({
+export const PlagiarismModalMinimal = ({
   open,
   onClose,
   matches,
   onGoNovel,
   onGoChapter,
-}: Props) {
+}: Props) => {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   if (!open) return null;
 
@@ -60,17 +42,17 @@ export default function PlagiarismModalMinimal({
             </button>
           </div>
 
-          {/* Body */}
           <div className="px-6 py-2 max-h-[60vh] overflow-y-auto">
             {matches.length === 0 ? (
-              <div className="text-sm text-gray-600">Không phát hiện nội dung trùng lặp.</div>
+              <div className="text-sm text-gray-600">
+                Không phát hiện nội dung trùng lặp.
+              </div>
             ) : (
               <ul className="divide-y divide-gray-200">
                 {matches.map((m, i) => {
                   const isOpen = openIdx === i;
                   return (
                     <li key={i} className="py-2">
-                      {/* Hàng tóm tắt (click để mở) */}
                       <button
                         type="button"
                         onClick={() => setOpenIdx(isOpen ? null : i)}
@@ -79,7 +61,6 @@ export default function PlagiarismModalMinimal({
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0 flex items-center gap-3">
-                            {/* Chevron xoay khi mở */}
                             <span
                               className={[
                                 "inline-flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-gray-200 bg-white text-gray-600",
@@ -89,13 +70,20 @@ export default function PlagiarismModalMinimal({
                               aria-hidden
                             >
                               <svg viewBox="0 0 20 20" className="h-3.5 w-3.5">
-                                <path d="M7 5l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                                <path
+                                  d="M7 5l6 5-6 5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                />
                               </svg>
                             </span>
 
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">Tiểu thuyết:</span>
+                                <span className="text-xs text-gray-500">
+                                  Tiểu thuyết:
+                                </span>
                                 <span
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -119,15 +107,22 @@ export default function PlagiarismModalMinimal({
                                 >
                                   {m.chapterTitle}
                                 </span>
-                                <span className="text-gray-400 truncate">({m.novelSlug})</span>
+                                <span className="text-gray-400 truncate">
+                                  ({m.novelSlug})
+                                </span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Số đoạn & % tổng để gợi ý có thể mở */}
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-gray-500">{m.matches.length} đoạn</span>
-                            <span className={`px-2 py-0.5 text-[11px] rounded-full ring-1 ${badge(m.similarity)}`}>
+                            <span className="text-xs text-gray-500">
+                              {m.matches.length} đoạn
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 text-[11px] rounded-full ring-1 ${badge(
+                                m.similarity
+                              )}`}
+                            >
                               {pct(m.similarity)}%
                             </span>
                           </div>
@@ -139,30 +134,43 @@ export default function PlagiarismModalMinimal({
                         )}
                       </button>
 
-                      {/* Phần chi tiết */}
                       {isOpen && (
                         <div className="mt-2 rounded-xl border border-gray-200 p-3">
                           {m.matches.slice(0, 4).map((c, idx) => (
                             <div
                               key={idx}
-                              className={`p-3 rounded-lg ${idx !== 0 ? "mt-3 border-t border-gray-200 pt-3" : ""}`}
+                              className={`p-3 rounded-lg ${
+                                idx !== 0
+                                  ? "mt-3 border-t border-gray-200 pt-3"
+                                  : ""
+                              }`}
                             >
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-700">Đoạn trùng</span>
-                                <span className={`px-2 py-0.5 text-[11px] rounded-full ring-1 ${badge(c.similarity)}`}>
+                                <span className="text-xs font-medium text-gray-700">
+                                  Đoạn trùng
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 text-[11px] rounded-full ring-1 ${badge(
+                                    c.similarity
+                                  )}`}
+                                >
                                   {pct(c.similarity)}%
                                 </span>
                               </div>
 
                               <div className="mt-2 grid md:grid-cols-2 gap-3">
                                 <div className="rounded-lg bg-white ring-1 ring-gray-200 p-3">
-                                  <div className="text-[11px] text-gray-500 mb-1">Trong bài</div>
+                                  <div className="text-[11px] text-gray-500 mb-1">
+                                    Trong bài
+                                  </div>
                                   <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-5">
                                     {c.inputChunk}
                                   </p>
                                 </div>
                                 <div className="rounded-lg bg-white ring-1 ring-gray-200 p-3">
-                                  <div className="text-[11px] text-gray-500 mb-1">Nguồn</div>
+                                  <div className="text-[11px] text-gray-500 mb-1">
+                                    Nguồn
+                                  </div>
                                   <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-5">
                                     {c.matchedChunk}
                                   </p>
@@ -185,7 +193,6 @@ export default function PlagiarismModalMinimal({
             )}
           </div>
 
-          {/* Footer */}
           <div className="flex items-center justify-end px-6 py-4 border-t border-gray-200">
             <button
               onClick={onClose}
@@ -199,7 +206,12 @@ export default function PlagiarismModalMinimal({
             >
               Đóng
               <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden>
-                <path d="M7 5l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M7 5l6 5-6 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
               </svg>
             </button>
           </div>
@@ -207,4 +219,4 @@ export default function PlagiarismModalMinimal({
       </div>
     </div>
   );
-}
+};

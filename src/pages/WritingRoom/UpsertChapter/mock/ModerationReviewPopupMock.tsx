@@ -1,25 +1,21 @@
 // src/pages/ModerationReviewPopupMock.tsx
-import React, { useState } from "react";
-import type { ModerationAIResponse } from "../../../../api/AI/ai.type";
-import ModerationReviewModal from "./ModerationReviewModal";
+import { useState } from "react";
+import type { Matches, ModerationAIResponse } from "../../../../api/AI/ai.type";
 
 // dùng UI minimal mới
-import PlagiarismModalMock from "./PlagiarismModalMinimal";
-import type { MatchItem } from "./plagiarism.mock";
+import { PlagiarismModalMinimal } from "../PlagiarismModalMinimal";
 
 // import mocks
-import {
-  mockModerationFlagged,
-  mockModerationSafe,
-} from "./moderation.mock";
+import { mockModerationFlagged, mockModerationSafe } from "./moderation.mock";
 import { mockMatches, generateMockMatches } from "./plagiarism.mock";
+import { ModerationReviewModal } from "../ModerationReviewModal";
 
 export default function ModerationReviewPopupMock() {
   const [openModeration, setOpenModeration] = useState(false);
   const [data, setData] = useState<ModerationAIResponse | null>(null);
 
   const [openPlagiarism, setOpenPlagiarism] = useState(false);
-  const [plagData, setPlagData] = useState<MatchItem[]>(mockMatches);
+  const [plagData, setPlagData] = useState<Matches[]>(mockMatches);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0f16] text-white p-6 space-y-4">
@@ -79,7 +75,7 @@ export default function ModerationReviewPopupMock() {
       />
 
       {/* Plagiarism popup (mock) */}
-      <PlagiarismModalMock
+      <PlagiarismModalMinimal
         open={openPlagiarism}
         onClose={() => setOpenPlagiarism(false)}
         matches={plagData}

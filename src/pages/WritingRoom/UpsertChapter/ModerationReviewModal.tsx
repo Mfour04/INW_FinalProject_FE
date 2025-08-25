@@ -1,5 +1,4 @@
-import React from "react";
-import type { ModerationAIResponse } from "../../../../api/AI/ai.type";
+import type { ModerationAIResponse } from "../../../api/AI/ai.type";
 
 type Props = {
   open: boolean;
@@ -10,12 +9,12 @@ type Props = {
 
 const BLOCK_LIMIT = 0.8;
 
-export default function ModerationReviewModal({
+export const ModerationReviewModal = ({
   open,
   onClose,
   onContinue,
   data,
-}: Props) {
+}: Props) => {
   if (!open || !data) return null;
   const blocked = data.sensitive.some((s) => s.score >= BLOCK_LIMIT);
 
@@ -69,7 +68,8 @@ export default function ModerationReviewModal({
 
           {!blocked && data.flagged && (
             <div className="mx-5 mt-4 rounded-lg bg-amber-500/10 ring-1 ring-amber-400/30 p-3 text-sm text-amber-200">
-              Nội dung có yếu tố nhạy cảm. Vui lòng xem xét kỹ trước khi tiếp tục.
+              Nội dung có yếu tố nhạy cảm. Vui lòng xem xét kỹ trước khi tiếp
+              tục.
             </div>
           )}
 
@@ -147,7 +147,6 @@ export default function ModerationReviewModal({
             </table>
           </div>
 
-          {/* Footer với nút gradient */}
           <div className="flex items-center justify-end px-5 py-4 border-t border-white/10">
             <button
               onClick={!blocked ? onContinue : undefined}
@@ -179,4 +178,4 @@ export default function ModerationReviewModal({
       </div>
     </div>
   );
-}
+};
