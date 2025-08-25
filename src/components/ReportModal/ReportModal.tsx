@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, ShieldAlert, Check } from "lucide-react";
 
-/* =========================
- * Shared types
- * ========================= */
 export type ReportReason =
   | "nudity"
   | "violence"
@@ -14,21 +11,13 @@ export type ReportReason =
   | "scam"
   | "illegal"
   | "other"
-  // mở rộng thêm các lý do mang tính social
   | "harassment"
   | "doxxing"
   | "offtopic"
   | "misinfo"
   | "spoiler";
 
-/**
- * BACKEND ENUM MAPPING
- * --------------------
- * Cập nhật các số dưới đây để khớp chính xác enum int ở backend của bạn.
- * Nếu mỗi scope có enum khác nhau, bạn có thể tách ra NOVEL_REASON_CODE / CHAPTER_REASON_CODE ...;
- * ở đây mình dùng 1 map chung cho tiện.
- */
-const REPORT_REASON_CODE: Record<ReportReason, number> = {
+export const REPORT_REASON_CODE: Record<ReportReason, number> = {
   nudity: 0,
   violence: 1,
   hate: 2,
@@ -49,13 +38,8 @@ export type ReportPayload = {
   chapterId?: string;
   commentId?: string;
   postId?: string;
-  /** FRONT-END: key string để log/telemetry */
   reason: ReportReason;
   message?: string;
-  /**
-   * BACK-END: mã enum int. Mình thêm optional ở đây cho tiện pass xuống onSubmit
-   * và để nơi gọi API có thể lấy đúng int. 
-   */
   reasonCode?: number;
 };
 
@@ -65,26 +49,25 @@ type BaseProps = {
   isOpen: boolean;
   title: string;
   subtitle?: string;
+  isLoading?: boolean;
   reasons: ReasonItem[];
-  mustFillWhen?: ReportReason[]; // reason bắt buộc có message
+  mustFillWhen?: ReportReason[];
   onClose: () => void;
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
-  payloadExtras: Omit<ReportPayload, "reason" | "message" | "reasonCode">; // novelId / chapterId / commentId / postId ...
+  payloadExtras: Omit<ReportPayload, "reason" | "message" | "reasonCode">;
 };
 
-/* =========================
- * Base modal (dùng chung)
- * ========================= */
-const ReportModalBase: React.FC<BaseProps> = ({
+const ReportModalBase = ({
   isOpen,
   title,
   subtitle,
   reasons,
+  isLoading,
   mustFillWhen = ["other"],
   onClose,
   onSubmit,
   payloadExtras,
-}) => {
+}: BaseProps) => {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [message, setMessage] = useState("");
@@ -127,7 +110,7 @@ const ReportModalBase: React.FC<BaseProps> = ({
       await onSubmit({
         ...payloadExtras,
         reason,
-        reasonCode, // <-- enum int cho backend
+        reasonCode,
         message: message.trim() || undefined,
       });
       onClose();
@@ -137,7 +120,11 @@ const ReportModalBase: React.FC<BaseProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3"
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="absolute inset-0 bg-black/50" />
 
       <div
@@ -221,7 +208,7 @@ const ReportModalBase: React.FC<BaseProps> = ({
                 : "bg-gray-400 cursor-not-allowed"
             }`}
           >
-            {submitting ? "Đang gửi…" : "Gửi báo cáo"}
+            {isLoading || submitting ? "Đang gửi…" : "Gửi báo cáo"}
           </button>
         </div>
       </div>
@@ -230,40 +217,40 @@ const ReportModalBase: React.FC<BaseProps> = ({
   );
 };
 
-/* =========================
- * NOVEL modal
- * ========================= */
 const NOVEL_REASONS: ReasonItem[] = [
   { id: "copyright", label: "Vi phạm bản quyền / đạo nhái tổng thể" },
-  { id: "illegal",    label: "Nội dung/hoạt động phi pháp" },
-  { id: "nudity",     label: "Nội dung 18+ quá mức / trái quy định" },
-  { id: "violence",   label: "Bạo lực/ghê rợn xuyên suốt" },
-  { id: "hate",       label: "Thù hằn/quấy rối có hệ thống" },
-  { id: "spam",       label: "Spam nhiều chương / câu kéo rating" },
-  { id: "scam",       label: "Lừa đảo / thông tin sai lệch" },
-  { id: "other",      label: "Khác" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
+  { id: "nudity", label: "Nội dung 18+ quá mức / trái quy định" },
+  { id: "violence", label: "Bạo lực/ghê rợn xuyên suốt" },
+  { id: "hate", label: "Thù hằn/quấy rối có hệ thống" },
+  { id: "spam", label: "Spam nhiều chương / câu kéo rating" },
+  { id: "scam", label: "Lừa đảo / thông tin sai lệch" },
+  { id: "other", label: "Khác" },
 ];
 
 export type ReportNovelModalProps = {
   isOpen: boolean;
   novelId: string;
   novelTitle?: string;
+  isLoading?: boolean;
   onClose: () => void;
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
 };
 
-export const ReportNovelModal: React.FC<ReportNovelModalProps> = ({
+export const ReportNovelModal = ({
   isOpen,
   novelId,
   novelTitle,
+  isLoading,
   onClose,
   onSubmit,
-}) => (
+}: ReportNovelModalProps) => (
   <ReportModalBase
     isOpen={isOpen}
     title={`Báo cáo truyện${novelTitle ? ` “${novelTitle}”` : ""}`}
     subtitle="Áp dụng khi vấn đề mang tính tổng thể của tác phẩm."
     reasons={NOVEL_REASONS}
+    isLoading={isLoading}
     mustFillWhen={["other"]}
     onClose={onClose}
     onSubmit={onSubmit}
@@ -271,18 +258,15 @@ export const ReportNovelModal: React.FC<ReportNovelModalProps> = ({
   />
 );
 
-/* =========================
- * CHAPTER modal
- * ========================= */
 const CHAPTER_REASONS: ReasonItem[] = [
   { id: "nudity", label: "Nội dung nhạy cảm quá mức ở chương" },
   { id: "violence", label: "Bạo lực/ghê rợn ở chương" },
   { id: "hate", label: "Thù hằn/quấy rối trong chương" },
-  { id: "spam",      label: "Chèn link quảng cáo / spam trong chương" },
+  { id: "spam", label: "Chèn link quảng cáo / spam trong chương" },
   { id: "copyright", label: "Chương vi phạm bản quyền / sao chép" },
-  { id: "scam",      label: "Lừa đảo / thông tin sai lệch trong chương" },
-  { id: "illegal",   label: "Nội dung/hoạt động phi pháp trong chương" },
-  { id: "other",     label: "Khác (mô tả rõ chương bị lỗi, dịch sai, hỏng ảnh…)" },
+  { id: "scam", label: "Lừa đảo / thông tin sai lệch trong chương" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp trong chương" },
+  { id: "other", label: "Khác (mô tả rõ chương bị lỗi, dịch sai, hỏng ảnh…)" },
 ];
 
 export type ReportChapterModalProps = {
@@ -295,7 +279,7 @@ export type ReportChapterModalProps = {
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
 };
 
-export const ReportChapterModal: React.FC<ReportChapterModalProps> = ({
+export const ReportChapterModal = ({
   isOpen,
   novelId,
   chapterId,
@@ -303,7 +287,7 @@ export const ReportChapterModal: React.FC<ReportChapterModalProps> = ({
   chapterTitle,
   onClose,
   onSubmit,
-}) => (
+}: ReportChapterModalProps) => (
   <ReportModalBase
     isOpen={isOpen}
     title={`Báo cáo chương${chapterTitle ? ` “${chapterTitle}”` : ""}`}
@@ -320,18 +304,15 @@ export const ReportChapterModal: React.FC<ReportChapterModalProps> = ({
   />
 );
 
-/* =========================
- * COMMENT modal
- * ========================= */
 const COMMENT_REASONS: ReasonItem[] = [
   { id: "harassment", label: "Quấy rối / công kích cá nhân" },
-  { id: "hate",       label: "Ngôn từ thù hằn / phân biệt đối xử" },
-  { id: "spam",       label: "Spam / quảng cáo" },
-  { id: "doxxing",    label: "Tiết lộ thông tin cá nhân (doxxing)" },
-  { id: "spoiler",    label: "Tiết lộ nội dung (spoiler) không cảnh báo" },
-  { id: "offtopic",   label: "Lạc đề / phá rối thảo luận" },
-  { id: "illegal",    label: "Nội dung/hoạt động phi pháp" },
-  { id: "other",      label: "Khác" },
+  { id: "hate", label: "Ngôn từ thù hằn / phân biệt đối xử" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "doxxing", label: "Tiết lộ thông tin cá nhân (doxxing)" },
+  { id: "spoiler", label: "Tiết lộ nội dung (spoiler) không cảnh báo" },
+  { id: "offtopic", label: "Lạc đề / phá rối thảo luận" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
+  { id: "other", label: "Khác" },
 ];
 
 export type ReportCommentModalProps = {
@@ -342,19 +323,21 @@ export type ReportCommentModalProps = {
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
 };
 
-export const ReportCommentModal: React.FC<ReportCommentModalProps> = ({
+export const ReportCommentModal = ({
   isOpen,
   commentId,
   commentPreview,
   onClose,
   onSubmit,
-}) => (
+}: ReportCommentModalProps) => (
   <ReportModalBase
     isOpen={isOpen}
     title={`Báo cáo bình luận`}
     subtitle={
       commentPreview
-        ? `“${commentPreview.slice(0, 60)}${commentPreview.length > 60 ? "…" : ""}”`
+        ? `“${commentPreview.slice(0, 60)}${
+            commentPreview.length > 60 ? "…" : ""
+          }”`
         : "Áp dụng cho một bình luận cụ thể."
     }
     reasons={COMMENT_REASONS}
@@ -365,20 +348,17 @@ export const ReportCommentModal: React.FC<ReportCommentModalProps> = ({
   />
 );
 
-/* =========================
- * FORUM POST modal
- * ========================= */
 const POST_REASONS: ReasonItem[] = [
-  { id: "misinfo",    label: "Thông tin sai lệch / gây hiểu lầm" },
-  { id: "scam",       label: "Lừa đảo (link, bán hàng, phishing…)" },
-  { id: "spam",       label: "Spam / quảng cáo" },
-  { id: "nudity",     label: "Nội dung nhạy cảm không gắn cảnh báo" },
-  { id: "hate",       label: "Ngôn từ thù hằn / kích động" },
-  { id: "violence",   label: "Bạo lực / hình ảnh ghê rợn" },
-  { id: "illegal",    label: "Nội dung/hoạt động phi pháp" },
-  { id: "copyright",  label: "Vi phạm bản quyền (tài liệu/hình ảnh…)" },
-  { id: "offtopic",   label: "Lạc đề / không phù hợp chuyên mục" },
-  { id: "other",      label: "Khác" },
+  { id: "misinfo", label: "Thông tin sai lệch / gây hiểu lầm" },
+  { id: "scam", label: "Lừa đảo (link, bán hàng, phishing…)" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "nudity", label: "Nội dung nhạy cảm không gắn cảnh báo" },
+  { id: "hate", label: "Ngôn từ thù hằn / kích động" },
+  { id: "violence", label: "Bạo lực / hình ảnh ghê rợn" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
+  { id: "copyright", label: "Vi phạm bản quyền (tài liệu/hình ảnh…)" },
+  { id: "offtopic", label: "Lạc đề / không phù hợp chuyên mục" },
+  { id: "other", label: "Khác" },
 ];
 
 export type ReportPostModalProps = {
@@ -390,18 +370,22 @@ export type ReportPostModalProps = {
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
 };
 
-export const ReportPostModal: React.FC<ReportPostModalProps> = ({
+export const ReportPostModal = ({
   isOpen,
   postId,
   postTitle,
   forumName,
   onClose,
   onSubmit,
-}) => (
+}: ReportPostModalProps) => (
   <ReportModalBase
     isOpen={isOpen}
     title={`Báo cáo bài viết${postTitle ? ` “${postTitle}”` : ""}`}
-    subtitle={forumName ? `Thuộc chuyên mục ${forumName}.` : "Áp dụng cho một bài viết trên forum."}
+    subtitle={
+      forumName
+        ? `Thuộc chuyên mục ${forumName}.`
+        : "Áp dụng cho một bài viết trên forum."
+    }
     reasons={POST_REASONS}
     mustFillWhen={["other", "misinfo", "scam", "copyright"]}
     onClose={onClose}

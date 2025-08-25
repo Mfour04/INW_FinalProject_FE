@@ -2,7 +2,10 @@ import { useContext, useMemo, useRef, useState, useCallback } from "react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import type { Comment } from "./types.ts";
 import { AuthContext } from "../../context/AuthContext/AuthProvider.tsx";
-import { formatVietnamTimeFromTicks, getCurrentTicks } from "../../utils/date_format.ts";
+import {
+  formatVietnamTimeFromTicks,
+  getCurrentTicks,
+} from "../../utils/date_format.ts";
 import defaultAvatar from "../../assets/img/default_avt.png";
 import { getAvatarUrl } from "../../utils/avatar";
 import { Composer } from "./components/Composer.tsx";
@@ -11,15 +14,26 @@ import { useComments } from "./hooks/useComments.ts";
 import { useCreateComment } from "./hooks/useCreateComment.ts";
 import { useUpdateComment } from "./hooks/useUpdateComment.ts";
 import { useDeleteComment } from "./hooks/useDeleteComment.ts";
-import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api.ts";
+import {
+  LikeComment,
+  UnlikeComment,
+  GetRepliesByComment,
+} from "../../api/Comment/comment.api.ts";
 
 // 🔽 NEW: bật report comment
-import { ReportCommentModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
+import {
+  REPORT_REASON_CODE,
+  ReportCommentModal,
+  type ReportPayload,
+} from "../../components/ReportModal/ReportModal";
+import { useReport } from "../../hooks/useReport.tsx";
+import type { ReportRequest } from "../../api/Report/report.type.ts";
 
 type Props = { novelId: string; chapterId: string };
 
 export const CommentUser = ({ novelId, chapterId }: Props) => {
   const { auth } = useContext(AuthContext);
+  const report = useReport();
   const queryClient = useQueryClient();
 
   const [composerValue, setComposerValue] = useState("");
@@ -33,13 +47,19 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [reportPreview, setReportPreview] = useState<string>("");
 
   const { data: rawComments } = useComments(chapterId, novelId);
-  const commentIds = Array.isArray(rawComments) ? rawComments.map((c: any) => c.id).filter(Boolean) : [];
+  const commentIds = Array.isArray(rawComments)
+    ? rawComments.map((c: any) => c.id).filter(Boolean)
+    : [];
 
   const repliesQueries = useQueries({
     queries: commentIds.map((commentId) => ({
       queryKey: ["replies", commentId],
       queryFn: async () => {
-        const res = await GetRepliesByComment(commentId, { page: 0, limit: 50, sortBy: "created_at:desc" });
+        const res = await GetRepliesByComment(commentId, {
+          page: 0,
+          limit: 50,
+          sortBy: "created_at:desc",
+        });
         return res.data.data;
       },
       enabled: !!commentId,
@@ -60,17 +80,34 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     avatarUrl: auth?.user?.avatarUrl || null,
   };
 
-  const [likedComments, setLikedComments] = useState<Record<string, boolean>>(() => {
-    const map: Record<string, boolean> = {};
-    Object.keys(localStorage).forEach((k) => {
-      if (k.startsWith("liked_")) map[k.replace("liked_", "")] = true;
-    });
-    return map;
-  });
+  const [likedComments, setLikedComments] = useState<Record<string, boolean>>(
+    () => {
+      const map: Record<string, boolean> = {};
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith("liked_")) map[k.replace("liked_", "")] = true;
+      });
+      return map;
+    }
+  );
 
   const [editedComments, setEditedComments] = useState<
-    Record<string, { content?: string; timestamp?: string; likes?: number; replies?: number }>
+    Record<
+      string,
+      { content?: string; timestamp?: string; likes?: number; replies?: number }
+    >
   >({});
+
+  const handleSubmitReport = (payload: ReportPayload) => {
+    const reportRequest: ReportRequest = {
+      scope: 2,
+      commentId: payload.commentId,
+      novelId: payload.novelId,
+      chapterId: payload.chapterId,
+      reason: REPORT_REASON_CODE[payload.reason],
+      message: payload.message,
+    };
+    report.mutate(reportRequest);
+  };
 
   const serverComments: Comment[] = useMemo(() => {
     const flat: Comment[] = [];
@@ -81,9 +118,14 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       const updatedTicks = Number(c.updatedAt) || 0;
       const localTicks = Number(localStorage.getItem(`updatedAt_${c.id}`)) || 0;
       const latest = Math.max(createdTicks, updatedTicks, localTicks);
-      const timestamp = latest > 0 ? formatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
+      const timestamp =
+        latest > 0 ? formatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
       const author = c.author;
-      const name = author?.DisplayName || author?.displayName || author?.username || "Ẩn danh";
+      const name =
+        author?.DisplayName ||
+        author?.displayName ||
+        author?.username ||
+        "Ẩn danh";
       const user = author?.username ? `@${author.username}` : "@user";
       flat.push({
         id: c.id,
@@ -121,7 +163,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     [serverComments, editedComments]
   );
 
-  const topLevel = useMemo(() => enrichedComments.filter((c) => !c.parentId && c.id), [enrichedComments]);
+  const topLevel = useMemo(
+    () => enrichedComments.filter((c) => !c.parentId && c.id),
+    [enrichedComments]
+  );
 
   const handlePost = useCallback(
     (content: string) => {
@@ -132,11 +177,18 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
         {
           onSuccess: (res: any) => {
             setComposerValue("");
-            if (res?.data?.success === false && res?.data?.message?.includes("Duplicate")) {
-              alert("Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác.");
+            if (
+              res?.data?.success === false &&
+              res?.data?.message?.includes("Duplicate")
+            ) {
+              alert(
+                "Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác."
+              );
               return;
             }
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
           },
         }
       );
@@ -150,7 +202,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       if (open) {
         setReplyValues((v) => ({ ...v, [id]: "" }));
         setTimeout(() => {
-          inputRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+          inputRefs.current[id]?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
           inputRefs.current[id]?.focus();
         }, 0);
       }
@@ -168,7 +223,9 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
         { content, novelId, chapterId, parentCommentId: parentId },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
             queryClient.invalidateQueries({ queryKey: ["replies", parentId] });
             setReplyValues((v) => ({ ...v, [parentId]: "" }));
           },
@@ -183,7 +240,8 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       if (!auth?.user) return;
       const hasLiked = likedComments[commentId];
       const original = enrichedComments.find((c) => c.id === commentId);
-      const currentLikes = editedComments[commentId]?.likes ?? original?.likes ?? 0;
+      const currentLikes =
+        editedComments[commentId]?.likes ?? original?.likes ?? 0;
       if (hasLiked) {
         const res = await UnlikeComment(commentId, currentUser.id);
         if (res.data.success) {
@@ -191,7 +249,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           setLikedComments((m) => ({ ...m, [commentId]: false }));
           localStorage.removeItem(`liked_${commentId}`);
           localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+          setEditedComments((m) => ({
+            ...m,
+            [commentId]: { ...(m[commentId] || {}), likes: next },
+          }));
         }
       } else {
         const res = await LikeComment(commentId, currentUser.id, 1);
@@ -200,11 +261,20 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           setLikedComments((m) => ({ ...m, [commentId]: true }));
           localStorage.setItem(`liked_${commentId}`, "true");
           localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+          setEditedComments((m) => ({
+            ...m,
+            [commentId]: { ...(m[commentId] || {}), likes: next },
+          }));
         }
       }
     },
-    [auth?.user, currentUser.id, editedComments, enrichedComments, likedComments]
+    [
+      auth?.user,
+      currentUser.id,
+      editedComments,
+      enrichedComments,
+      likedComments,
+    ]
   );
 
   const saveEdit = useCallback(
@@ -215,9 +285,14 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           onSuccess: () => {
             const ticks = getCurrentTicks();
             const ts = formatVietnamTimeFromTicks(ticks);
-            setEditedComments((m) => ({ ...m, [id]: { ...(m[id] || {}), content, timestamp: ts } }));
+            setEditedComments((m) => ({
+              ...m,
+              [id]: { ...(m[id] || {}), content, timestamp: ts },
+            }));
             localStorage.setItem(`updatedAt_${id}`, String(ticks));
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
           },
         }
       );
@@ -269,7 +344,11 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
               disabled={!auth?.user}
               currentUser={
                 auth?.user
-                  ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
+                  ? {
+                      name: currentUser.name,
+                      user: currentUser.user,
+                      avatarUrl: currentUser.avatarUrl,
+                    }
                   : null
               }
               loginCta={() => alert("Đăng nhập để bình luận")}
@@ -278,10 +357,14 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
 
           <div className="mt-6 space-y-6">
             {topLevel.length === 0 ? (
-              <div className="py-10 text-center text-gray-600 dark:text-white/70">Chưa có bình luận nào.</div>
+              <div className="py-10 text-center text-gray-600 dark:text-white/70">
+                Chưa có bình luận nào.
+              </div>
             ) : (
               topLevel.map((parent) => {
-                const replies = enrichedComments.filter((r) => r.parentId === parent.id);
+                const replies = enrichedComments.filter(
+                  (r) => r.parentId === parent.id
+                );
                 return (
                   <ReplyThread
                     key={parent.id}
@@ -289,7 +372,11 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
                     replies={replies}
                     currentUser={
                       auth?.user
-                        ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
+                        ? {
+                            name: currentUser.name,
+                            user: currentUser.user,
+                            avatarUrl: currentUser.avatarUrl,
+                          }
                         : null
                     }
                     canInteract={!!auth?.user}
@@ -299,7 +386,9 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
                     onDelete={(id) => deleteComment(id)}
                     replyOpen={!!replyInputs[parent.id]}
                     replyValue={replyValues[parent.id] ?? ""}
-                    setReplyValue={(v) => setReplyValues((s) => ({ ...s, [parent.id]: v }))}
+                    setReplyValue={(v) =>
+                      setReplyValues((s) => ({ ...s, [parent.id]: v }))
+                    }
                     onSubmitReply={submitReply}
                     setInputRef={(el) => (inputRefs.current[parent.id] = el)}
                     onToggleReply={() => toggleReplyFor(parent.id)}
@@ -314,30 +403,12 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
         </div>
       </div>
 
-      {/* 🔽 NEW: Report modal for comment */}
       <ReportCommentModal
         isOpen={openReport}
         onClose={() => setOpenReport(false)}
         commentId={reportCommentId || ""}
         commentPreview={reportPreview}
-        onSubmit={async (payload: ReportPayload) => {
-          // payload: { commentId, reason (string), reasonCode (int), message }
-          // TODO: gọi API thật:
-          // await ReportApi.create({
-          //   commentId: payload.commentId,
-          //   reason: payload.reasonCode,   // int enum cho backend
-          //   message: payload.message
-          // });
-
-          console.log("Report comment:", {
-            commentId: payload.commentId,
-            reasonKey: payload.reason,
-            reasonInt: payload.reasonCode,
-            message: payload.message,
-          });
-
-          alert("Đã gửi báo cáo bình luận. Cảm ơn bạn!");
-        }}
+        onSubmit={(payload: ReportPayload) => handleSubmitReport(payload)}
       />
     </section>
   );

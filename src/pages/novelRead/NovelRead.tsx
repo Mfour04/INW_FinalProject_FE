@@ -18,11 +18,13 @@ import { ChapterListModal } from "./ChapterListModal";
 import { renderTextWithNewlines } from "./util";
 import { SpeechControls } from "./components/SpeechControls";
 
-// 🔽 cập nhật import dưới đây: đã có reasonCode trong ReportPayload
 import {
+  REPORT_REASON_CODE,
   ReportChapterModal,
   type ReportPayload,
 } from "../../components/ReportModal/ReportModal";
+import { useReport } from "../../hooks/useReport";
+import type { ReportRequest } from "../../api/Report/report.type";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
@@ -66,6 +68,8 @@ export const NovelRead = () => {
   const pageTopRef = useRef<HTMLDivElement | null>(null);
   const contentWrapRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLDivElement | null>(null);
+
+  const report = useReport();
 
   const { data: novelInfo } = useQuery({
     queryKey: ["novel-by-slug", novelId],
@@ -205,7 +209,6 @@ export const NovelRead = () => {
     });
   }, [chapterId, isChapterLoading]);
 
-  // styles toolbar
   const toolBtn =
     "h-9 w-9 grid place-items-center rounded-xl border border-black/5 bg-white hover:bg-white/90 text-gray-800 shadow-sm transition " +
     "dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white";
@@ -213,7 +216,6 @@ export const NovelRead = () => {
     "flex flex-col items-stretch gap-1 rounded-2xl p-2 bg-white/90 ring-1 ring-black/5 shadow-[0_10px_26px_rgba(0,0,0,.08)] backdrop-blur " +
     "dark:bg-[#0b0c0e]/80 dark:ring-white/10 dark:shadow-[0_10px_26px_rgba(0,0,0,.5)]";
 
-  // đo khoảng trống thực tế giữa mép phải section & mép phải content để scale gọn
   const [scale, setScale] = useState(1);
   useEffect(() => {
     const update = () => {
@@ -239,7 +241,6 @@ export const NovelRead = () => {
     };
   }, []);
 
-  // Handlers cho SpeechControls
   const handleStart = () => {
     setSpeechState("started");
     start();
@@ -265,10 +266,16 @@ export const NovelRead = () => {
   const chapterNumber = data?.chapter?.chapterNumber ?? "—";
   const novelTitle = novelInfo?.novelInfo?.title ?? "Tiểu thuyết";
 
-  const reportTitleForChapter =
-    chapterNumber !== "—"
-      ? `Chương ${chapterNumber}: ${chapterTitle || "—"} – ${novelTitle}`
-      : `${chapterTitle || "—"} – ${novelTitle}`;
+  const handleReportChapter = (payload: ReportPayload) => {
+    const reportRequest: ReportRequest = {
+      scope: 1,
+      novelId: payload.novelId,
+      chapterId: payload.chapterId,
+      reason: REPORT_REASON_CODE[payload.reason],
+      message: payload.message,
+    };
+    report.mutate(reportRequest);
+  };
 
   return (
     <div className="min-h-screen antialiased bg-[#f7f7f9] text-gray-900 dark:bg-[#090a0c] dark:text-white">
@@ -521,7 +528,6 @@ export const NovelRead = () => {
         )}
       </div>
 
-      {/* ReportModal cho CHƯƠNG */}
       <ReportChapterModal
         isOpen={openReport}
         onClose={() => setOpenReport(false)}
@@ -529,27 +535,7 @@ export const NovelRead = () => {
         novelTitle={novelTitle}
         chapterId={chapterId!}
         chapterTitle={chapterTitle}
-        onSubmit={async (payload: ReportPayload) => {
-          // payload có: novelId, chapterId, reason (string key), reasonCode (int), message
-          // 👉 GỌI API thực tế (ví dụ)
-          // await ReportApi.create({
-          //   novelId: payload.novelId,
-          //   chapterId: payload.chapterId,
-          //   reason: payload.reasonCode, // backend cần enum int
-          //   message: payload.message
-          // });
-
-          console.log("Báo cáo chương gửi lên API:", {
-            novelId: payload.novelId,
-            chapterId: payload.chapterId,
-            reasonInt: payload.reasonCode,
-            reasonKey: payload.reason,
-            message: payload.message,
-          });
-
-          // UX
-          toast?.onOpen("Đã gửi báo cáo chương. Cảm ơn bạn!");
-        }}
+        onSubmit={(payload: ReportPayload) => handleReportChapter(payload)}
       />
     </div>
   );
