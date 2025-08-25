@@ -3,18 +3,21 @@ import type {
   ReportApiResponse,
   ReportActionApiResponse,
   ReportStatus,
+  ReportParams,
+  UpdateActionRequest,
 } from "./report.type";
 
-export const GetReports = (page: number, limit: number) =>
-  http.privateHttp.get<ReportApiResponse>(
-    `/Reports?page=${page}&limit=${limit}`
-  );
+export const GetReports = (params?: ReportParams) =>
+  http.privateHttp.get<ReportApiResponse>(`/Reports`, { params });
 
 export const GetReportById = (id: string) =>
   http.privateHttp.get<ReportActionApiResponse>(`/Reports/${id}`);
 
-export const UpdateReportStatus = (reportId: string, status: ReportStatus) =>
-  http.privateHttp.put<ReportActionApiResponse>(`/Reports/update`, {
-    reportId,
-    status,
-  });
+export const UpdateReportStatus = (
+  reportId: string,
+  request: UpdateActionRequest
+) =>
+  http.privateHttp.put<ReportActionApiResponse>(
+    `/Reports/${reportId}/moderate`,
+    request
+  );

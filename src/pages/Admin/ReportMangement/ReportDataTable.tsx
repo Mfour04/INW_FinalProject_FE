@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import type { ReportEntity } from "../../../api/Admin/Report/report.type";
 
 interface Column<T> {
   key: string;
@@ -9,12 +8,12 @@ interface Column<T> {
   center?: boolean;
 }
 
-interface DataTableProps<T> {
+interface DataTableProps<T extends { id: string }> {
   data: T[];
   columns: Column<T>[];
 }
 
-const ReportDataTable = <T extends ReportEntity>({
+export const ReportDataTable = <T extends { id: string }>({
   data,
   columns,
 }: DataTableProps<T>) => {
@@ -36,20 +35,16 @@ const ReportDataTable = <T extends ReportEntity>({
         <tbody>
           {data.map((item) => (
             <motion.tr
-              key={item.id}
+              key={item.id} // giờ không còn lỗi nữa
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className={`border-t border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-[#2c2c2c]`}
+              className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-[#2c2c2c]"
             >
               {columns.map((column) => (
                 <td
                   key={column.key}
-                  className={`p-4 ${column.center ? "text-center" : ""} ${
-                    column.key === "userId" || column.key === "target"
-                      ? "truncate"
-                      : ""
-                  }`}
+                  className={`p-4 ${column.center ? "text-center" : ""}`}
                 >
                   {column.render(item)}
                 </td>
@@ -61,5 +56,3 @@ const ReportDataTable = <T extends ReportEntity>({
     </div>
   );
 };
-
-export default ReportDataTable;

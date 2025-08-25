@@ -201,13 +201,7 @@ const ReportDetailPopup = ({
         throw new Error(deleteResult.message || "Delete failed");
       }
       // Cập nhật trạng thái báo cáo thành Resolved
-      const updateResult = await UpdateReportStatus(
-        report.id,
-        ReportStatus.Resolved
-      ).then((res) => res.data);
-      if (!updateResult.success) {
-        throw new Error(updateResult.message || "Update status failed");
-      }
+
       return deleteResult;
     },
     onSuccess: () => {
@@ -540,7 +534,7 @@ const ReportDetailPopup = ({
           </p>
           <p className="text-gray-900 dark:text-gray-100">
             <strong>Trạng thái:</strong>{" "}
-            {ReportStatusLabels[report.status] === "InProgress"
+            {ReportStatusLabels[report.status] === "Pending"
               ? "Đang xử lý"
               : ReportStatusLabels[report.status] === "Resolved"
               ? "Đã giải quyết"
