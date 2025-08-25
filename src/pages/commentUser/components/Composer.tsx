@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useAutoGrow } from "../hooks/useAutoGrow.ts";
 import defaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import { Smile, SendHorizontal, Loader2 } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox.tsx";
 
@@ -102,7 +103,7 @@ export const Composer = ({
   return (
     <div className="flex items-start gap-3">
       <img
-        src={currentUser.avatarUrl || defaultAvatar}
+        src={getAvatarUrl(currentUser.avatarUrl)}
         alt=""
         className="h-10 w-10 rounded-full object-cover ring-1 ring-gray-200 dark:ring-white/10"
       />

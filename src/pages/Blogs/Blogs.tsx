@@ -14,6 +14,7 @@ import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
 import { useQuery } from "@tanstack/react-query";
 import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
+import { getAvatarUrl } from "../../utils/avatar";
 
 const posts: Post[] = [
   {
@@ -168,7 +169,7 @@ export const Blogs = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const followingPosts = followingData?.data || [];
+  const followingPosts = Array.isArray(followingData?.data) ? followingData.data : [];
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -426,11 +427,11 @@ export const Blogs = () => {
               {followingPosts.map((following: any) => (
                 <div key={following.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
                   <img
-                    src={following.avatar || "/images/default-avatar.png"}
+                    src={getAvatarUrl(following.avatar)}
                     alt={following.displayName}
                     className="w-16 h-16 rounded-full mb-2 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/images/default-avatar.png";
+                      (e.target as HTMLImageElement).src = getAvatarUrl(null);
                     }}
                   />
                   <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>

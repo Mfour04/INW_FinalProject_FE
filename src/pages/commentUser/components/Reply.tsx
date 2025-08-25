@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import avatarImage from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import { Smile, SendHorizontal } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox";
 
@@ -24,7 +25,7 @@ export const Reply = ({
 }: ReplyProps) => {
   const name = currentUser.name || "Người dùng";
   const user = currentUser.user || "@anonymous";
-  const avatarSrc = currentUser.avatarUrl || avatarImage;
+  const avatarSrc = getAvatarUrl(currentUser.avatarUrl);
 
   const len = replyValue.length;
   const disabled = replyValue.trim().length === 0;

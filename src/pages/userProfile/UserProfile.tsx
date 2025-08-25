@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import avatarImage from '../../assets/img/default_avt.png';
+import { getAvatarUrl } from '../../utils/avatar';
 import '../../pages/userProfile/UserProfile.css';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Menu from '@mui/material/Menu';
@@ -138,9 +139,10 @@ export const UserProfile = () => {
         FollowingCount: backendData?.FollowingCount || backendData?.followingCount || 0,
     };
 
-    const getAvatarUrl = (url: string | null | undefined) => {
+    // Using utility function from utils/avatar.ts
+    const getAvatarUrlLocal = (url: string | null | undefined) => {
         if (!url) {
-            return; // return "link img";
+            return avatarImage;
         }
         return url;
     };
@@ -152,7 +154,7 @@ export const UserProfile = () => {
         return url;
     };
 
-    const currentAvatar = getAvatarUrl(backendData?.avatarUrl);
+    const currentAvatar = getAvatarUrlLocal(backendData?.avatarUrl);
     const currentCover = getCoverUrl(backendData?.coverUrl);
     const currentBio = normalizedData.Bio || auth?.user?.bio || "";
     const currentDisplayName = normalizedData.DisplayName || auth?.user?.displayName || 'Unknown User';

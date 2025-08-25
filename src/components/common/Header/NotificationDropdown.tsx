@@ -1,5 +1,6 @@
 import type { GetUserNotificationRes } from "../../../api/Notification/noti.type";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import { formatTicksToRelativeTime } from "../../../utils/date_format";
 
 interface NotificationDropdownProps {

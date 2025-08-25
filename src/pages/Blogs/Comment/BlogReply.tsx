@@ -3,6 +3,7 @@ import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg"
 import SentIcon from "../../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 
 import avatarImage from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 interface BlogReplyProps {
     currentUser: {
@@ -25,7 +26,7 @@ export const BlogReply: React.FC<BlogReplyProps> = ({
 }) => {
     const displayName = currentUser.name || "Người dùng";
     const displayUser = currentUser.user || "@anonymous";
-    const avatarSrc = currentUser.avatarUrl || avatarImage;
+    const avatarSrc = getAvatarUrl(currentUser.avatarUrl);
 
     return (
         <div className="inputReply p-3 w-full">

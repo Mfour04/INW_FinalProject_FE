@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import defaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import { Heart, MessageSquare, CornerDownRight, Smile } from "lucide-react";
 import { MoreButton } from "./actions/MoreButton";
 import { MoreUser } from "./actions/MoreUser";
@@ -267,8 +268,8 @@ export const ReplyThread = ({
     >
       <div className="grid grid-cols-[40px_1fr] gap-3 items-start">
         <img
-          src={parent.avatarUrl || defaultAvatar}
-          className="h-10 w-10 rounded-full object-cover ring-1 ring-gray-200 dark:ring-white/10"
+          src={getAvatarUrl(parent.avatarUrl)}
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-200 dark:ring-white/10"
         />
         <div className="min-w-0">
           <Header
@@ -340,7 +341,7 @@ export const ReplyThread = ({
                 className="ml-8 md:ml-12 grid grid-cols-[40px_1fr] gap-3 items-start"
               >
                 <img
-                  src={r.avatarUrl || defaultAvatar}
+                  src={getAvatarUrl(r.avatarUrl)}
                   className="h-10 w-10 rounded-full object-cover ring-1 ring-gray-200 dark:ring-white/10"
                 />
                 <div className="min-w-0">

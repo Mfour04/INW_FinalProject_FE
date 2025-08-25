@@ -16,6 +16,7 @@ import favorite from "../../../assets/svg/CommentUser/favorite.svg";
 import red_favorite from "../../../assets/svg/CommentUser/red_favorite.svg";
 import CommentAdd01Icon from "../../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
 import defaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 import { MoreButton } from "../../commentUser/components/actions/MoreButton";
 import { MoreUser } from "../../commentUser/components/actions/MoreUser";
@@ -212,7 +213,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                                     ? `@${comment.user.username}`
                                     : localStorage.getItem(handleKey) || "@user";
 
-            const avatarUrl = comment.author?.avatar || comment.Author?.Avatar || comment.avatarUrl || defaultAvatar;
+            const avatarUrl = getAvatarUrl(comment.author?.avatar || comment.Author?.Avatar || comment.avatarUrl);
 
             if (!localStorage.getItem(nameKey)) {
                 localStorage.setItem(nameKey, name);
@@ -544,7 +545,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                     <div className="p-3">
                         <div className="flex items-center space-x-4">
                             <img
-                                src={currentUser.avatarUrl || defaultAvatar}
+                                src={getAvatarUrl(currentUser.avatarUrl)}
                                 className="w-10 h-10 rounded-full"
                             />
                             <div>
