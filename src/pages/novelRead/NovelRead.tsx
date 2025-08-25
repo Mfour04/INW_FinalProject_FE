@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Type, Flag, Settings2 } from "lucide-react";
 
 import { GetChapter, GetChapters } from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
 import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
-
 import { useSpeech } from "react-text-to-speech";
 import { htmlToPlainText } from "../../utils/text-speech";
 import { useAuth } from "../../hooks/useAuth";
@@ -15,18 +15,15 @@ import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
 import { CommentUser } from "../CommentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
-import { renderTextWithNewlines } from "../NovelRead/util";
-
-import { Type, Flag, Settings2 } from "lucide-react";
+import { renderTextWithNewlines } from "./util";
 import { SpeechControls } from "./components/SpeechControls";
 
-// ⬇️ Thêm import ReportModal
-import { ReportModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
+// 🔽 cập nhật import dưới đây: đã có reasonCode trong ReportPayload
+import { ReportChapterModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
 
-// --- (tuỳ chọn) scale mượt khi khung hẹp ---
 const calcScale = (available: number, base: number) => {
   const minScale = 0.24;
   const minW = base * 0.4;
@@ -172,7 +169,7 @@ export const NovelRead = () => {
   const { start, pause, stop } = useSpeech({ text: cleanText, lang: "vi-VN" });
 
   const ghostBtn =
-    "inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed border bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 dark:border-white/12 dark:bg:white/[0.05] dark:hover:bg-white/[0.1] dark:text-white";
+    "inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed border bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 dark:border-white/12 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] dark:text-white";
   const gradBtn =
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-[13px] font-semibold text-white !bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177] transition";
 
@@ -202,8 +199,8 @@ export const NovelRead = () => {
       if (!s || !c) return;
       const sr = s.getBoundingClientRect();
       const cr = c.getBoundingClientRect();
-      const gutter = Math.max(0, sr.right - cr.right - 12); // trống bên phải content nhưng vẫn trong section
-      const available = gutter + TOOL_BASE_W; // tối thiểu cần bằng chiều rộng tool
+      const gutter = Math.max(0, sr.right - cr.right - 12);
+      const available = gutter + TOOL_BASE_W;
       setScale(calcScale(available, TOOL_BASE_W));
     };
     update();
@@ -245,7 +242,6 @@ export const NovelRead = () => {
   const chapterNumber = data?.chapter?.chapterNumber ?? "—";
   const novelTitle = novelInfo?.novelInfo?.title ?? "Tiểu thuyết";
 
-  // Tiêu đề hiển thị trong modal để phân biệt "báo cáo chương"
   const reportTitleForChapter =
     chapterNumber !== "—"
       ? `Chương ${chapterNumber}: ${chapterTitle || "—"} – ${novelTitle}`
@@ -256,7 +252,7 @@ export const NovelRead = () => {
       <div ref={pageTopRef} />
 
       <div className="relative mx-auto w-full px-4 py-6">
-        {/* SECTION: toolbar sẽ được gắn vào mép phải của khung trắng này */}
+        {/* SECTION */}
         <section
           ref={sectionRef}
           className="relative rounded-2xl backdrop-blur-md bg-white ring-1 ring-gray-200 shadow-md dark:bg-[#0b0c0e]/90 dark:ring-white/12"
@@ -264,7 +260,6 @@ export const NovelRead = () => {
           <header className="px-6 pt-6 pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                {/* Breadcrumb rút gọn: [Novel] / Chương {n} */}
                 <div className="flex items-center gap-2 text-[13px]">
                   <Link
                     to={`/novels/${novelId}`}
@@ -281,7 +276,6 @@ export const NovelRead = () => {
               </div>
             </div>
 
-            {/* Title tách riêng & căn giữa */}
             <div className="my-2 w-full flex justify-center">
               <h1 className="text-[22px] md:text-[24px] font-extrabold tracking-tight text-center max-w-[min(90vw,1100px)]">
                 {chapterTitle || "Đang tải chương…"}
@@ -289,7 +283,7 @@ export const NovelRead = () => {
             </div>
           </header>
 
-          {/* ===== TOP NAV (giống footer) ===== */}
+          {/* TOP NAV */}
           <div className="px-6 pb-2">
             <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
               <div className="flex items-center justify-center gap-2.5">
@@ -306,7 +300,7 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* ===== TOOLBAR: sticky TRONG section, mép phải của section ===== */}
+          {/* TOOLBAR */}
           <div className="hidden md:block sticky top-20 z-40">
             <div className="relative">
               <div
@@ -371,7 +365,7 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* ===== CONTENT WRAPPER ===== */}
+          {/* CONTENT */}
           <div className="px-0 md:px-6 py-6 bg-white dark:bg-[#0f1013]/80">
             <div
               ref={contentWrapRef}
@@ -423,7 +417,7 @@ export const NovelRead = () => {
 
               <button
                 onClick={() => setOpenReport(true)}
-                className="flex-1 h-10 rounded-xl border border-black/5 bg-white text-gray-800 grid place-items-center dark:border-white/10 dark:bg:white/5 dark:text-white"
+                className="flex-1 h-10 rounded-xl border border-black/5 bg-white text-gray-800 grid place-items-center dark:border-white/10 dark:bg-white/5 dark:text-white"
                 title="Báo cáo chương này"
               >
                 <Flag size={18} />
@@ -467,18 +461,32 @@ export const NovelRead = () => {
       </div>
 
       {/* ReportModal cho CHƯƠNG */}
-      <ReportModal
+      <ReportChapterModal
         isOpen={openReport}
-        novelId={novelId!}
         onClose={() => setOpenReport(false)}
+        novelId={novelInfo?.novelInfo?.novelId || novelId!}
+        novelTitle={novelTitle}
+        chapterId={chapterId!}
+        chapterTitle={chapterTitle}
         onSubmit={async (payload: ReportPayload) => {
-          const finalPayload: ReportPayload = {
-            ...payload,
-            chapterId, // gắn thêm chapterId để backend biết là báo cáo chapter
-          };
-          // TODO: Gọi API thực tế, ví dụ:
-          // await ReportApi.create(finalPayload);
-          console.log("Báo cáo chương:", finalPayload);
+          // payload có: novelId, chapterId, reason (string key), reasonCode (int), message
+          // 👉 GỌI API thực tế (ví dụ)
+          // await ReportApi.create({
+          //   novelId: payload.novelId,
+          //   chapterId: payload.chapterId,
+          //   reason: payload.reasonCode, // backend cần enum int
+          //   message: payload.message
+          // });
+
+          console.log("Báo cáo chương gửi lên API:", {
+            novelId: payload.novelId,
+            chapterId: payload.chapterId,
+            reasonInt: payload.reasonCode,
+            reasonKey: payload.reason,
+            message: payload.message,
+          });
+
+          // UX
           toast?.onOpen("Đã gửi báo cáo chương. Cảm ơn bạn!");
         }}
       />

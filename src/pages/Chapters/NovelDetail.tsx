@@ -31,7 +31,7 @@ import { InfoCard } from "./components/InfoCard";
 import { gradientBtn } from "./constants";
 import type { Tag } from "../../entity/tag";
 import { FollowPopup } from "./FollowPopup";
-import { ReportModal } from "../../components/ReportModal/ReportModal";
+import { ReportNovelModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -350,7 +350,7 @@ export const NovelDetail = () => {
         onClose={() => setShowFollowPopup(false)}
       />
 
-      <ReportModal
+      <ReportNovelModal
         isOpen={reportOpen}
         onClose={() => setReportOpen(false)}
         novelId={novelInfo?.novelId!}

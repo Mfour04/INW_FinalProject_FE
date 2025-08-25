@@ -34,6 +34,9 @@ type Props = {
   onToggleReply: () => void;
 
   onSaveEdit: (id: string, content: string) => void;
+
+  /** ✅ Thêm: callback mở modal báo cáo comment */
+  onReportComment?: (commentId: string, preview: string) => void;
 };
 
 export const ReplyThread = ({
@@ -52,6 +55,7 @@ export const ReplyThread = ({
   setInputRef,
   onToggleReply,
   onSaveEdit,
+  onReportComment, // ✅ nhận prop mới
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -212,10 +216,8 @@ export const ReplyThread = ({
       title={liked[id] ? "Bỏ thích" : "Thích"}
       className={[
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px]",
-        // light
         "bg-gray-100 ring-1 ring-gray-200 text-gray-800",
         hover ? "hover:bg-gray-200" : "",
-        // dark
         "dark:bg-white/[0.06] dark:ring-1 dark:ring-white/10 dark:text-white",
         hover ? "dark:hover:bg-white/[0.1]" : "",
         canInteract ? "" : "opacity-50 cursor-not-allowed",
@@ -259,9 +261,7 @@ export const ReplyThread = ({
     <div
       className={[
         "rounded-2xl p-3 md:p-4",
-        // light container
         "bg-white ring-1 ring-gray-200 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.12)]",
-        // dark container
         "dark:bg-[#0e1014] dark:ring-1 dark:ring-white/[0.05] dark:shadow-none",
       ].join(" ")}
     >
@@ -290,7 +290,13 @@ export const ReplyThread = ({
                     }
                   />
                 ) : (
-                  <MoreButton />
+                  // ✅ gọi report cho parent
+                  <MoreButton
+                    onReport={() =>
+                      onReportComment?.(parent.id, edited[parent.id]?.content ?? parent.content)
+                    }
+                    onBlock={() => alert("Đã chặn người dùng")}
+                  />
                 )
               ) : null
             }
@@ -362,7 +368,13 @@ export const ReplyThread = ({
                             }
                           />
                         ) : (
-                          <MoreButton />
+                          // ✅ gọi report cho reply
+                          <MoreButton
+                            onReport={() =>
+                              onReportComment?.(r.id, edited[r.id]?.content ?? r.content)
+                            }
+                            onBlock={() => alert("Đã chặn người dùng")}
+                          />
                         )
                       ) : null
                     }

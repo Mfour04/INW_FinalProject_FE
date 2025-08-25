@@ -12,6 +12,9 @@ import { useUpdateComment } from "./hooks/useUpdateComment.ts";
 import { useDeleteComment } from "./hooks/useDeleteComment.ts";
 import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api.ts";
 
+// 🔽 NEW: bật report comment
+import { ReportCommentModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
+
 type Props = { novelId: string; chapterId: string };
 
 export const CommentUser = ({ novelId, chapterId }: Props) => {
@@ -22,6 +25,11 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [replyInputs, setReplyInputs] = useState<Record<string, boolean>>({});
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
   const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
+  // 🔽 NEW: report modal state
+  const [openReport, setOpenReport] = useState(false);
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
+  const [reportPreview, setReportPreview] = useState<string>("");
 
   const { data: rawComments } = useComments(chapterId, novelId);
   const commentIds = Array.isArray(rawComments) ? rawComments.map((c: any) => c.id).filter(Boolean) : [];
@@ -100,7 +108,7 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     return flat;
   }, [rawComments, repliesData, commentIds]);
 
-  const enrichedComments: Comment[] = useMemo(
+  const enrichedComments = useMemo(
     () =>
       serverComments.map((c) => ({
         ...c,
@@ -216,14 +224,19 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     [chapterId, novelId, updateComment, queryClient]
   );
 
+  // 🔽 NEW: handler mở report modal từ ReplyThread
+  const onReportComment = useCallback((commentId: string, preview: string) => {
+    setReportCommentId(commentId);
+    setReportPreview(preview || "");
+    setOpenReport(true);
+  }, []);
+
   return (
     <section className="mt-10">
       <div
         className={[
           "rounded-2xl overflow-hidden backdrop-blur-md",
-          // light container
           "bg-white ring-1 ring-gray-200 shadow-[0_24px_80px_-28px_rgba(0,0,0,0.14)]",
-          // dark container
           "dark:bg-[#0f1012]/90 dark:ring-1 dark:ring-white/12 dark:shadow-none",
         ].join(" ")}
       >
@@ -290,6 +303,8 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
                     setInputRef={(el) => (inputRefs.current[parent.id] = el)}
                     onToggleReply={() => toggleReplyFor(parent.id)}
                     onSaveEdit={saveEdit}
+                    // 🔽 NEW
+                    onReportComment={onReportComment}
                   />
                 );
               })
@@ -297,6 +312,32 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           </div>
         </div>
       </div>
+
+      {/* 🔽 NEW: Report modal for comment */}
+      <ReportCommentModal
+        isOpen={openReport}
+        onClose={() => setOpenReport(false)}
+        commentId={reportCommentId || ""}
+        commentPreview={reportPreview}
+        onSubmit={async (payload: ReportPayload) => {
+          // payload: { commentId, reason (string), reasonCode (int), message }
+          // TODO: gọi API thật:
+          // await ReportApi.create({
+          //   commentId: payload.commentId,
+          //   reason: payload.reasonCode,   // int enum cho backend
+          //   message: payload.message
+          // });
+
+          console.log("Report comment:", {
+            commentId: payload.commentId,
+            reasonKey: payload.reason,
+            reasonInt: payload.reasonCode,
+            message: payload.message,
+          });
+
+          alert("Đã gửi báo cáo bình luận. Cảm ơn bạn!");
+        }}
+      />
     </section>
   );
 };
