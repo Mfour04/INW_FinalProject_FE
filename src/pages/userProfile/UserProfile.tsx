@@ -20,6 +20,8 @@ import { GetUserProfile } from '../../api/User/user-search.api';
 import { FollowButton } from '../../components/common/FollowButton';
 import { GetFollowers, GetFollowing } from '../../api/UserFollow/user-follow.api';
 import type { UserProfileResponse } from '../../api/User/user-search.type';
+import { useBlockedUsers } from '../../context/BlockedUsersContext/BlockedUsersProvider';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const UserProfile = () => {
     const { username } = useParams<{ username: string }>();
@@ -28,6 +30,8 @@ export const UserProfile = () => {
     const open = Boolean(anchorEl);
     const navigate = useNavigate();
     const { auth } = useAuth();
+    const { isUserBlocked, blockUser, unblockUser } = useBlockedUsers();
+    const queryClient = useQueryClient();
     const isOwnProfile = !username || username === auth?.user?.userName;
     const targetUsername = username || auth?.user?.userName;
     const currentUserQuery = useGetCurrentUserInfo();
@@ -44,19 +48,18 @@ export const UserProfile = () => {
     const userId = (userInfo as any)?.data?.id || (userInfo as any)?.data?.data?.id || auth?.user?.userId || "";
     const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(userId);
 
-    // Get followers and following data
     const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
         queryKey: ['followers', targetUsername || auth?.user?.userName],
         queryFn: () => GetFollowers(targetUsername || auth?.user?.userName!),
         enabled: !!(targetUsername || auth?.user?.userName),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
     });
 
     const { data: followingData, isLoading: isLoadingFollowing } = useQuery({
         queryKey: ['following', targetUsername || auth?.user?.userName],
         queryFn: () => GetFollowing(targetUsername || auth?.user?.userName!),
         enabled: !!(targetUsername || auth?.user?.userName),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
     });
 
     useEffect(() => {
@@ -139,7 +142,6 @@ export const UserProfile = () => {
         FollowingCount: backendData?.FollowingCount || backendData?.followingCount || 0,
     };
 
-    // Using utility function from utils/avatar.ts
     const getAvatarUrlLocal = (url: string | null | undefined) => {
         if (!url) {
             return avatarImage;
@@ -411,11 +413,29 @@ export const UserProfile = () => {
                             </MenuItem>
 
                             <MenuItem
-                                onClick={() => alert('Đã chặn người dùng')}
+                                onClick={async () => {
+                                    try {
+                                        if (targetUserId) {
+                                            if (isUserBlocked(targetUserId)) {
+                                                await unblockUser(targetUserId);
+                                            } else {
+                                                await blockUser(targetUserId);
+                                            }
+                                            handleMenuClose();
+
+                                            queryClient.invalidateQueries({ queryKey: ['blocked-users'] });
+                                            queryClient.invalidateQueries({ queryKey: ['otherUserProfile', targetUsername] });
+                                            queryClient.invalidateQueries({ queryKey: ['followers', targetUsername] });
+                                            queryClient.invalidateQueries({ queryKey: ['following', targetUsername] });
+                                        }
+                                    } catch (error) {
+                                        console.error("Error blocking/unblocking user:", error);
+                                    }
+                                }}
                                 sx={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 1, '&:hover': { bgcolor: '#333' } }}
                             >
                                 <BlockIcon />
-                                Chặn người dùng
+                                {isUserBlocked(targetUserId) ? 'Bỏ chặn người dùng' : 'Chặn người dùng'}
                             </MenuItem>
                         </Menu>
                     </>

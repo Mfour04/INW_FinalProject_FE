@@ -18,6 +18,8 @@ import Flag02Icon from "../../../assets/svg/CommentUser/flag-02-stroke-rounded.s
 import block from "../../../assets/svg/CommentUser/block.svg";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 import { getAvatarUrl } from "../../../utils/avatar";
+import { useBlockedUsers } from "../../../context/BlockedUsersContext/BlockedUsersProvider";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 interface PostItemProps {
@@ -86,6 +88,8 @@ const PostItem = ({
   updatedTimestamp,
 }: PostItemProps) => {
   const { auth } = useContext(AuthContext);
+  const { isUserBlocked, blockUser, unblockUser } = useBlockedUsers();
+  const queryClient = useQueryClient();
   const isOwnPost = post.user.username === auth?.user?.userName;
   const menuRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -276,16 +280,31 @@ const PostItem = ({
                 ) : (
                   <>
                     <motion.button
-                      onClick={() => {
-                        alert("Chức năng chặn người dùng sẽ được phát triển sau");
-                        setMenuOpenPostId(null);
+                      onClick={async () => {
+                        try {
+                          const targetUserId = post.user.username;
+                          if (targetUserId) {
+                            if (isUserBlocked(targetUserId)) {
+                              await unblockUser(targetUserId);
+                            } else {
+                              await blockUser(targetUserId);
+                            }
+                            setMenuOpenPostId(null);
+
+                            queryClient.invalidateQueries({ queryKey: ['blocked-users'] });
+                            queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+                            queryClient.invalidateQueries({ queryKey: ['user-posts', targetUserId] });
+                          }
+                        } catch (error) {
+                          console.error("Error blocking/unblocking user:", error);
+                        }
                       }}
                       className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
                       whileHover={{ backgroundColor: "#3a3a3a" }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <img src={block} className="w-4 h-4" />
-                      Chặn người dùng
+                      {isUserBlocked(post.user.username) ? 'Bỏ chặn người dùng' : 'Chặn người dùng'}
                     </motion.button>
                     <motion.button
                       onClick={() => {

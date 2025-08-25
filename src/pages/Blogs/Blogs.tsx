@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks } from "../../utils/date_format";
 import { type Post, type Tabs } from "./types";
 import { getAvatarUrl } from "../../utils/avatar";
+import { useBlockedUsers } from "../../context/BlockedUsersContext/BlockedUsersProvider";
 
 const posts: Post[] = [
   {
@@ -166,10 +167,11 @@ export const Blogs = () => {
     queryKey: ['following', auth?.user?.userName],
     queryFn: () => GetFollowing(auth?.user?.userName!),
     enabled: !!auth?.user?.userName,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   const followingPosts = Array.isArray(followingData?.data) ? followingData.data : [];
+  const { isUserBlocked } = useBlockedUsers();
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -354,13 +356,16 @@ export const Blogs = () => {
             </div>
           ) : (
             (Array.isArray(blogPosts) ? blogPosts : []).map((post) => {
-              // Debug: log mapping result
               const mappedUser = {
                 name: post.author?.DisplayName || post.author?.displayName || post.author?.username || "Ẩn danh",
                 username: post.author?.username || "user",
                 avatar: post.author?.avatar || "/images/default-avatar.png",
                 displayName: post.author?.DisplayName || post.author?.displayName || post.author?.username || "Ẩn danh",
               };
+
+              if (post.author?.id && isUserBlocked(post.author.id)) {
+                return null;
+              }
 
               return (
                 <div key={post.id} id={`post-${post.id}`}>

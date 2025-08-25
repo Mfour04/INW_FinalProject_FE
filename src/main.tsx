@@ -6,6 +6,7 @@ import { ThemeProvider } from "./context/ThemeContext/ThemeContext.tsx";
 import { AuthProvider } from "./context/AuthContext/AuthProvider.tsx";
 import { ToastProvider } from "./context/ToastContext/toast.tsx";
 import { NotificationProvider } from "./context/NotificationContext/NotificationContext.tsx";
+import { BlockedUsersProvider } from "./context/BlockedUsersContext/BlockedUsersProvider.tsx";
 
 const queryClient = new QueryClient();
 
@@ -16,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
         <QueryClientProvider client={queryClient}>
           <NotificationProvider>
             <ThemeProvider>
-              <App />
+              <BlockedUsersProvider>
+                <App />
+              </BlockedUsersProvider>
             </ThemeProvider>
           </NotificationProvider>
         </QueryClientProvider>

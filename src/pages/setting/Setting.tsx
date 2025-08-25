@@ -11,6 +11,7 @@ import type { LoginParams, LoginResponse } from "../../api/Auth/auth.type";
 import TextFieldComponent from "../../components/TextFieldComponent";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAvatarUrl } from "../../utils/avatar";
+import { useBlockedUsers } from "../../context/BlockedUsersContext/BlockedUsersProvider";
 
 type SettingTab = "display" | "interface" | "privacy" | "password";
 
@@ -77,6 +78,12 @@ export const Setting = () => {
     const updateProfileMutation = useUpdateUserProfile();
     const changePasswordMutation = useChangePassword();
     const queryClient = useQueryClient();
+    const { blockedUsers, unblockUser, isLoading: isLoadingBlockedUsers } = useBlockedUsers();
+
+    useEffect(() => {
+        if (blockedUsers.length > 0) {
+        }
+    }, [blockedUsers]);
 
     useEffect(() => {
         queryClient.removeQueries({ queryKey: ["current-user-info"] });
@@ -119,6 +126,9 @@ export const Setting = () => {
 
     const toast = useToast();
     const navigate = useNavigate();
+    const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+    const [isSelectAll, setIsSelectAll] = useState(false);
+    const [isBulkUnblocking, setIsBulkUnblocking] = useState(false);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
@@ -206,6 +216,73 @@ export const Setting = () => {
             isNewPasswordValid === true &&
             isConfirmPasswordValid === true;
     }, [isCurrentPasswordValid, isNewPasswordValid, isConfirmPasswordValid]);
+
+    const handleSelectAll = useCallback(() => {
+        if (isSelectAll) {
+            setSelectedUsers(new Set());
+            setIsSelectAll(false);
+        } else {
+            const allUserIds = blockedUsers.map(user => user.blockedUserId);
+            setSelectedUsers(new Set(allUserIds));
+            setIsSelectAll(true);
+        }
+    }, [isSelectAll, blockedUsers]);
+
+    const handleSelectUser = useCallback((userId: string) => {
+        const newSelected = new Set(selectedUsers);
+        if (newSelected.has(userId)) {
+            newSelected.delete(userId);
+        } else {
+            newSelected.add(userId);
+        }
+        setSelectedUsers(newSelected);
+
+        if (newSelected.size === blockedUsers.length) {
+            setIsSelectAll(true);
+        } else {
+            setIsSelectAll(false);
+        }
+    }, [selectedUsers, blockedUsers.length]);
+
+    const handleBulkUnblock = useCallback(async () => {
+        if (selectedUsers.size === 0) {
+            toast?.onOpen('Vui lòng chọn ít nhất một người dùng để bỏ chặn');
+            return;
+        }
+
+        setIsBulkUnblocking(true);
+        try {
+            const unblockPromises = Array.from(selectedUsers).map(userId => unblockUser(userId));
+            await Promise.all(unblockPromises);
+
+            setSelectedUsers(new Set());
+            setIsSelectAll(false);
+
+            toast?.onOpen(`Đã bỏ chặn ${selectedUsers.size} người dùng thành công!`);
+        } catch (error) {
+            console.error('Error bulk unblocking users:', error);
+            toast?.onOpen('Có lỗi xảy ra khi bỏ chặn người dùng');
+        } finally {
+            setIsBulkUnblocking(false);
+        }
+    }, [selectedUsers, unblockUser, toast]);
+
+    useEffect(() => {
+        setSelectedUsers(new Set());
+        setIsSelectAll(false);
+    }, [blockedUsers]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+                event.preventDefault();
+                handleSelectAll();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleSelectAll]);
 
     const checkForChanges = useCallback(() => {
         const currentDisplayName = displayName || "";
@@ -710,7 +787,7 @@ export const Setting = () => {
         <div className="space-y-4 sm:space-y-6">
             {/* Profile Section */}
             <div className="relative">
-                <div className="h-32 sm:h-48 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg relative">
+                <div className="h-32 sm:h-48 bg-gradient-to-r from-gray-400 to-gray-600 rounded-lg relative">
                     {(coverPreview || originalData.coverUrl || backendData?.CoverUrl || backendData?.coverUrl) && (
                         <img
                             src={coverPreview || originalData.coverUrl || backendData?.CoverUrl || backendData?.coverUrl}
@@ -921,51 +998,106 @@ export const Setting = () => {
         <div className="space-y-4 sm:space-y-6">
             <div>
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Danh sách chặn</h3>
-                <p className="text-red-500 text-xs sm:text-sm mb-4">Bỏ chặn người dùng đã chọn</p>
 
-                <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center gap-3">
-                        <input type="checkbox" className="text-orange-500 focus:ring-orange-500" />
-                        <span className="text-white text-sm sm:text-base">Chọn tất cả</span>
+                {isLoadingBlockedUsers ? (
+                    <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                        <p className="text-gray-400 mt-2">Đang tải danh sách chặn...</p>
                     </div>
-
-                    {/* Blocked Users List */}
-                    <div className="space-y-3">
-                        {[
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null },
-                            { name: "Tài?", username: "@minhtai", avatar: null },
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null }
-                        ].map((user, index) => (
-                            <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-800 rounded-lg gap-3">
-                                <div className="flex items-center gap-3">
-                                    <input type="checkbox" className="text-orange-500 focus:ring-orange-500" />
-                                    <img
-                                        src={getAvatarUrl(user.avatar)}
-                                        alt={user.name}
-                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = getAvatarUrl(null);
-                                        }}
-                                    />
-                                    <div>
-                                        <p className="text-white font-medium text-sm sm:text-base">{user.name}</p>
-                                        <p className="text-gray-400 text-xs sm:text-sm">{user.username}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded border border-gray-600 hover:border-gray-500 transition-colors text-xs sm:text-sm">
-                                        Bỏ chặn
-                                    </button>
-                                    <button className="text-gray-400 hover:text-white">
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                        </svg>
-                                    </button>
-                                </div>
+                ) : blockedUsers.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-gray-400">Chưa chặn người dùng nào.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3 sm:space-y-4">
+                        {selectedUsers.size > 0 && (
+                            <div className="flex items-center justify-between p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                                <p className="text-orange-400 text-sm">
+                                    Đã chọn {selectedUsers.size} người dùng
+                                </p>
+                                <button
+                                    onClick={handleBulkUnblock}
+                                    disabled={isBulkUnblocking}
+                                    className="bg-red-500 hover:bg-red-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm transition-colors flex items-center gap-2"
+                                >
+                                    {isBulkUnblocking ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                            Đang xử lý...
+                                        </>
+                                    ) : (
+                                        `Bỏ chặn (${selectedUsers.size})`
+                                    )}
+                                </button>
                             </div>
-                        ))}
+                        )}
+
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                checked={isSelectAll}
+                                onChange={handleSelectAll}
+                                className="text-orange-500 focus:ring-orange-500 cursor-pointer"
+                                title="Chọn tất cả người dùng (Ctrl+A)"
+                            />
+                            <span
+                                className="text-white text-sm sm:text-base cursor-pointer hover:text-orange-400 transition-colors"
+                                onClick={handleSelectAll}
+                                title="Chọn tất cả người dùng (Ctrl+A)"
+                            >
+                                Chọn tất cả
+                            </span>
+                        </div>
+
+                        {/* Blocked Users List */}
+                        <div className="space-y-3">
+                            {blockedUsers.map((blockedUser, index) => {
+
+                                return (
+                                    <div key={blockedUser.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-800 rounded-lg gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedUsers.has(blockedUser.blockedUserId)}
+                                                onChange={() => handleSelectUser(blockedUser.blockedUserId)}
+                                                className="text-orange-500 focus:ring-orange-500 cursor-pointer"
+                                                title={`Chọn ${blockedUser.blockedUser.displayName || blockedUser.blockedUser.userName}`}
+                                            />
+                                            <img
+                                                src={getAvatarUrl(blockedUser.blockedUser.avatar)}
+                                                alt={blockedUser.blockedUser.displayName || 'User'}
+                                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                                }}
+                                            />
+                                            <div
+                                                className="cursor-pointer hover:bg-gray-700 px-2 py-1 rounded transition-colors"
+                                                onClick={() => navigate(`/profile/${blockedUser.blockedUser.userName || blockedUser.blockedUserId}`)}
+                                                title="Click để xem trang cá nhân"
+                                            >
+                                                <p className="text-white font-medium text-sm sm:text-base">
+                                                    {blockedUser.blockedUser.displayName || blockedUser.blockedUser.userName || 'Unknown User'}
+                                                </p>
+                                                <p className="text-gray-400 text-xs sm:text-sm">
+                                                    @{blockedUser.blockedUser.userName || blockedUser.blockedUserId}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => unblockUser(blockedUser.blockedUserId)}
+                                                className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded border border-gray-600 hover:border-gray-500 transition-colors text-xs sm:text-sm"
+                                            >
+                                                Bỏ chặn
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
