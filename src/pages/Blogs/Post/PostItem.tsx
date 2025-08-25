@@ -17,6 +17,7 @@ import red_favorite from "../../../assets/svg/CommentUser/red_favorite.svg";
 import Flag02Icon from "../../../assets/svg/CommentUser/flag-02-stroke-rounded.svg";
 import block from "../../../assets/svg/CommentUser/block.svg";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 
 interface PostItemProps {
@@ -189,7 +190,7 @@ const PostItem = ({
       <div className="flex items-start justify-between sm:items-center mb-4 gap-3">
         <div className="flex items-start gap-4">
           <img
-            src={post.user.avatar}
+            src={getAvatarUrl(post.user.avatar)}
             alt={post.user.name}
             className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => {
@@ -199,7 +200,7 @@ const PostItem = ({
               }
             }}
             onError={(e) => {
-              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+              (e.target as HTMLImageElement).src = getAvatarUrl(null);
             }}
           />
           <div className="min-w-0 flex-1">

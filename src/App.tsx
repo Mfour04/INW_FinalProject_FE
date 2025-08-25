@@ -92,7 +92,7 @@ function App() {
   }, [isAdminRoute, defaultOpen]);
 
   const gridColsClass = isSidebarOpen
-    ? "lg:grid-cols-[250px_minmax(0,1fr)] grid-cols-[250px_minmax(0,1fr)]"
+    ? "lg:grid-cols-[220px_minmax(0,1fr)] grid-cols-[220px_minmax(0,1fr)]"
     : "lg:grid-cols-[minmax(0,1fr)] grid-cols-[minmax(0,1fr)]";
 
   return (

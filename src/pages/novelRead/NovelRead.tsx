@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Type, Flag, Settings2 } from "lucide-react";
@@ -13,13 +13,16 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
-import { CommentUser } from "../CommentUser/CommentUser";
+import { CommentUser } from "../commentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
 import { renderTextWithNewlines } from "./util";
 import { SpeechControls } from "./components/SpeechControls";
 
 // 🔽 cập nhật import dưới đây: đã có reasonCode trong ReportPayload
-import { ReportChapterModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
+import {
+  ReportChapterModal,
+  type ReportPayload,
+} from "../../components/ReportModal/ReportModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
@@ -36,7 +39,9 @@ const TOOL_BASE_W = 56;
 
 export const NovelRead = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [speechState, setSpeechState] = useState<"started" | "paused" | "stopped">("stopped");
+  const [speechState, setSpeechState] = useState<
+    "started" | "paused" | "stopped"
+  >("stopped");
   const [openPrefs, setOpenPrefs] = useState(false);
   const [openReport, setOpenReport] = useState(false);
 
@@ -45,9 +50,18 @@ export const NovelRead = () => {
   const toast = useToast();
   const { auth } = useAuth();
 
-  const [fontSize, setFontSize] = useLocalStorageState<number>("reader:fontSize", DEFAULTS.fontSize);
-  const [lineHeight, setLineHeight] = useLocalStorageState<number>("reader:lineHeight", DEFAULTS.lineHeight);
-  const [widthIdx, setWidthIdx] = useLocalStorageState<number>("reader:widthIdx", DEFAULTS.widthIdx);
+  const [fontSize, setFontSize] = useLocalStorageState<number>(
+    "reader:fontSize",
+    DEFAULTS.fontSize
+  );
+  const [lineHeight, setLineHeight] = useLocalStorageState<number>(
+    "reader:lineHeight",
+    DEFAULTS.lineHeight
+  );
+  const [widthIdx, setWidthIdx] = useLocalStorageState<number>(
+    "reader:widthIdx",
+    DEFAULTS.widthIdx
+  );
 
   const pageTopRef = useRef<HTMLDivElement | null>(null);
   const contentWrapRef = useRef<HTMLDivElement | null>(null);
@@ -89,14 +103,17 @@ export const NovelRead = () => {
   const { data: ReadingProcess } = useQuery({
     queryKey: ["readingProcess", auth?.user?.userId],
     queryFn: () =>
-      import("../../api/ReadingHistory/reading.api").then(({ GetReadingProcess }) =>
-        GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
+      import("../../api/ReadingHistory/reading.api").then(
+        ({ GetReadingProcess }) =>
+          GetReadingProcess(auth?.user!.userId!).then((res) => res.data)
       ),
     enabled: !!auth?.user?.userId,
   });
 
   const isCurrentNovel = Array.isArray(ReadingProcess?.data)
-    ? !!ReadingProcess.data.find((p: any) => p.novelId === novelInfo?.novelInfo?.novelId)
+    ? !!ReadingProcess.data.find(
+        (p: any) => p.novelId === novelInfo?.novelInfo?.novelId
+      )
     : false;
 
   useReadingProcess({
@@ -137,22 +154,28 @@ export const NovelRead = () => {
 
   const currentNumber =
     data?.chapter?.chapterNumber ||
-    (currentChapter && ("chapter_number" in currentChapter ? (currentChapter as any).chapter_number : (currentChapter as any).chapterNumber)) ||
+    (currentChapter &&
+      ("chapter_number" in currentChapter
+        ? (currentChapter as any).chapter_number
+        : (currentChapter as any).chapterNumber)) ||
     0;
 
   const hasPrev = finalChapterList.some((chap: any) => {
-    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n =
+      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber - 1;
   });
   const hasNext = finalChapterList.some((chap: any) => {
-    const n = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+    const n =
+      "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
     return n === currentNumber + 1;
   });
 
   const handleGoToChapterNumber = (offset: number) => {
     if (!finalChapterList || currentNumber === 0) return;
     const next = finalChapterList.find((chap: any) => {
-      const cnum = "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
+      const cnum =
+        "chapter_number" in chap ? chap.chapter_number : chap.chapterNumber;
       return cnum === currentNumber + offset;
     });
     if (!next) return;
@@ -285,15 +308,29 @@ export const NovelRead = () => {
 
           {/* TOP NAV */}
           <div className="px-6 pb-2">
-            <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+            <div
+              className="mx-auto"
+              style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+            >
               <div className="flex items-center justify-center gap-2.5">
-                <button onClick={() => handleGoToChapterNumber(-1)} disabled={!hasPrev} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(-1)}
+                  disabled={!hasPrev}
+                  className={ghostBtn}
+                >
                   Chương trước
                 </button>
-                <button onClick={() => setIsModalOpen(true)} className={gradBtn}>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className={gradBtn}
+                >
                   Mục lục
                 </button>
-                <button onClick={() => handleGoToChapterNumber(1)} disabled={!hasNext} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(1)}
+                  disabled={!hasNext}
+                  className={ghostBtn}
+                >
                   Chương sau
                 </button>
               </div>
@@ -305,7 +342,10 @@ export const NovelRead = () => {
             <div className="relative">
               <div
                 className="absolute right-3"
-                style={{ transform: `scale(${scale})`, transformOrigin: "top right" }}
+                style={{
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top right",
+                }}
               >
                 <div className={toolGroup}>
                   {/* Reader Prefs */}
@@ -375,7 +415,10 @@ export const NovelRead = () => {
               {isChapterLoading ? (
                 <div className="w-full mx-auto space-y-3">
                   {[...Array(10)].map((_, i) => (
-                    <div key={i} className="h-4.5 rounded bg-gray-200 animate-pulse dark:bg-white/5" />
+                    <div
+                      key={i}
+                      className="h-4.5 rounded bg-gray-200 animate-pulse dark:bg-white/5"
+                    />
                   ))}
                 </div>
               ) : (
@@ -386,7 +429,11 @@ export const NovelRead = () => {
                   <div className="rounded-xl px-6 py-6 bg-white ring-1 ring-black/10 dark:bg-white/[0.03] dark:ring-white/15">
                     <div
                       className="[&>p]:mb-3.5 [&>p]:leading-relaxed [&_img]:rounded-xl [&_img]:my-4"
-                      dangerouslySetInnerHTML={{ __html: renderTextWithNewlines(data?.chapter?.content || "") }}
+                      dangerouslySetInnerHTML={{
+                        __html: renderTextWithNewlines(
+                          data?.chapter?.content || ""
+                        ),
+                      }}
                     />
                   </div>
                 </article>
@@ -427,15 +474,29 @@ export const NovelRead = () => {
 
           {/* Footer nav */}
           <div className="px-6 pt-2 pb-8">
-            <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
+            <div
+              className="mx-auto"
+              style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}
+            >
               <div className="flex items-center justify-center gap-2.5">
-                <button onClick={() => handleGoToChapterNumber(-1)} disabled={!hasPrev} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(-1)}
+                  disabled={!hasPrev}
+                  className={ghostBtn}
+                >
                   Chương trước
                 </button>
-                <button onClick={() => setIsModalOpen(true)} className={gradBtn}>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className={gradBtn}
+                >
                   Mục lục
                 </button>
-                <button onClick={() => handleGoToChapterNumber(1)} disabled={!hasNext} className={ghostBtn}>
+                <button
+                  onClick={() => handleGoToChapterNumber(1)}
+                  disabled={!hasNext}
+                  className={ghostBtn}
+                >
                   Chương sau
                 </button>
               </div>

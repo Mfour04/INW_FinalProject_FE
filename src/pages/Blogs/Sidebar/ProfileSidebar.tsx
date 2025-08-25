@@ -1,13 +1,14 @@
 import { useAuth } from "../../../hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { GetFollowers, GetFollowing } from "../../../api/UserFollow/user-follow.api";
-import abc from "../../../assets/img/th.png";
+import abc from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 const ProfileSidebar = () => {
   const { auth } = useAuth();
   const displayName = auth?.user?.displayName || auth?.user?.userName || "User";
   const handle = auth?.user?.userName || "user";
-  const avatar = auth?.user?.avatarUrl || abc;
+  const avatar = getAvatarUrl(auth?.user?.avatarUrl);
 
   const { data: followersData } = useQuery({
     queryKey: ['followers', handle],

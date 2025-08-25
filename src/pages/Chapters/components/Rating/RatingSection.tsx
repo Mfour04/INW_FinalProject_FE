@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Star as StarIcon } from "lucide-react";
 import Button from "../../../../components/ButtonComponent";
 import DefaultAvatar from "../../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../../utils/avatar";
 import { useAuth } from "../../../../hooks/useAuth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -211,10 +212,6 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
   }, [ratingData?.items]);
 
   useEffect(() => {
-    console.log("loaded Review", loadedReviews);
-  }, [loadedReviews]);
-
-  useEffect(() => {
     if (novelInfo?.novelId) {
       setRatingRequest((prev) => ({ ...prev, novelId: novelInfo.novelId }));
       setLoadedReviews([]);
@@ -333,7 +330,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
               <div className="flex items-center gap-3">
                 <img
                   className="h-8 w-8 rounded-full object-cover bg-white"
-                  src={auth?.user?.avatarUrl || DefaultAvatar}
+                  src={getAvatarUrl(auth?.user?.avatarUrl)}
                   alt="avatar"
                 />
                 <div>
@@ -344,11 +341,10 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <StarIcon
                         key={star}
-                        className={`w-4 h-4 cursor-pointer transition-all ${
-                          (hoverRating || ratingRequest.score) >= star
+                        className={`w-4 h-4 cursor-pointer transition-all ${(hoverRating || ratingRequest.score) >= star
                             ? "text-yellow-400 fill-yellow-400 scale-110"
                             : "text-gray-300 fill-gray-300"
-                        }`}
+                          }`}
                         fill="currentColor"
                         onClick={() =>
                           setRatingRequest((prev) => ({

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import Person from "@mui/icons-material/Person";
 import History from "@mui/icons-material/History";
 import Settings from "@mui/icons-material/Settings";
@@ -37,7 +38,7 @@ export const UserMenu = ({ onClose }: Props) => {
       <div className="flex items-center gap-3">
         <div className="h-[52px] w-[52px] rounded-full overflow-hidden ring-1 ring-zinc-700 bg-white">
           <img
-            src={auth.user.avatarUrl || DefaultAvatar}
+            src={getAvatarUrl(auth.user.avatarUrl)}
             alt="User Avatar"
             className="h-full w-full object-cover"
           />
