@@ -5,6 +5,7 @@ import type {
   IncomeSummaryApiRes,
   IncomeSummaryParams,
   TopNovelApiRes,
+  TopNovelRatingApiRes,
   TopNovelsParams,
   TopNovelViewApiRes,
 } from "./income.type";
@@ -26,5 +27,10 @@ export const GetTopNovels = (params?: TopNovelsParams) =>
 
 export const GetTopNovelsViews = (params?: TopNovelsParams) =>
   http.privateHttp.get<TopNovelViewApiRes>(`authors/me/views/top-novels`, {
+    params,
+  });
+
+export const GetTopNovelsRating = (params?: TopNovelsParams) =>
+  http.privateHttp.get<TopNovelRatingApiRes>(`authors/me/views/top-ratings`, {
     params,
   });

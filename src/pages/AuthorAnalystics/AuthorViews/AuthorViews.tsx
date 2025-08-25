@@ -6,6 +6,8 @@ import {
   BarChart3,
   ListFilter,
   RotateCcw,
+  Bookmark,
+  BookMarked,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,7 +31,10 @@ import { aggregateSeries, renderRange, type Granularity } from "../util";
 import { ModeToggle } from "../components/ModeToggle";
 import { useQuery } from "@tanstack/react-query";
 import type { TopNovelsParams } from "../../../api/AuthorIncome/income.type";
-import { GetTopNovelsViews } from "../../../api/AuthorIncome/income.api";
+import {
+  GetTopNovelsRating,
+  GetTopNovelsViews,
+} from "../../../api/AuthorIncome/income.api";
 
 type Props = {
   mode: Mode;
@@ -60,6 +65,11 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
   const { data: topNovels } = useQuery({
     queryKey: ["top-novels-views", topNovelParams],
     queryFn: () => GetTopNovelsViews(topNovelParams).then((res) => res.data),
+  });
+
+  const { data: topRatings } = useQuery({
+    queryKey: ["top-novels-rating", topNovelParams],
+    queryFn: () => GetTopNovelsRating(topNovelParams).then((res) => res.data),
   });
 
   const seriesViews = useMemo(
@@ -151,24 +161,17 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
       {/* Body */}
       <Container className="pb-12 space-y-6">
         {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-1 gap-3">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <KpiPill
             label="Tổng view"
-            value={totalViews.toLocaleString()}
+            value={topNovels?.data.totalViews!}
             icon={<Eye className="h-4 w-4" />}
           />
-          {/* <KpiPill
-            label={`TB/${
-              vGran === "day" ? "ngày" : vGran === "month" ? "tháng" : "năm"
-            }`}
-            value={avgViewsPerBucket.toLocaleString()}
-            icon={<BarChart3 className="h-4 w-4" />}
-          />
           <KpiPill
-            label="Khoảng thời gian"
-            value={renderRange(vFrom, vTo)}
-            icon={<Calendar className="h-4 w-4" />}
-          /> */}
+            label={`Số lượt đánh giá`}
+            value={topRatings?.data.totalRatings!}
+            icon={<BookMarked className="h-4 w-4" />}
+          />
         </section>
 
         {/* Main grid */}
@@ -181,7 +184,7 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
             </Card>
           </div> */}
 
-          <div className="col-span-12 lg:col-span-4 space-y-6">
+          <div className="col-span-12 lg:col-span-8 grid grid-cols-2 gap-6">
             <Card className="p-0 overflow-hidden">
               <div className="px-3 py-3 text-sm text-white/70 flex items-center gap-2">
                 <span className="h-5 w-5 rounded-md bg-white/5 ring-1 ring-white/10 grid place-items-center">
@@ -190,7 +193,7 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
                 Top truyện có lượt xem cao nhất
               </div>
               <ul className="divide-y divide-white/10">
-                {topNovels?.data.map((t, i) => (
+                {topNovels?.data.topViewNovels.map((t, i) => (
                   <li
                     key={t.novelId}
                     className="px-3 py-2 flex items-center justify-between"
@@ -207,6 +210,42 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
                       <div className="text-xs tabular-nums text-white/80 flex items-center gap-2">
                         {t.totalViews.toLocaleString()}
                         <Eye className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-0 overflow-hidden">
+              <div className="px-3 py-3 text-sm text-white/70 flex items-center gap-2">
+                <span className="h-5 w-5 rounded-md bg-white/5 ring-1 ring-white/10 grid place-items-center">
+                  <Eye className="h-3 w-3" />
+                </span>
+                Top truyện có lượt xem cao nhất
+              </div>
+              <ul className="divide-y divide-white/10">
+                {topRatings?.data.topRatedNovels.map((t, i) => (
+                  <li
+                    key={t.novelId}
+                    className="px-3 py-2 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-7 w-7 rounded-lg bg-white/5 ring-1 ring-white/10 grid place-items-center text-xs">
+                        {i + 1}
+                      </div>
+                      <div className="text-xs text-white/90 truncate max-w-[160px]">
+                        {t.title}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 flex gap-5">
+                      <div className="text-xs tabular-nums text-white/80 flex items-center gap-2 justify-end">
+                        {t.ratingAvg}
+                        <BookMarked className="h-3 w-3" />
+                      </div>
+                      <div className="text-xs tabular-nums text-white/80 flex items-center gap-2 justify-end">
+                        {t.ratingCount}
+                        <Bookmark className="h-3 w-3" />
                       </div>
                     </div>
                   </li>

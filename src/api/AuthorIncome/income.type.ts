@@ -26,7 +26,9 @@ export type TopNovelsParams = {
 type Log = {
   earningId: string;
   novelId: string;
+  novelTitle: string;
   chapterId: string;
+  chapterTitle: string;
   type: string;
   amount: number;
   createdAt: number;
@@ -60,6 +62,23 @@ export type TopNovelRes = {
 };
 
 export type TopNovelsViewRes = {
+  topViewNovels: Novels[];
+  totalViews: number;
+};
+
+export type TopNovelsRatingRes = {
+  topRatedNovels: NovelRating[];
+  totalRatings: number;
+};
+
+export type NovelRating = {
+  novelId: string;
+  title: string;
+  ratingAvg: number;
+  ratingCount: 1;
+};
+
+export type Novels = {
   novelId: string;
   title: string;
   totalViews: number;
@@ -75,4 +94,5 @@ export type IncomeChartRes = {
 export type IncomeSummaryApiRes = ApiResponse<IncomeSummaryRes>;
 export type IncomeChartApiRes = ApiResponse<IncomeChartRes[]>;
 export type TopNovelApiRes = ApiResponse<TopNovelRes[]>;
-export type TopNovelViewApiRes = ApiResponse<TopNovelsViewRes[]>;
+export type TopNovelViewApiRes = ApiResponse<TopNovelsViewRes>;
+export type TopNovelRatingApiRes = ApiResponse<TopNovelsRatingRes>;
