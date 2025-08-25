@@ -10,6 +10,7 @@ import type { ApiResponse } from "../../api/User/user-settings.type";
 import type { LoginParams, LoginResponse } from "../../api/Auth/auth.type";
 import TextFieldComponent from "../../components/TextFieldComponent";
 import { useQueryClient } from "@tanstack/react-query";
+import { getAvatarUrl } from "../../utils/avatar";
 
 type SettingTab = "display" | "interface" | "privacy" | "password";
 
@@ -719,9 +720,12 @@ export const Setting = () => {
                     )}
                     <div className="absolute -bottom-8 sm:-bottom-12 left-4 sm:left-6">
                         <img
-                            src={avatarPreview || originalData.avatarUrl || backendData?.AvatarUrl || backendData?.avatarUrl || currentUser?.avatarUrl || "/images/default-avatar.png"}
+                            src={avatarPreview || getAvatarUrl(originalData.avatarUrl || backendData?.AvatarUrl || backendData?.avatarUrl || currentUser?.avatarUrl)}
                             alt="Profile"
                             className="w-16 h-16 sm:w-24 sm:h-24 rounded-full border-4 border-white object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                            }}
                         />
                     </div>
                 </div>
@@ -843,9 +847,12 @@ export const Setting = () => {
                                 />
                             ) : (originalData.avatarUrl || backendData?.AvatarUrl || backendData?.avatarUrl) ? (
                                 <img
-                                    src={originalData.avatarUrl || backendData?.AvatarUrl || backendData?.avatarUrl}
+                                    src={getAvatarUrl(originalData.avatarUrl || backendData?.AvatarUrl || backendData?.avatarUrl)}
                                     alt="Current avatar"
                                     className="w-full h-full object-cover rounded"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                    }}
                                 />
                             ) : (
                                 <>
@@ -910,68 +917,6 @@ export const Setting = () => {
         </div>
     );
 
-    const renderInterfaceSettings = () => (
-        <div className="space-y-6">
-            <div>
-                <label className="block text-sm font-medium text-white mb-4">
-                    Chọn màu giao diện
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="space-y-3">
-                        <div className={`bg-white rounded-lg p-4 border-2 ${theme === "light" ? "border-[#ff4500]" : "border-gray-300"}`}>
-                            <div className="space-y-2">
-                                <div className="h-2 bg-gray-300 rounded"></div>
-                                <div className="h-2 bg-gray-300 rounded w-3/4"></div>
-                                <div className="h-2 bg-gray-300 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="theme"
-                                value="light"
-                                checked={theme === "light"}
-                                onChange={(e) => setTheme(e.target.value as "light" | "dark")}
-                                className="text-orange-500 focus:ring-orange-500"
-                            />
-                            <span className={`${theme === "light" ? "text-[#ff4500]" : "text-white"}`}>Sáng</span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        <div className={`bg-gray-800 rounded-lg p-4 border-2 ${theme === "dark" ? "border-[#ff4500]" : "border-gray-600"}`}>
-                            <div className="space-y-2">
-                                <div className="h-2 bg-gray-600 rounded"></div>
-                                <div className="h-2 bg-gray-600 rounded w-3/4"></div>
-                                <div className="h-2 bg-gray-600 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name="theme"
-                                value="dark"
-                                checked={theme === "dark"}
-                                onChange={(e) => setTheme(e.target.value as "light" | "dark")}
-                                className="text-orange-500 focus:ring-orange-500"
-                            />
-                            <span className={`${theme === "dark" ? "text-[#ff4500]" : "text-white"}`}>Tối</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex justify-end">
-                <Button
-                    onClick={handleSaveInterfaceSettings}
-                    className="bg-[#ff4500] hover:bg-[#e03d00] text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-sm sm:text-base"
-                >
-                    Lưu cài đặt
-                </Button>
-            </div>
-        </div>
-    );
-
     const renderPrivacySettings = () => (
         <div className="space-y-4 sm:space-y-6">
             <div>
@@ -987,14 +932,21 @@ export const Setting = () => {
                     {/* Blocked Users List */}
                     <div className="space-y-3">
                         {[
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: "/images/avatar1.png" },
-                            { name: "Tài?", username: "@minhtai", avatar: "/images/avatar2.png" },
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: "/images/avatar3.png" }
+                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null },
+                            { name: "Tài?", username: "@minhtai", avatar: null },
+                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null }
                         ].map((user, index) => (
                             <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-800 rounded-lg gap-3">
                                 <div className="flex items-center gap-3">
                                     <input type="checkbox" className="text-orange-500 focus:ring-orange-500" />
-                                    <img src={user.avatar} alt={user.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" />
+                                    <img
+                                        src={getAvatarUrl(user.avatar)}
+                                        alt={user.name}
+                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                        }}
+                                    />
                                     <div>
                                         <p className="text-white font-medium text-sm sm:text-base">{user.name}</p>
                                         <p className="text-gray-400 text-xs sm:text-sm">{user.username}</p>
@@ -1163,8 +1115,6 @@ export const Setting = () => {
         switch (activeTab) {
             case "display":
                 return renderDisplayInfo();
-            case "interface":
-                return renderInterfaceSettings();
             case "privacy":
                 return renderPrivacySettings();
             case "password":
@@ -1202,15 +1152,6 @@ export const Setting = () => {
                                             }`}
                                     >
                                         Thông tin hiển thị
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab("interface")}
-                                        className={`w-full text-left px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-xs sm:text-sm lg:text-base ${activeTab === "interface"
-                                            ? "bg-[#ff4500] text-white"
-                                            : "text-gray-300 hover:text-white hover:bg-gray-800"
-                                            }`}
-                                    >
-                                        Tùy chỉnh giao diện
                                     </button>
                                     <button
                                         onClick={() => setActiveTab("privacy")}

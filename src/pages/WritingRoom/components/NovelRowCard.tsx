@@ -13,7 +13,6 @@ export const NovelRowCard = ({
   onChapters: () => void;
   onDelete: () => void;
 }) => {
-  console.log(novel);
   const isCompleted = novel.status === 0;
   const isPublic = novel.isPublic;
   const statusLabel = isCompleted ? "Hoàn thành" : "Đang diễn ra";

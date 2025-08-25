@@ -2,8 +2,8 @@ import React, { useMemo, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Typography from "../../../components/TypographyComponent";
 import { PANEL, TOKENS } from "../ui/tokens";
-import type { Novel } from "../types";
 import { ORANGE_GRAD } from "../constant";
+import type { Novel } from "../../../entity/novel";
 
 export type RecommendCarouselProps = {
   title: string;

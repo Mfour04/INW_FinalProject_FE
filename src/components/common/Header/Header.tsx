@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 import { Bell, X, Search, ListFilter } from "lucide-react";
 

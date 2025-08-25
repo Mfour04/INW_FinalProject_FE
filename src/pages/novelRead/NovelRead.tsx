@@ -13,9 +13,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
-import { CommentUser } from "../CommentUser/CommentUser";
+import { CommentUser } from "../commentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
-import { renderTextWithNewlines } from "../NovelRead/util";
+import { renderTextWithNewlines } from "../novelRead/util";
 
 import { Type, Flag, Settings2 } from "lucide-react";
 import { SpeechControls } from "./components/SpeechControls";
@@ -116,20 +116,20 @@ export const NovelRead = () => {
         "id" in chap
           ? chap
           : {
-              id: chap.chapterId,
-              novel_id: chap.novelId,
-              title: chap.title,
-              content: chap.content,
-              chapter_number: chap.chapterNumber,
-              is_paid: chap.isPaid,
-              price: chap.price,
-              scheduled_at: chap.scheduledAt,
-              is_lock: chap.isLock,
-              is_draft: chap.isDraft,
-              is_public: chap.isPublic,
-              created_at: chap.createAt,
-              updated_at: chap.updateAt,
-            }
+            id: chap.chapterId,
+            novel_id: chap.novelId,
+            title: chap.title,
+            content: chap.content,
+            chapter_number: chap.chapterNumber,
+            is_paid: chap.isPaid,
+            price: chap.price,
+            scheduled_at: chap.scheduledAt,
+            is_lock: chap.isLock,
+            is_draft: chap.isDraft,
+            is_public: chap.isPublic,
+            created_at: chap.createAt,
+            updated_at: chap.updateAt,
+          }
       ),
     [finalChapterList]
   );
