@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import defaultAvatar from "../../../assets/img/th.png";
+import defaultAvatar from "../../../assets/img/default_avt.png";
 import { Heart, MessageSquare, CornerDownRight, Smile } from "lucide-react";
 import { MoreButton } from "./actions/MoreButton";
 import { MoreUser } from "./actions/MoreUser";
@@ -278,7 +278,7 @@ export const ReplyThread = ({
             actions={
               canInteract ? (
                 parent.user === currentUser?.user ||
-                parent.name === currentUser?.name ? (
+                  parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}

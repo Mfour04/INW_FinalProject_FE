@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState } from "react";
-import { useAutoGrow } from "../hooks/useAutoGrow";
-import defaultAvatar from "../../../assets/img/th.png";
+import { useAutoGrow } from "../hooks/useAutoGrow.ts";
+import defaultAvatar from "../../../assets/img/default_avt.png";
 import { Smile, SendHorizontal, Loader2 } from "lucide-react";
-import { EmojiPickerBox } from "./EmojiPickerBox";
+import { EmojiPickerBox } from "./EmojiPickerBox.tsx";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
 

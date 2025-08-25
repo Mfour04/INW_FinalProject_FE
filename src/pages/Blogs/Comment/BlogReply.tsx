@@ -2,7 +2,7 @@ import React from "react";
 import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 
-import avatarImage from "../../../assets/img/th.png";
+import avatarImage from "../../../assets/img/default_avt.png";
 
 interface BlogReplyProps {
     currentUser: {

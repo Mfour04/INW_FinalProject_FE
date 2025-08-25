@@ -1,7 +1,7 @@
 import { useAuth } from "../../../hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { GetFollowers, GetFollowing } from "../../../api/UserFollow/user-follow.api";
-import abc from "../../../assets/img/th.png";
+import abc from "../../../assets/img/default_avt.png";
 
 const ProfileSidebar = () => {
   const { auth } = useAuth();

@@ -1,6 +1,6 @@
 import React from "react";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
-import abc from "../../../assets/img/th.png";
+import abc from "../../../assets/img/default_avt.png";
 import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
 import ImageAdd02Icon from "../../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
