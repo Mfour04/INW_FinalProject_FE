@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import { getAvatarUrl } from "../../../utils/avatar";
@@ -8,7 +8,7 @@ import { User as UserIcon, Clock, Settings, LogOut, Coins } from "lucide-react";
 
 type Props = { onClose: () => void };
 
-const UserMenu: React.FC<Props> = ({ onClose }) => {
+const UserMenu = ({ onClose }: Props) => {
   const { auth, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ const UserMenu: React.FC<Props> = ({ onClose }) => {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [onClose]);
 
-  // ESC
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -71,8 +70,12 @@ const UserMenu: React.FC<Props> = ({ onClose }) => {
           loading="lazy"
         />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-medium truncate">{auth.user.displayName}</div>
-          <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">@{auth.user.userName}</div>
+          <div className="text-sm font-medium truncate">
+            {auth.user.displayName}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
+            @{auth.user.userName}
+          </div>
         </div>
       </div>
 
@@ -93,7 +96,7 @@ const UserMenu: React.FC<Props> = ({ onClose }) => {
           className={[
             "ml-auto inline-flex items-center rounded-full px-4 py-0.5 text-[11px] font-semibold text-white",
             "bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
-            "transition-transform active:scale-95 hover:brightness-110"
+            "transition-transform active:scale-95 hover:brightness-110",
           ].join(" ")}
         >
           Nạp
@@ -140,7 +143,6 @@ const UserMenu: React.FC<Props> = ({ onClose }) => {
           <span>Đăng xuất</span>
         </button>
       </div>
-
     </div>
   );
 };

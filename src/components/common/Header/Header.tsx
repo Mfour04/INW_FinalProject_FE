@@ -1,10 +1,13 @@
-import React, {
+import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
   useLayoutEffect,
+  type RefObject,
+  type ReactNode,
+  type CSSProperties,
 } from "react";
 import { createPortal } from "react-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
@@ -17,13 +20,13 @@ import {
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
 import { GetUserNotifications } from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
-import NotificationDropdown from "./NotificationDropdown"; 
 import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
-import UserMenu from "./UserMenu"; 
+import UserMenu from "./UserMenu";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 type HeaderProps = {
   onToggleSidebar: () => void;
@@ -32,29 +35,46 @@ type HeaderProps = {
 };
 
 const sortOptions = [
-  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Đánh giá ↑", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
+  {
+    label: "Ngày ra mắt ↑",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Ngày ra mắt ↓",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Lượt xem ↑",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Lượt xem ↓",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Đánh giá ↑",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Đánh giá ↓",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}`,
+  },
 ];
 
-/** ===== Portal layer: render fixed ra body, bám theo anchor ===== */
 function PortalLayer<T extends HTMLElement>({
   anchorRef,
   open,
   offset = 8,
   children,
 }: {
-  anchorRef: React.RefObject<T | null>;
+  anchorRef: RefObject<T | null>;
   open: boolean;
   offset?: number;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const [style, setStyle] = React.useState<React.CSSProperties>({});
+  const [style, setStyle] = useState<CSSProperties>({});
 
-  const update = React.useCallback(() => {
+  const update = useCallback(() => {
     const el = anchorRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -66,12 +86,12 @@ function PortalLayer<T extends HTMLElement>({
     });
   }, [anchorRef, offset]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     update();
   }, [open, update]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) return;
     const onScrollOrResize = () => update();
     window.addEventListener("scroll", onScrollOrResize, { passive: true });
@@ -98,7 +118,9 @@ export const Header = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSort] = useState(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
+  const [selectedSort] = useState(
+    `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`
+  );
   const [selectedTag] = useState("");
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
@@ -129,11 +151,10 @@ export const Header = ({
   }, [notifications, toast, notificationsRefetch]);
 
   const unreadCount = useMemo(
-    () => (userNotifications?.filter?.((n: any) => !n.isRead)?.length ?? 0),
+    () => userNotifications?.filter?.((n: any) => !n.isRead)?.length ?? 0,
     [userNotifications]
   );
 
-  // tránh chồng 2 popup
   useEffect(() => {
     if (isNotificationOpen && isPopupOpen) setIsPopupOpen(false);
   }, [isNotificationOpen, isPopupOpen]);
@@ -158,22 +179,30 @@ export const Header = ({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           )}
         </div>
 
-        {/* Search */}
         <div className="flex-1 max-w-[800px]">
           <SearchBar
             searchTerm={searchTerm}
             onSearchTermChange={setSearchTerm}
             onSubmit={handleSearchNovels}
             sortOptions={sortOptions}
-            searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
+            searchIcon={
+              <Search className="h-5 w-5 text-gray-600 dark:text-white" />
+            }
             clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
-            filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
+            filterIcon={
+              <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
+            }
             initialSort=""
             initialTags={[]}
           />
@@ -181,7 +210,6 @@ export const Header = ({
 
         <DarkModeToggler />
 
-        {/* Notification button (anchor) */}
         <button
           ref={notifBtnRef}
           onClick={() => setIsNotificationOpen((prev) => !prev)}
@@ -199,7 +227,6 @@ export const Header = ({
           )}
         </button>
 
-        {/* Avatar button (anchor) */}
         <button
           ref={avatarBtnRef}
           onClick={() => setIsPopupOpen((prev) => !prev)}
@@ -215,8 +242,6 @@ export const Header = ({
           />
         </button>
       </div>
-
-      {/* ===== Portals: luôn nổi trên cùng, bám đúng vị trí ===== */}
 
       <PortalLayer anchorRef={notifBtnRef} open={isNotificationOpen} offset={8}>
         <NotificationDropdown
