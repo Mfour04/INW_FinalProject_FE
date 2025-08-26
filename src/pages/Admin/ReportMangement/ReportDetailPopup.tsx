@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+
 import {
-  ReportTypeStatusLabels,
-  ReportStatusLabels,
-  ReportTypeStatus,
-  ReportStatus,
+  ReportReasonLabel,
+  type Report,
 } from "../../../api/Admin/Report/report.type";
-import type { ReportEntity } from "../../../api/Admin/Report/report.type";
-import {
-  GetReportById,
-  UpdateReportStatus,
-} from "../../../api/Admin/Report/report.api";
+import { GetReportById } from "../../../api/Admin/Report/report.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GetNovelById } from "../../../api/Novels/novel.api";
 import { GetCommentById } from "../../../api/Comment/comment.api";
@@ -62,19 +57,19 @@ const ReportDetailPopup = ({
     enabled: isOpen && !!reportId,
   });
 
-  const report: ReportEntity | undefined = reportData?.data;
+  const report: Report | undefined = reportData?.data;
 
   const {
     data: userData,
     isLoading: isUserLoading,
     error: userError,
   } = useQuery({
-    queryKey: ["User", report?.userId],
+    queryKey: ["User", report?.reporter.id],
     queryFn: () =>
-      report?.userId
-        ? GetUserById(report.userId).then((res) => res.data)
+      report?.reporter.id
+        ? GetUserById(report.reporter.id).then((res) => res.data)
         : Promise.reject("No user ID"),
-    enabled: isOpen && !!report?.userId,
+    enabled: isOpen && !!report?.reporter.id,
   });
 
   const {
@@ -82,15 +77,14 @@ const ReportDetailPopup = ({
     isLoading: isMemberLoading,
     error: memberError,
   } = useQuery({
-    queryKey: ["Member", report?.memberId],
+    queryKey: ["Member", report?.targetUserId],
     queryFn: () =>
-      report?.memberId
-        ? GetUserById(report.memberId).then((res) => res.data)
+      report?.targetUserId
+        ? GetUserById(report.targetUserId).then((res) => res.data)
         : Promise.reject("No member ID"),
-    enabled:
-      isOpen &&
-      !!report?.memberId &&
-      ReportTypeStatusLabels[report.type] === "UserReport",
+    enabled: isOpen && !!report?.targetUserId,
+    // &&
+    // report.scope === 5,
   });
 
   const {
@@ -103,10 +97,7 @@ const ReportDetailPopup = ({
       report?.novelId
         ? GetNovelById(report.novelId).then((res) => res.data)
         : Promise.reject("No novel ID"),
-    enabled:
-      isOpen &&
-      !!report?.novelId &&
-      ReportTypeStatusLabels[report.type] === "NovelReport",
+    enabled: isOpen && !!report?.novelId && report.scope === 0,
   });
 
   const {
@@ -119,10 +110,7 @@ const ReportDetailPopup = ({
       report?.commentId
         ? GetCommentById(report.commentId).then((res) => res.data)
         : Promise.reject("No comment ID"),
-    enabled:
-      isOpen &&
-      !!report?.commentId &&
-      ReportTypeStatusLabels[report.type] === "CommentReport",
+    enabled: isOpen && !!report?.commentId && report.scope === 2,
   });
 
   const {
@@ -135,10 +123,7 @@ const ReportDetailPopup = ({
       report?.chapterId
         ? GetChapter(report.chapterId).then((res) => res.data)
         : Promise.reject("No chapter ID"),
-    enabled:
-      isOpen &&
-      !!report?.chapterId &&
-      ReportTypeStatusLabels[report.type] === "ChapterReport",
+    enabled: isOpen && !!report?.chapterId && report.scope === 1,
   });
 
   const {
@@ -151,10 +136,7 @@ const ReportDetailPopup = ({
       report?.forumPostId
         ? GetForumPostById(report.forumPostId).then((res) => res.data)
         : Promise.reject("No post ID"),
-    enabled:
-      isOpen &&
-      !!report?.forumPostId &&
-      ReportTypeStatusLabels[report.type] === "ForumPostReport",
+    enabled: isOpen && !!report?.forumPostId && report.scope === 3,
   });
 
   const {
@@ -167,13 +149,9 @@ const ReportDetailPopup = ({
       report?.forumCommentId
         ? GetForumCommentById(report.forumCommentId).then((res) => res.data)
         : Promise.reject("No comment ID"),
-    enabled:
-      isOpen &&
-      !!report?.forumCommentId &&
-      ReportTypeStatusLabels[report.type] === "ForumCommentReport",
+    enabled: isOpen && !!report?.forumCommentId && report.scope === 4,
   });
 
-  // Mutation để xóa và cập nhật trạng thái
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!deleteTarget || !report) throw new Error("No delete target");
@@ -201,13 +179,7 @@ const ReportDetailPopup = ({
         throw new Error(deleteResult.message || "Delete failed");
       }
       // Cập nhật trạng thái báo cáo thành Resolved
-      const updateResult = await UpdateReportStatus(
-        report.id,
-        ReportStatus.Resolved
-      ).then((res) => res.data);
-      if (!updateResult.success) {
-        throw new Error(updateResult.message || "Update status failed");
-      }
+
       return deleteResult;
     },
     onSuccess: () => {
@@ -224,33 +196,17 @@ const ReportDetailPopup = ({
 
   const handleNavigate = () => {
     if (!report) return;
-    switch (report.type) {
-      case ReportTypeStatus.UserReport:
+    switch (report.scope) {
+      case 5:
         navigate(`/admin/users}`);
         break;
-      case ReportTypeStatus.NovelReport:
+      case 0:
         navigate(`/admin/novels`);
         break;
-      case ReportTypeStatus.ChapterReport:
+      case 1:
         navigate(`/admin/novels`);
         break;
     }
-  };
-
-  const handleDelete = () => {
-    if (!report) return;
-    switch (report.type) {
-      case ReportTypeStatus.CommentReport:
-        setDeleteTarget({ type: "comment", id: report.commentId! });
-        break;
-      case ReportTypeStatus.ForumPostReport:
-        setDeleteTarget({ type: "forumPost", id: report.forumPostId! });
-        break;
-      case ReportTypeStatus.ForumCommentReport:
-        setDeleteTarget({ type: "forumComment", id: report.forumCommentId! });
-        break;
-    }
-    setIsConfirmOpen(true);
   };
 
   const getDeleteMessage = () => {
@@ -312,8 +268,8 @@ const ReportDetailPopup = ({
   }
 
   let detailContent: React.ReactNode = null;
-  switch (ReportTypeStatusLabels[report.type]) {
-    case "UserReport": {
+  switch (report.scope) {
+    case 5: {
       if (isUserLoading || isMemberLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
@@ -343,7 +299,7 @@ const ReportDetailPopup = ({
       }
       break;
     }
-    case "NovelReport": {
+    case 0: {
       if (isNovelLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
@@ -362,10 +318,8 @@ const ReportDetailPopup = ({
               <strong>Tiêu đề:</strong> {novel.title}
             </p>
             <p className="text-gray-900 dark:text-gray-100">
-              <strong>Mô tả:</strong> {novel.description || "Không có mô tả"}
-            </p>
-            <p className="text-gray-900 dark:text-gray-100">
-              <strong>Giá:</strong> {novel.price || 0} coin
+              <strong>Giá:</strong>{" "}
+              {novel.price === 0 ? "Miễn phí" : `${novel.price} "xu"`}
             </p>
             <p className="text-gray-900 dark:text-gray-100">
               <strong>Trạng thái:</strong>{" "}
@@ -376,7 +330,7 @@ const ReportDetailPopup = ({
       }
       break;
     }
-    case "ChapterReport": {
+    case 1: {
       if (isChapterLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
@@ -395,8 +349,8 @@ const ReportDetailPopup = ({
               <strong>Tiêu đề:</strong> {chapter.title}
             </p>
             <p className="text-gray-900 dark:text-gray-100">
-              <strong>Tiểu thuyết:</strong>{" "}
-              {chapter.novelId || "Không có mô tả"}
+              <strong>Chương truyện:</strong>{" "}
+              {chapter.title || "Không có mô tả"}
             </p>
             <p className="text-gray-900 dark:text-gray-100">
               <strong>Giá:</strong> {chapter.price || 0} coin
@@ -406,7 +360,7 @@ const ReportDetailPopup = ({
       }
       break;
     }
-    case "CommentReport": {
+    case 2: {
       if (isCommentsLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -425,14 +379,15 @@ const ReportDetailPopup = ({
               <strong>Nội dung:</strong> {comment.content}
             </p>
             <p className="text-gray-900 dark:text-gray-100">
-              <strong>Người bình luận:</strong> {comment.name}
+              <strong>Người bình luận:</strong>{" "}
+              {report.commentAuthor?.displayName}
             </p>
           </div>
         );
       }
       break;
     }
-    case "ForumPostReport": {
+    case 3: {
       if (isForumPostLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -459,7 +414,7 @@ const ReportDetailPopup = ({
       }
       break;
     }
-    case "ForumCommentReport": {
+    case 4: {
       if (isForumPostCommentLoading) {
         detailContent = (
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -521,28 +476,29 @@ const ReportDetailPopup = ({
           </p>
           <p className="text-gray-900 dark:text-gray-100">
             <strong>Loại:</strong>{" "}
-            {ReportTypeStatusLabels[report.type] === "UserReport"
+            {report.scope === 5
               ? "Người dùng"
-              : ReportTypeStatusLabels[report.type] === "NovelReport"
+              : report.scope === 0
               ? "Tiểu thuyết"
-              : ReportTypeStatusLabels[report.type] === "ChapterReport"
+              : report.scope === 1
               ? "Chương"
-              : ReportTypeStatusLabels[report.type] === "CommentReport"
+              : report.scope === 2
               ? "Bình luận"
-              : ReportTypeStatusLabels[report.type] === "ForumPostReport"
+              : report.scope === 3
               ? "Bài viết diễn đàn"
-              : ReportTypeStatusLabels[report.type] === "ForumCommentReport"
+              : report.scope === 4
               ? "Bình luận diễn đàn"
-              : `Loại ${report.type}`}
+              : `Loại ${report.scope}`}
           </p>
           <p className="text-gray-900 dark:text-gray-100">
-            <strong>Lý do:</strong> {report.reason || "Không có lý do"}
+            <strong>Lý do:</strong>{" "}
+            {ReportReasonLabel[report.reason] || "Không có lý do"}
           </p>
           <p className="text-gray-900 dark:text-gray-100">
             <strong>Trạng thái:</strong>{" "}
-            {ReportStatusLabels[report.status] === "InProgress"
+            {report.status === 0
               ? "Đang xử lý"
-              : ReportStatusLabels[report.status] === "Resolved"
+              : report.status === 1
               ? "Đã giải quyết"
               : "Bị từ chối"}
           </p>
@@ -552,41 +508,54 @@ const ReportDetailPopup = ({
           </p>
           <p className="text-gray-900 dark:text-gray-100">
             <strong>Ngày cập nhật:</strong>{" "}
-            {formatVietnamTimeFromTicks(report.updatedAt)}
+            {report.updatedAt !== 0
+              ? formatVietnamTimeFromTicks(report.updatedAt)
+              : "Không có"}
           </p>
         </div>
         <hr className="border-gray-200 dark:border-gray-700 mb-4" />
         <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2">
           Thông tin đối tượng
         </h3>
-        {detailContent}
+        <div className="mb-2">{detailContent}</div>
+        {report.moderator && (
+          <>
+            <hr className="border-gray-200 dark:border-gray-700 mb-2" />
+            <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2">
+              Người xử lý
+            </h3>
+            <div className="space-y-1">
+              <p className="text-gray-900 dark:text-gray-100">
+                <strong>Người xử lý:</strong> {report.moderator.username} (
+                {report.moderator.displayName})
+              </p>
+              <p className="text-gray-900 dark:text-gray-100">
+                <strong>Thời điểm xử lý:</strong>{" "}
+                {formatVietnamTimeFromTicks(report.moderatedAt!)}
+              </p>
+              <p className="text-gray-900 dark:text-gray-100">
+                <strong>Ghi chú:</strong> {report.moderatorNote}
+              </p>
+            </div>
+          </>
+        )}
         <div className="flex justify-end gap-4 mt-6">
-          {(report.type === ReportTypeStatus.UserReport ||
-            report.type === ReportTypeStatus.NovelReport ||
-            report.type === ReportTypeStatus.ChapterReport) && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                isLoading={false}
-                onClick={handleNavigate}
-                className="px-4 py-2 rounded-[10px] text-white bg-[#ff6740] hover:bg-[#e14b2e] text-sm border-none"
+          {(report.scope === 5 || report.scope === 0 || report.scope === 1) &&
+            !report.moderator && (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Chuyển đến trang quản lý
-              </Button>
-            </motion.div>
-          )}
-          {(report.type === ReportTypeStatus.CommentReport ||
-            report.type === ReportTypeStatus.ForumPostReport ||
-            report.type === ReportTypeStatus.ForumCommentReport) && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                isLoading={deleteMutation.isPending}
-                onClick={handleDelete}
-                className="px-4 py-2 rounded-[10px] text-white bg-red-600 hover:bg-red-500 text-sm border-none"
-              >
-                Xóa
-              </Button>
-            </motion.div>
-          )}
+                <Button
+                  isLoading={false}
+                  onClick={handleNavigate}
+                  className="px-4 py-2 rounded-[10px] text-white bg-[#ff6740] hover:bg-[#e14b2e] text-sm border-none"
+                >
+                  Chuyển đến trang quản lý
+                </Button>
+              </motion.div>
+            )}
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
