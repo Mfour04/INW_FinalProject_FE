@@ -25,7 +25,6 @@ import { useToast } from "../../../context/ToastContext/toast-context";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
 import { InlineBankSelect } from "./InlineBankSelect/InlineBankSelect";
 import { WithdrawConfirmModal } from "../../../components/ConfirmModal/WithdrawConfirmModal";
-
 import { Trash2 } from "lucide-react";
 
 /* -------------------------------- utils -------------------------------- */
@@ -43,11 +42,12 @@ const sanitizeAccountName = (raw: string) => {
 const digitsOnly = (raw: string) => raw.replace(/\D+/g, "");
 
 const withdrawCoinOptions: Coin[] = [
-  { amount: 9000, image: Coin20, price: 10 },
-  { amount: 45000, image: Coin50, price: 50 },
-  { amount: 90000, image: Coin100, price: 100 },
-  { amount: 450000, image: Coin500, price: 500 },
-  { amount: 900000, image: Coin1000, price: 1000 },
+  { amount: 50000, image: Coin20, price: 65 },
+  { amount: 100000, image: Coin50, price: 130 },
+  { amount: 200000, image: Coin100, price: 260 },
+  { amount: 500000, image: Coin100, price: 650 },
+  { amount: 1000000, image: Coin100, price: 1300 },
+  { amount: 2000000, image: Coin100, price: 2600 }
 ];
 
 const initialBankForm: CreateBankRequest = {
@@ -338,7 +338,7 @@ export const Withdraw = () => {
                       "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/60",
                       "inline-flex items-center justify-center gap-2",
-                    ].join(" ")}
+                   ].join(" ")}
                     onClick={handleCreateBank}
                     isLoading={CreateBankMutation.isPending}
                   >
@@ -351,13 +351,15 @@ export const Withdraw = () => {
         </div>
 
         {/* Chọn gói rút (click = mở modal xác nhận) */}
-        <div className="mt-8 flex flex-col items-center gap-8">
-          <div className="flex justify-center gap-8">
-            {withdrawCoinOptions.slice(0, 3).map((coin, index) => (
-              <div key={`top-${index}`} className="w-[180px] sm:w-[200px]">
+        <div className="mt-8">
+          {/* Grid giống bên Nạp xu: 1 → 2 → 3 → 5 cột, items-stretch để card cao đều */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 items-stretch">
+            {withdrawCoinOptions.map((coin) => (
+              <div key={coin.amount} className="w-full h-full">
                 <WithdrawCard
                   coin={coin}
                   selected={selectedCoin?.amount === coin.amount}
+                  isLoading={WithdrawMutation.isPending && selectedCoin?.amount === coin.amount}
                   onClick={() => {
                     if (!defaultAccountId) {
                       toast?.onOpen("Bạn chưa đăng ký tài khoản rút tiền mặc định!");
@@ -370,27 +372,13 @@ export const Withdraw = () => {
               </div>
             ))}
           </div>
-          <div className="flex justify-center gap-8">
-            {withdrawCoinOptions.slice(3, 5).map((coin, index) => (
-              <div key={`bottom-${index}`} className="w-[180px] sm:w-[200px]">
-                <WithdrawCard
-                  coin={coin}
-                  selected={selectedCoin?.amount === coin.amount}
-                  onClick={() => {
-                    if (!defaultAccountId) {
-                      toast?.onOpen("Bạn chưa đăng ký tài khoản rút tiền mặc định!");
-                      return;
-                    }
-                    setSelectedCoin(coin);
-                    setConfirmWithdraw(true);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+
+          <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+            * Số xu sẽ bị trừ ngay sau khi yêu cầu rút được xác nhận.
+          </p>
         </div>
 
-        {/* Modal xác nhận rút xu (mới) */}
+        {/* Modal xác nhận rút xu */}
         <WithdrawConfirmModal
           isOpen={confirmWithdraw}
           coinAmount={selectedCoin?.price ?? 0}
@@ -400,7 +388,7 @@ export const Withdraw = () => {
           loading={WithdrawMutation.isPending}
         />
 
-        {/* Các modal quản lý tài khoản ngân hàng (giữ ConfirmModal cũ) */}
+        {/* Các modal quản lý tài khoản ngân hàng */}
         <ConfirmModal
           isOpen={confirmDefault}
           title="Đặt làm tài khoản mặc định"
