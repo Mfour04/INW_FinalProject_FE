@@ -209,22 +209,6 @@ const ReportDetailPopup = ({
     }
   };
 
-  const handleDelete = () => {
-    if (!report) return;
-    switch (report.scope) {
-      case 2:
-        setDeleteTarget({ type: "comment", id: report.commentId! });
-        break;
-      case 3:
-        setDeleteTarget({ type: "forumPost", id: report.forumPostId! });
-        break;
-      case 4:
-        setDeleteTarget({ type: "forumComment", id: report.forumCommentId! });
-        break;
-    }
-    setIsConfirmOpen(true);
-  };
-
   const getDeleteMessage = () => {
     if (!deleteTarget) return "";
     switch (deleteTarget.type) {
@@ -571,17 +555,7 @@ const ReportDetailPopup = ({
                 </Button>
               </motion.div>
             )}
-          {(report.scope === 2 || report.scope === 3 || report.scope === 4) && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                isLoading={deleteMutation.isPending}
-                onClick={handleDelete}
-                className="px-4 py-2 rounded-[10px] text-white bg-red-600 hover:bg-red-500 text-sm border-none"
-              >
-                Xóa
-              </Button>
-            </motion.div>
-          )}
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

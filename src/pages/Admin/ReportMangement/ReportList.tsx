@@ -180,8 +180,8 @@ const ReportList = () => {
             return <span>{report.chapterTitle ?? "Không rõ"}</span>;
           }
           case 2: {
-            const content =
-              " asdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd asasdhasdasj dbaskjdb askd as";
+            const authorName = report.commentAuthor?.displayName;
+            const content = `Bình luận của ${authorName}`;
             return <span className="line-clamp-1">{content}</span>;
           }
           // case "ForumPostReport": {
