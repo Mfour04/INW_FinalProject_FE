@@ -292,7 +292,7 @@ export const UserProfile = () => {
                                                     }
                                                 }}
                                             >
-                                                Xem profile
+                                                Trang cá nhân
                                             </button>
                                         </div>
                                     </div>
@@ -339,7 +339,7 @@ export const UserProfile = () => {
                                                     }
                                                 }}
                                             >
-                                                Xem profile
+                                                Trang cá nhân
                                             </button>
                                         </div>
                                     </div>

@@ -352,8 +352,7 @@ const PostItem = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button
-                  isLoading={false}
+                <button
                   onClick={() => {
                     if (onUpdatePost) {
                       onUpdatePost(post.id, editContent);
@@ -364,7 +363,7 @@ const PostItem = ({
                   className="bg-[#ff6740] text-white px-3 py-1 rounded-lg transition-colors duration-200 hover:bg-[#ff5722]"
                 >
                   Lưu
-                </Button>
+                </button>
               </motion.div>
             </motion.div>
           </motion.div>
