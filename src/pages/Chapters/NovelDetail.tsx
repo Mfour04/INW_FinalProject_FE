@@ -31,7 +31,13 @@ import { InfoCard } from "./components/InfoCard";
 import { gradientBtn } from "./constants";
 import type { Tag } from "../../entity/tag";
 import { FollowPopup } from "./FollowPopup";
-import { ReportModal } from "../../components/ReportModal/ReportModal";
+import {
+  REPORT_REASON_CODE,
+  ReportNovelModal,
+  type ReportPayload,
+} from "../../components/ReportModal/ReportModal";
+import type { ReportRequest } from "../../api/Report/report.type";
+import { useReport } from "../../hooks/useReport";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -53,6 +59,7 @@ export const NovelDetail = () => {
 
   const toast = useToast();
   const { auth } = useAuth();
+  const report = useReport();
 
   const {
     data: novelData,
@@ -214,6 +221,16 @@ export const NovelDetail = () => {
     });
   };
 
+  const handleSubmitReport = (payLoad: ReportPayload) => {
+    const reportRequest: ReportRequest = {
+      scope: 0,
+      message: payLoad.message,
+      novelId: payLoad.novelId,
+      reason: REPORT_REASON_CODE[payLoad.reason],
+    };
+    report.mutate(reportRequest);
+  };
+
   const followBtnRef = useRef<HTMLDivElement | null>(null);
   const isCompleted = novelInfo?.status === 1;
 
@@ -350,16 +367,12 @@ export const NovelDetail = () => {
         onClose={() => setShowFollowPopup(false)}
       />
 
-      <ReportModal
+      <ReportNovelModal
         isOpen={reportOpen}
         onClose={() => setReportOpen(false)}
         novelId={novelInfo?.novelId!}
         novelTitle={novelInfo?.title}
-        onSubmit={async () => {
-          toast?.onOpen(
-            "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét sớm nhất."
-          );
-        }}
+        onSubmit={(payLoad: ReportPayload) => handleSubmitReport(payLoad)}
       />
     </div>
   );
