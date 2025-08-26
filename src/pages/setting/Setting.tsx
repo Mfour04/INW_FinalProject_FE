@@ -574,6 +574,10 @@ export const Setting = () => {
                     }
                 }
 
+                // Invalidate search cache để cập nhật kết quả tìm kiếm
+                queryClient.invalidateQueries({ queryKey: ["userSearch"] });
+                queryClient.invalidateQueries({ queryKey: ["otherUserProfile"] });
+
                 if (backendData) {
                     const newDisplayName = backendData.DisplayName || finalDisplayName;
                     const newBio = backendData.Bio || finalBio;
