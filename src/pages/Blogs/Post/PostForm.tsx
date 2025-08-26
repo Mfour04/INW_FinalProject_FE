@@ -1,11 +1,7 @@
 import React from "react";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
-import abc from "../../../assets/img/default_avt.png";
 import { getAvatarUrl } from "../../../utils/avatar";
-import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
-import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
-import ImageAdd02Icon from "../../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
-import Button from "../../../components/ButtonComponent";
+import { ImagePlus, Smile, SendHorizontal, X, Loader2 } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import { ClickableUserInfo } from "../../../components/common/ClickableUserInfo";
 
@@ -86,8 +82,8 @@ const PostForm = ({
   }, [resetFileInput]);
 
   return (
-    <div className="bg-[#1e1e21] rounded-[10px] p-5 mb-5">
-      <div className="flex items-center gap-5 mb-4">
+    <div className="bg-white/[0.02] rounded-lg border border-white/10 p-4">
+      <div className="flex items-center gap-3 mb-4">
         <ClickableUserInfo
           username={auth?.user?.userName}
           displayName={auth?.user?.displayName || auth?.user?.userName || "User"}
@@ -98,14 +94,14 @@ const PostForm = ({
         />
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Chia sẻ điều gì đó..."
-          className="w-full resize-none border-none border-b border-[#656565] outline-none text-white placeholder-gray-400 bg-transparent pb-2 focus:border-[#ff6740] transition-colors"
+          className="w-full resize-none border-none outline-none text-white placeholder-gray-400 bg-transparent text-sm leading-relaxed"
           rows={3}
         />
       </div>
@@ -119,16 +115,16 @@ const PostForm = ({
                 <img
                   src={URL.createObjectURL(image)}
                   alt={`Preview ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg border border-gray-600"
+                  className="w-full h-full object-cover rounded-lg border border-white/10"
                 />
                 <button
                   onClick={() => removeImage(index)}
-                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-sm font-bold"
+                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Xóa ảnh"
                 >
-                  ×
+                  <X className="w-3 h-3" />
                 </button>
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
                   {image.name.length > 15 ? image.name.substring(0, 15) + '...' : image.name}
                 </div>
               </div>
@@ -140,15 +136,15 @@ const PostForm = ({
         </div>
       )}
 
-      <div className="border-t border-[#656565] pt-4 flex items-center justify-between">
-        <div className="flex items-center gap-4 relative">
+      <div className="border-t border-white/10 pt-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 relative">
           <button
             type="button"
             onClick={openFileDialog}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors relative"
+            className="p-2 hover:bg-white/10 rounded-full transition-colors relative"
             title="Thêm ảnh"
           >
-            <img src={ImageAdd02Icon} alt="Add image icon" className="w-6 h-6" />
+            <ImagePlus className="w-5 h-5 text-white" />
             {selectedImages.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {selectedImages.length}
@@ -166,25 +162,24 @@ const PostForm = ({
           <button
             type="button"
             onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
-            <img src={SmileIcon} alt="Smile icon" className="w-6 h-6" />
+            <Smile className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <Button
-          isLoading={isPosting}
+        <button
           onClick={handlePost}
           disabled={(!content.trim() && selectedImages.length === 0) || isPosting}
-          className="flex items-center gap-4 bg-[#ff6740] hover:bg-[#e55a36] disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-[16px] font-medium transition-colors"
+          className="flex items-center gap-2 bg-gradient-to-r from-[#ff6740] to-[#ff9966] hover:from-[#e55a36] hover:to-[#e57a4d] disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
         >
-          <span className="inline-flex items-center">Đăng</span>
-          <img
-            src={SentHugeIcon}
-            alt="Sent icon"
-            className="inline-flex ml-1"
-          />
-        </Button>
+          {isPosting ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <SendHorizontal className="w-4 h-4" />
+          )}
+          <span>Đăng</span>
+        </button>
       </div>
 
       <EmojiPicker

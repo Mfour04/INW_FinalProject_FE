@@ -9,9 +9,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import BlockIcon from '@mui/icons-material/Block';
 import { CalendarUserIcon, Flag02Icon, CommentAdd01Icon } from './UserProfileIcon';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import favorite from '../../assets/svg/CommentUser/favorite.svg';
-import commentIcon from '../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg';
+import { Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { blogFormatVietnamTimeFromTicks } from '../../utils/date_format';
 import { useUserBlogPosts } from '../Blogs/HooksBlog';
@@ -197,13 +195,16 @@ export const UserProfile = () => {
                                     <div
                                         key={post.id}
                                         onClick={() => navigate(`/blogs?post=${post.id}`)}
-                                        className="bg-gray-900 p-4 rounded-lg border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors"
+                                        className="bg-white/[0.02] p-4 rounded-lg border border-white/10 cursor-pointer hover:bg-white/[0.05] transition-all duration-200"
                                     >
                                         <div className="flex items-center space-x-3 mb-3">
                                             <img
-                                                src={post.author?.avatar || "/images/default-avatar.png"}
+                                                src={getAvatarUrl(post.author?.avatar)}
                                                 alt="Avatar"
                                                 className="w-10 h-10 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                                }}
                                             />
                                             <div>
                                                 <p className="font-semibold text-white">
@@ -214,7 +215,7 @@ export const UserProfile = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <p className="text-gray-300 text-sm line-clamp-3">{post.content}</p>
+                                        <p className="text-gray-300 text-sm line-clamp-3 leading-relaxed">{post.content}</p>
                                         {post.imgUrls && post.imgUrls.length > 0 && (
                                             <div className="mt-3">
                                                 {post.imgUrls.length === 1 ? (
@@ -238,8 +239,14 @@ export const UserProfile = () => {
                                             </div>
                                         )}
                                         <div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
-                                            <span>❤️ {post.likeCount || 0}</span>
-                                            <span>💬 {post.commentCount || 0}</span>
+                                            <span className="flex items-center gap-1">
+                                                <Heart className="w-4 h-4 text-gray-400" />
+                                                <span className="text-gray-400">{post.likeCount || 0}</span>
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <MessageCircle className="w-4 h-4 text-gray-400" />
+                                                <span className="text-gray-400">{post.commentCount || 0}</span>
+                                            </span>
                                         </div>
                                     </div>
                                 ))}
@@ -263,29 +270,31 @@ export const UserProfile = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {followersData.data.map((follower: any) => (
-                                    <div key={follower.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                                        <img
-                                            src={follower.avatar || avatarImage}
-                                            alt={follower.displayName}
-                                            className="w-16 h-16 rounded-full mb-2 object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = avatarImage;
-                                            }}
-                                        />
-                                        <p className="font-semibold text-white text-sm text-center truncate w-full">{follower.displayName}</p>
-                                        <p className="text-xs text-gray-400 text-center">@{follower.userName}</p>
-                                        <button
-                                            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded text-sm"
-                                            onClick={() => {
-                                                if (follower.userName) {
-                                                    navigate(`/profile/${follower.userName}`);
-                                                } else {
-                                                    console.error('Username is missing for follower user:', follower);
-                                                }
-                                            }}
-                                        >
-                                            Xem profile
-                                        </button>
+                                    <div key={follower.id} className="rounded-2xl p-[1px] bg-[linear-gradient(135deg,rgba(255,103,64,0.35),rgba(255,255,255,0.08)_28%,rgba(255,255,255,0)_100%)]">
+                                        <div className="bg-[#0b0d11] rounded-2xl p-4 flex flex-col items-center h-full">
+                                            <img
+                                                src={getAvatarUrl(follower.avatar)}
+                                                alt={follower.displayName}
+                                                className="w-16 h-16 rounded-full mb-2 object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                                }}
+                                            />
+                                            <p className="font-semibold text-white text-sm text-center truncate w-full">{follower.displayName}</p>
+                                            <p className="text-xs text-gray-400 text-center">@{follower.userName}</p>
+                                            <button
+                                                className="bg-[#ff6740] hover:bg-[#e55a36] text-white font-semibold px-5 mt-2 rounded-lg text-sm transition-colors duration-200"
+                                                onClick={() => {
+                                                    if (follower.userName) {
+                                                        navigate(`/profile/${follower.userName}`);
+                                                    } else {
+                                                        console.error('Username is missing for follower user:', follower);
+                                                    }
+                                                }}
+                                            >
+                                                Xem profile
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -308,29 +317,31 @@ export const UserProfile = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {followingData.data.map((following: any) => (
-                                    <div key={following.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center">
-                                        <img
-                                            src={following.avatar || avatarImage}
-                                            alt={following.displayName}
-                                            className="w-16 h-16 rounded-full mb-2 object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = avatarImage;
-                                            }}
-                                        />
-                                        <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
-                                        <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
-                                        <button
-                                            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 mt-2 rounded text-sm"
-                                            onClick={() => {
-                                                if (following.userName) {
-                                                    navigate(`/profile/${following.userName}`);
-                                                } else {
-                                                    console.error('Username is missing for following user:', following);
-                                                }
-                                            }}
-                                        >
-                                            Xem profile
-                                        </button>
+                                    <div key={following.id} className="rounded-2xl p-[1px] bg-[linear-gradient(135deg,rgba(255,103,64,0.35),rgba(255,255,255,0.08)_28%,rgba(255,255,255,0)_100%)]">
+                                        <div className="bg-[#0b0d11] rounded-2xl p-4 flex flex-col items-center h-full">
+                                            <img
+                                                src={getAvatarUrl(following.avatar)}
+                                                alt={following.displayName}
+                                                className="w-16 h-16 rounded-full mb-2 object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                                                }}
+                                            />
+                                            <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
+                                            <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
+                                            <button
+                                                className="bg-[#ff6740] hover:bg-[#e55a36] text-white font-semibold px-5 mt-2 rounded-lg text-sm transition-colors duration-200"
+                                                onClick={() => {
+                                                    if (following.userName) {
+                                                        navigate(`/profile/${following.userName}`);
+                                                    } else {
+                                                        console.error('Username is missing for following user:', following);
+                                                    }
+                                                }}
+                                            >
+                                                Xem profile
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -344,29 +355,36 @@ export const UserProfile = () => {
     };
 
     return (
-        <div className="bg-black text-white font-sans h-screen flex flex-col">
-            <div className="img_banner relative">
+        <div className="bg-[#0b0d11] text-white font-sans min-h-screen flex flex-col">
+            {/* Banner Section */}
+            <div className="relative w-full h-64 sm:h-80">
                 <img
                     src={currentCover}
                     alt="Banner"
-                    className="w-full h-70 object-cover rounded"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = "";
                     }}
                 />
-                <div className="absolute left-8 bottom-[-105px]">
-                    <img
-                        src={currentAvatar}
-                        alt="Avatar"
-                        className="w-60 h-60 rounded-full border-5 border-white"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = "";
-                        }}
-                    />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+
+                {/* Avatar */}
+                <div className="absolute left-6 sm:left-8 bottom-[-60px] sm:bottom-[-80px]">
+                    <div className="relative">
+                        <img
+                            src={getAvatarUrl(currentAvatar)}
+                            alt="Avatar"
+                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white/20 object-cover shadow-lg"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 
-            <div className="profile flex justify-end items-center px-12 space-x-4">
+            {/* Action Buttons */}
+            <div className="flex justify-end items-center px-6 sm:px-8 pt-4 space-x-3">
                 <FollowButton
                     targetUserId={targetUserId}
                     enabled={!isOwnProfile && !!targetUserId}
@@ -379,9 +397,9 @@ export const UserProfile = () => {
                     <>
                         <div
                             onClick={handleMenuOpen}
-                            className="cursor-pointer z-50 relative px-2 py-3 hover:bg-gray-700 rounded"
+                            className="cursor-pointer z-50 relative p-2 hover:bg-white/10 rounded-full transition-colors"
                         >
-                            <MoreHorizIcon style={{ color: '#aaa' }} />
+                            <MoreHorizIcon style={{ color: '#fff' }} />
                         </div>
 
                         <Menu
@@ -422,46 +440,75 @@ export const UserProfile = () => {
                 )}
             </div>
 
-            <div className="px-80">
-                <div className="flex flex-col space-y-1">
+            {/* User Info Section */}
+            <div className="px-6 sm:px-8 mt-16 sm:mt-20">
+                <div className="flex flex-col space-y-3">
                     <div>
-                        <h1 className="text-4xl font-bold leading-tight">
+                        <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-white">
                             {currentDisplayName}
                         </h1>
-                        <p className="text-gray-400">
+                        <p className="text-gray-400 text-sm sm:text-base">
                             @{currentUserName}
                         </p>
                     </div>
 
                     {currentBio && (
-                        <p className="text-gray-300 text-lg mt-2 max-w-2xl break-words overflow-hidden">
+                        <p className="text-gray-300 text-sm sm:text-base mt-2 max-w-2xl break-words overflow-hidden leading-relaxed">
                             {currentBio}
                         </p>
                     )}
 
-                    <p className="text-gray-400">
-                        <strong className="text-gray-400">{currentFollowingCount}</strong> Đang theo dõi
-                        <span className="mx-2">•</span>
-                        <strong className="text-gray-400">{currentFollowerCount}</strong> Người theo dõi
-                        <span className="mx-2">•</span>
-                        <strong className="text-gray-400">{userPosts.length}</strong> Bài đăng
-                    </p>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                        <span className="flex items-center gap-1">
+                            <strong className="text-white">{currentFollowingCount}</strong> Đang theo dõi
+                        </span>
+                        <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                        <span className="flex items-center gap-1">
+                            <strong className="text-white">{currentFollowerCount}</strong> Người theo dõi
+                        </span>
+                        <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                        <span className="flex items-center gap-1">
+                            <strong className="text-white">{userPosts.length}</strong> Bài đăng
+                        </span>
+                    </div>
 
-                    <p className="text-gray-400 flex items-center gap-1">
-                        <CalendarUserIcon className="w-5 h-5" />
+                    <p className="text-gray-400 flex items-center gap-2 text-sm">
+                        <CalendarUserIcon className="w-4 h-4" />
                         Tham gia từ {joinDate}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-4 border-b border-gray-700 flex space-x-9 text-sm px-10">
-                <div onClick={() => setActiveTab('posts')} className={`cursor-pointer ${activeTab === 'posts' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Bài đăng</div>
-                <div onClick={() => setActiveTab('followers')} className={`cursor-pointer ${activeTab === 'followers' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Người theo dõi</div>
-                <div onClick={() => setActiveTab('following')} className={`cursor-pointer ${activeTab === 'following' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Đang theo dõi</div>
-                <div onClick={() => setActiveTab('achievements')} className={`cursor-pointer ${activeTab === 'achievements' ? 'border-b-2 border-orange-500' : 'hover:text-gray-300'}`}>Thành tựu</div>
+            {/* Tab Navigation */}
+            <div className="mt-6 border-b border-white/10 flex space-x-8 text-sm px-6 sm:px-8">
+                <div
+                    onClick={() => setActiveTab('posts')}
+                    className={`cursor-pointer pb-3 transition-colors ${activeTab === 'posts' ? 'border-b-2 border-[#ff6740] text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                >
+                    Bài đăng
+                </div>
+                <div
+                    onClick={() => setActiveTab('followers')}
+                    className={`cursor-pointer pb-3 transition-colors ${activeTab === 'followers' ? 'border-b-2 border-[#ff6740] text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                >
+                    Người theo dõi
+                </div>
+                <div
+                    onClick={() => setActiveTab('following')}
+                    className={`cursor-pointer pb-3 transition-colors ${activeTab === 'following' ? 'border-b-2 border-[#ff6740] text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                >
+                    Đang theo dõi
+                </div>
+                <div
+                    onClick={() => setActiveTab('achievements')}
+                    className={`cursor-pointer pb-3 transition-colors ${activeTab === 'achievements' ? 'border-b-2 border-[#ff6740] text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                >
+                    Thành tựu
+                </div>
             </div>
 
-            <div className="follow overflow-y-auto px-10">
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6">
                 {renderTabContent()}
             </div>
         </div>

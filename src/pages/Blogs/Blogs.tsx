@@ -345,11 +345,11 @@ export const Blogs = () => {
               <p className="text-gray-400">Chưa theo dõi ai.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ">
               {followingPosts.map((following: any) => (
                 <div
                   key={following.id}
-                  className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col items-center"
+                  className="bg-white/[0.02] p-4 rounded-lg border border-white/10 flex flex-col items-center bg-[linear-gradient(135deg,rgba(255,103,64,0.35),rgba(255,255,255,0.08)_28%,rgba(255,255,255,0)_100%)]"
                 >
                   <img
                     src={getAvatarUrl(following.avatar)}
@@ -405,11 +405,10 @@ export const Blogs = () => {
           <BlogHeader tab={tab} handleTabChange={handleTabChange} />
           <div className="min-h-screen">
             <div
-              className={`transition-all duration-300 ${
-                transitioning
-                  ? "opacity-0 translate-y-2 pointer-events-none"
-                  : "opacity-100 translate-y-0"
-              }`}
+              className={`transition-all duration-300 ${transitioning
+                ? "opacity-0 translate-y-2 pointer-events-none"
+                : "opacity-100 translate-y-0"
+                }`}
             >
               {renderTabContent()}
             </div>

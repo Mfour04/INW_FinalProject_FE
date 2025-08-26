@@ -521,25 +521,23 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
             <div className="comment p-5 bg-[#1e1e1e] rounded-xl text-white">
                 <div
                     style={{
-                        backgroundColor: "#1e1e1e",
                         color: "#ffffff",
                         padding: "30px",
+                        borderRadius: "7px",
+                        marginTop: "5px",
                     }}
                 >
                     <h3 className="font-semibold">
                         Bình luận ({enrichedComments.length})
                     </h3>
-
-                    <hr
-                        style={{
-                            marginLeft: "-50px",
-                            marginRight: "-50px",
-                            marginTop: "20px",
-                            width: "calc(100% + 100px)",
-                            borderTop: "1px solid #4B5563",
-                        }}
-                    />
                 </div>
+
+                <hr
+                    style={{
+                        width: "100%",
+                        borderTop: "1px solid #4B5563",
+                    }}
+                />
 
                 {auth?.user && (
                     <div className="p-3">

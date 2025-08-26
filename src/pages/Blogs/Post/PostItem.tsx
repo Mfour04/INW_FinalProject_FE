@@ -1,21 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect, useContext } from "react";
-import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import AddCommentOutlinedIcon from "@mui/icons-material/AddCommentOutlined";
-import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "../../../assets/svg/CommentUser/delete.svg";
-import Button from "../../../components/ButtonComponent";
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Flag, UserX } from "lucide-react";
 import ReactPicker from "../Modals/ReactPicker";
 import CommentPopup from "../Comment/CommentPopup";
 import { BlogCommentUser } from "../Comment/BlogCommentUser";
 import { type Post, type VisibleRootComments } from "../types";
-import CommentAdd01Icon from "../../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
-import favorite from "../../../assets/svg/CommentUser/favorite.svg";
-import red_favorite from "../../../assets/svg/CommentUser/red_favorite.svg";
-import Flag02Icon from "../../../assets/svg/CommentUser/flag-02-stroke-rounded.svg";
-import block from "../../../assets/svg/CommentUser/block.svg";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 import { getAvatarUrl } from "../../../utils/avatar";
 
@@ -185,7 +174,7 @@ const PostItem = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-[#1e1e21] rounded-[10px] p-5"
+      className="bg-white/[0.02] rounded-lg border border-white/10 p-4"
     >
       <div className="flex items-start justify-between sm:items-center mb-4 gap-3">
         <div className="flex items-start gap-4">
@@ -228,9 +217,9 @@ const PostItem = ({
             onClick={() =>
               setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
             }
-            className="p-1 hover:bg-gray-700 rounded-full transition-colors duration-200"
+            className="p-1 hover:bg-white/10 rounded-full transition-colors duration-200"
           >
-            <MoreHorizOutlinedIcon className="text-white" />
+            <MoreHorizontal className="w-5 h-5 text-white" />
           </button>
           <AnimatePresence>
             {menuOpenPostId === post.id && (
@@ -243,7 +232,7 @@ const PostItem = ({
                   duration: 0.15,
                   ease: "easeOut",
                 }}
-                className="absolute right-0 mt-2 bg-[#2b2b2c] text-white rounded-md shadow-lg overflow-hidden w-[140px] text-sm z-10 border border-[#444]"
+                className="absolute right-0 mt-2 bg-white/[0.08] backdrop-blur-sm text-white rounded-lg shadow-lg overflow-hidden w-[160px] text-sm z-10 border border-white/20"
               >
                 {isOwnPost ? (
                   <>
@@ -253,11 +242,11 @@ const PostItem = ({
                         setEditContent(post.content);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "#3a3a3a" }}
+                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                       Cập nhật
                     </motion.button>
                     <motion.button
@@ -265,11 +254,11 @@ const PostItem = ({
                         onRequestDelete("post", post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "#3a3a3a" }}
+                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <img src={DeleteIcon} className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                       Xóa bài viết
                     </motion.button>
                   </>
@@ -280,11 +269,11 @@ const PostItem = ({
                         alert("Chức năng chặn người dùng sẽ được phát triển sau");
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "#3a3a3a" }}
+                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <img src={block} className="w-4 h-4" />
+                      <UserX className="w-4 h-4" />
                       Chặn người dùng
                     </motion.button>
                     <motion.button
@@ -292,11 +281,11 @@ const PostItem = ({
                         setReportPostId(post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "#3a3a3a" }}
+                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <img src={Flag02Icon} className="w-4 h-4" />
+                      <Flag className="w-4 h-4" />
                       Báo cáo bài viết
                     </motion.button>
                   </>
@@ -424,11 +413,10 @@ const PostItem = ({
         )}
       </AnimatePresence>
 
-      <div className="border-t border-[#656565] pt-4">
+      <div className="border-t border-white/10 pt-4">
         <div className="flex items-center gap-6">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              isLoading={false}
+            <button
               onClick={() => {
                 if (onToggleLike) {
                   onToggleLike(post.id);
@@ -436,37 +424,35 @@ const PostItem = ({
                   setRealTimeLikeCount(isLiked ? Math.max(0, currentCount - 1) : currentCount + 1);
                 }
               }}
-              className="flex items-center gap-2 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
+              className="flex items-center gap-2 group hover:text-[#ff6740] transition-colors duration-200 bg-transparent border-none"
               aria-label={isLiked ? "Hủy yêu thích" : "Yêu thích bài viết"}
             >
               <div className="flex items-center gap-2">
-                <img
-                  src={isLiked ? red_favorite : favorite}
-                  className="w-5 h-5"
-                  alt={isLiked ? "Đã yêu thích" : "Yêu thích"}
+                <Heart
+                  className={`w-5 h-5 ${isLiked ? "text-red-500 fill-current" : "text-white"}`}
                 />
                 <span
-                  className={`text-sm sm:text-base font-medium ${isLiked ? "text-red-500" : "text-white"
+                  className={`text-sm font-medium ${isLiked ? "text-red-500" : "text-white"
                     } group-hover:text-[#ff6740] transition-colors duration-200`}
                 >
                   {realTimeLikeCount !== undefined ? realTimeLikeCount : post.likes}
                 </span>
               </div>
-            </Button>
+            </button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
+            <button
               onClick={handleToggleComments}
-              className="flex items-center gap-2 group hover:text-[#ff6740] hover:bg-transparent transition-colors duration-200 bg-transparent border-none"
+              className="flex items-center gap-2 group hover:text-[#ff6740] transition-colors duration-200 bg-transparent border-none"
               aria-label={showCommentPopup ? "Đóng bình luận" : "Mở bình luận"}
             >
               <div className="flex items-center gap-2">
-                <img src={CommentAdd01Icon} className="w-5 h-5" alt="Bình luận" />
-                <span className="text-sm sm:text-base font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
+                <MessageCircle className="w-5 h-5 text-white" />
+                <span className="text-sm font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
                   {realTimeCommentCount !== undefined ? realTimeCommentCount : post.comments}
                 </span>
               </div>
-            </Button>
+            </button>
           </motion.div>
         </div>
       </div>
