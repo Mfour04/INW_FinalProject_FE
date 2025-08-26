@@ -18,11 +18,6 @@ const TYPE_OPTIONS: { label: string; value: number | undefined }[] = [
   { label: "Mua chương", value: 3 },
 ];
 
-const SORT_SIMPLE = [
-  { label: "Mới nhất", value: "created_at:desc" },
-  { label: "Cũ nhất", value: "created_at:asc" },
-];
-
 export const TransactionHistory = () => {
   const [params, setParams] = useState<GetUserHistoryParams>({
     page: 0,
@@ -48,10 +43,6 @@ export const TransactionHistory = () => {
   const currentPage = params.page ?? 0;
   const canLoadMore = currentPage < totalPage - 1;
   4;
-
-  useEffect(() => {
-    console.log(params);
-  }, [params]);
 
   useEffect(() => {
     if (!data?.items) {
@@ -102,18 +93,7 @@ export const TransactionHistory = () => {
               options={TYPE_OPTIONS}
               className="w-[180px]"
             />
-            <CustomSelect
-              value={params.sortBy}
-              onChange={(v) =>
-                setParams((old) => ({
-                  ...old,
-                  page: 0,
-                  sortBy: v,
-                }))
-              }
-              options={SORT_SIMPLE}
-              className="w-[160px]"
-            />
+
             {isFetching ? (
               <Loader2 className="h-4 w-4 animate-spin text-slate-500 dark:text-white/60" />
             ) : null}
