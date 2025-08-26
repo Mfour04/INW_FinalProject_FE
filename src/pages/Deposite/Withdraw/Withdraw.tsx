@@ -3,7 +3,7 @@ import Coin20 from "../../../assets/img/Transaction/coin-20.png";
 import Coin50 from "../../../assets/img/Transaction/coin-50.png";
 import Coin100 from "../../../assets/img/Transaction/coin-100.png";
 import Coin500 from "../../../assets/img/Transaction/coin-500.png";
-import Coin1000 from "../../../assets/img/Transaction/coin-1000.png";
+import Coin1000 from "../../../assets/img/Transaction/coin-200.png";
 import { WithdrawCard, type Coin } from "./WithdrawCard";
 import Button from "../../../components/ButtonComponent";
 import { useMutation, useQuery } from "@tanstack/react-query";
