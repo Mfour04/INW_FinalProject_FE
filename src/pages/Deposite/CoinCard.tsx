@@ -1,9 +1,10 @@
+// CoinCard.tsx
 import Button from "../../components/ButtonComponent";
 
 export type Coin = {
   amount: number;
   image: string;
-  price: number; 
+  price: number;
 };
 
 export type CoinProps = {
@@ -16,14 +17,12 @@ export const CoinCard = ({ coin, onBuyClick, isLoading }: CoinProps) => {
   return (
     <div
       className={[
-        "group relative flex w-full cursor-default select-none",
-        "flex-col items-center justify-between gap-3 rounded-xl p-5",
-        "bg-gradient-to-b from-zinc-800 to-zinc-900",
-        "border border-zinc-700 transition-all duration-200 ease-out",
-        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
+        "group relative flex w-full cursor-default select-none flex-col items-center justify-between gap-3 rounded-xl p-5",
+        "bg-white border border-zinc-200 shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5",
+        "dark:bg-gradient-to-b dark:from-zinc-800 dark:to-zinc-900 dark:border-zinc-700",
       ].join(" ")}
     >
-      <div className="rounded-full bg-zinc-700/40 p-3.5 shadow-inner">
+      <div className="rounded-full bg-zinc-100 p-3.5 shadow-inner dark:bg-zinc-700/40">
         <img
           src={coin.image}
           alt="coin"
@@ -33,7 +32,7 @@ export const CoinCard = ({ coin, onBuyClick, isLoading }: CoinProps) => {
       </div>
 
       <div className="text-center">
-        <div className="text-white font-bold text-lg tracking-wide">
+        <div className="text-gray-900 font-bold text-lg tracking-wide dark:text-white">
           {coin.amount.toLocaleString("vi-VN")} <span className="opacity-90">Xu</span>
         </div>
       </div>
@@ -58,7 +57,7 @@ export const CoinCard = ({ coin, onBuyClick, isLoading }: CoinProps) => {
         {coin.price.toLocaleString("vi-VN")} VND
       </Button>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-white/5 opacity-0" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-black/5 opacity-0 dark:bg-white/5" />
     </div>
   );
 };

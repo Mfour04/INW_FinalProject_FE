@@ -1,3 +1,4 @@
+// WithdrawCard.tsx
 export type Coin = {
   amount: number; // VND
   image: string;
@@ -26,17 +27,15 @@ export const WithdrawCard = ({ coin, selected, onClick }: CoinProps) => {
       onClick={onClick}
       onKeyDown={handleKeyDown}
       className={[
-        "group relative flex w-full cursor-pointer select-none",
-        "flex-col items-center justify-between gap-3 rounded-xl p-5",
-        "bg-gradient-to-b from-zinc-800 to-zinc-900",
-        "border transition-all duration-200 ease-out",
-        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
-        selected
-          ? "border-transparent ring-2 ring-[#ff6740]/80"
-          : "border-zinc-700 hover:border-zinc-500",
+        "group relative flex w-full cursor-pointer select-none flex-col items-center justify-between gap-3 rounded-xl p-5",
+        // Light base
+        "bg-white border border-zinc-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ease-out",
+        // Dark override
+        "dark:bg-gradient-to-b dark:from-zinc-800 dark:to-zinc-900 dark:border-zinc-700",
+        selected ? "ring-2 ring-[#ff6740]/80" : ""
       ].join(" ")}
     >
-      <div className="rounded-full bg-zinc-700/40 p-3.5 shadow-inner">
+      <div className="rounded-full bg-zinc-100 p-3.5 shadow-inner dark:bg-zinc-700/40">
         <img
           src={coin.image}
           alt="coin"
@@ -46,9 +45,8 @@ export const WithdrawCard = ({ coin, selected, onClick }: CoinProps) => {
       </div>
 
       <div className="text-center">
-        <div className="text-white font-bold text-lg tracking-wide">
-          {coin.amount.toLocaleString("vi-VN")}{" "}
-          <span className="opacity-90">VND</span>
+        <div className="text-gray-900 font-bold text-lg tracking-wide dark:text-white">
+          {coin.amount.toLocaleString("vi-VN")} <span className="opacity-90">VND</span>
         </div>
       </div>
 
@@ -70,7 +68,7 @@ export const WithdrawCard = ({ coin, selected, onClick }: CoinProps) => {
         <span>{coin.price.toLocaleString("vi-VN")} Xu</span>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-xl bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity dark:bg-white/5" />
     </div>
   );
 };

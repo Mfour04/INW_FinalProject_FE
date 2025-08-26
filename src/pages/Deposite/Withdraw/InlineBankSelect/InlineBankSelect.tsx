@@ -1,3 +1,4 @@
+// InlineBankSelect.tsx
 import { useEffect, useRef, useState } from "react";
 import type { UiBank, VietQrBank } from "./BankSelectType";
 import { useQuery } from "@tanstack/react-query";
@@ -55,8 +56,7 @@ export const InlineBankSelect = ({
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -74,7 +74,7 @@ export const InlineBankSelect = ({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full h-8 px-2 rounded-md border border-zinc-700 bg-zinc-800 text-white text-xs flex items-center justify-between hover:border-zinc-500 transition"
+        className="w-full h-8 px-2 rounded-md border border-zinc-300 bg-white text-gray-900 text-xs flex items-center justify-between hover:border-zinc-400 transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -90,7 +90,7 @@ export const InlineBankSelect = ({
                     draggable={false}
                   />
                 ) : (
-                  <span className="h-4 w-4 rounded bg-zinc-700 text-[9px] leading-4 text-white grid place-items-center">
+                  <span className="h-4 w-4 rounded bg-zinc-200 text-[9px] leading-4 text-zinc-800 grid place-items-center dark:bg-zinc-700 dark:text-white">
                     {(value.shortName || "BK").slice(0, 2).toUpperCase()}
                   </span>
                 )}
@@ -98,7 +98,7 @@ export const InlineBankSelect = ({
               {value.shortName}
             </span>
           ) : (
-            <span className="text-zinc-400">{placeholder}</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{placeholder}</span>
           )}
         </span>
         <svg
@@ -113,14 +113,14 @@ export const InlineBankSelect = ({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-zinc-700 bg-zinc-900 shadow-lg overflow-hidden">
-          <div className="p-2 border-b border-zinc-800">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-zinc-200 bg-white shadow-lg overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="p-2 border-b border-zinc-200 dark:border-zinc-800">
             <div className="relative">
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Tìm ngân hàng..."
-                className="w-full h-8 pl-7 pr-2 rounded-md bg-zinc-800 text-white text-xs placeholder-zinc-500 border border-zinc-700 focus:border-[#ff6740] outline-none"
+                className="w-full h-8 pl-7 pr-2 rounded-md bg-white text-gray-900 text-xs placeholder-zinc-400 border border-zinc-300 focus:border-[#ff6740] outline-none dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500 dark:border-zinc-700"
               />
               <svg
                 className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none"
@@ -137,10 +137,10 @@ export const InlineBankSelect = ({
 
           <div role="listbox" tabIndex={-1} className="max-h-60 overflow-auto">
             {isLoading && (
-              <div className="px-2 py-3 text-xs text-zinc-400">Đang tải...</div>
+              <div className="px-2 py-3 text-xs text-zinc-500 dark:text-zinc-400">Đang tải...</div>
             )}
             {!isLoading && err && (
-              <div className="px-2 py-3 text-xs text-red-400">{err}</div>
+              <div className="px-2 py-3 text-xs text-red-500 dark:text-red-400">{err}</div>
             )}
             {!isLoading && !err && (
               <>
@@ -162,10 +162,7 @@ export const InlineBankSelect = ({
                           setOpen(false);
                         }
                       }}
-                      className={[
-                        "px-2 py-2 text-xs cursor-pointer flex items-center gap-2",
-                        "hover:bg-zinc-800 transition",
-                      ].join(" ")}
+                      className="px-2 py-2 text-xs cursor-pointer flex items-center gap-2 hover:bg-zinc-100 transition dark:hover:bg-zinc-800"
                       title={b.shortName}
                     >
                       <span className="h-6 w-6 shrink-0 grid place-items-center">
@@ -177,16 +174,16 @@ export const InlineBankSelect = ({
                             draggable={false}
                           />
                         ) : (
-                          <span className="h-6 w-6 rounded bg-zinc-700 text-white text-[10px] grid place-items-center">
+                          <span className="h-6 w-6 rounded bg-zinc-200 text-zinc-800 text-[10px] grid place-items-center dark:bg-zinc-700 dark:text-white">
                             {b.shortName.slice(0, 2).toUpperCase()}
                           </span>
                         )}
                       </span>
-                      <span className="text-white">{b.shortName}</span>
+                      <span className="text-gray-900 dark:text-white">{b.shortName}</span>
                     </div>
                   ))
                 ) : (
-                  <div className="px-2 py-3 text-xs text-zinc-400">
+                  <div className="px-2 py-3 text-xs text-zinc-500 dark:text-zinc-400">
                     Không tìm thấy ngân hàng
                   </div>
                 )}

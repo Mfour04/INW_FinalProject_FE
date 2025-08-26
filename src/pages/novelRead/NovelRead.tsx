@@ -13,20 +13,18 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
-import { CommentUser } from "../commentUser/CommentUser";
+import { CommentUser } from "../CommentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
-import { renderTextWithNewlines } from "../novelRead/util";
+import { renderTextWithNewlines } from "./util";
 
 import { Type, Flag, Settings2 } from "lucide-react";
 import { SpeechControls } from "./components/SpeechControls";
 
-// ⬇️ Thêm import ReportModal
 import { ReportModal, type ReportPayload } from "../../components/ReportModal/ReportModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
 
-// --- (tuỳ chọn) scale mượt khi khung hẹp ---
 const calcScale = (available: number, base: number) => {
   const minScale = 0.24;
   const minW = base * 0.4;
@@ -172,7 +170,10 @@ export const NovelRead = () => {
   const { start, pause, stop } = useSpeech({ text: cleanText, lang: "vi-VN" });
 
   const ghostBtn =
-    "inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed border bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 dark:border-white/12 dark:bg:white/[0.05] dark:hover:bg-white/[0.1] dark:text-white";
+    "inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed " +
+    "border border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200 " +
+    "dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20";
+
   const gradBtn =
     "inline-flex items-center justify-center rounded-full px-4 py-2 text-[13px] font-semibold text-white !bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177] transition";
 
@@ -219,7 +220,6 @@ export const NovelRead = () => {
     };
   }, []);
 
-  // Handlers cho SpeechControls
   const handleStart = () => {
     setSpeechState("started");
     start();
@@ -256,7 +256,6 @@ export const NovelRead = () => {
       <div ref={pageTopRef} />
 
       <div className="relative mx-auto w-full px-4 py-6">
-        {/* SECTION: toolbar sẽ được gắn vào mép phải của khung trắng này */}
         <section
           ref={sectionRef}
           className="relative rounded-2xl backdrop-blur-md bg-white ring-1 ring-gray-200 shadow-md dark:bg-[#0b0c0e]/90 dark:ring-white/12"
@@ -264,7 +263,6 @@ export const NovelRead = () => {
           <header className="px-6 pt-6 pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                {/* Breadcrumb rút gọn: [Novel] / Chương {n} */}
                 <div className="flex items-center gap-2 text-[13px]">
                   <Link
                     to={`/novels/${novelId}`}
@@ -281,7 +279,6 @@ export const NovelRead = () => {
               </div>
             </div>
 
-            {/* Title tách riêng & căn giữa */}
             <div className="my-2 w-full flex justify-center">
               <h1 className="text-[22px] md:text-[24px] font-extrabold tracking-tight text-center max-w-[min(90vw,1100px)]">
                 {chapterTitle || "Đang tải chương…"}
@@ -289,7 +286,6 @@ export const NovelRead = () => {
             </div>
           </header>
 
-          {/* ===== TOP NAV (giống footer) ===== */}
           <div className="px-6 pb-2">
             <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
               <div className="flex items-center justify-center gap-2.5">
@@ -306,7 +302,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* ===== TOOLBAR: sticky TRONG section, mép phải của section ===== */}
           <div className="hidden md:block sticky top-20 z-40">
             <div className="relative">
               <div
@@ -314,7 +309,6 @@ export const NovelRead = () => {
                 style={{ transform: `scale(${scale})`, transformOrigin: "top right" }}
               >
                 <div className={toolGroup}>
-                  {/* Reader Prefs */}
                   <div className="relative">
                     <button
                       onClick={() => setOpenPrefs((s) => !s)}
@@ -345,7 +339,6 @@ export const NovelRead = () => {
                     )}
                   </div>
 
-                  {/* Speech Controls */}
                   <SpeechControls
                     state={speechState}
                     onStart={handleStart}
@@ -354,7 +347,6 @@ export const NovelRead = () => {
                     onStop={handleStop}
                   />
 
-                  {/* Report */}
                   <button
                     onClick={() => setOpenReport(true)}
                     className={toolBtn}
@@ -371,7 +363,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* ===== CONTENT WRAPPER ===== */}
           <div className="px-0 md:px-6 py-6 bg-white dark:bg-[#0f1013]/80">
             <div
               ref={contentWrapRef}
@@ -400,7 +391,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* MOBILE bottom bar */}
           <div className="md:hidden sticky bottom-0 inset-x-0 z-50 border-t border-black/5 bg-white/95 backdrop-blur px-3 py-2 dark:bg-[#0b0c0e]/90 dark:border-white/10">
             <div className="mx-auto max-w-[680px] flex items-center justify-between gap-2">
               <button
@@ -431,7 +421,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* Footer nav */}
           <div className="px-6 pt-2 pb-8">
             <div className="mx-auto" style={{ maxWidth: `${WIDTH_LEVELS[widthIdx]}px` }}>
               <div className="flex items-center justify-center gap-2.5">

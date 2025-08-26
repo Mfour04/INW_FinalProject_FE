@@ -127,7 +127,7 @@ export const AboutUs = () => {
         </p>
         <div className="mt-5 flex justify-center gap-3">
           <a
-            href="mailto:hello@your-domain.vn"
+            href="/contact"
             className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium shadow-sm hover:opacity-95 transition`}
           >
             Liên hệ ngay

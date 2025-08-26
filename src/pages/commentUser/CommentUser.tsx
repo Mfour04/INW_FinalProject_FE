@@ -4,7 +4,7 @@ import type { Comment } from "./types.ts";
 import { AuthContext } from "../../context/AuthContext/AuthProvider.tsx";
 import { formatVietnamTimeFromTicks, getCurrentTicks } from "../../utils/date_format.ts";
 import defaultAvatar from "../../assets/img/default_avt.png";
-import { getAvatarUrl } from "../../utils/avatar";
+import { getAvatarUrl } from "../../utils/avatar.ts";
 import { Composer } from "./components/Composer.tsx";
 import { ReplyThread } from "./components/ReplyThread.tsx";
 import { useComments } from "./hooks/useComments.ts";
