@@ -1,13 +1,23 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect, useContext } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Flag, UserX } from "lucide-react";
-import ReactPicker from "../Modals/ReactPicker";
-import CommentPopup from "../Comment/CommentPopup";
-import { BlogCommentUser } from "../Comment/BlogCommentUser";
-import { type Post, type VisibleRootComments } from "../types";
-import { AuthContext } from "../../../context/AuthContext/AuthProvider";
-import { getAvatarUrl } from "../../../utils/avatar";
+import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
+import {
+  MoreVertical,
+  Edit3,
+  Trash2,
+  Flag,
+  ShieldBan,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 
+import { BlogCommentUser } from "../Comment/BlogCommentUser";
+import { AuthContext } from "../../../context/AuthContext/AuthProvider";
+
+import { PostContent } from "./components/PostContent";
+import { PostImages } from "./components/PostImages";
+import PostInlineEditor from "./components/PostInlineEditor";
+
+import type { Post, VisibleRootComments } from "../types";
 
 interface PostItemProps {
   post: Post;
@@ -16,26 +26,28 @@ interface PostItemProps {
   editingPostId: string | null;
   setEditingPostId: (value: string | null) => void;
   setReportPostId: (value: string | null) => void;
-  openComments: Set<string>;
-  setOpenComments: (value: Set<string>) => void;
-  visibleRootComments: VisibleRootComments;
-  setVisibleRootComments: (value: VisibleRootComments) => void;
-  isMobile: boolean;
-  openReplyId: string | null;
-  setOpenReplyId: (value: string | null) => void;
-  menuOpenCommentId: string | null;
-  setMenuOpenCommentId: (value: string | null) => void;
-  editingCommentId: string | null;
-  setEditingCommentId: (value: string | null) => void;
-  editedContent: string;
-  setEditedContent: (value: string) => void;
-  setReportCommentId: (value: string | null) => void;
-  replyingTo: { commentId: string; username: string } | null;
-  setReplyingTo: (
-    value: { commentId: string; username: string } | null
-  ) => void;
-  commentInput: string;
-  setCommentInput: (value: string) => void;
+
+  openComments?: Set<string>;
+  setOpenComments?: (value: Set<string>) => void;
+  visibleRootComments?: VisibleRootComments;
+  setVisibleRootComments?: (value: VisibleRootComments) => void;
+  isMobile?: boolean;
+
+  openReplyId?: string | null;
+  setOpenReplyId?: (value: string | null) => void;
+  menuOpenCommentId?: string | null;
+  setMenuOpenCommentId?: (value: string | null) => void;
+  editingCommentId?: string | null;
+  setEditingCommentId?: (value: string | null) => void;
+  editedContent?: string;
+  setEditedContent?: (value: string) => void;
+  setReportCommentId?: (value: string | null) => void;
+
+  replyingTo?: { commentId: string; username: string } | null;
+  setReplyingTo?: (value: { commentId: string; username: string } | null) => void;
+  commentInput?: string;
+  setCommentInput?: (value: string) => void;
+
   onRequestDelete: (type: "post" | "comment", id: string) => void;
   onToggleLike?: (postId: string) => void;
   isLiked?: boolean;
@@ -50,24 +62,6 @@ const PostItem = ({
   editingPostId,
   setEditingPostId,
   setReportPostId,
-  openComments,
-  setOpenComments,
-  visibleRootComments,
-  setVisibleRootComments,
-  isMobile,
-  openReplyId,
-  setOpenReplyId,
-  menuOpenCommentId,
-  setMenuOpenCommentId,
-  editingCommentId,
-  setEditingCommentId,
-  editedContent,
-  setEditedContent,
-  setReportCommentId,
-  replyingTo,
-  setReplyingTo,
-  commentInput,
-  setCommentInput,
   onRequestDelete,
   onToggleLike,
   isLiked = false,
@@ -76,218 +70,136 @@ const PostItem = ({
 }: PostItemProps) => {
   const { auth } = useContext(AuthContext);
   const isOwnPost = post.user.username === auth?.user?.userName;
+
   const menuRef = useRef<HTMLDivElement>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [showCommentPopup, setShowCommentPopup] = useState(false);
-  const hoverTimeoutRef = useRef<number | null>(null);
-  const [editContent, setEditContent] = useState(post.content);
-  const [realTimeCommentCount, setRealTimeCommentCount] = useState<number | undefined>(undefined);
-  const [realTimeLikeCount, setRealTimeLikeCount] = useState<number | undefined>(undefined);
+  const [editContent, setEditContent] = useState(post.content ?? "");
+  const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
+  const [commentCount, setCommentCount] = useState<number>(post.comments ?? 0);
 
-  const emojiTextMap: { [key: string]: string } = {
-    "👍": "Thích",
-    "❤️": "Yêu thích",
-    "😂": "Haha",
-    "😮": "Ê nha",
-    "😢": "Sầu",
-    "😣": "Thương thương",
-  };
+  const content = post.content ?? "";
 
-  const emojiColorMap: { [key: string]: string } = {
-    "👍": "#3b82f6",
-    "❤️": "#ef4444",
-    "😂": "#eab308",
-    "😮": "#8b5cf6",
-    "😢": "#06b6d4",
-    "😣": "#ec4899",
-  };
+  useEffect(() => setLikeCount(post.likes ?? 0), [post.likes]);
+  useEffect(() => setCommentCount(post.comments ?? 0), [post.comments]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpenPostId(null);
       }
     };
-
-    if (menuOpenPostId === post.id) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (menuOpenPostId === post.id) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, [menuOpenPostId, post.id, setMenuOpenPostId]);
 
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-  }, [post.id, openComments, showCommentPopup, isMobile]);
-
-  useEffect(() => {
-    setRealTimeLikeCount(undefined);
-  }, [post.likes]);
-
-  useEffect(() => {
-    if (realTimeCommentCount === undefined) {
-      setRealTimeCommentCount(post.comments);
+  const images: string[] = useMemo(() => {
+    if (Array.isArray((post as any).imgUrls)) {
+      return (post as any).imgUrls.filter(Boolean);
     }
-  }, [post.comments, realTimeCommentCount]);
-
-  useEffect(() => {
-  }, [realTimeCommentCount]);
-
-  useEffect(() => {
-    setRealTimeCommentCount(undefined);
-  }, [post.id]);
-
-  const handleToggleComments = () => {
-    setShowCommentPopup(!showCommentPopup);
-  };
-
-  const handleEmojiClick = (emoji: string) => {
-    setSelectedEmoji(emoji);
-    setShowEmojiPicker(false);
-  };
-
-  const handleMouseEnter = () => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setShowEmojiPicker(true);
-    }, 1000);
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
+    const raw = (post as any).images;
+    if (Array.isArray(raw)) {
+      return raw
+        .map((it: any) => (typeof it === "string" ? it : it?.url))
+        .filter((u: any) => typeof u === "string" && u.length > 0);
     }
-    setShowEmojiPicker(false);
-  };
+    return [];
+  }, [post]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white/[0.02] rounded-lg border border-white/10 p-4"
+      transition={{ duration: 0.18 }}
+      className="rounded-2xl border border-white/[0.07] bg-[#141518] shadow-[0_10px_28px_rgba(0,0,0,0.45)]"
     >
-      <div className="flex items-start justify-between sm:items-center mb-4 gap-3">
+      {/* HEADER */}
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
         <div className="flex items-start gap-4">
           <img
-            src={getAvatarUrl(post.user.avatar)}
+            src={post.user.avatar}
             alt={post.user.name}
-            className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => {
-              const username = post.user.username?.replace('@', '');
-              if (username) {
-                window.location.href = `/profile/${username}`;
-              }
-            }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = getAvatarUrl(null);
-            }}
+            className="w-11 h-11 rounded-full object-cover ring-1 ring-white/10"
           />
-          <div className="min-w-0 flex-1">
-            <h3
-              className="text-base font-semibold text-white truncate hover:text-orange-400 transition-colors cursor-pointer"
-              onClick={() => {
-                const username = post.user.username?.replace('@', '');
-                if (username) {
-                  window.location.href = `/profile/${username}`;
-                }
-              }}
-              title={`Xem profile của ${post.user.name}`}
-            >
-              {post.user.name}
-            </h3>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span>@{post.user.username?.replace('@', '')}</span>
-              <div className="w-[4px] h-[4px] bg-gray-400 rounded-full"></div>
-              <span className="text-[#cecece]">{updatedTimestamp || post.timestamp}</span>
+          <div className="leading-tight">
+            <div className="flex items-center gap-1">
+              <span className="text-[16px] font-semibold text-white">
+                {post.user.name}
+              </span>
+              <span className="text-[13px] text-white/55">@{post.user.username}</span>
+            </div>
+
+            <div className="mt-0.5 text-[12px] text-white/45">
+              {updatedTimestamp || post.timestamp}
             </div>
           </div>
         </div>
+
         <div className="relative">
           <button
             onClick={() =>
               setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
             }
-            className="p-1 hover:bg-white/10 rounded-full transition-colors duration-200"
+            className="h-8 w-8 grid place-items-center rounded-lg bg-white/[0.03] hover:bg-white/[0.07] ring-1 ring-white/10 transition"
           >
-            <MoreHorizontal className="w-5 h-5 text-white" />
+            <MoreVertical size={18} className="text-white/85" />
           </button>
+
           <AnimatePresence>
             {menuOpenPostId === post.id && (
               <motion.div
                 ref={menuRef}
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{
-                  duration: 0.15,
-                  ease: "easeOut",
-                }}
-                className="absolute right-0 mt-2 bg-white/[0.08] backdrop-blur-sm text-white rounded-lg shadow-lg overflow-hidden w-[160px] text-sm z-10 border border-white/20"
+                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden bg-[#111214] ring-1 ring-white/10 shadow-[0_12px_36px_-12px_rgba(0,0,0,0.6)] z-10"
               >
                 {isOwnPost ? (
                   <>
-                    <motion.button
+                    <button
                       onClick={() => {
                         setEditingPostId(post.id);
-                        setEditContent(post.content);
+                        setEditContent(content);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit3 size={16} />
                       Cập nhật
-                    </motion.button>
-                    <motion.button
+                    </button>
+                    <button
                       onClick={() => {
                         onRequestDelete("post", post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Xóa bài viết
-                    </motion.button>
+                      <Trash2 size={16} />
+                      Xoá bài viết
+                    </button>
                   </>
                 ) : (
                   <>
-                    <motion.button
+                    <button
                       onClick={() => {
-                        alert("Chức năng chặn người dùng sẽ được phát triển sau");
+                        alert("Chặn người dùng");
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
                     >
-                      <UserX className="w-4 h-4" />
+                      <ShieldBan size={16} />
                       Chặn người dùng
-                    </motion.button>
-                    <motion.button
+                    </button>
+                    <button
                       onClick={() => {
                         setReportPostId(post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors duration-200 flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
                     >
-                      <Flag className="w-4 h-4" />
+                      <Flag size={16} />
                       Báo cáo bài viết
-                    </motion.button>
+                    </button>
                   </>
                 )}
               </motion.div>
@@ -296,175 +208,78 @@ const PostItem = ({
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {editingPostId === post.id ? (
-          <motion.div
-            key="edit-mode"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: "easeInOut",
-            }}
-            className="mb-4 overflow-hidden"
-          >
-            <motion.textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="w-full bg-transparent text-base sm:text-lg text-white placeholder-[#656565] resize-none border border-[#444] focus:border-[#ff6740] outline-none min-h-[80px] sm:min-h-[100px] md:min-h-[120px] font-ibm-plex mb-2 p-2 rounded transition-colors duration-200"
-              initial={{ scale: 0.98 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.15 }}
-              autoFocus
-            />
+      {/* BODY */}
+      <div className="px-4">
+        <AnimatePresence mode="wait">
+          {editingPostId === post.id ? (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.15 }}
-              className="flex flex-wrap gap-2 mb-2"
+              key="edit"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className=""
             >
-              {/* Placeholder for tags */}
+              <PostInlineEditor
+                value={editContent}
+                onChange={setEditContent}
+                onCancel={() => setEditingPostId(null)}
+                onSave={() => {
+                  if (onUpdatePost) onUpdatePost(post.id, editContent.trim());
+                  setEditingPostId(null);
+                }}
+              />
             </motion.div>
-            <motion.input
-              type="file"
-              multiple
-              className="text-white text-sm mb-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.15, duration: 0.15 }}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.15 }}
-              className="flex gap-2"
-            >
-              <motion.button
-                onClick={() => setEditingPostId(null)}
-                className="bg-gray-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 hover:bg-gray-500"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Hủy
-              </motion.button>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <button
-                  onClick={() => {
-                    if (onUpdatePost) {
-                      onUpdatePost(post.id, editContent);
-                      setEditingPostId(null);
-                      setEditContent(post.content);
-                    }
-                  }}
-                  className="bg-[#ff6740] text-white px-3 py-1 rounded-lg transition-colors duration-200 hover:bg-[#ff5722]"
-                >
-                  Lưu
-                </button>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="view-mode"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.15 }}
-            className="mb-4"
-          >
-            <p className="text-base sm:text-lg text-white leading-relaxed">
-              {post.content}
-            </p>
-            {post.imgUrls && post.imgUrls.length > 0 && (
-              <div className="mt-4">
-                {post.imgUrls?.length === 1 ? (
-                  <div className="w-full max-w-md">
-                    <img
-                      src={post.imgUrls[0]}
-                      alt="post-image"
-                      className="w-full aspect-square object-cover rounded-lg"
-                    />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 max-w-md">
-                    {post.imgUrls?.slice(0, 4).map((imgUrl, index) => (
-                      <div key={index} className="relative aspect-square">
-                        <img
-                          src={imgUrl}
-                          alt={`post-image-${index}`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        {index === 3 && post.imgUrls && post.imgUrls.length > 4 && (
-                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                            <span className="text-white font-semibold">+{post.imgUrls.length - 4}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="border-t border-white/10 pt-4">
-        <div className="flex items-center gap-6">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <button
-              onClick={() => {
-                if (onToggleLike) {
-                  onToggleLike(post.id);
-                  const currentCount = realTimeLikeCount !== undefined ? realTimeLikeCount : post.likes;
-                  setRealTimeLikeCount(isLiked ? Math.max(0, currentCount - 1) : currentCount + 1);
-                }
-              }}
-              className="flex items-center gap-2 group hover:text-[#ff6740] transition-colors duration-200 bg-transparent border-none"
-              aria-label={isLiked ? "Hủy yêu thích" : "Yêu thích bài viết"}
-            >
-              <div className="flex items-center gap-2">
-                <Heart
-                  className={`w-5 h-5 ${isLiked ? "text-red-500 fill-current" : "text-white"}`}
-                />
-                <span
-                  className={`text-sm font-medium ${isLiked ? "text-red-500" : "text-white"
-                    } group-hover:text-[#ff6740] transition-colors duration-200`}
-                >
-                  {realTimeLikeCount !== undefined ? realTimeLikeCount : post.likes}
-                </span>
-              </div>
-            </button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <button
-              onClick={handleToggleComments}
-              className="flex items-center gap-2 group hover:text-[#ff6740] transition-colors duration-200 bg-transparent border-none"
-              aria-label={showCommentPopup ? "Đóng bình luận" : "Mở bình luận"}
-            >
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-white" />
-                <span className="text-sm font-medium text-white group-hover:text-[#ff6740] transition-colors duration-200">
-                  {realTimeCommentCount !== undefined ? realTimeCommentCount : post.comments}
-                </span>
-              </div>
-            </button>
-          </motion.div>
-        </div>
+          ) : (
+            <>
+              <PostContent content={content} clampLines={3} />
+              {images.length > 0 && (
+                <div className="mt-4">
+                  <PostImages images={images} />
+                </div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Comment Section */}
-      {showCommentPopup && (
-        <div className="mt-4">
-          <BlogCommentUser
-            postId={post.id}
-            onCommentCountChange={setRealTimeCommentCount}
-          />
+      {/* ACTIONS */}
+      <div className="mt-3 px-4 pb-4">
+        <div className="h-px w-full bg-white/[0.06]" />
+        <div className="mt-3 flex items-center gap-4">
+          <button
+            onClick={() => {
+              onToggleLike?.(post.id);
+              setLikeCount((c) => (isLiked ? Math.max(0, c - 1) : c + 1));
+            }}
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] ring-1 ring-white/10 transition"
+          >
+            <Heart
+              size={18}
+              className={isLiked ? "fill-red-500 text-red-500" : "text-white"}
+            />
+            <span className={`text-sm ${isLiked ? "text-red-400" : "text-white"}`}>
+              {likeCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowCommentPopup((v) => !v)}
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] ring-1 ring-white/10 transition"
+          >
+            <MessageCircle size={18} className="text-white" />
+            <span className="text-sm text-white">{commentCount}</span>
+          </button>
         </div>
-      )}
+
+        {showCommentPopup && (
+          <div className="mt-4">
+            <BlogCommentUser
+              postId={post.id}
+              onCommentCountChange={(n) => setCommentCount(n ?? 0)}
+            />
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 };

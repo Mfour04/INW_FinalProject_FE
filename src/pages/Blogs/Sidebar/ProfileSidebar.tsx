@@ -1,31 +1,11 @@
 import { useAuth } from "../../../hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { GetFollowers, GetFollowing } from "../../../api/UserFollow/user-follow.api";
 import abc from "../../../assets/img/default_avt.png";
-import { getAvatarUrl } from "../../../utils/avatar";
 
 const ProfileSidebar = () => {
   const { auth } = useAuth();
   const displayName = auth?.user?.displayName || auth?.user?.userName || "User";
   const handle = auth?.user?.userName || "user";
-  const avatar = getAvatarUrl(auth?.user?.avatarUrl);
-
-  const { data: followersData } = useQuery({
-    queryKey: ['followers', handle],
-    queryFn: () => GetFollowers(handle),
-    enabled: !!handle,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: followingData } = useQuery({
-    queryKey: ['following', handle],
-    queryFn: () => GetFollowing(handle),
-    enabled: !!handle,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const followerCount = Array.isArray(followersData?.data) ? followersData.data.length : 0;
-  const followingCount = Array.isArray(followingData?.data) ? followingData.data.length : 0;
+  const avatar = auth?.user?.avatarUrl || abc;
 
   return (
     <aside className="w-full mt-6 xl:mt-0">
@@ -64,13 +44,13 @@ const ProfileSidebar = () => {
               <div className="flex items-center gap-2 rounded-full px-3 py-1.5 bg-zinc-900/60 ring-1 ring-zinc-800">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
                 <span className="text-[13px] text-zinc-300">
-                  <b className="text-white">{followingCount}</b> Đang theo dõi
+                  <b className="text-white">3</b> Đang theo dõi
                 </span>
               </div>
               <div className="flex items-center gap-2 rounded-full px-3 py-1.5 bg-zinc-900/60 ring-1 ring-zinc-800">
                 <span className="h-2 w-2 rounded-full bg-sky-400" />
                 <span className="text-[13px] text-zinc-300">
-                  <b className="text-white">{followerCount}</b> Người theo dõi
+                  <b className="text-white">2</b> Người theo dõi
                 </span>
               </div>
             </div>
