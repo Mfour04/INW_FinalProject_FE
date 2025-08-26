@@ -2,7 +2,6 @@ import http from "../../../utils/http";
 import type {
   ReportApiResponse,
   ReportActionApiResponse,
-  ReportStatus,
   ReportParams,
   UpdateActionRequest,
 } from "./report.type";

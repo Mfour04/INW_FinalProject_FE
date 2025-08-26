@@ -11,12 +11,12 @@ const ReportTypeFilter = ({
 }: ReportTypeFilterProps) => {
   const options = [
     { value: "All" as const, label: "Tất cả" },
-    { value: ReportTypeStatus.UserReport, label: "Người dùng" }, // 0
-    { value: ReportTypeStatus.NovelReport, label: "Tiểu thuyết" }, // 1
-    { value: ReportTypeStatus.ChapterReport, label: "Chương" }, // 2
-    { value: ReportTypeStatus.CommentReport, label: "Bình luận" }, // 3
-    { value: ReportTypeStatus.ForumPostReport, label: "Bài viết diễn đàn" }, // 4
-    { value: ReportTypeStatus.ForumCommentReport, label: "Bình luận diễn đàn" }, // 5
+    { value: 5, label: "Người dùng" },
+    { value: 0, label: "Tiểu thuyết" },
+    { value: 1, label: "Chương" },
+    { value: 2, label: "Bình luận" },
+    { value: 3, label: "Bài viết diễn đàn" },
+    { value: 4, label: "Bình luận diễn đàn" },
   ];
 
   return (

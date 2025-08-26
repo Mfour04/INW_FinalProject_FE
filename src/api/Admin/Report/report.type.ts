@@ -128,14 +128,38 @@ export type Report = {
   scope: number;
   reporter: Reporter;
   reason: number;
-  message: string;
+  message?: string;
   status: number;
   action: number;
-  moderator: Reporter;
-  moderatorNote: string;
-  moderatedAt: number;
+  moderator?: Reporter;
+  moderatorNote?: string;
+  moderatedAt?: number;
   createdAt: number;
   updatedAt: number;
+
+  // ==== Novel ====
+  novelId?: string;
+  novelTitle?: string;
+
+  // ==== Chapter ====
+  chapterId?: string;
+  chapterTitle?: string;
+
+  // ==== Comment ====
+  commentId?: string;
+  commentAuthor?: Reporter;
+
+  // ==== Forum Post ====
+  forumPostId?: string;
+  forumPostAuthor?: Reporter;
+
+  // ==== Forum Comment ====
+  forumCommentId?: string;
+  forumCommentAuthor?: Reporter;
+
+  // ==== User ====
+  targetUserId?: string;
+  targetUser?: Reporter;
 };
 
 export interface ReportEntityV2 {
@@ -145,4 +169,4 @@ export interface ReportEntityV2 {
 }
 
 export type ReportApiResponse = ApiResponse<ReportEntityV2>;
-export type ReportActionApiResponse = ApiResponse<ReportEntity>;
+export type ReportActionApiResponse = ApiResponse<Report>;

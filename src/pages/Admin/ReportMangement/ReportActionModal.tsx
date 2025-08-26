@@ -42,6 +42,7 @@ export const ReportActionModal = ({
 
   const handleSubmit = () => {
     onSubmit(reportId, actionRequest);
+    setActionRequest(initialActionRequest);
     onClose();
   };
 
