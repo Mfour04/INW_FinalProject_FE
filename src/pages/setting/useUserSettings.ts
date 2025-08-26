@@ -43,7 +43,6 @@ export const useUpdateUserProfile = () => {
             }
 
             if (backendData && auth?.user) {
-
                 const normalizedData = {
                     DisplayName: backendData.DisplayName || backendData.displayName,
                     Bio: backendData.Bio || backendData.bio,
@@ -65,8 +64,7 @@ export const useUpdateUserProfile = () => {
                 };
 
                 setAuth(updatedAuth);
-
-            } else {
+                queryClient.invalidateQueries({ queryKey: ["auth"] });
             }
         },
         onError: (error: any) => {

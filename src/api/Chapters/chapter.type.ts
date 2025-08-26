@@ -84,10 +84,39 @@ export type NovelChaptersAdmin = {
   data: ChapterAdmin[];
 };
 
+export type ChapterMutationResponse = {
+  chapterId: string;
+  novelId: string;
+  title: string;
+  content: string;
+  chapterNumber: number | null;
+  isPaid: boolean;
+  price: number;
+  scheduledAt: number;
+  isLock: boolean;
+  allowComment: boolean;
+  isDraft: boolean;
+  isPublic: boolean;
+  commentCount: number;
+  totalChapterViews: number;
+  createAt: number;
+  updateAt: number;
+};
+
 export interface CreateChapterResponse {
   success: boolean;
   message: string;
-  data: Chapter;
+  data: {
+    chapter: ChapterMutationResponse;
+  };
+}
+
+export interface UpdateChapterResponse {
+  success: boolean;
+  message: string;
+  data: {
+    chapter: ChapterMutationResponse;
+  };
 }
 
 export type BuyChapterRequest = {
@@ -104,10 +133,19 @@ export interface PublishStatus {
   Public: "PUBLIC";
 }
 
+export interface UpdateChapterLockRequest {
+  chapterIds: string[];
+  isLocked: boolean;
+}
+
 export interface UpdateChapterLockResponse {
   success: boolean;
   message: string;
-  data: {};
+  data: {
+    novelId: string;
+    authorId: string;
+    signalRSent: boolean;
+  };
 }
 
 export type BuyChapterApiResponse = ApiResponse<BuyChapterResponse>;

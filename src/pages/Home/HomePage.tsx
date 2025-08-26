@@ -16,18 +16,22 @@ import {
   SORT_BY_FIELDS,
   SORT_DIRECTIONS,
 } from "./hooks/useSortedNovels";
-import type { TagType as Tag, Novel } from "./types";
+import type { TagType as Tag } from "./types";
 
-import TrendingUp from "@mui/icons-material/TrendingUp";
-import StarRate from "@mui/icons-material/StarRate";
-import MenuBook from "@mui/icons-material/MenuBook";
-import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
-import BookMark from "@mui/icons-material/Bookmark";
-import PencilEdit from "../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
+// === Lucide icons (thay thế toàn bộ MUI & svg cũ) ===
+import {
+  TrendingUp,
+  Star,
+  BookOpen,
+  Eye,
+  Bookmark,
+  PencilLine,
+} from "lucide-react";
 
 import VerticalColumn from "./discovery/VerticalColumn";
 import HorizontalRail from "./discovery/HorizontalRail";
 import { Metric } from "./components/ListRow/Metric";
+import type { Novel } from "../../entity/novel";
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
@@ -140,7 +144,7 @@ export const HomePage = () => {
   const hero = trending[nNovelsIndex];
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-[#0f0f11] dark:text-white">
+    <div className="min-h-screen w-full bg-white text-white dark:bg-[#0f0f11]">
       <div className={`mx-auto ${TOKENS.container} px-6 lg:px-10 py-10`}>
         <Hero
           title="Truyện Vừa Ra Mắt"
@@ -149,7 +153,6 @@ export const HomePage = () => {
           onPrev={handlePrevNovels}
           onNext={handleNextNovels}
           onRead={() => {
-            console.log(hero.slug);
             navigate(`/novels/${hero.slug}`);
           }}
         />
@@ -157,18 +160,22 @@ export const HomePage = () => {
         <div className="mt-10 grid gap-7 md:grid-cols-2">
           <VerticalColumn
             title="Đọc nhiều nhất"
-            icon={<MenuBook />}
+            icon={<BookOpen className="h-5 w-5 text-white" />}
             items={(mostViewed as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
               <Metric
-                icon={<RemoveRedEye sx={{ height: 16 }} />}
+                icon={
+                  <Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                }
                 value={n.totalViews}
               />
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<BookMark sx={{ height: 16 }} />}
+                icon={
+                  <Bookmark className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                }
                 value={n.ratingCount}
               />
             )}
@@ -176,26 +183,34 @@ export const HomePage = () => {
 
           <VerticalColumn
             title="Đánh giá cao"
-            icon={<StarRate />}
+            icon={<Star className="h-5 w-5 text-white" fill="currentColor" />}
             items={(topRated as Novel[]) ?? []}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             leftMeta={(n) => (
               <Metric
-                icon={<StarRate sx={{ height: 16 }} />}
-                value={n.ratingCount}
+                icon={
+                  <Star
+                    className="h-4 w-4 shrink-0 text-yellow-400"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                }
+                value={n.ratingAvg}
               />
             )}
             rightMeta={(n) => (
               <Metric
-                icon={<img className="h-4" src={PencilEdit} />}
-                value={n.totalViews}
+                icon={
+                  <PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                }
+                value={n.ratingCount}
               />
             )}
           />
 
           <HorizontalRail
             title="Xu hướng mới"
-            icon={<TrendingUp fontSize="small" />}
+            icon={<TrendingUp className="h-4 w-4" />}
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             onSeeMore={() => navigate("/trending")}

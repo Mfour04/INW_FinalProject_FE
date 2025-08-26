@@ -10,17 +10,18 @@ import {
     blogGetCurrentTicks,
 } from "../../../utils/date_format";
 
-
 import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentIcon from "../../../assets/svg/CommentUser/sent-stroke-rounded.svg";
 import favorite from "../../../assets/svg/CommentUser/favorite.svg";
 import red_favorite from "../../../assets/svg/CommentUser/red_favorite.svg";
 import CommentAdd01Icon from "../../../assets/svg/CommentUser/comment-add-01-stroke-rounded.svg";
-import defaultAvatar from "../../../assets/img/th.png";
+import defaultAvatar from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 
 import { MoreButton } from "../../commentUser/components/actions/MoreButton";
 import { MoreUser } from "../../commentUser/components/actions/MoreUser";
 import { BlogReply } from "./BlogReply";
+import { ClickableUserInfo } from "../../../components/common/ClickableUserInfo";
 
 import { UseForumComments, UseCreateForumComment, UseUpdateForumComment, UseDeleteForumComment } from "../HooksBlog";
 
@@ -181,9 +182,10 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
             const handleKey = `comment_authorHandle_${comment.id}`;
 
             const name =
+                comment.author?.displayName ||
+                comment.Author?.DisplayName ||
                 comment.author?.username ||
                 comment.Author?.Username ||
-                comment.author?.displayName ||
                 comment.authorName ||
                 comment.userName ||
                 comment.displayName ||
@@ -192,6 +194,10 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                 comment.user?.username ||
                 localStorage.getItem(nameKey) ||
                 "Ẩn danh";
+
+            const finalName = (name === comment.author?.username || name === comment.Author?.Username)
+                ? (auth?.user?.displayName || auth?.user?.userName || name)
+                : name;
 
             const user = comment.author?.username
                 ? `@${comment.author.username}`
@@ -207,7 +213,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                                     ? `@${comment.user.username}`
                                     : localStorage.getItem(handleKey) || "@user";
 
-            const avatarUrl = comment.author?.avatar || comment.Author?.Avatar || comment.avatarUrl || defaultAvatar;
+            const avatarUrl = getAvatarUrl(comment.author?.avatar || comment.Author?.Avatar || comment.avatarUrl);
 
             if (!localStorage.getItem(nameKey)) {
                 localStorage.setItem(nameKey, name);
@@ -222,7 +228,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                 parentId: comment.parentId ?? comment.parentCommentId ?? comment.parent_id ?? null,
                 likes: comment.likeCount ?? 0,
                 replies: comment.replyCount ?? 0,
-                name,
+                name: finalName,
                 user,
                 avatarUrl,
                 timestamp,
@@ -244,7 +250,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
         }
 
         return flatten;
-    }, [rawComments, repliesData]);
+    }, [rawComments, repliesData, auth]);
 
     const localComments: Comment[] = tempComments.map((c) => {
         const nameKey = `comment_authorName_${c.id}`;
@@ -275,6 +281,11 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
             onCommentCountChange(totalCount);
         }
     }, [enrichedComments, onCommentCountChange]);
+
+    useEffect(() => {
+        if (topLevelComments.length > 0) {
+        }
+    }, [topLevelComments]);
 
     const handlePostComment = () => {
         if (!newComment.trim()) return;
@@ -396,6 +407,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
             { content: content, parentCommentId: parentId },
             {
                 onSuccess: (response: any) => {
+
                     if (response?.data?.success === false) {
                         setTempComments((prev) =>
                             prev.filter((c) => c.id !== tempReply.id)
@@ -533,7 +545,7 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                     <div className="p-3">
                         <div className="flex items-center space-x-4">
                             <img
-                                src={currentUser.avatarUrl || defaultAvatar}
+                                src={getAvatarUrl(currentUser.avatarUrl)}
                                 className="w-10 h-10 rounded-full"
                             />
                             <div>
@@ -577,279 +589,299 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: BlogCommentUse
                     </div>
                 )}
 
-                {topLevelComments.map((comment: Comment) => (
-                    <div key={comment.id} className="mb-3 p-3 rounded-md bg-[#2a2a2a]">
-                        <div className="flex justify-between items-start">
-                            <div className="flex items-center space-x-4 min-w-0 flex-1">
-                                <img
-                                    src={comment.avatarUrl || defaultAvatar}
-                                    className="w-10 h-10 rounded-full flex-shrink-0"
-                                />
-                                <div className="min-w-0 flex-1">
-                                    <p className="font-semibold truncate">{comment.name}</p>
-                                    <p className="text-xs text-gray-400 truncate">
-                                        {comment.user} •{" "}
-                                        {comment.id && comment.id.startsWith("temp_")
-                                            ? "Đang gửi..."
-                                            : editedComments[comment.id]?.timestamp ||
-                                            comment.timestamp}
-                                        {editedComments[comment.id] && (
-                                            <span className="italic text-gray-500 ml-1"></span>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex-shrink-0 ml-4 mt-0">
-                                {auth?.user && (comment.user === currentUser.user ||
-                                    comment.name === currentUser.name) ? (
-                                    <MoreUser
-                                        commentId={comment.id}
-                                        onDelete={handleDeleteComment}
-                                        onEdit={() => {
-                                            setEditingCommentId(comment.id);
-                                            setEditValue(editedComments[comment.id]?.content || comment.content);
+                {topLevelComments.map((comment: Comment) => {
+
+                    return (
+                        <div key={comment.id} className="mb-3 p-3 rounded-md bg-[#2a2a2a]">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-start space-x-3 min-w-0 flex-1">
+                                    <img
+                                        src={comment.avatarUrl || ""}
+                                        alt={comment.name || 'User'}
+                                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => {
+                                            const username = comment.user && comment.user.startsWith('@') ? comment.user.substring(1) : comment.user;
+                                            if (username) {
+                                                window.location.href = `/profile/${username}`;
+                                            }
+                                        }}
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "";
                                         }}
                                     />
-                                ) : auth?.user ? (
-                                    <MoreButton />
-                                ) : null}
-                            </div>
-                        </div>
-
-                        <div className="ml-14">
-                            {editingCommentId === comment.id ? (
-                                <div className="flex flex-col gap-2 mt-4">
-                                    <input
-                                        value={editValue}
-                                        onChange={(e) => setEditValue(e.target.value)}
-                                        className="comment w-full"
-                                    />
-                                    <div className="flex gap-3 mt-2">
-                                        <button
+                                    <div className="min-w-0 flex-1">
+                                        <p
+                                            className="text-sm font-semibold text-white truncate hover:text-orange-400 transition-colors cursor-pointer"
                                             onClick={() => {
-                                                updateComment(
-                                                    { commentId: comment.id, content: editValue },
-                                                    {
-                                                        onSuccess: (response: any) => {
-                                                            const ticks = blogGetCurrentTicks();
-                                                            const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(ticks);
-
-                                                            setEditedComments((prev) => ({
-                                                                ...prev,
-                                                                [comment.id]: {
-                                                                    content: editValue,
-                                                                    timestamp: formattedTime,
-                                                                },
-                                                            }));
-
-                                                            localStorage.setItem(
-                                                                `updatedAt_${comment.id}`,
-                                                                String(ticks)
-                                                            );
-
-                                                            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-
-                                                            setEditingCommentId(null);
-                                                            setEditValue("");
-                                                        },
-                                                    }
-                                                );
+                                                const username = comment.user && comment.user.startsWith('@') ? comment.user.substring(1) : comment.user;
+                                                if (username) {
+                                                    window.location.href = `/profile/${username}`;
+                                                }
                                             }}
-                                            className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                                            title={`Xem profile của ${comment.name}`}
                                         >
-                                            Lưu
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setEditingCommentId(null);
-                                                setEditValue("");
-                                            }}
-                                            className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                                        >
-                                            Hủy
-                                        </button>
+                                            {comment.name}
+                                        </p>
+                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                            <span>{comment.user}</span>
+                                            <div className="w-[3px] h-[3px] bg-gray-400 rounded-full"></div>
+                                            <span>
+                                                {comment.id && comment.id.startsWith("temp_")
+                                                    ? "Đang gửi..."
+                                                    : editedComments[comment.id]?.timestamp ||
+                                                    comment.timestamp}
+                                            </span>
+                                            {editedComments[comment.id] && (
+                                                <span className="italic text-gray-500 ml-1"></span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <p className="mb-1">
-                                    {editedComments[comment.id]?.content || comment.content}
-                                </p>
-                            )}
-
-                            <div className="mt-4 flex space-x-6">
-                                <span
-                                    className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
-                                    onClick={() => auth?.user && handleToggleLike(comment.id)}
-                                >
-                                    <img
-                                        src={likedComments[comment.id] ? red_favorite : favorite}
-                                        className="w-5 h-5"
-                                    />
-                                    {editedComments[comment.id]?.likes ??
-                                        (Number(localStorage.getItem(`likes_${comment.id}`)) ||
-                                            comment.likes)}
-                                </span>
-
-                                <span
-                                    className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
-                                    onClick={() => auth?.user && handleReplyClick(comment.id, comment.name)}
-                                >
-                                    <img src={CommentAdd01Icon} />
-                                    {enrichedComments.filter(reply => reply.parentId === comment.id).length}
-                                </span>
+                                <div className="flex-shrink-0 ml-4 mt-0">
+                                    {auth?.user && (comment.user === currentUser.user ||
+                                        comment.name === currentUser.name) ? (
+                                        <MoreUser
+                                            commentId={comment.id}
+                                            onDelete={handleDeleteComment}
+                                            onEdit={() => {
+                                                setEditingCommentId(comment.id);
+                                                setEditValue(editedComments[comment.id]?.content || comment.content);
+                                            }}
+                                        />
+                                    ) : auth?.user ? (
+                                        <MoreButton />
+                                    ) : null}
+                                </div>
                             </div>
 
-                            {replyInputs[comment.id] && auth?.user && (
-                                <div className="mt-4 w-full max-w-full">
-                                    <BlogReply
-                                        currentUser={currentUser}
-                                        replyValue={replyValues[comment.id] || ""}
-                                        onReplyChange={(e) =>
-                                            handleReplyChange(comment.id, e.target.value)
-                                        }
-                                        onReplySubmit={() => handleReplySubmit(comment.id)}
-                                        inputRef={(el) => (inputRefs.current[comment.id] = el)}
-                                    />
+                            <div className="ml-14">
+                                {editingCommentId === comment.id ? (
+                                    <div className="flex flex-col gap-2 mt-4">
+                                        <input
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            className="comment w-full"
+                                        />
+                                        <div className="flex gap-3 mt-2">
+                                            <button
+                                                onClick={() => {
+                                                    updateComment(
+                                                        { commentId: comment.id, content: editValue },
+                                                        {
+                                                            onSuccess: (response: any) => {
+                                                                const ticks = blogGetCurrentTicks();
+                                                                const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(ticks);
+
+                                                                setEditedComments((prev) => ({
+                                                                    ...prev,
+                                                                    [comment.id]: {
+                                                                        content: editValue,
+                                                                        timestamp: formattedTime,
+                                                                    },
+                                                                }));
+
+                                                                localStorage.setItem(
+                                                                    `updatedAt_${comment.id}`,
+                                                                    String(ticks)
+                                                                );
+
+                                                                queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+
+                                                                setEditingCommentId(null);
+                                                                setEditValue("");
+                                                            },
+                                                        }
+                                                    );
+                                                }}
+                                                className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-4 py-2 rounded"
+                                            >
+                                                Lưu
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    setEditingCommentId(null);
+                                                    setEditValue("");
+                                                }}
+                                                className="border border-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+                                            >
+                                                Hủy
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="mb-1">
+                                        {editedComments[comment.id]?.content || comment.content}
+                                    </p>
+                                )}
+
+                                <div className="mt-4 flex space-x-6">
+                                    <span
+                                        className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                                        onClick={() => auth?.user && handleToggleLike(comment.id)}
+                                    >
+                                        <img
+                                            src={likedComments[comment.id] ? red_favorite : favorite}
+                                            className="w-5 h-5"
+                                        />
+                                        {editedComments[comment.id]?.likes ??
+                                            (Number(localStorage.getItem(`likes_${comment.id}`)) ||
+                                                comment.likes)}
+                                    </span>
+
+                                    <span
+                                        className={`flex items-center gap-2 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                                        onClick={() => auth?.user && handleReplyClick(comment.id, comment.name)}
+                                    >
+                                        <img src={CommentAdd01Icon} />
+                                        {enrichedComments.filter(reply => reply.parentId === comment.id).length}
+                                    </span>
                                 </div>
-                            )}
 
-                            {enrichedComments
-                                .filter((reply: Comment) => {
-                                    const isReply = reply.parentId === comment.id;
-                                    return isReply;
-                                })
-                                .map((reply: Comment) => (
-                                    <div key={reply.id} className="reply mt-2">
-                                        <div className="p-3 rounded-md w-full">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex items-center space-x-4 min-w-0 flex-1">
-                                                    <img
-                                                        src={reply.avatarUrl || defaultAvatar}
-                                                        className="w-8 h-8 rounded-full flex-shrink-0"
-                                                    />
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="font-semibold truncate text-sm">{reply.name}</p>
-                                                        <p className="text-xs text-gray-400 truncate">
-                                                            {reply.user} •{" "}
-                                                            {reply.id && reply.id.startsWith("temp_")
-                                                                ? "Đang gửi..."
-                                                                : editedComments[reply.id]?.timestamp ||
-                                                                reply.timestamp}
-                                                        </p>
+                                {replyInputs[comment.id] && auth?.user && (
+                                    <div className="mt-4 w-full max-w-full">
+                                        <BlogReply
+                                            currentUser={currentUser}
+                                            replyValue={replyValues[comment.id] || ""}
+                                            onReplyChange={(e) =>
+                                                handleReplyChange(comment.id, e.target.value)
+                                            }
+                                            onReplySubmit={() => handleReplySubmit(comment.id)}
+                                            inputRef={(el) => (inputRefs.current[comment.id] = el)}
+                                        />
+                                    </div>
+                                )}
+
+                                {enrichedComments
+                                    .filter((reply: Comment) => {
+                                        const isReply = reply.parentId === comment.id;
+                                        return isReply;
+                                    })
+                                    .map((reply: Comment) => (
+                                        <div key={reply.id} className="reply mt-2">
+                                            <div className="p-3 rounded-md w-full">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex items-center space-x-4 min-w-0 flex-1">
+                                                        <ClickableUserInfo
+                                                            username={reply.user && reply.user.startsWith('@') ? reply.user.substring(1) : (reply.user || undefined)}
+                                                            displayName={reply.name || undefined}
+                                                            avatarUrl={reply.avatarUrl || undefined}
+                                                            size="small"
+                                                            showUsername={true}
+                                                        />
+                                                    </div>
+                                                    <div className="reply flex-shrink-0 ml-4 mt-0 px-3">
+                                                        {auth?.user && (reply.user === currentUser.user ||
+                                                            reply.name === currentUser.name) ? (
+                                                            <MoreUser
+                                                                commentId={reply.id}
+                                                                onDelete={handleDeleteComment}
+                                                                onEdit={() => {
+                                                                    setEditingCommentId(reply.id);
+                                                                    setEditValue(editedComments[reply.id]?.content || reply.content);
+                                                                }}
+                                                            />
+                                                        ) : auth?.user ? (
+                                                            <MoreButton />
+                                                        ) : null}
                                                     </div>
                                                 </div>
-                                                <div className="reply flex-shrink-0 ml-4 mt-0 px-3">
-                                                    {auth?.user && (reply.user === currentUser.user ||
-                                                        reply.name === currentUser.name) ? (
-                                                        <MoreUser
-                                                            commentId={reply.id}
-                                                            onDelete={handleDeleteComment}
-                                                            onEdit={() => {
-                                                                setEditingCommentId(reply.id);
-                                                                setEditValue(editedComments[reply.id]?.content || reply.content);
-                                                            }}
-                                                        />
-                                                    ) : auth?.user ? (
-                                                        <MoreButton />
-                                                    ) : null}
-                                                </div>
-                                            </div>
 
-                                            <div className="ml-12">
-                                                {editingCommentId === reply.id ? (
-                                                    <div className="flex flex-col gap-2 mt-2">
-                                                        <input
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            className="comment w-full text-sm"
-                                                        />
-                                                        <div className="flex gap-3">
-                                                            <button
-                                                                onClick={() => {
-                                                                    updateComment(
-                                                                        {
-                                                                            commentId: reply.id,
-                                                                            content: editValue,
-                                                                        },
-                                                                        {
-                                                                            onSuccess: (response: any) => {
-                                                                                const ticks = blogGetCurrentTicks();
-                                                                                const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(ticks);
-
-                                                                                setEditedComments((prev) => ({
-                                                                                    ...prev,
-                                                                                    [reply.id]: {
-                                                                                        content: editValue,
-                                                                                        timestamp: formattedTime,
-                                                                                    },
-                                                                                }));
-
-                                                                                localStorage.setItem(
-                                                                                    `updatedAt_${reply.id}`,
-                                                                                    String(ticks)
-                                                                                );
-
-                                                                                queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-
-                                                                                setEditingCommentId(null);
-                                                                                setEditValue("");
+                                                <div className="ml-12">
+                                                    {editingCommentId === reply.id ? (
+                                                        <div className="flex flex-col gap-2 mt-2">
+                                                            <input
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                className="comment w-full text-sm"
+                                                            />
+                                                            <div className="flex gap-3">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        updateComment(
+                                                                            {
+                                                                                commentId: reply.id,
+                                                                                content: editValue,
                                                                             },
-                                                                        }
-                                                                    );
-                                                                }}
-                                                                className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-3 py-1 rounded text-sm"
-                                                            >
-                                                                Lưu
-                                                            </button>
+                                                                            {
+                                                                                onSuccess: (response: any) => {
+                                                                                    const ticks = blogGetCurrentTicks();
+                                                                                    const formattedTime = blogFormatVietnamTimeFromTicksForUpdate(ticks);
 
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditingCommentId(null);
-                                                                    setEditValue("");
-                                                                }}
-                                                                className="border border-gray-500 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm"
-                                                            >
-                                                                Hủy
-                                                            </button>
+                                                                                    setEditedComments((prev) => ({
+                                                                                        ...prev,
+                                                                                        [reply.id]: {
+                                                                                            content: editValue,
+                                                                                            timestamp: formattedTime,
+                                                                                        },
+                                                                                    }));
+
+                                                                                    localStorage.setItem(
+                                                                                        `updatedAt_${reply.id}`,
+                                                                                        String(ticks)
+                                                                                    );
+
+                                                                                    queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+
+                                                                                    setEditingCommentId(null);
+                                                                                    setEditValue("");
+                                                                                },
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    className="bg-[#ff4500] hover:bg-[#e53e3e] text-white px-3 py-1 rounded text-sm"
+                                                                >
+                                                                    Lưu
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingCommentId(null);
+                                                                        setEditValue("");
+                                                                    }}
+                                                                    className="border border-gray-500 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm"
+                                                                >
+                                                                    Hủy
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <p className="mb-1 text-sm">
-                                                        {editedComments[reply.id]?.content ||
-                                                            reply.content}
-                                                    </p>
-                                                )}
+                                                    ) : (
+                                                        <p className="mb-1 text-sm">
+                                                            {editedComments[reply.id]?.content ||
+                                                                reply.content}
+                                                        </p>
+                                                    )}
 
-                                                <div className="mt-3 flex space-x-4">
-                                                    <span
-                                                        className={`flex items-center gap-1 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
-                                                        onClick={() => auth?.user && handleToggleLike(reply.id)}
-                                                    >
-                                                        <img
-                                                            src={
-                                                                likedComments[reply.id]
-                                                                    ? red_favorite
-                                                                    : favorite
-                                                            }
-                                                            className="w-4 h-4"
-                                                        />
-                                                        <span className="text-xs">
-                                                            {editedComments[reply.id]?.likes ??
-                                                                (Number(
-                                                                    localStorage.getItem(`likes_${reply.id}`)
-                                                                ) ||
-                                                                    reply.likes)}
+                                                    <div className="mt-3 flex space-x-4">
+                                                        <span
+                                                            className={`flex items-center gap-1 ${auth?.user ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                                                            onClick={() => auth?.user && handleToggleLike(reply.id)}
+                                                        >
+                                                            <img
+                                                                src={
+                                                                    likedComments[reply.id]
+                                                                        ? red_favorite
+                                                                        : favorite
+                                                                }
+                                                                className="w-4 h-4"
+                                                            />
+                                                            <span className="text-xs">
+                                                                {editedComments[reply.id]?.likes ??
+                                                                    (Number(
+                                                                        localStorage.getItem(`likes_${reply.id}`)
+                                                                    ) ||
+                                                                        reply.likes)}
+                                                            </span>
                                                         </span>
-                                                    </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </>
     );

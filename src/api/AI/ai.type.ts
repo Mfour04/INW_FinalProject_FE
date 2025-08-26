@@ -26,6 +26,10 @@ export type PlagiarismAIResponse = {
 
 export type Matches = {
   chapterId: string;
+  chapterTitle: string;
+  novelId: string;
+  novelSlug: string;
+  novelTitle: string;
   similarity: number;
   matches: Chunk[];
 };

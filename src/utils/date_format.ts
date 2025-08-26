@@ -56,13 +56,22 @@ export const formatTicksToRelativeTime = (
   return vietnamTime.fromNow();
 };
 
+export const ticksToDate = (ticks: number | null | undefined): Date | null => {
+  if (!ticks || ticks <= 0) return null;
+
+  const epochTicks = 621355968000000000;
+  const ticksPerMillisecond = 10000;
+
+  return new Date((ticks - epochTicks) / ticksPerMillisecond);
+};
+
 // HH:mm dd/MM/yyyy
 export const formatVietnamTimeFromTicks = (ticks: number): string => {
   const epochTicks = 621355968000000000;
   const ticksPerMs = 10000;
   const jsUtcMs = (ticks - epochTicks) / ticksPerMs;
   const utcDate = new Date(jsUtcMs);
-  const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+  const vietnamDate = new Date(utcDate.getTime() - 7 * 60 * 60 * 1000);
   return vietnamDate.toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",

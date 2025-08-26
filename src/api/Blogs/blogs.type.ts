@@ -10,6 +10,8 @@ export interface BlogPost {
         id: string;
         username: string;
         avatar: string;
+        displayName?: string;
+        DisplayName?: string;
     };
     isLiked?: boolean;
 }

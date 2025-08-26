@@ -1,103 +1,150 @@
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
-import Person from "@mui/icons-material/Person";
-import History from "@mui/icons-material/History";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
+import { getAvatarUrl } from "../../../utils/avatar";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
+import { User as UserIcon, Clock, Settings, LogOut, Coins } from "lucide-react";
 
 type Props = { onClose: () => void };
 
-export const UserMenu = ({ onClose }: Props) => {
+const UserMenu = ({ onClose }: Props) => {
   const { auth, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Click outside
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [onClose]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (!auth?.user) return null;
 
   const handleDepositClick = () => {
     onClose();
     navigate("/deposite");
   };
-
   const handleTransactionHistoryClick = () => {
     onClose();
     navigate("/transaction-history");
   };
-
   const handleLogoutClick = () => {
     logout();
     onClose();
     toast?.onOpen("Đăng xuất thành công!");
   };
 
-  if (!auth?.user) return null;
+  const avatarSrc = getAvatarUrl(auth.user.avatarUrl) || DefaultAvatar;
+  const coins = (auth.user.coin ?? 0).toLocaleString("vi-VN");
 
   return (
-    <div className="absolute top-[90px] right-12 mt-2 w-[260px] rounded-2xl border border-zinc-800 bg-[#111114] text-white shadow-2xl z-50 p-4">
-      <div className="flex items-center gap-3">
-        <div className="h-[52px] w-[52px] rounded-full overflow-hidden ring-1 ring-zinc-700 bg-white">
-          <img
-            src={auth.user.avatarUrl || DefaultAvatar}
-            alt="User Avatar"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="min-w-0">
-          <div className="font-semibold text-sm truncate">
+    <div
+      ref={ref}
+      role="dialog"
+      aria-label="User menu"
+      className={[
+        "w-[230px] mt-1 rounded-xl overflow-hidden",
+        // light
+        "bg-white text-slate-900 border border-slate-200 shadow-md",
+        // dark
+        "dark:bg-[#0f0f11] dark:text-white dark:border-white/10",
+      ].join(" ")}
+    >
+      {/* Header: avatar nhỏ + tên */}
+      <div className="px-3 py-2 flex items-center gap-2 border-b border-slate-200 dark:border-white/10">
+        <img
+          src={avatarSrc}
+          alt="avatar"
+          className="h-7 w-7 rounded-full object-cover ring-1 ring-slate-200 dark:ring-zinc-700"
+          loading="lazy"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium truncate">
             {auth.user.displayName}
           </div>
-          <div className="text-xs text-zinc-400 truncate">
-            @{auth.user.displayName}
-          </div>
-          <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-300">
-            <span className="flex items-center gap-1">
-              🥇 {auth.user.badgeId.length ?? 0}
-            </span>
-            <span className="flex items-center gap-1">🔥 1</span>
+          <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
+            @{auth.user.userName}
           </div>
         </div>
       </div>
 
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-amber-300 font-bold text-sm">
-          🪙 {(auth.user.coin ?? 0).toLocaleString("vi-VN")}
-        </div>
+      {/* Balance row (siêu gọn) */}
+      <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium
+                     bg-amber-50 text-amber-700 ring-1 ring-amber-200
+                     dark:bg-amber-500/10 dark:text-amber-300 dark:ring-0"
+          title="Số dư xu"
+        >
+          <Coins className="h-3.5 w-3.5" />
+          {coins}
+        </span>
+
         <button
           onClick={handleDepositClick}
-          className="rounded-full px-3 py-1 text-xs font-semibold text-white
-                     bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]
-                     hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]
-                     shadow-[0_8px_24px_rgba(255,103,64,0.35)] transition"
+          className={[
+            "ml-auto inline-flex items-center rounded-full px-4 py-0.5 text-[11px] font-semibold text-white",
+            "bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+            "transition-transform active:scale-95 hover:brightness-110",
+          ].join(" ")}
         >
-          Nạp thêm
+          Nạp
         </button>
       </div>
 
-      <div className="mt-4 pt-3 space-y-2 text-sm border-t border-zinc-800">
+      {/* Actions: 3 dòng gọn */}
+      <nav className="py-1">
         <Link
           to="/profile"
           onClick={onClose}
-          className="flex items-center gap-2 hover:text-orange-400 transition"
+          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition"
         >
-          <Person /> <span>Trang cá nhân</span>
+          <UserIcon className="h-4 w-4 text-slate-500 dark:text-white/70" />
+          Trang cá nhân
         </Link>
+
         <button
           onClick={handleTransactionHistoryClick}
-          className="flex items-center gap-2 hover:text-orange-400 transition"
+          className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition"
         >
-          <History /> <span>Lịch sử giao dịch</span>
+          <Clock className="h-4 w-4 text-slate-500 dark:text-white/70" />
+          Lịch sử giao dịch
         </button>
-        <Link to="/setting" className="flex items-center gap-2 cursor-pointer hover:text-orange-400">
-          <Settings /> <span>Cài đặt</span>
-        </Link>
-      </div>
 
-      <button
-        onClick={handleLogoutClick}
-        className="mt-3 w-full rounded-lg border border-zinc-800 py-2 text-sm text-zinc-300 hover:text-red-400 hover:border-red-400 transition flex items-center justify-center gap-2"
-      >
-        <Logout /> <span>Đăng xuất</span>
-      </button>
+        <Link
+          to="/setting"
+          onClick={onClose}
+          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition"
+        >
+          <Settings className="h-4 w-4 text-slate-500 dark:text-white/70" />
+          Cài đặt
+        </Link>
+      </nav>
+
+      <div className="p-2 border-t border-slate-200 dark:border-white/10">
+        <button
+          onClick={handleLogoutClick}
+          className="w-full rounded-md px-3 py-2 text-sm inline-flex items-center justify-center gap-2
+                     text-slate-600 hover:bg-red-50 hover:text-red-600
+                     dark:text-zinc-300 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Đăng xuất</span>
+        </button>
+      </div>
     </div>
   );
 };
+
+export default UserMenu;

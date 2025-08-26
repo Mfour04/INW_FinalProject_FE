@@ -25,7 +25,7 @@ const initialCreateNovelForms: CreateNovelRequest = {
   novelImage: null,
   novelBanner: null,
   tags: [],
-  status: 0,
+  status: 1,
   isPublic: false,
   isPaid: false,
   isLock: false,
@@ -55,6 +55,8 @@ export const UpsertNovels = () => {
     queryFn: () => GetNovelByUrl(id!),
     enabled: !!id,
   });
+
+  const canPublic = (novelData?.data.data.allChapters?.length ?? 0) > 0;
 
   const {
     data: slugChecked,
@@ -127,7 +129,9 @@ export const UpsertNovels = () => {
     fd.append("isLock", String(merged.isLock));
     fd.append("allowComment", String(merged.allowComment));
     fd.append("price", String(merged.price));
-    if (isUpdate && id) fd.append("novelId", id);
+    if (isUpdate && id) {
+      fd.append("novelId", novelData?.data.data.novelInfo.novelId!);
+    }
     return fd;
   };
 
@@ -138,9 +142,19 @@ export const UpsertNovels = () => {
   };
 
   const handlePublishNow = () => {
-    const fd = toFormData({ isPublic: true });
-    if (isUpdate) updateNovelMutation.mutate(fd);
-    else createNovelMutation.mutate(fd);
+    let fd = new FormData();
+    if (!novelData?.data.data.novelInfo.isPublic)
+      fd = toFormData({ isPublic: true });
+    else fd = toFormData({ isPublic: false });
+
+    if (canPublic)
+      if (isUpdate) {
+        updateNovelMutation.mutate(fd);
+      } else createNovelMutation.mutate(fd);
+    else
+      toast?.onOpen(
+        "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!"
+      );
   };
 
   const handleCheckSlug = () => {
@@ -481,6 +495,8 @@ export const UpsertNovels = () => {
             <div className="md:sticky md:top-4 max-h-[calc(100vh-2rem)] overflow-auto space-y-4">
               <ActionsBar
                 busy={busy}
+                isUpdate={isUpdate}
+                isPublic={novelData?.data.data.novelInfo.isPublic ?? false}
                 onCancel={() => navigate(-1)}
                 onSaveDraft={handleSaveDraft}
                 onPublish={handlePublishNow}

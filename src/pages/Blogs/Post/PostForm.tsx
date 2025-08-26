@@ -1,11 +1,13 @@
 import React from "react";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
-import abc from "../../../assets/img/th.png";
+import abc from "../../../assets/img/default_avt.png";
+import { getAvatarUrl } from "../../../utils/avatar";
 import SmileIcon from "../../../assets/svg/CommentUser/smile-stroke-rounded.svg";
 import SentHugeIcon from "../../../assets/img/Blogs/sent-stroke-rounded.svg";
 import ImageAdd02Icon from "../../../assets/svg/CommentUser/image-add-02-stroke-rounded.svg";
 import Button from "../../../components/ButtonComponent";
 import EmojiPicker from "./EmojiPicker";
+import { ClickableUserInfo } from "../../../components/common/ClickableUserInfo";
 
 interface PostFormProps {
   content: string;
@@ -86,19 +88,14 @@ const PostForm = ({
   return (
     <div className="bg-[#1e1e21] rounded-[10px] p-5 mb-5">
       <div className="flex items-center gap-5 mb-4">
-        <img
-          src={auth?.user?.avatarUrl || abc}
-          alt="avatar"
-          className="w-[50px] h-[50px] rounded-full object-cover"
+        <ClickableUserInfo
+          username={auth?.user?.userName}
+          displayName={auth?.user?.displayName || auth?.user?.userName || "User"}
+          avatarUrl={getAvatarUrl(auth?.user?.avatarUrl)}
+          size="large"
+          showUsername={true}
+          className="flex-shrink-0"
         />
-        <div className="flex flex-col">
-          <h3 className="text-lg font-bold text-white">
-            {auth?.user?.displayName || auth?.user?.userName || "User"}
-          </h3>
-          <span className="text-base text-[#cecece]">
-            @{auth?.user?.userName || "user"}
-          </span>
-        </div>
       </div>
 
       <div className="mb-6">

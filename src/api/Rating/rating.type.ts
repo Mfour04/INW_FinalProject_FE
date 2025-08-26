@@ -33,6 +33,12 @@ export type GetNovelRatingResponse = {
   totalPage: number;
 };
 
+export type GetNovelRatingKeysetResponse = {
+  items: Rating[];
+  hasMore: boolean;
+  nextAfterId: string;
+};
+
 export type GetNovelRatingSummaryRes = {
   ratingCount: number;
   ratingAvg: number;
@@ -40,5 +46,7 @@ export type GetNovelRatingSummaryRes = {
 };
 
 export type GetNovelRatingApiResponse = ApiResponse<GetNovelRatingResponse>;
+export type GetNovelRatingKeysetApiResponse =
+  ApiResponse<GetNovelRatingKeysetResponse>;
 export type GetNovelRatingSummaryApiRes = ApiResponse<GetNovelRatingSummaryRes>;
 export type UpsertNovelRatingApiResponse = ApiResponse<Rating>;

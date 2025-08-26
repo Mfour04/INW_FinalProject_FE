@@ -38,7 +38,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     {
       icon: BookOpenIcon,
       label: "Tiểu thuyết",
-      path: "/novels",
+      path: "/",
       isHeader: true,
       subItems: [
         { label: "Danh sách", path: "/novels" },
@@ -58,9 +58,10 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       path: "/inkwave",
       isHeader: true,
       subItems: [
-        { label: "Nội quy", path: "/inkwave/rules" },
-        { label: "Về chúng tôi", path: "/inkwave/about" },
-        { label: "Liên hệ", path: "/inkwave/contact" },
+        { label: "Giới thiệu", path: "/about" },
+        { label: "Liên hệ", path: "/contact" },
+        { label: "Nội quy", path: "/rules" },
+        { label: "Điều khoản", path: "/terms" },
       ],
     },
   ];
@@ -260,6 +261,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                     {item.subItems!.map((sub, sIdx) => (
                       <NavLink
                         key={`${idx}-${sIdx}`}
+                        end
                         to={sub.path}
                         className={({ isActive }) =>
                           [

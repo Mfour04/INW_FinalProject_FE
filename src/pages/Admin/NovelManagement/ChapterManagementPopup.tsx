@@ -6,12 +6,13 @@ import { formatTicksToDateString } from "../../../utils/date_format";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateChapterLock } from "../../../api/Chapters/chapter.api";
+import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 
 interface DialogState {
   isOpen: boolean;
   type: "lock" | "unlock" | null;
   title: string;
-  chapterId: string | null;
+  chapterIds: string[];
 }
 
 interface ChapterManagementPopupProps {
@@ -21,8 +22,6 @@ interface ChapterManagementPopupProps {
   chapters: ChapterByNovel[];
   isLoading: boolean;
   error: unknown;
-  onLockChapter?: (chapterId: string) => void;
-  onUnlockChapter?: (chapterId: string) => void;
 }
 
 const ChapterManagementPopup = ({
@@ -32,40 +31,36 @@ const ChapterManagementPopup = ({
   chapters,
   isLoading,
   error,
-  onLockChapter,
-  onUnlockChapter,
 }: ChapterManagementPopupProps) => {
   const queryClient = useQueryClient();
+  const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>([]);
   const [loadingChapterIds, setLoadingChapterIds] = useState<string[]>([]);
   const [dialog, setDialog] = useState<DialogState>({
     isOpen: false,
     type: null,
     title: "",
-    chapterId: null,
+    chapterIds: [],
   });
   const [currentPage, setCurrentPage] = useState(1);
   const chaptersPerPage = 10;
 
   // Mutation for chapter lock/unlock
   const updateChapterLockMutation = useMutation({
-    mutationFn: ({
-      chapterId,
-      isLocked,
-    }: {
-      chapterId: string;
-      isLocked: boolean;
-    }) => UpdateChapterLock(chapterId, isLocked),
-    onSuccess: () => {
+    mutationFn: (request: { chapterIds: string[]; isLocked: boolean }) =>
+      UpdateChapterLock(request),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["chapters", novelId] });
       setLoadingChapterIds((prev) =>
-        prev.filter((id) => id !== dialog.chapterId)
+        prev.filter((id) => !variables.chapterIds.includes(id))
       );
+      setSelectedChapterIds([]);
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error("Failed to update chapter lock status:", error);
       setLoadingChapterIds((prev) =>
-        prev.filter((id) => id !== dialog.chapterId)
+        prev.filter((id) => !variables.chapterIds.includes(id))
       );
     },
   });
@@ -89,49 +84,61 @@ const ChapterManagementPopup = ({
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm("");
+      setSelectedChapterIds([]);
       setLoadingChapterIds([]);
       setDialog({
         isOpen: false,
         type: null,
         title: "",
-        chapterId: null,
+        chapterIds: [],
       });
       setCurrentPage(1); // Reset to first page when popup closes
     }
   }, [isOpen]);
 
-  const handleLockUnlock = (chapter: ChapterByNovel) => {
-    const action = chapter.is_lock ? "unlock" : "lock";
-    const title = `Bạn muốn ${action === "lock" ? "khóa" : "mở khóa"} chương: ${
-      chapter.title
-    } ?`;
+  const handleSelectChapter = (chapterId: string) => {
+    setSelectedChapterIds((prev) =>
+      prev.includes(chapterId)
+        ? prev.filter((id) => id !== chapterId)
+        : [...prev, chapterId]
+    );
+  };
+
+  const handleLockUnlock = (chapter?: ChapterByNovel) => {
+    const chapterIds = chapter ? [chapter.id] : selectedChapterIds;
+    if (chapterIds.length === 0) return;
+
+    const isLockAction = chapter
+      ? !chapter.is_lock
+      : chapters.find((c) => chapterIds.includes(c.id))?.is_lock === false;
+    const action = isLockAction ? "lock" : "unlock";
+    const title = `Bạn muốn ${action === "lock" ? "khóa" : "mở khóa"} ${
+      chapterIds.length
+    } chương${chapterIds.length > 1 ? "s" : ""}?`;
 
     setDialog({
       isOpen: true,
       type: action,
       title,
-      chapterId: chapter.id,
+      chapterIds,
     });
   };
 
   const handleConfirmDialog = () => {
-    if (dialog.chapterId) {
-      setLoadingChapterIds((prev) => [...prev, dialog.chapterId!]);
+    if (dialog.chapterIds.length > 0) {
+      const chapterIdsToProcess = [...dialog.chapterIds]; // Store chapter IDs before resetting dialog
+      setLoadingChapterIds((prev) => [...prev, ...chapterIdsToProcess]);
 
       if (dialog.type === "lock") {
         updateChapterLockMutation.mutate({
-          chapterId: dialog.chapterId,
+          chapterIds: chapterIdsToProcess,
           isLocked: true,
         });
-        onLockChapter?.(dialog.chapterId);
-        console.log(`Khóa chương: ${dialog.chapterId}`);
       } else if (dialog.type === "unlock") {
         updateChapterLockMutation.mutate({
-          chapterId: dialog.chapterId,
+          chapterIds: chapterIdsToProcess,
           isLocked: false,
         });
-        onUnlockChapter?.(dialog.chapterId);
-        console.log(`Mở khóa chương: ${dialog.chapterId}`);
       }
     }
 
@@ -139,9 +146,19 @@ const ChapterManagementPopup = ({
       isOpen: false,
       type: null,
       title: "",
-      chapterId: null,
+      chapterIds: [],
     });
   };
+
+  // Determine if lock/unlock buttons should be enabled
+  const canLock =
+    selectedChapterIds.length > 0 &&
+    selectedChapterIds.some(
+      (id) => !chapters.find((c) => c.id === id)?.is_lock
+    );
+  const canUnlock =
+    selectedChapterIds.length > 0 &&
+    selectedChapterIds.some((id) => chapters.find((c) => c.id === id)?.is_lock);
 
   return (
     <AnimatePresence>
@@ -157,15 +174,19 @@ const ChapterManagementPopup = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-[#1e1e21] rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4"
+            className={`rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4 ${
+              darkMode ? "bg-[#1e1e21] text-white" : "bg-white text-gray-900"
+            }`}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-white">
-                Quản lý chương
-              </h2>
+              <h2 className="text-2xl font-semibold">Quản lý chương</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className={`${
+                  darkMode
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                } transition-colors`}
               >
                 <svg
                   className="w-6 h-6"
@@ -184,18 +205,35 @@ const ChapterManagementPopup = ({
               </button>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-4">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tiêu đề hoặc số chương..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2.5 border border-gray-600 rounded-lg bg-[#2a2a2e] text-white focus:ring-2 focus:ring-[#ff4d4f] focus:border-[#ff4d4f] transition-all"
+                className={`w-full sm:flex-1 p-2.5 rounded-lg border focus:ring-2 focus:ring-[#ff4d4f] focus:border-[#ff4d4f] transition-all ${
+                  darkMode
+                    ? "bg-[#2a2a2e] text-white border-gray-600"
+                    : "bg-gray-100 text-gray-900 border-gray-300"
+                }`}
               />
+              <div className="flex justify-end">
+                <ActionButtons
+                  canLock={canLock}
+                  canUnlock={canUnlock}
+                  selectedCount={selectedChapterIds.length}
+                  onLockUnlock={() => handleLockUnlock()}
+                  isLoading={updateChapterLockMutation.isPending}
+                />
+              </div>
             </div>
 
             {isLoading ? (
-              <p className="text-gray-400 text-center py-8">
+              <p
+                className={`text-center py-8 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Đang tải chương...
               </p>
             ) : error ? (
@@ -203,11 +241,21 @@ const ChapterManagementPopup = ({
                 Không tải được danh sách chương
               </p>
             ) : filteredChapters.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">
+              <p
+                className={`text-center py-8 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Không có chương nào
               </p>
             ) : (
-              <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pr-2">
+              <div
+                className={`max-h-[400px] overflow-y-auto scrollbar-thin ${
+                  darkMode
+                    ? "scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+                    : "scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                } pr-2`}
+              >
                 <div className="flex flex-col gap-3">
                   {paginatedChapters.map((chapter) => (
                     <motion.div
@@ -215,8 +263,56 @@ const ChapterManagementPopup = ({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-[#2a2a2e] rounded-lg p-3 flex items-center gap-3 hover:bg-[#333337] transition-colors"
+                      className={`rounded-lg p-3 flex items-center gap-3 transition-colors ${
+                        darkMode
+                          ? "bg-[#2a2a2e] hover:bg-[#333337]"
+                          : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                     >
+                      <label className="relative flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedChapterIds.includes(chapter.id)}
+                          onChange={() => handleSelectChapter(chapter.id)}
+                          className="absolute opacity-0 w-0 h-0"
+                        />
+                        <motion.div
+                          className={`w-4 h-4 rounded flex items-center justify-center border-2 ${
+                            selectedChapterIds.includes(chapter.id)
+                              ? "bg-[#ff4d4f] border-[#ff4d4f]"
+                              : darkMode
+                              ? "bg-[#2a2a2e] border-gray-400"
+                              : "bg-gray-100 border-gray-400"
+                          }`}
+                          animate={{
+                            scale: selectedChapterIds.includes(chapter.id)
+                              ? 1.1
+                              : 1,
+                            transition: { duration: 0.2 },
+                          }}
+                          whileHover={{ scale: 1.15 }}
+                        >
+                          {selectedChapterIds.includes(chapter.id) && (
+                            <motion.svg
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ duration: 0.2 }}
+                              className="w-3 h-3 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="3"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </motion.svg>
+                          )}
+                        </motion.div>
+                      </label>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
@@ -225,21 +321,27 @@ const ChapterManagementPopup = ({
                                 chapter.is_lock ? "bg-gray-400" : "bg-green-400"
                               }`}
                             />
-                            <span className="text-base text-white font-medium">
+                            <span className="text-base font-medium">
                               Chương {chapter.chapter_number}: {chapter.title}
                             </span>
                             {loadingChapterIds.includes(chapter.id) && (
-                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                transition={{ duration: 0.2 }}
+                                className={`animate-spin rounded-full h-4 w-4 border-t-2 ${
+                                  darkMode ? "border-white" : "border-gray-900"
+                                }`}
+                              />
                             )}
                           </div>
-                          <ActionButtons
-                            canLock={!chapter.is_lock}
-                            canUnlock={chapter.is_lock}
-                            selectedCount={1}
-                            onLockUnlock={() => handleLockUnlock(chapter)}
-                          />
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div
+                          className={`text-sm ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
                           <span>
                             Ngày tạo:{" "}
                             {formatTicksToDateString(chapter.created_at)}
@@ -260,11 +362,17 @@ const ChapterManagementPopup = ({
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    darkMode
+                      ? "bg-[#2a2a2e] text-white hover:bg-[#333337]"
+                      : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  }`}
                 >
                   Trước
                 </button>
-                <span className="text-white">
+                <span
+                  className={`${darkMode ? "text-white" : "text-gray-900"}`}
+                >
                   Trang {currentPage} / {totalPages}
                 </span>
                 <button
@@ -272,7 +380,11 @@ const ChapterManagementPopup = ({
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 bg-[#2a2a2e] text-white rounded-lg hover:bg-[#333337] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    darkMode
+                      ? "bg-[#2a2a2e] text-white hover:bg-[#333337]"
+                      : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  }`}
                 >
                   Sau
                 </button>
@@ -288,7 +400,7 @@ const ChapterManagementPopup = ({
                 isOpen: false,
                 type: null,
                 title: "",
-                chapterId: null,
+                chapterIds: [],
               })
             }
             onConfirm={handleConfirmDialog}

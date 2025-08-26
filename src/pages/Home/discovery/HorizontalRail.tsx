@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
-import type { Novel } from "../types";
 import { SeeMoreGradientBtn } from "./SeeMoreGradientBtn";
+import type { Novel } from "../../../entity/novel";
 
 type HorizontalRailProps = {
   title: string;

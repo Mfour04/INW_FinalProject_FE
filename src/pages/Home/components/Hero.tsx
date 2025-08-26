@@ -1,12 +1,12 @@
 import { useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Typography from "../../../components/TypographyComponent";
-import type { Novel } from "../types";
 import ArrowLeftIcon from "../../../assets/svg/HomePage/arrow-left-01-stroke-rounded.svg";
 import ArrowRightIcon from "../../../assets/svg/HomePage/arrow-right-01-stroke-rounded.svg";
 import StarRate from "@mui/icons-material/StarRate";
 import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
 import PencilEdit from "../../../assets/svg/HomePage/pencil-edit-01-stroke-rounded.svg";
+import type { Novel } from "../../../entity/novel";
 
 export type HeroProps = {
   title: string;

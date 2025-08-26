@@ -1,198 +1,229 @@
-import ArrowLeft02 from "../../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
-import ArrowRight02 from "../../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
-import ViewList from "@mui/icons-material/ViewList";
-import Dashboard from "@mui/icons-material/Dashboard";
-import StarRate from "@mui/icons-material/StarRate";
-import BookMark from "@mui/icons-material/Bookmark";
-import Comment from "@mui/icons-material/Comment";
-import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, LayoutGrid, List } from "lucide-react";
+
 import { GetFollowerNovels } from "../../../api/NovelFollow/novel-follow.api";
-import { TagView } from "../../../components/TagComponent";
+import { NListItem } from "../../../components/ui/cards/NListItem";
+import { NCard } from "../../../components/ui/cards/NCard";
+import { Pager } from "../../../components/ui/navigation/Pager";
+import type { Tag } from "../../NovelsExplore/types";
+import { FilterMenu, type FilterKey } from "./FilterMenu";
 
 type ViewAction = "Grid" | "List";
+
+type NovelLite = {
+  novelId: string;
+  slug: string;
+  title: string;
+  novelImage?: string | null;
+  ratingAvg?: number;
+  followers?: number;
+  totalViews?: number;
+  status: number;
+  tags?: Array<{ tagId: string | number; name?: string }>;
+  authorName?: string | null;
+};
 
 export const NovelLib = () => {
   const [actionState, setActionState] = useState<ViewAction>("Grid");
   const [page, setPage] = useState<number>(0);
+  const [filter, setFilter] = useState<FilterKey>("reading");
   const limit = 12;
 
   const navigate = useNavigate();
 
-  const { data } = useQuery({
-    queryKey: ["follower-novels"],
+  const { data, isFetching } = useQuery({
+    queryKey: ["follower-novels", { page, limit, filter }],
     queryFn: () =>
       GetFollowerNovels({
-        limit: limit,
-        page: page,
+        limit,
+        page,
       }).then((res) => res.data.data),
+    staleTime: 30_000,
   });
 
-  const novels = Array.isArray(data?.novelFollows.followedNovels)
-    ? data?.novelFollows.followedNovels
-    : [];
+  const { novels, totalPages } = useMemo(() => {
+    const list: NovelLite[] = Array.isArray(data?.novelFollows?.followedNovels)
+      ? data.novelFollows.followedNovels.map((n: any) => ({
+          novelId: String(n.novelId),
+          slug: n.slug,
+          title: n.title,
+          novelImage: n.novelImage ?? null,
+          ratingAvg: Number(n.ratingAvg ?? 0),
+          followers: Number(n.followers ?? 0),
+          totalViews: Number(n.totalViews ?? 0),
+          status: Number(n.status ?? 0),
+          tags: Array.isArray(n.tags) ? n.tags : [],
+          authorName: n.authorName ?? null,
+        }))
+      : [];
+    return {
+      novels: list,
+      totalPages: Number(data?.totalPages ?? 1),
+    };
+  }, [data]);
 
-  const view = useMemo(() => {
-    switch (actionState) {
-      case "Grid":
-        return (
-          <>
-            <div className="grid grid-cols-6 gap-4 mb-6">
-              {novels.map((novel) => (
-                <div
-                  key={novel.novelId}
-                  onClick={() => navigate(`/novels/${novel.slug}`)}
-                  className="cursor-pointer w-full flex flex-col bg-[#1c1c1f] rounded-[10px] overflow-hidden"
-                >
-                  <img
-                    src={novel.novelImage || undefined}
-                    className="w-full h-[275px] object-cover bg-[#d9d9d9] rounded-[10px]"
-                  />
-                  <p className="mt-[15px] h-10 text-sm font-medium text-center w-full line-clamp-2">
-                    {novel.title}
-                  </p>
-                </div>
-              ))}
+  const gridView = useMemo(
+    () => (
+      <div className="grid gap-x-8 gap-y-8 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+        {novels.map((novel) => (
+          <div key={novel.novelId} className="aspect-[3/4]">
+            <NCard
+              title={novel.title}
+              slug={novel.slug}
+              image={novel.novelImage}
+              rating={novel.ratingAvg ?? 0}
+              bookmarks={novel.followers ?? 0}
+              views={novel.totalViews ?? 0}
+              status={novel.status}
+              onClick={() => navigate(`/novels/${novel.slug}`)}
+            />
+          </div>
+        ))}
+        {isFetching &&
+          Array.from({
+            length: Math.min(6, Math.max(0, limit - novels.length)),
+          }).map((_, i) => (
+            <div key={`s-${i}`} className="aspect-[3/4]">
+              <div className="w-full h-full rounded-xl bg-gray-100 animate-pulse dark:bg-white/5" />
             </div>
-          </>
-        );
-      case "List":
-        return (
-          <>
-            {novels.map((novel) => (
-              <div
-                key={novel.novelId}
-                onClick={() => navigate(`/novels/${novel.slug}`)}
-                className="mb-[15px] flex h-[150px] p-[15px] bg-[#1e1e21] text-white rounded-[10px] gap-[20px] border border-black w-full"
-              >
-                <img
-                  src={novel.novelImage || undefined}
-                  className="h-[120px] w-[100px] object-cover bg-[#d9d9d9] rounded-[10px]"
-                />
+          ))}
+      </div>
+    ),
+    [novels, isFetching, navigate]
+  );
 
-                <div className="flex flex-col flex-1 overflow-hidden justify-between">
-                  <div>
-                    <h2 className="text-[18px] font-medium truncate">
-                      {novel.title}
-                    </h2>
-                    <div className="flex flex-wrap gap-2 my-1">
-                      {novel.tags.map((tag) => (
-                        <TagView key={tag.tagId} tag={tag} />
-                      ))}
-                    </div>
-                  </div>
+  const listView = useMemo(
+    () => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {novels.map((n) => (
+          <NListItem
+            key={n.novelId}
+            title={n.title}
+            slug={n.slug}
+            author={n.authorName || "Tên tác giả"}
+            image={n.novelImage}
+            rating={n.ratingAvg ?? 0}
+            bookmarks={n.followers ?? 0}
+            views={n.totalViews ?? 0}
+            status={n.status}
+            tags={
+              Array.isArray(n.tags as Tag[])
+                ? (n.tags?.slice(0, 8) as Tag[])
+                : []
+            }
+            onClick={() => navigate(`/novels/${n.slug}`)}
+          />
+        ))}
+        {isFetching &&
+          Array.from({
+            length: Math.min(2, Math.max(0, limit - novels.length)),
+          }).map((_, i) => (
+            <div
+              key={`sk-${i}`}
+              className="h-[150px] rounded-xl bg-gray-100 animate-pulse dark:bg-white/5"
+            />
+          ))}
+      </div>
+    ),
+    [novels, isFetching, navigate]
+  );
 
-                  <div className="flex justify-between w-full">
-                    <p className="italic text-[16px] text-white">Iris Cavana</p>
-                    <div className="h-9 flex items-center gap-4 text-xs text-white mt-1">
-                      <div className="flex gap-2.5">
-                        <div className="flex items-center gap-1 text-sm">
-                          <StarRate sx={{ height: "20px", width: "20px" }} />
-                          <div className="flex items-center">
-                            {novel.ratingAvg}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm ">
-                          <BookMark sx={{ height: "20px", width: "20px" }} />
-                          <div className="flex items-center">11K</div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm ">
-                          <Comment sx={{ height: "20px", width: "20px" }} />
-                          <div>{novel.ratingAvg}</div>
-                        </div>
-                      </div>
-                      <div className="w-[150px] h-full text-[18px] px-3 py-2.5 gap-3 flex items-center rounded-[5px] text-white bg-[#2e2e2e]">
-                        <span
-                          className={`h-2 w-2 rounded-full inline-block ${
-                            novel.status === 1 ? "bg-gray-400" : "bg-green-400"
-                          }`}
-                        />
-                        {novel.status === 1 ? "Hoàn thành" : "Đang diễn ra"}
-                      </div>
-                    </div>
-                  </div>
+  const isEmpty = !isFetching && novels.length === 0;
+
+  return (
+    <div className="flex flex-col flex-1 px-4 md:px-6 py-4 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
+      <div className="max-w-[95rem] mx-auto w-full px-4">
+        <div className="mb-8">
+          <div
+            className="w-full rounded-2xl backdrop-blur-md overflow-visible
+                       bg-white shadow-[0_16px_56px_-28px_rgba(0,0,0,0.18)]
+                       dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]"
+          >
+            <div className="relative py-3 px-1 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-10">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="h-9 w-9 grid place-items-center rounded-lg
+                              bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
+                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
+                  title="Quay lại"
+                  aria-label="Quay lại"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <h1 className="text-[18px] md:text-[20px] font-semibold leading-tight">
+                  Thư viện của tôi
+                </h1>
+              </div>
+
+              <div className="flex items-center gap-5">
+                <FilterMenu value={filter} onChange={(v) => setFilter(v)} />
+
+                <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
+                  <button
+                    onClick={() => setActionState("Grid")}
+                    className={[
+                      "h-9 w-9 grid place-items-center transition",
+                      actionState === "Grid"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                      actionState === "Grid"
+                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
+                    ].join(" ")}
+                    title="Xem dạng lưới"
+                    aria-label="Xem dạng lưới"
+                  >
+                    <LayoutGrid size={18} />
+                  </button>
+                  <button
+                    onClick={() => setActionState("List")}
+                    className={[
+                      "h-9 w-9 grid place-items-center border-l border-gray-200 transition dark:border-white/10",
+                      actionState === "List"
+                        ? "bg-gray-200 text-gray-900"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                      actionState === "List"
+                        ? "dark:bg-white/20 dark:text-white dark:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                        : "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1]",
+                    ].join(" ")}
+                    title="Xem dạng danh sách"
+                    aria-label="Xem dạng danh sách"
+                  >
+                    <List size={18} />
+                  </button>
                 </div>
               </div>
-            ))}
-          </>
-        );
-    }
-  }, [actionState, data, novels]);
-  return (
-    <div className="flex flex-col flex-1 p-6 bg-[#1c1c1f] text-white overflow-auto">
-      <div className=" justify-between items-center mb-6">
-        <div className="flex items-center justify-between">
-          <img
-            onClick={() => navigate(-1)}
-            src={ArrowLeft02}
-            className="h-6 w-6 cursor-pointer"
+            </div>
+          </div>
+        </div>
+
+        {isEmpty ? (
+          <div className="py-20 text-center text-gray-700 dark:text-white/80">
+            <div className="mx-auto max-w-sm">
+              <div className="mb-4 h-20 w-20 mx-auto rounded-2xl bg-[linear-gradient(135deg,#ff7a18_0%,#af002d_100%)] opacity-70" />
+              <div className="text-lg font-medium mb-1">Chưa có truyện</div>
+              <div className="text-sm text-gray-500 dark:text-white/60">
+                Hãy theo dõi vài truyện để xuất hiện ở đây — hoặc đổi bộ lọc.
+              </div>
+            </div>
+          </div>
+        ) : actionState === "Grid" ? (
+          <div className="mb-10">{gridView}</div>
+        ) : (
+          <div className="mb-10">{listView}</div>
+        )}
+
+        {!isEmpty && totalPages > 0 && (
+          <Pager
+            page={page}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(0, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
           />
-          <div className="flex-1 text-center">
-            <h1 className="text-2xl font-semibold">Thư viện của tôi</h1>
-          </div>
-          <div className="w-6" />
-        </div>
-
-        <div className="flex items-center justify-between w-full h-10">
-          <div className="flex h-full gap-[30px] justify-between">
-            <select
-              id="filter"
-              className="cursor-pointer bg-[#d9d9d9] text-black rounded-md w-[140px] px-2.5"
-            >
-              <option>Đang đọc</option>
-              <option>Sẽ đọc</option>
-              <option>Hoàn thành</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2.5">
-            <div
-              onClick={() => setActionState("List")}
-              className={`cursor-pointer h-10 w-10 rounded-[5px] flex items-center justify-center ${
-                actionState === "List" ? `bg-[#555555]` : `bg-[#2c2c2c]`
-              }`}
-            >
-              <ViewList sx={{ height: "30px", width: "30px" }} />
-            </div>
-            <div
-              onClick={() => {
-                setActionState("Grid");
-              }}
-              className={`cursor-pointer h-10 w-10 rounded-[5px] flex items-center justify-center ${
-                actionState === "Grid" ? `bg-[#555555]` : `bg-[#2c2c2c]`
-              }`}
-            >
-              <Dashboard sx={{ height: "30px", width: "30px" }} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {view}
-
-      <div className="mt-[30px] flex justify-center items-center gap-[25px] h-[50px]">
-        <button
-          onClick={() => setPage(page - 1)}
-          disabled={page === 0}
-          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
-        >
-          <img src={ArrowLeft02} />
-        </button>
-        <div className="w-[200px] h-[50px] flex items-center justify-center bg-[#ff6740] rounded-[25px]">
-          <span className="text-sm">
-            Trang{" "}
-            <span className="border-1 rounded-[5px] px-2.5">{page + 1}</span> /
-            {data?.totalPages}
-          </span>
-        </div>
-        <button
-          onClick={() => setPage(page + 1)}
-          disabled={page === (data?.totalPages ?? 1) - 1}
-          className="cursor-pointer h-[50px] w-[50px] flex items-center justify-center bg-[#2c2c2c] rounded-[50%] hover:bg-[#555555]"
-        >
-          <img src={ArrowRight02} />
-        </button>
+        )}
       </div>
     </div>
   );
