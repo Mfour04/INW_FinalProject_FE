@@ -17,10 +17,10 @@ import type {
 import { PlagiarismCheck } from "../../../../api/AI/ai.api";
 import { stripHtmlTags } from "../../../../utils/regex";
 import { useToast } from "../../../../context/ToastContext/toast-context";
-import { PlagiarismModal } from "./Content/PlagiarismModal";
 
 import { FileText, ShieldCheck, Loader2 } from "lucide-react";
 import { EditorToolbar } from "./Content/EditorToolBar";
+import { PlagiarismModalMinimal } from "../PlagiarismModalMinimal";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -135,9 +135,14 @@ function useContainerWidth<T extends HTMLElement>() {
 type ContentStepProps = {
   chapterForm: ChapterForm;
   setChapterForm: (value: ChapterForm) => void;
+  setIsCheck: (data: boolean) => void;
 };
 
-export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
+export const Content = ({
+  chapterForm,
+  setChapterForm,
+  setIsCheck,
+}: ContentStepProps) => {
   const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
   const [plagiarismMatches, setPlagiarismMatches] = useState<Matches[]>([]);
   const toast = useToast();
@@ -185,12 +190,14 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
       PlagiarismCheck(request).then((res) => res.data),
     onSuccess: (data: PlagiarismAIApiResponse) => {
       if (data.data.matchCount > 0) {
+        setIsCheck(false);
         setPlagiarismMatches(data.data.matches);
         setShowPlagiarismModal(true);
       } else {
         toast?.onOpen(
           "Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!"
         );
+        setIsCheck(true);
       }
     },
   });
@@ -223,7 +230,6 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
         </div>
       </header>
 
-      {/* TOOLBAR (sticky) */}
       <div className="sticky top-0 z-30 -mx-3 px-3 py-2 backdrop-blur-xl border-b border-white/10 bg-[#0e1014]/60 supports-[backdrop-filter]:bg-[#0e1014]/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -313,7 +319,7 @@ export const Content = ({ chapterForm, setChapterForm }: ContentStepProps) => {
 
       <RichTextEditor editor={editor} />
 
-      <PlagiarismModal
+      <PlagiarismModalMinimal
         open={showPlagiarismModal}
         onClose={() => setShowPlagiarismModal(false)}
         matches={plagiarismMatches}

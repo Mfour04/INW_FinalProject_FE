@@ -303,10 +303,10 @@ export const SearchBar = ({
       return result;
     },
     enabled: searchTerm.length >= 2, // Chỉ gọi API khi searchTerm >= 2
-    staleTime: 5 * 60 * 1000, // 5 phút
-    gcTime: 10 * 60 * 1000, // 10 phút (thay thế cacheTime)
-    refetchOnWindowFocus: false, // Không refetch khi focus window
-    refetchOnMount: false, // Không refetch khi mount
+    staleTime: 0, // Không cache, luôn refetch khi cần
+    gcTime: 5 * 60 * 1000, // 5 phút (thay thế cacheTime)
+    refetchOnWindowFocus: true, // Refetch khi focus window
+    refetchOnMount: true, // Refetch khi mount
   });
 
   // Hiển thị kết quả tìm kiếm user khi có searchTerm

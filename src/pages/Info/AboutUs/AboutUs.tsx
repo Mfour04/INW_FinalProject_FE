@@ -11,16 +11,17 @@ import { gradient, textGradient } from "../constant";
 import { SectionTitle } from "./SectionTitle";
 import { TeamMember, type Member } from "./TeamMember";
 import { FeatureCard } from "./FeatureCard";
+import { Link } from "react-router-dom";
 
 const row1: Member[] = [
-  { name: "Minh Quân", role: "Kỹ sư trưởng", initials: "MQ" },
-  { name: "Khánh Linh", role: "Thiết kế sản phẩm", initials: "KL" },
+  { name: "Bảo Nguyên", role: "Trưởng dự án", initials: "BN" },
+  { name: "Minh Tài", role: "Technical", initials: "MT" },
 ];
 
 const row2: Member[] = [
-  { name: "Hoàng Anh", role: "Backend", initials: "HA" },
-  { name: "Tuệ Nhi", role: "Growth", initials: "TN" },
-  { name: "Bảo Long", role: "Frontend", initials: "BL" },
+  { name: "Phương Nhi", role: "Trưởng đội thiết kế", initials: "PN" },
+  { name: "Thái Bình", role: "Backend Developer", initials: "TB" },
+  { name: "Như Lộc", role: "Frontend Developer", initials: "NL" },
 ];
 
 export const AboutUs = () => {
@@ -29,18 +30,24 @@ export const AboutUs = () => {
       <section className="relative">
         {/* light/dark ambient blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute left-0 top-0 h-[28rem] w-[28rem] -translate-x-1/3 -translate-y-1/3 rounded-full
+          <div
+            className="absolute left-0 top-0 h-[28rem] w-[28rem] -translate-x-1/3 -translate-y-1/3 rounded-full
                           bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.08),transparent_60%)]
-                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.18),transparent_60%)]" />
-          <div className="absolute right-0 bottom-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full
+                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,122,69,0.18),transparent_60%)]"
+          />
+          <div
+            className="absolute right-0 bottom-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full
                           bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.07),transparent_60%)]
-                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.16),transparent_60%)]" />
+                          blur-2xl dark:bg-[radial-gradient(circle_at_center,rgba(255,94,58,0.16),transparent_60%)]"
+          />
         </div>
 
         <div className="mx-auto max-w-6xl px-4 py-10 text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] tracking-wider uppercase
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] tracking-wider uppercase
                           ring-1 ring-gray-200 bg-gray-100 text-gray-700
-                          dark:ring-white/10 dark:bg-white/5 dark:text-white/70">
+                          dark:ring-white/10 dark:bg-white/5 dark:text-white/70"
+          >
             <BookOpen className="w-4 h-4" />
             Nền tảng truyện số
           </div>
@@ -116,7 +123,10 @@ export const AboutUs = () => {
         </div>
       </section>
 
-      <section id="contact" className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <section
+        id="contact"
+        className="mx-auto max-w-3xl px-4 py-16 text-center"
+      >
         <h3 className="text-xl md:text-2xl font-bold">
           Tham gia xây dựng nền tảng{" "}
           <span className={textGradient}>đọc & xuất bản trực tiếp</span>
@@ -126,12 +136,12 @@ export const AboutUs = () => {
           gu.
         </p>
         <div className="mt-5 flex justify-center gap-3">
-          <a
-            href="mailto:hello@your-domain.vn"
+          <Link
+            to="/contact"
             className={`px-5 py-2 rounded-xl text-sm ${gradient} text-white font-medium shadow-sm hover:opacity-95 transition`}
           >
             Liên hệ ngay
-          </a>
+          </Link>
         </div>
       </section>
     </div>

@@ -20,7 +20,7 @@ import {
 interface Props {
   open: boolean;
   notifications?: GetUserNotificationRes[];
-  onItemClick?: (noti: GetUserNotificationRes) => void;
+  onItemClick?: (id: string) => void;
   onClose?: () => void;
 }
 
@@ -272,7 +272,7 @@ export const NotificationDropdown = ({
                   return (
                     <li key={noti.notificationId}>
                       <button
-                        onClick={() => onItemClick?.(noti)}
+                        onClick={() => onItemClick?.(noti.notificationId)}
                         className={[
                           "w-full text-left px-3 py-2 flex items-start gap-3 transition",
                           "hover:bg-slate-50",
@@ -300,9 +300,7 @@ export const NotificationDropdown = ({
                             {noti.message}
                           </p>
                           <span className="mt-1 block text-xs text-slate-500 dark:text-white/60">
-                            {formatTicksToRelativeTime(
-                              normalizeToMs(noti.createAt)
-                            )}
+                            {formatTicksToRelativeTime(noti.createAt)}
                           </span>
                         </div>
                         {!noti.isRead && (

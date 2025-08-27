@@ -27,7 +27,10 @@ export const Hero = ({
   onRead,
   fadeDescription = false,
 }: HeroProps) => {
-  const bgUrl = useMemo(() => hero?.novelImage || "", [hero?.novelImage]);
+  const bgUrl = useMemo(
+    () => hero?.novelBanner ?? hero?.novelImage ?? "",
+    [hero?.novelBanner, hero?.novelImage]
+  );
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {

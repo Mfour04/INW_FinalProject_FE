@@ -23,18 +23,20 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
-import { UserProfile } from "../pages/userProfile/UserProfile";
-import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
+import { UserProfile } from "../pages/UserProfile/UserProfile";
+import { TestUserProfile } from "../pages/UserProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
+import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route
         path="/following"

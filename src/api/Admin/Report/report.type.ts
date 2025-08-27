@@ -72,11 +72,11 @@ export const ReportReasonLabel: Record<number, string> = {
   5: "Lừa đảo",
   6: "Nội dung phi pháp",
   7: "Lý do khác",
-  8: "Quấy rối (cho bình luận/bài viết)",
+  8: "Quấy rối",
   9: "Tiết lộ thông tin cá nhân",
   10: "Lệch chủ đề",
   11: "Thông tin sai lệch",
-  12: "Tiết lộ nội dung (spoiler)",
+  12: "Tiết lộ nội dung",
 };
 
 export type ReportTypeStatus =

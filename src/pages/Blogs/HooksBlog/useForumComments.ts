@@ -21,7 +21,11 @@ export const UseForumComments = (postId: string) => {
             return res.data.data;
         },
         enabled: !!postId,
-        staleTime: 1000 * 60,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
     });
 };
 
@@ -36,6 +40,12 @@ export const UseCreateForumComment = (postId: string) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["following-blog-posts"] });
         },
     });
 };
@@ -50,6 +60,9 @@ export const UseUpdateForumComment = (postId: string) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
         },
     });
 };
@@ -64,8 +77,12 @@ export const UseDeleteForumComment = (postId: string) => {
         },
         onSuccess: (_, commentId) => {
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-
-            queryClient.invalidateQueries({ queryKey: ["forum-replies"] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["following-blog-posts"] });
         },
     });
 };
@@ -109,6 +126,10 @@ export const UseGetRepliesByForumComment = (commentId: string) => {
             return res.data.data;
         },
         enabled: !!commentId,
-        staleTime: 1000 * 60,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
     });
 };

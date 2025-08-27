@@ -2,30 +2,29 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { GetFollowers, GetFollowing } from "../../../api/UserFollow/user-follow.api";
 import abc from "../../../assets/img/default_avt.png";
-import { getAvatarUrl } from "../../../utils/avatar";
 
 const ProfileSidebar = () => {
   const { auth } = useAuth();
   const displayName = auth?.user?.displayName || auth?.user?.userName || "User";
   const handle = auth?.user?.userName || "user";
-  const avatar = getAvatarUrl(auth?.user?.avatarUrl);
+  const avatar = auth?.user?.avatarUrl || abc;
 
-  const { data: followersData } = useQuery({
+  const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
     queryKey: ['followers', handle],
     queryFn: () => GetFollowers(handle),
     enabled: !!handle,
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: followingData } = useQuery({
+  const { data: followingData, isLoading: isLoadingFollowing } = useQuery({
     queryKey: ['following', handle],
     queryFn: () => GetFollowing(handle),
     enabled: !!handle,
     staleTime: 1000 * 60 * 5,
   });
 
-  const followerCount = Array.isArray(followersData?.data) ? followersData.data.length : 0;
   const followingCount = Array.isArray(followingData?.data) ? followingData.data.length : 0;
+  const followersCount = Array.isArray(followersData?.data) ? followersData.data.length : 0;
 
   return (
     <aside className="w-full mt-6 xl:mt-0">
@@ -70,7 +69,7 @@ const ProfileSidebar = () => {
               <div className="flex items-center gap-2 rounded-full px-3 py-1.5 bg-zinc-900/60 ring-1 ring-zinc-800">
                 <span className="h-2 w-2 rounded-full bg-sky-400" />
                 <span className="text-[13px] text-zinc-300">
-                  <b className="text-white">{followerCount}</b> Người theo dõi
+                  <b className="text-white">{followersCount}</b> Người theo dõi
                 </span>
               </div>
             </div>
