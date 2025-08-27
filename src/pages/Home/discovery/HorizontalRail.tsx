@@ -33,7 +33,6 @@ export const HorizontalRail = ({
 
   return (
     <section className="relative md:col-span-2">
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {icon ? (
@@ -41,16 +40,16 @@ export const HorizontalRail = ({
               {icon}
             </span>
           ) : null}
-          <h3 className="text-xl font-bold leading-none">{title}</h3>
+          <h3 className="text-xl font-bold leading-none text-zinc-800 dark:text-zinc-100">
+            {title}
+          </h3>
         </div>
         {onSeeMore && (
           <SeeMoreGradientBtn label={seeMoreLabel} onClick={onSeeMore} />
         )}
       </div>
 
-      {/* Wrapper: overflow-hidden để không lộ ảnh dưới paddle */}
       <div className="relative rounded-2xl overflow-hidden">
-        {/* Paddle trái – chỉ hiện khi hover vào chính nó */}
         <button
           type="button"
           aria-label="Cuộn trái"
@@ -79,7 +78,6 @@ export const HorizontalRail = ({
           </svg>
         </button>
 
-        {/* Paddle phải – chỉ hiện khi hover vào chính nó */}
         <button
           type="button"
           aria-label="Cuộn phải"
@@ -108,7 +106,6 @@ export const HorizontalRail = ({
           </svg>
         </button>
 
-        {/* Track: chừa gutter 2 bên đúng bằng bề rộng paddle để item không chui dưới */}
         <div
           ref={trackRef}
           className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-4 pb-2 px-12
@@ -122,7 +119,6 @@ export const HorizontalRail = ({
               onClick={() => onClickItem(n)}
               className="snap-start w-[150px] sm:w-[168px] shrink-0 text-left"
             >
-              {/* Ảnh: fixed-size, tỉ lệ 3/4 */}
               <div
                 className="relative aspect-[3/4] w-full overflow-hidden rounded-xl
                            border border-zinc-200/70 bg-white shadow-sm
@@ -142,8 +138,7 @@ export const HorizontalRail = ({
                 )}
               </div>
 
-              {/* Tiêu đề: đậm, cố định 2 dòng để đồng chiều cao */}
-              <div className="mt-2 text-[13px] font-semibold leading-snug line-clamp-2 h-[2.6em]">
+              <div className="mt-2 text-[13px] font-semibold leading-snug line-clamp-2 h-[2.6em] text-zinc-700 dark:text-zinc-200">
                 {n.title}
               </div>
             </button>
