@@ -300,9 +300,7 @@ export const NotificationDropdown = ({
                             {noti.message}
                           </p>
                           <span className="mt-1 block text-xs text-slate-500 dark:text-white/60">
-                            {formatTicksToRelativeTime(
-                              normalizeToMs(noti.createAt)
-                            )}
+                            {formatTicksToRelativeTime(noti.createAt)}
                           </span>
                         </div>
                         {!noti.isRead && (

@@ -24,7 +24,7 @@ import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
-import  AuthModal  from "./AuthModal";
+import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
 
@@ -145,7 +145,7 @@ export const Header = ({
 
   useEffect(() => {
     if (notifications[0]) {
-      toast?.onOpen("Tác giả vừa đăng chương mới");
+      toast?.onOpen(notifications[0].message);
       notificationsRefetch();
     }
   }, [notifications, toast, notificationsRefetch]);
