@@ -932,43 +932,6 @@ export const Setting = () => {
                         <input type="checkbox" className="text-orange-500 focus:ring-orange-500" />
                         <span className="text-white text-sm sm:text-base">Chọn tất cả</span>
                     </div>
-
-                    {/* Blocked Users List */}
-                    <div className="space-y-3">
-                        {[
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null },
-                            { name: "Tài?", username: "@minhtai", avatar: null },
-                            { name: "Nguyen Dinh", username: "@dinhvanbaonguyen", avatar: null }
-                        ].map((user, index) => (
-                            <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-800 rounded-lg gap-3">
-                                <div className="flex items-center gap-3">
-                                    <input type="checkbox" className="text-orange-500 focus:ring-orange-500" />
-                                    <img
-                                        src={getAvatarUrl(user.avatar)}
-                                        alt={user.name}
-                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = getAvatarUrl(null);
-                                        }}
-                                    />
-                                    <div>
-                                        <p className="text-white font-medium text-sm sm:text-base">{user.name}</p>
-                                        <p className="text-gray-400 text-xs sm:text-sm">{user.username}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded border border-gray-600 hover:border-gray-500 transition-colors text-xs sm:text-sm">
-                                        Bỏ chặn
-                                    </button>
-                                    <button className="text-gray-400 hover:text-white">
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
         </div>
@@ -1156,15 +1119,6 @@ export const Setting = () => {
                                             }`}
                                     >
                                         Thông tin hiển thị
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab("privacy")}
-                                        className={`w-full text-left px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-xs sm:text-sm lg:text-base ${activeTab === "privacy"
-                                            ? "bg-[#ff4500] text-white"
-                                            : "text-gray-300 hover:text-white hover:bg-gray-800"
-                                            }`}
-                                    >
-                                        Quyền riêng tư
                                     </button>
                                 </div>
                             </div>

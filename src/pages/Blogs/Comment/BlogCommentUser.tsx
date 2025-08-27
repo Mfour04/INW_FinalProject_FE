@@ -41,6 +41,8 @@ export const BlogCommentUser = ({ postId }: Props) => {
   const [additionalReplies, setAdditionalReplies] = useState<any[]>([]);
 
   useEffect(() => {
+    setAdditionalReplies([]);
+
     if (rawComments && Array.isArray(rawComments)) {
       const replies = rawComments.filter((c: any) => c.parentId || c.parent_comment_id || c.parentCommentId);
 
@@ -71,8 +73,18 @@ export const BlogCommentUser = ({ postId }: Props) => {
   }, [rawComments]);
 
   useEffect(() => {
+    setAdditionalReplies([]);
+
     queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
+    queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+    queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+    queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+
     refetchComments();
+
+    return () => {
+      setAdditionalReplies([]);
+    };
   }, [refetchComments, postId, queryClient]);
 
   const { mutate: postComment } = UseCreateForumComment(postId);
@@ -102,8 +114,8 @@ export const BlogCommentUser = ({ postId }: Props) => {
     const flat: Comment[] = [];
     const rawCommentsArray = Array.isArray(rawComments) ? rawComments : [];
     const additionalRepliesArray = Array.isArray(additionalReplies) ? additionalReplies : [];
-
     const seenIds = new Set();
+
     const uniqueAdditionalReplies = additionalRepliesArray.filter((reply: any) => {
       if (reply?.id && !seenIds.has(reply.id)) {
         seenIds.add(reply.id);
@@ -116,7 +128,10 @@ export const BlogCommentUser = ({ postId }: Props) => {
 
     if (Array.isArray(allComments)) {
       allComments.forEach((c: any) => {
-        if (!c?.id) return;
+        if (!c?.id) {
+          console.warn("⚠️ [CommentCount Debug] Skipping comment without ID:", c);
+          return;
+        }
 
         const created = Number(c.createdAt) || 0;
         const updated = Number(c.updatedAt) || 0;
@@ -137,7 +152,7 @@ export const BlogCommentUser = ({ postId }: Props) => {
           author.avatar ||
           author.avatarUrl ||
           c.avatarUrl ||
-          c.Author?.Avatar
+          c.Author?.Avatar;
 
         const serverLikeCount = c.likeCount ?? 0;
         const localLikeCount = Number(localStorage.getItem(`likes_${c.id}`)) || 0;
@@ -154,6 +169,7 @@ export const BlogCommentUser = ({ postId }: Props) => {
           avatarUrl: avatar,
           timestamp,
         };
+
 
         flat.push(comment);
       });
@@ -194,10 +210,13 @@ export const BlogCommentUser = ({ postId }: Props) => {
         {
           onSuccess: (res: any) => {
             setComposerValue("");
+
             if (res?.data?.success === false && res?.data?.message?.includes("Duplicate")) {
               alert("Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác.");
               return;
             }
+
+            setAdditionalReplies([]);
             queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
@@ -235,6 +254,7 @@ export const BlogCommentUser = ({ postId }: Props) => {
         { content, parentCommentId: parentId },
         {
           onSuccess: () => {
+            setAdditionalReplies([]);
             queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
@@ -302,23 +322,89 @@ export const BlogCommentUser = ({ postId }: Props) => {
             const ts = blogFormatVietnamTimeFromTicksForUpdate(ticks);
             setEditedComments((m) => ({ ...m, [id]: { ...(m[id] || {}), content, timestamp: ts } }));
             localStorage.setItem(`updatedAt_${id}`, String(ticks));
+
+            setTimeout(() => {
+              refetchComments();
+            }, 100);
+
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
           },
         }
       );
     },
-    [postId, updateComment, queryClient]
+    [postId, updateComment, queryClient, refetchComments]
   );
 
   const handleDelete = useCallback(
     (id: string) => {
+
+      const commentToDelete = enrichedComments.find(c => c.id === id);
+      const isReply = !!commentToDelete?.parentId;
+      const repliesCount = isReply ? 0 : enrichedComments.filter(c => c.parentId === id).length;
+
       deleteComment(id, {
         onSuccess: () => {
           queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
           queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-          queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
-          queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
-          queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+
+          setAdditionalReplies([]);
+
+          const delta = isReply ? 1 : 1 + repliesCount;
+
+          const decPostComments = (posts: any) => {
+            if (!posts?.data) return posts;
+            return {
+              ...posts,
+              data: posts.data.map((post: any) => {
+                if (post.id === postId) {
+                  const oldCount = post.comments ?? 0;
+                  const newCount = Math.max(0, oldCount - delta);
+                  return { ...post, comments: newCount, commentCount: newCount };
+                }
+                return post;
+              }),
+            };
+          };
+
+          const curBlogPosts = queryClient.getQueryData(["blog-posts"]);
+          if (curBlogPosts) {
+            const updatedBlogPosts = decPostComments(curBlogPosts);
+            queryClient.setQueryData(["blog-posts"], updatedBlogPosts);
+          }
+
+          const curUserBlogPosts = queryClient.getQueryData(["user-blog-posts", currentUser.id]);
+          if (curUserBlogPosts) {
+            const updatedUserBlogPosts = decPostComments(curUserBlogPosts);
+            queryClient.setQueryData(["user-blog-posts", currentUser.id], updatedUserBlogPosts);
+          }
+
+          const curFollowingBlogPosts = queryClient.getQueryData(["following-blog-posts"]);
+          if (curFollowingBlogPosts) {
+            const updatedFollowingBlogPosts = decPostComments(curFollowingBlogPosts);
+            queryClient.setQueryData(["following-blog-posts"], updatedFollowingBlogPosts);
+          }
+
+          setTimeout(() => {
+            refetchComments();
+          }, 100);
+
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+          }, 200);
+
+          setTimeout(() => {
+            queryClient.refetchQueries({ queryKey: ["blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["following-blog-posts"] });
+          }, 300);
+
+          setTimeout(() => {
+            queryClient.refetchQueries({ queryKey: ["blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.refetchQueries({ queryKey: ["following-blog-posts"] });
+          }, 400);
 
           setEditedComments((m) => {
             const n = { ...m };
@@ -336,8 +422,9 @@ export const BlogCommentUser = ({ postId }: Props) => {
         },
       });
     },
-    [deleteComment, enrichedComments, postId, queryClient, currentUser.id]
+    [deleteComment, enrichedComments, postId, queryClient, currentUser.id, refetchComments]
   );
+
 
   return (
     <section className="">
