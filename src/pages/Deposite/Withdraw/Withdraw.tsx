@@ -2,8 +2,6 @@
 import Coin20 from "../../../assets/img/Transaction/coin-20.png";
 import Coin50 from "../../../assets/img/Transaction/coin-50.png";
 import Coin100 from "../../../assets/img/Transaction/coin-100.png";
-import Coin500 from "../../../assets/img/Transaction/coin-500.png";
-import Coin1000 from "../../../assets/img/Transaction/coin-200.png";
 import { WithdrawCard, type Coin } from "./WithdrawCard";
 import Button from "../../../components/ButtonComponent";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -47,7 +45,7 @@ const withdrawCoinOptions: Coin[] = [
   { amount: 200000, image: Coin100, price: 260 },
   { amount: 500000, image: Coin100, price: 650 },
   { amount: 1000000, image: Coin100, price: 1300 },
-  { amount: 2000000, image: Coin100, price: 2600 }
+  { amount: 2000000, image: Coin100, price: 2600 },
 ];
 
 const initialBankForm: CreateBankRequest = {
@@ -78,7 +76,8 @@ export const Withdraw = () => {
     queryFn: () => GetUserBanks().then((res) => res.data.data),
   });
 
-  const defaultAccountId = userBanks?.find((bank) => bank.isDefault)?.id ?? null;
+  const defaultAccountId =
+    userBanks?.find((bank) => bank.isDefault)?.id ?? null;
 
   const CreateBankMutation = useMutation({
     mutationFn: (request: CreateBankRequest) => CreateBank(request),
@@ -145,7 +144,8 @@ export const Withdraw = () => {
   };
 
   const handleConfirmSetDefault = () => {
-    if (selectedDefautBankId) SetDefaultBankMutation.mutate(selectedDefautBankId);
+    if (selectedDefautBankId)
+      SetDefaultBankMutation.mutate(selectedDefautBankId);
     setConfirmDefault(false);
   };
 
@@ -210,16 +210,30 @@ export const Withdraw = () => {
                         className={[
                           "cursor-pointer transition",
                           "hover:bg-zinc-50 dark:hover:bg-zinc-800",
-                          selectedRow?.id === acc.id ? "bg-zinc-50 dark:bg-zinc-800" : "",
+                          selectedRow?.id === acc.id
+                            ? "bg-zinc-50 dark:bg-zinc-800"
+                            : "",
                         ].join(" ")}
                       >
-                        <td className="px-2 py-1 text-zinc-700 dark:text-zinc-300">{index + 1}</td>
-                        <td className="px-2 py-1 text-gray-900 dark:text-white">{acc.bankShortName}</td>
-                        <td className="px-2 py-1 text-gray-900 dark:text-white">{acc.bankAccountNumber}</td>
-                        <td className="px-2 py-1 text-gray-900 dark:text-white">{acc.bankAccountName}</td>
+                        <td className="px-2 py-1 text-zinc-700 dark:text-zinc-300">
+                          {index + 1}
+                        </td>
+                        <td className="px-2 py-1 text-gray-900 dark:text-white">
+                          {acc.bankShortName}
+                        </td>
+                        <td className="px-2 py-1 text-gray-900 dark:text-white">
+                          {acc.bankAccountNumber}
+                        </td>
+                        <td className="px-2 py-1 text-gray-900 dark:text-white">
+                          {acc.bankAccountName}
+                        </td>
                         <td className="px-2 py-1">
                           <span
-                            onClick={!acc.isDefault ? () => handleSetDefault(acc.id) : undefined}
+                            onClick={
+                              !acc.isDefault
+                                ? () => handleSetDefault(acc.id)
+                                : undefined
+                            }
                             className={[
                               "inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-medium cursor-pointer",
                               acc.isDefault
@@ -234,7 +248,10 @@ export const Withdraw = () => {
                     ))}
                     {!userBanks?.length && (
                       <tr>
-                        <td colSpan={5} className="px-2 py-6 text-center text-zinc-500 dark:text-zinc-400">
+                        <td
+                          colSpan={5}
+                          className="px-2 py-6 text-center text-zinc-500 dark:text-zinc-400"
+                        >
                           Chưa có tài khoản ngân hàng
                         </td>
                       </tr>
@@ -249,12 +266,16 @@ export const Withdraw = () => {
           <div className="col-span-12 lg:col-span-5">
             <div className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <div className="px-3 py-2 border-b border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-gray-900 font-bold text-sm dark:text-white">Thêm tài khoản</h3>
+                <h3 className="text-gray-900 font-bold text-sm dark:text-white">
+                  Thêm tài khoản
+                </h3>
               </div>
 
               <div className="p-3 space-y-3">
                 <label className="flex items-center h-8">
-                  <span className="w-1/3 text-zinc-700 text-xs dark:text-zinc-300">Ngân hàng</span>
+                  <span className="w-1/3 text-zinc-700 text-xs dark:text-zinc-300">
+                    Ngân hàng
+                  </span>
                   <InlineBankSelect
                     value={
                       selectedBank
@@ -283,7 +304,9 @@ export const Withdraw = () => {
                 </label>
 
                 <label className="flex items-center h-8">
-                  <span className="w-1/3 text-zinc-700 text-xs truncate dark:text-zinc-300">STK</span>
+                  <span className="w-1/3 text-zinc-700 text-xs truncate dark:text-zinc-300">
+                    STK
+                  </span>
                   <input
                     className="w-2/3 h-full px-2 rounded-md border border-zinc-300 bg-white text-gray-900 text-xs placeholder-zinc-400 outline-none focus:border-[#ff6740] transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                     type="text"
@@ -315,7 +338,9 @@ export const Withdraw = () => {
                 </label>
 
                 <label className="flex items-center h-8">
-                  <span className="w-1/3 text-zinc-700 text-xs truncate dark:text-zinc-300">Chủ TK</span>
+                  <span className="w-1/3 text-zinc-700 text-xs truncate dark:text-zinc-300">
+                    Chủ TK
+                  </span>
                   <input
                     className="w-2/3 h-full px-2 rounded-md border border-zinc-300 bg-white text-gray-900 text-xs placeholder-zinc-400 outline-none focus:border-[#ff6740] transition dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
                     type="text"
@@ -338,7 +363,7 @@ export const Withdraw = () => {
                       "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff784f]/60",
                       "inline-flex items-center justify-center gap-2",
-                   ].join(" ")}
+                    ].join(" ")}
                     onClick={handleCreateBank}
                     isLoading={CreateBankMutation.isPending}
                   >
@@ -359,10 +384,15 @@ export const Withdraw = () => {
                 <WithdrawCard
                   coin={coin}
                   selected={selectedCoin?.amount === coin.amount}
-                  isLoading={WithdrawMutation.isPending && selectedCoin?.amount === coin.amount}
+                  isLoading={
+                    WithdrawMutation.isPending &&
+                    selectedCoin?.amount === coin.amount
+                  }
                   onClick={() => {
                     if (!defaultAccountId) {
-                      toast?.onOpen("Bạn chưa đăng ký tài khoản rút tiền mặc định!");
+                      toast?.onOpen(
+                        "Bạn chưa đăng ký tài khoản rút tiền mặc định!"
+                      );
                       return;
                     }
                     setSelectedCoin(coin);

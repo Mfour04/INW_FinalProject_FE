@@ -11,26 +11,48 @@ import { useAuth } from "../../hooks/useAuth";
 import { CoinCard, type Coin } from "./CoinCard";
 import { Withdraw } from "./Withdraw/Withdraw";
 import { Coins } from "lucide-react";
+import { DepositeConfirmModal } from "../../components/ConfirmModal/DepositeConfirmModal";
 
 type tabType = "Deposite" | "Withdraw";
 
 const depositeCoinOptions: Coin[] = [
-  { amount: 10, image: Coin10, price: 10000,  note: "Dùng thử" },
-  { amount: 20, image: Coin20, price: 20000,  note: "Nhỏ gọn" },
-  { amount: 50, image: Coin50, price: 50000,  note: "Tiện lợi",         bonus: 1 },
-  { amount: 100, image: Coin100, price: 100000, note: "Tặng xu sự kiện", bonus: 3 },
-  { amount: 200, image: Coin200, price: 200000, note: "Đọc dài ngày",    bonus: 7 },
-  { amount: 500, image: Coin500, price: 500000, note: "Cho tín đồ INW",  bonus: 18 },
+  { amount: 10, image: Coin10, price: 10000, note: "Dùng thử" },
+  { amount: 20, image: Coin20, price: 20000, note: "Nhỏ gọn" },
+  { amount: 50, image: Coin50, price: 50000, note: "Tiện lợi", bonus: 1 },
+  {
+    amount: 100,
+    image: Coin100,
+    price: 100000,
+    note: "Tặng xu sự kiện",
+    bonus: 3,
+  },
+  {
+    amount: 200,
+    image: Coin200,
+    price: 200000,
+    note: "Đọc dài ngày",
+    bonus: 7,
+  },
+  {
+    amount: 500,
+    image: Coin500,
+    price: 500000,
+    note: "Cho tín đồ INW",
+    bonus: 18,
+  },
 ];
 
 export const Deposite = () => {
   const { auth } = useAuth();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | undefined>(undefined);
+  const [depositeModal, setDepositeModal] = useState<boolean>(false);
   const [tab, setTab] = useState<tabType>("Deposite");
 
   const rechargeMutation = useMutation({
     mutationFn: QRCheckIn,
-    onMutate: (data: { coinAmount: number }) => setSelectedAmount(data.coinAmount),
+    onMutate: (data: { coinAmount: number }) =>
+      setSelectedAmount(data.coinAmount),
     onSuccess: (data) => {
       window.open(data.data.checkoutUrl, "_self");
     },
@@ -50,14 +72,20 @@ export const Deposite = () => {
               <CoinCard
                 key={coin.amount}
                 coin={coin}
-                onBuyClick={() => handleBuyClick(coin.amount)}
-                isLoading={rechargeMutation.isPending && selectedAmount === coin.amount}
+                onBuyClick={() => {
+                  setDepositeModal(true);
+                  setSelectedCoin(coin);
+                }}
+                isLoading={
+                  rechargeMutation.isPending && selectedAmount === coin.amount
+                }
               />
             ))}
           </div>
 
           <div className="mt-6 text-xs text-zinc-500 dark:text-zinc-400">
-            * Thanh toán an toàn qua PayOS. Xu sẽ cộng ngay sau khi giao dịch thành công.
+            * Thanh toán an toàn qua PayOS. Xu sẽ cộng ngay sau khi giao dịch
+            thành công.
           </div>
         </>
       );
@@ -76,18 +104,22 @@ export const Deposite = () => {
               </div>
             </div>
 
-            <h2 className="text-base font-semibold leading-none">InkWave Giao dịch</h2>
+            <h2 className="text-base font-semibold leading-none">
+              InkWave Giao dịch
+            </h2>
 
             <nav className="ml-2">
-              <div className="inline-flex rounded-2xl border border-zinc-200 bg-white/90 p-1 shadow-sm backdrop-blur
-                              dark:border-zinc-700 dark:bg-zinc-800/80 gap-1">
+              <div
+                className="inline-flex rounded-2xl border border-zinc-200 bg-white/90 p-1 shadow-sm backdrop-blur
+                              dark:border-zinc-700 dark:bg-zinc-800/80 gap-1"
+              >
                 <button
                   onClick={() => setTab("Deposite")}
                   className={[
                     "px-3.5 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200",
                     tab === "Deposite"
                       ? "bg-black text-white shadow-sm dark:bg-white dark:text-black"
-                      : "text-gray-600 hover:text-black dark:text-zinc-300 dark:hover:text-white"
+                      : "text-gray-600 hover:text-black dark:text-zinc-300 dark:hover:text-white",
                   ].join(" ")}
                 >
                   Nạp xu
@@ -98,7 +130,7 @@ export const Deposite = () => {
                     "px-3.5 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200",
                     tab === "Withdraw"
                       ? "bg-black text-white shadow-sm dark:bg-white dark:text-black"
-                      : "text-gray-600 hover:text-black dark:text-zinc-300 dark:hover:text-white"
+                      : "text-gray-600 hover:text-black dark:text-zinc-300 dark:hover:text-white",
                   ].join(" ")}
                 >
                   Rút xu
@@ -106,9 +138,14 @@ export const Deposite = () => {
               </div>
             </nav>
           </div>
-          <div className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 shadow-sm
-                  dark:border-zinc-700 dark:bg-zinc-800/80">
-            <Coins className="h-4 w-4 text-amber-500 dark:text-amber-400" strokeWidth={2} />
+          <div
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 shadow-sm
+                  dark:border-zinc-700 dark:bg-zinc-800/80"
+          >
+            <Coins
+              className="h-4 w-4 text-amber-500 dark:text-amber-400"
+              strokeWidth={2}
+            />
             <span className="text-sm font-semibold tabular-nums text-gray-800 dark:text-white">
               {(auth?.user?.coin ?? 0).toLocaleString("vi-VN")}
             </span>
@@ -117,6 +154,17 @@ export const Deposite = () => {
 
         {tabContent}
       </div>
+
+      <DepositeConfirmModal
+        isOpen={depositeModal}
+        onCancel={() => setDepositeModal(false)}
+        onConfirm={() =>
+          handleBuyClick(selectedCoin?.amount! + (selectedCoin?.bonus ?? 0))
+        }
+        loading={rechargeMutation.isPending}
+        vndAmount={selectedCoin?.price!}
+        coinAmount={selectedCoin?.amount! + (selectedCoin?.bonus ?? 0)}
+      />
     </div>
   );
 };

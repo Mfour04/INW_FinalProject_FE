@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-type WithdrawConfirmModalProps = {
+type DepositeConfirmModalProps = {
   isOpen: boolean;
   coinAmount: number;
   vndAmount: number;
@@ -9,18 +9,18 @@ type WithdrawConfirmModalProps = {
   loading?: boolean;
 };
 
-export const WithdrawConfirmModal = ({
+export const DepositeConfirmModal = ({
   isOpen,
   coinAmount,
   vndAmount,
   onCancel,
   onConfirm,
   loading = false,
-}: WithdrawConfirmModalProps) => {
+}: DepositeConfirmModalProps) => {
   const confirmRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const titleId = "withdraw-confirm-title";
-  const descId = "withdraw-confirm-desc";
+  const titleId = "Deposite-confirm-title";
+  const descId = "Deposite-confirm-desc";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -77,13 +77,13 @@ export const WithdrawConfirmModal = ({
             id={titleId}
             className="relative text-lg font-bold tracking-tight text-gray-900 dark:text-white"
           >
-            Xác nhận rút xu
+            Xác nhận nạp xu
           </h3>
           <p
             id={descId}
             className="relative mt-2 text-sm text-gray-700 dark:text-zinc-300"
           >
-            Bạn muốn rút{" "}
+            Bạn muốn nạp{" "}
             <span className="font-semibold text-[#ff6740]">
               {coinAmount.toLocaleString("vi-VN")} Xu
             </span>{" "}
@@ -98,10 +98,8 @@ export const WithdrawConfirmModal = ({
           </div>
         </div>
 
-        {/* Divider */}
         <div className="mt-4 h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent dark:via-white/10" />
 
-        {/* Action area */}
         <div className="px-5 py-4 flex items-center justify-end gap-2">
           <button
             ref={cancelRef}
@@ -133,7 +131,6 @@ export const WithdrawConfirmModal = ({
               "relative overflow-hidden",
             ].join(" ")}
           >
-            {/* Spinner khi loading */}
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <svg
