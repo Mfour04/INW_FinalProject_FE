@@ -5,7 +5,7 @@ import { MoreButton } from "./actions/MoreButton";
 import { MoreUser } from "./actions/MoreUser";
 import { Reply } from "./Reply";
 import { EmojiPickerBox } from "./EmojiPickerBox";
-import type { Comment } from "../../pages/CommentUser/types";
+import type { Comment } from "../../pages/commentUser/types.ts";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
 type EditedMap = Record<
@@ -53,19 +53,15 @@ export const ReplyThread = ({
   onToggleReply,
   onSaveEdit,
 }: Props) => {
-  const [expanded, setExpanded] = useState(false);
-
+  const [expanded, setExpanded] = useState(true);
   const [activeEditId, setActiveEditId] = useState<string | null>(null);
-  // KHÔNG dùng localEdit state nữa -> textarea uncontrolled
   const editRef = useRef<HTMLTextAreaElement | null>(null);
-
   const [emojiOpenId, setEmojiOpenId] = useState<string | null>(null);
   const emojiBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const startLocalEdit = (id: string, content: string) => {
     setActiveEditId(id);
     setEmojiOpenId(null);
-    // delay để textarea mount xong rồi set value + focus + caret
     requestAnimationFrame(() => {
       const ta = editRef.current;
       if (!ta) return;
@@ -92,11 +88,9 @@ export const ReplyThread = ({
   const insertEmojiAtCaret = (emoji: string) => {
     const ta = editRef.current;
     if (!ta) return;
-    // dùng setRangeText để chèn đúng caret, không đổi selection ngoài ý muốn
     const start = ta.selectionStart ?? ta.value.length;
     const end = ta.selectionEnd ?? ta.value.length;
     ta.setRangeText(emoji, start, end, "end");
-    // giới hạn 300 ký tự nếu cần
     if (ta.value.length > 300) {
       ta.value = ta.value.slice(0, 300);
       ta.setSelectionRange(300, 300);
@@ -250,7 +244,7 @@ export const ReplyThread = ({
             actions={
               canInteract ? (
                 parent.user === currentUser?.user ||
-                parent.name === currentUser?.name ? (
+                  parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}

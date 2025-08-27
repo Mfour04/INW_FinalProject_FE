@@ -32,13 +32,39 @@ type Props = {
 export const BlogCommentUser = ({ postId }: Props) => {
   const { auth } = useContext(AuthContext);
   const queryClient = useQueryClient();
-
   const [composerValue, setComposerValue] = useState("");
   const [replyInputs, setReplyInputs] = useState<Record<string, boolean>>({});
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
   const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
-
   const { data: rawComments, refetch: refetchComments } = UseForumComments(postId);
+  const [additionalReplies, setAdditionalReplies] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (rawComments && Array.isArray(rawComments)) {
+      const replies = rawComments.filter((c: any) => c.parentId || c.parent_comment_id || c.parentCommentId);
+
+      if (replies.length === 0 && rawComments.length > 0) {
+        const fetchReplies = async () => {
+          const allReplies: any[] = [];
+          for (const comment of rawComments) {
+            try {
+              const response = await fetch(`https://localhost:7242/api/forums/comments/${comment.id}/replies`);
+              const data = await response.json();
+              if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                allReplies.push(...data.data);
+              }
+            } catch (error) {
+              console.error(`🔍 Error fetching replies for comment ${comment.id}:`, error);
+            }
+          }
+          if (allReplies.length > 0) {
+            setAdditionalReplies(allReplies);
+          }
+        };
+        fetchReplies();
+      }
+    }
+  }, [rawComments]);
 
   useEffect(() => {
     queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
@@ -70,52 +96,72 @@ export const BlogCommentUser = ({ postId }: Props) => {
 
   const serverComments: Comment[] = useMemo(() => {
     const flat: Comment[] = [];
-    const replyCountMap: Record<string, number> = {};
+    const rawCommentsArray = Array.isArray(rawComments) ? rawComments : [];
+    const additionalRepliesArray = Array.isArray(additionalReplies) ? additionalReplies : [];
 
-    const collect = (c: any) => {
-      if (!c?.id) return;
+    const seenIds = new Set();
+    const uniqueAdditionalReplies = additionalRepliesArray.filter((reply: any) => {
+      if (reply?.id && !seenIds.has(reply.id)) {
+        seenIds.add(reply.id);
+        return true;
+      }
+      return false;
+    });
 
-      const created = Number(c.createdAt) || 0;
-      const updated = Number(c.updatedAt) || 0;
-      const local = Number(localStorage.getItem(`updatedAt_${c.id}`)) || 0;
-      const latest = Math.max(created, updated, local);
-      const timestamp =
-        latest > 0 ? blogFormatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
+    const allComments = [...rawCommentsArray, ...uniqueAdditionalReplies];
 
-      const author = c.author || c.user || c.Author || {};
-      const name =
-        author.displayName ||
-        author.username ||
-        c.authorName ||
-        c.displayName ||
-        "Ẩn danh";
-      const user = author.username ? `@${author.username}` : `@${author.userName || "user"}`;
-      const avatar =
-        author.avatar ||
-        author.avatarUrl ||
-        c.avatarUrl ||
-        c.Author?.Avatar
+    if (Array.isArray(allComments)) {
+      allComments.forEach((c: any) => {
+        if (!c?.id) return;
 
-      flat.push({
-        id: c.id,
-        content: c.content,
-        parentId: c.parentId ?? c.parent_comment_id ?? c.parentCommentId ?? null,
-        likes: c.likeCount ?? 0,
-        replies: replyCountMap[c.id] || 0,
-        name,
-        user,
-        avatarUrl: avatar,
-        timestamp,
+        const created = Number(c.createdAt) || 0;
+        const updated = Number(c.updatedAt) || 0;
+        const local = Number(localStorage.getItem(`updatedAt_${c.id}`)) || 0;
+        const latest = Math.max(created, updated, local);
+        const timestamp =
+          latest > 0 ? blogFormatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
+
+        const author = c.author || c.user || c.Author || {};
+        const name =
+          author.displayName ||
+          author.username ||
+          c.authorName ||
+          c.displayName ||
+          "Ẩn danh";
+        const user = author.username ? `@${author.username}` : `@${author.userName || "user"}`;
+        const avatar =
+          author.avatar ||
+          author.avatarUrl ||
+          c.avatarUrl ||
+          c.Author?.Avatar
+
+        const serverLikeCount = c.likeCount ?? 0;
+        const localLikeCount = Number(localStorage.getItem(`likes_${c.id}`)) || 0;
+        const finalLikeCount = Math.max(serverLikeCount, localLikeCount);
+
+        const comment = {
+          id: c.id,
+          content: c.content,
+          parentId: c.parentId ?? c.parent_comment_id ?? c.parentCommentId ?? null,
+          likes: finalLikeCount,
+          replies: 0,
+          name,
+          user,
+          avatarUrl: avatar,
+          timestamp,
+        };
+
+        flat.push(comment);
       });
 
-      if (Array.isArray(c.replies)) c.replies.forEach(collect);
-    };
-
-    if (Array.isArray(rawComments)) {
-      rawComments.forEach(collect);
+      flat.forEach((comment) => {
+        const replyCount = flat.filter((c) => c.parentId === comment.id).length;
+        comment.replies = replyCount;
+      });
     }
+
     return flat;
-  }, [rawComments]);
+  }, [rawComments, additionalReplies]);
 
   const enrichedComments: Comment[] = useMemo(
     () =>
@@ -206,26 +252,40 @@ export const BlogCommentUser = ({ postId }: Props) => {
       const currentLikes = editedComments[commentId]?.likes ?? original?.likes ?? 0;
 
       if (hasLiked) {
-        const res = await UnlikeForumComment(commentId, currentUser.id);
-        if (res.data.success) {
-          const next = Math.max(0, currentLikes - 1);
+        try {
+          const res = await UnlikeForumComment(commentId, currentUser.id);
+          if (res.data.success) {
+            const next = Math.max(0, currentLikes - 1);
+            setLikedComments((m) => ({ ...m, [commentId]: false }));
+            localStorage.removeItem(`liked_${commentId}`);
+            localStorage.setItem(`likes_${commentId}`, String(next));
+            setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+          }
+        } catch (error) {
+          console.error("🔍 Unlike error:", error);
           setLikedComments((m) => ({ ...m, [commentId]: false }));
           localStorage.removeItem(`liked_${commentId}`);
-          localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
         }
       } else {
-        const res = await LikeForumComment(commentId, currentUser.id, 1);
-        if (res.data.success) {
-          const next = currentLikes + 1;
+        try {
+          const res = await LikeForumComment(commentId, currentUser.id, 1);
+          if (res.data.success) {
+            const next = currentLikes + 1;
+            setLikedComments((m) => ({ ...m, [commentId]: true }));
+            localStorage.setItem(`liked_${commentId}`, "true");
+            localStorage.setItem(`likes_${commentId}`, String(next));
+            setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+            queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+          }
+        } catch (error) {
+          console.error("🔍 Like error:", error);
           setLikedComments((m) => ({ ...m, [commentId]: true }));
           localStorage.setItem(`liked_${commentId}`, "true");
-          localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
         }
       }
     },
-    [auth?.user, currentUser.id, editedComments, enrichedComments, likedComments]
+    [auth?.user, currentUser.id, editedComments, enrichedComments, likedComments, queryClient, postId]
   );
 
   const saveEdit = useCallback(
@@ -299,6 +359,7 @@ export const BlogCommentUser = ({ postId }: Props) => {
           ) : (
             topLevel.map((parent) => {
               const replies = enrichedComments.filter((r) => r.parentId === parent.id);
+
               return (
                 <ReplyThread
                   key={parent.id}
