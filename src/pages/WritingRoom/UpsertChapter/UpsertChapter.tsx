@@ -30,6 +30,8 @@ import { Stepper } from "./components/Stepper"; // non-click version
 import { StatusSummary } from "./components/StatusSummary";
 import { ticksToDate } from "../../../utils/date_format";
 import { ModerationReviewModal } from "./ModerationReviewModal";
+import { PrimaryButton } from "./components/PrimaryButton";
+import { SecondaryButton } from "./components/SecondaryButton";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -74,6 +76,7 @@ export const UpsertChapter = () => {
     useState<ModerationAIResponse | null>(null);
   const [openModerationModal, setOpenModerationModal] = useState(false);
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
+  const [isPlagiarismCheck, setIsPlagiarismCheck] = useState<boolean>(false);
 
   const chapterFormRef = useRef(chapterForm);
 
@@ -174,15 +177,17 @@ export const UpsertChapter = () => {
 
   const handleNextStep = () => setStep((s) => Math.min(3, s + 1));
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
-  const handleUpsertButtonClick = () => {
-    const rawContent = stripHtmlTags(chapterForm.content);
-    ModerationMutation.mutate({ content: rawContent });
-  };
+  const handleUpsertButtonClick = () => {};
   const handleConfirmUpsert = () => {
     if (isUpdate)
       updateChapterMutation.mutate(chapterForm as UpdateChapterRequest);
     else createChapterMutation.mutate(chapterForm as CreateChapterRequest);
     setConfirmUpsertModal(false);
+  };
+
+  const handleModerationCheck = () => {
+    const rawContent = stripHtmlTags(chapterForm.content);
+    ModerationMutation.mutate({ content: rawContent });
   };
 
   const content = useMemo(() => {
@@ -193,7 +198,11 @@ export const UpsertChapter = () => {
         );
       case 2:
         return (
-          <Content chapterForm={chapterForm} setChapterForm={setChapterForm} />
+          <Content
+            chapterForm={chapterForm}
+            setChapterForm={setChapterForm}
+            setIsCheck={setIsPlagiarismCheck}
+          />
         );
       case 3:
         return (
@@ -266,12 +275,10 @@ export const UpsertChapter = () => {
       }}
     >
       <div className="max-w-6xl mx-auto py-4">
-        {/* Header */}
         <div className="flex top-0 z-20 mb-10">
           <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
             <div className="relative py-3">
               <div className="flex items-center justify-between">
-                {/* Trái */}
                 <div className="flex items-center gap-4 md:gap-6">
                   <button
                     onClick={() => navigate(-1)}
@@ -294,17 +301,7 @@ export const UpsertChapter = () => {
                   </div>
                 </div>
 
-                {/* Phải */}
                 <div className="flex items-center gap-3">
-                  {/* <button
-                    onClick={() => refetch()}
-                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] 
-                              ring-1 ring-white/10 hover:bg-white/[0.12] transition"
-                    title="Làm mới"
-                    aria-label="Làm mới"
-                  >
-                    <span className="i-lucide-rotate-ccw h-4 w-4" />
-                  </button> */}
                   <SaveStatus
                     loading={
                       autoSaveMutation.isPending ||
@@ -320,7 +317,6 @@ export const UpsertChapter = () => {
           </div>
         </div>
 
-        {/* Body */}
         <div
           className="
             mt-6 grid grid-cols-1 gap-6
@@ -329,7 +325,6 @@ export const UpsertChapter = () => {
             2xl:grid-cols-[300px_minmax(0,1fr)]
           "
         >
-          {/* Sidebar: Stepper + Status Summary */}
           <aside className="space-y-6">
             <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.04] p-3 md:p-4">
               <Stepper current={step} />
@@ -339,12 +334,10 @@ export const UpsertChapter = () => {
             </div>
           </aside>
 
-          {/* Main content + per-step actions */}
           <main className="space-y-6">
             <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.04] p-4 md:p-5">
               {content}
 
-              {/* Actions ngay dưới mỗi step */}
               <div className="mt-4 flex items-center justify-between px-2">
                 {step > 1 ? (
                   <SecondaryButton onClick={handlePrevStep}>
@@ -356,17 +349,27 @@ export const UpsertChapter = () => {
                 )}
 
                 {step < 3 ? (
-                  <PrimaryButton onClick={handleNextStep}>
-                    Tiếp theo
-                  </PrimaryButton>
+                  step === 2 ? (
+                    <PrimaryButton
+                      onClick={handleModerationCheck}
+                      loading={ModerationMutation.isPending}
+                      disabled={!isPlagiarismCheck}
+                    >
+                      {ModerationMutation.isPending
+                        ? "Đang kiểm duyệt"
+                        : "Kiểm duyệt"}
+                    </PrimaryButton>
+                  ) : (
+                    <PrimaryButton onClick={handleNextStep}>
+                      Tiếp theo
+                    </PrimaryButton>
+                  )
                 ) : (
                   <PrimaryButton
                     onClick={handleUpsertButtonClick}
                     loading={ModerationMutation.isPending}
                   >
-                    {ModerationMutation.isPending
-                      ? `Đang kiểm duyệt`
-                      : `Xác nhận`}
+                    Xác nhận
                   </PrimaryButton>
                 )}
               </div>
@@ -388,94 +391,12 @@ export const UpsertChapter = () => {
           setOpenModerationModal(false);
           setModerationData(null);
         }}
-        onContinue={handleConfirmUpsert}
+        onContinue={() => setStep(step + 1)}
         data={moderationData}
       />
     </div>
   );
 };
-
-function PrimaryButton({
-  children,
-  onClick,
-  disabled,
-  loading,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={[
-        "inline-flex items-center justify-center gap-2 h-8 px-4",
-        "rounded-full text-[14px] font-semibold",
-        "text-white ring-1 ring-white/10 shadow-sm shadow-black/10",
-        "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]",
-        disabled || loading
-          ? "opacity-70 cursor-not-allowed"
-          : "hover:brightness-110 active:brightness-95",
-        "transition",
-      ].join(" ")}
-    >
-      {loading && (
-        <svg
-          className="animate-spin h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden
-        >
-          <circle
-            className="opacity-30"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            d="M22 12a10 10 0 0 1-10 10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-        </svg>
-      )}
-      <span className="whitespace-nowrap">{children}</span>
-    </button>
-  );
-}
-
-function SecondaryButton({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={[
-        "rounded-full text-[14px] font-semibold",
-        "inline-flex items-center justify-center gap-2 h-8 px-4",
-        "bg-white/10 hover:bg-white/18",
-        "ring-1 ring-white/12 text-white/90",
-        disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
-        "transition",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
 
 function ChevronLeftMini() {
   return (
