@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+// ReportList.tsx
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ReportSearchBar from "./ReportSearchBar";
 import FilterButtons from "../AdminModal/FilterButtons";
-import ReportDataTable from "./ReportDataTable";
 import Pagination from "../AdminModal/Pagination";
 import ReportDetailPopup from "./ReportDetailPopup";
 import ReportTypeFilter from "./ReportTypeFilter";
@@ -10,22 +10,36 @@ import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ReportTypeStatus,
-  ReportTypeStatusLabels,
   ReportStatus,
-  ReportStatusLabels,
+  type Report,
+  ReportReasonLabel,
+  type UpdateActionRequest,
 } from "../../../api/Admin/Report/report.type";
 import {
   GetReports,
   UpdateReportStatus,
 } from "../../../api/Admin/Report/report.api";
-import type { ReportEntity } from "../../../api/Admin/Report/report.type";
-import { GetNovelById } from "../../../api/Novels/novel.api";
-import { GetCommentById } from "../../../api/Comment/comment.api";
-import { GetChapter } from "../../../api/Chapters/chapter.api";
-import { GetForumPostById } from "../../../api/Admin/Forum/forum.api";
-import { GetForumCommentById } from "../../../api/Admin/ForumComment/forumComment.api";
-import type { User } from "../../../api/Admin/User/user.type";
-import { GetUserById } from "../../../api/Admin/User/user.api";
+import { ReportDataTable } from "./ReportDataTable";
+import { ReportActionModal } from "./ReportActionModal";
+import { useToast } from "../../../context/ToastContext/toast-context";
+
+const kAvatar = (name?: string) =>
+  (name ?? "??").trim().slice(0, 2).toUpperCase();
+
+const STATUS_STYLE = (s: number) => {
+  switch (s) {
+    case 0:
+      return "bg-yellow-200/80 text-yellow-900 ring-1 ring-yellow-700/10 dark:bg-yellow-700/40 dark:text-yellow-100 dark:ring-yellow-300/20";
+    case 1:
+      return "bg-blue-200/80 text-blue-900 ring-1 ring-blue-700/10 dark:bg-blue-700/40 dark:text-blue-100 dark:ring-blue-300/20";
+    case 2:
+      return "bg-red-200/80 text-red-900 ring-1 ring-red-700/10 dark:bg-red-700/40 dark:text-red-100 dark:ring-red-300/20";
+    case 3:
+      return "bg-zinc-200/70 text-zinc-800 ring-1 ring-zinc-500/10 dark:bg-slate-700/50 dark:text-slate-100 dark:ring-slate-400/20";
+    default:
+      return "bg-zinc-200/70 text-zinc-900 ring-1 ring-black/5 dark:bg-zinc-800/60 dark:text-zinc-100 dark:ring-white/10";
+  }
+};
 
 const ReportList = () => {
   const queryClient = useQueryClient();
@@ -40,500 +54,172 @@ const ReportList = () => {
   }>({ open: false, reportId: null, action: null });
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
-  const [usersMap, setUsersMap] = useState<{ [key: string]: string }>({});
-  const [isUsersLoading, setIsUsersLoading] = useState(false);
-  const [usersError, setUsersError] = useState<Error | null>(null);
-  const [novelsMap, setNovelsMap] = useState<{ [key: string]: string }>({});
-  const [isNovelsLoading, setIsNovelsLoading] = useState(false);
-  const [novelsError, setNovelsError] = useState<Error | null>(null);
-  const [commentsMap, setCommentsMap] = useState<{ [key: string]: string }>({});
-  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
-  const [commentsError, setCommentsError] = useState<Error | null>(null);
-  const [chaptersMap, setChaptersMap] = useState<{ [key: string]: string }>({});
-  const [isChapterLoading, setIsChaptersLoading] = useState(false);
-  const [chaptersError, setChaptersError] = useState<Error | null>(null);
-  const [forumPostMap, setForumPostMap] = useState<{ [key: string]: string }>(
-    {}
-  );
-  const [isForumPostLoading, setIsForumPostsLoading] = useState(false);
-  const [forumPostsError, setForumPostsError] = useState<Error | null>(null);
-  const [forumPostCommentMap, setForumPostCommentMap] = useState<{
-    [key: string]: string;
-  }>({});
-  const [isForumPostCommentLoading, setIsForumPostCommentsLoading] =
-    useState(false);
-  const [forumPostCommentsError, setForumPostCommentsError] =
-    useState<Error | null>(null);
+  const [reportActionOpen, setReportActionOpen] = useState<boolean>(false);
   const itemsPerPage = 10;
 
-  // API cho danh sách báo cáo
+  const toast = useToast();
+
   const {
     data: reportsData,
     isLoading,
     error,
+    isFetching,
   } = useQuery({
     queryKey: ["Reports", currentPage],
     queryFn: () =>
-      GetReports(currentPage - 1, itemsPerPage).then((res) => res.data),
+      GetReports({ limit: 10, page: 0 }).then((res) => res.data.data),
   });
 
-  // Mutation để cập nhật trạng thái báo cáo
   const updateStatusMutation = useMutation({
     mutationFn: async ({
       reportId,
-      status,
+      request,
     }: {
       reportId: string;
-      status: ReportStatus;
-    }) => {
-      return UpdateReportStatus(reportId, status).then((res) => res.data);
-    },
+      request: UpdateActionRequest;
+    }) => UpdateReportStatus(reportId, request).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Reports"] });
       setDialog({ open: false, reportId: null, action: null });
     },
-    onError: (err) => {
-      console.error("Update status error:", err);
-      alert("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
+    onError: () => {
+      toast?.onOpen("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
       setDialog({ open: false, reportId: null, action: null });
     },
   });
 
-  // Gọi API GetUserById cho tất cả userId và memberId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchUsers = async () => {
-      setIsUsersLoading(true);
-      setUsersError(null);
-
-      try {
-        const userIds = Array.from(
-          new Set(
-            reportsData.data
-              .flatMap((report: ReportEntity) => [
-                report.userId,
-                report.memberId,
-              ])
-              .filter(
-                (id): id is string => typeof id === "string" && id.trim() !== ""
-              )
-          )
-        );
-
-        const usersData: { [key: string]: string } = {};
-        for (const userId of userIds) {
-          try {
-            const response = await GetUserById(userId).then((res) => res.data);
-            usersData[userId] = response.displayName ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Lỗi khi lấy thông tin người dùng ${userId}:`, {});
-            usersData[userId] = "Không tìm thấy";
-          }
-        }
-        setUsersMap(usersData);
-      } catch (err) {
-        console.error("Lỗi khi tải danh sách người dùng:", err);
-        setUsersError(
-          err instanceof Error ? err : new Error("Lỗi không xác định")
-        );
-      } finally {
-        setIsUsersLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [reportsData, isLoading]);
-
-  // Gọi API GetNovelById cho tất cả novelId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchNovels = async () => {
-      setIsNovelsLoading(true);
-      setNovelsError(null);
-
-      try {
-        const novelIds = Array.from(
-          new Set(
-            reportsData.data
-              .filter(
-                (report: ReportEntity) =>
-                  report.novelId && report.novelId !== ""
-              )
-              .map((report: ReportEntity) => report.novelId)
-          )
-        ) as string[];
-
-        const novelsData: { [key: string]: string } = {};
-        for (const novelId of novelIds) {
-          try {
-            const response = await GetNovelById(novelId).then(
-              (res) => res.data
-            );
-            novelsData[novelId] =
-              response.data?.novelInfo?.title ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Error fetching novel ${novelId}:`, err);
-            novelsData[novelId] = "Failed to load novel";
-          }
-        }
-        setNovelsMap(novelsData);
-      } catch (err) {
-        console.error("Error fetching novels:", err);
-        setNovelsError(err instanceof Error ? err : new Error("Unknown error"));
-      } finally {
-        setIsNovelsLoading(false);
-      }
-    };
-
-    fetchNovels();
-  }, [reportsData, isLoading]);
-
-  // Gọi API GetCommentById cho tất cả commentId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchComments = async () => {
-      setIsCommentsLoading(true);
-      setCommentsError(null);
-
-      try {
-        const commentIds = Array.from(
-          new Set(
-            reportsData.data
-              .filter(
-                (report: ReportEntity) =>
-                  report.commentId && report.commentId !== ""
-              )
-              .map((report: ReportEntity) => report.commentId)
-          )
-        ) as string[];
-
-        const commentsData: { [key: string]: string } = {};
-        for (const commentId of commentIds) {
-          try {
-            const response = await GetCommentById(commentId).then(
-              (res) => res.data
-            );
-            commentsData[commentId] =
-              response.data?.content ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Error fetching comment ${commentId}:`, err);
-            commentsData[commentId] = "Failed to load comment";
-          }
-        }
-        setCommentsMap(commentsData);
-      } catch (err) {
-        console.error("Error fetching comments:", err);
-        setCommentsError(
-          err instanceof Error ? err : new Error("Unknown error")
-        );
-      } finally {
-        setIsCommentsLoading(false);
-      }
-    };
-
-    fetchComments();
-  }, [reportsData, isLoading]);
-
-  // Gọi API GetChapter cho tất cả chapterId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchChapters = async () => {
-      setIsChaptersLoading(true);
-      setChaptersError(null);
-
-      try {
-        const chapterIds = Array.from(
-          new Set(
-            reportsData.data
-              .filter(
-                (report: ReportEntity) =>
-                  report.chapterId && report.chapterId !== ""
-              )
-              .map((report: ReportEntity) => report.chapterId)
-          )
-        ) as string[];
-
-        const chaptersData: { [key: string]: string } = {};
-        for (const chapterId of chapterIds) {
-          try {
-            const response = await GetChapter(chapterId).then(
-              (res) => res.data
-            );
-            chaptersData[chapterId] =
-              response.data?.chapter.title ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Error fetching chapter ${chapterId}:`, err);
-            chaptersData[chapterId] = "Failed to load chapter";
-          }
-        }
-        setChaptersMap(chaptersData);
-      } catch (err) {
-        console.error("Error fetching chapters:", err);
-        setChaptersError(
-          err instanceof Error ? err : new Error("Unknown error")
-        );
-      } finally {
-        setIsChaptersLoading(false);
-      }
-    };
-
-    fetchChapters();
-  }, [reportsData, isLoading]);
-
-  // Gọi API GetForumPostById cho tất cả forumPostId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchPosts = async () => {
-      setIsForumPostsLoading(true);
-      setForumPostsError(null);
-
-      try {
-        const postIds = Array.from(
-          new Set(
-            reportsData.data
-              .filter(
-                (report: ReportEntity) =>
-                  report.forumPostId && report.forumPostId !== ""
-              )
-              .map((report: ReportEntity) => report.forumPostId)
-          )
-        ) as string[];
-
-        const postsData: { [key: string]: string } = {};
-        for (const postId of postIds) {
-          try {
-            const response = await GetForumPostById(postId).then(
-              (res) => res.data
-            );
-            postsData[postId] = response.data?.title ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Error fetching post ${postId}:`, err);
-            postsData[postId] = "Failed to load post";
-          }
-        }
-        setForumPostMap(postsData);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-        setForumPostsError(
-          err instanceof Error ? err : new Error("Unknown error")
-        );
-      } finally {
-        setIsForumPostsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [reportsData, isLoading]);
-
-  // Gọi API GetForumCommentById cho tất cả forumCommentId
-  useEffect(() => {
-    if (!reportsData?.data || isLoading) return;
-
-    const fetchForumComments = async () => {
-      setIsForumPostCommentsLoading(true);
-      setForumPostCommentsError(null);
-
-      try {
-        const forumCommentIds = Array.from(
-          new Set(
-            reportsData.data
-              .filter(
-                (report: ReportEntity) =>
-                  report.forumCommentId && report.forumCommentId !== ""
-              )
-              .map((report: ReportEntity) => report.forumCommentId)
-          )
-        ) as string[];
-
-        const forumCommentsData: { [key: string]: string } = {};
-        for (const forumCommentId of forumCommentIds) {
-          try {
-            const response = await GetForumCommentById(forumCommentId).then(
-              (res) => res.data
-            );
-            forumCommentsData[forumCommentId] =
-              response.data?.content ?? "Không tìm thấy";
-          } catch (err) {
-            console.error(`Error fetching comment ${forumCommentId}:`, err);
-            forumCommentsData[forumCommentId] = "Failed to load comment";
-          }
-        }
-        setForumPostCommentMap(forumCommentsData);
-      } catch (err) {
-        console.error("Error fetching comments:", err);
-        setForumPostCommentsError(
-          err instanceof Error ? err : new Error("Unknown error")
-        );
-      } finally {
-        setIsForumPostCommentsLoading(false);
-      }
-    };
-
-    fetchForumComments();
-  }, [reportsData, isLoading]);
-
-  // Lọc báo cáo theo tìm kiếm, trạng thái và loại báo cáo
-  const filteredReports = (reportsData?.data || []).filter(
-    (report: ReportEntity) => {
+  const filteredReports = useMemo(() => {
+    const source = reportsData?.reports || [];
+    const term = searchTerm.trim().toLowerCase();
+    return source.filter((report: Report) => {
       const matchesSearch =
-        report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (report.reason &&
-          report.reason.toLowerCase().includes(searchTerm.toLowerCase()));
+        term.length === 0 ||
+        report.chapterTitle?.toLowerCase().includes(term) ||
+        report.reporter.displayName?.toLowerCase().includes(term) ||
+        report.commentAuthor?.displayName?.toLowerCase().includes(term) ||
+        report.novelTitle?.toLowerCase().includes(term) ||
+        report.forumPostAuthor?.displayName?.toLowerCase().includes(term) ||
+        report.targetUserId?.toLowerCase().includes(term);
+
       const matchesStatus =
-        statusFilter === "All" || report.status === statusFilter;
-      const matchesType = typeFilter === "All" || report.type === typeFilter;
+        statusFilter === "All" || report.status === Number(statusFilter);
+      const matchesType =
+        typeFilter === "All" || report.scope === Number(typeFilter);
+
       return matchesSearch && matchesStatus && matchesType;
-    }
-  );
+    });
+  }, [reportsData, searchTerm, statusFilter, typeFilter]);
 
-  // Phân trang
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-  const paginatedReports = filteredReports.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const paginatedReports = useMemo(
+    () =>
+      filteredReports.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      ),
+    [filteredReports, currentPage]
   );
 
-  // Xử lý tìm kiếm
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     setCurrentPage(1);
   };
-
-  // Xử lý lọc trạng thái
   const handleStatusFilter = (value: ReportStatus | "All") => {
     setStatusFilter(value);
     setCurrentPage(1);
   };
-
-  // Xử lý lọc loại báo cáo
   const handleTypeFilter = (value: ReportTypeStatus | "All") => {
     setTypeFilter(value);
     setCurrentPage(1);
   };
 
-  // Xử lý hành động Resolve/Reject
-  const handleAction = (reportId: string, action: "resolve" | "reject") => {
-    const report = reportsData?.data.find(
-      (r: ReportEntity) => r.id === reportId
-    );
-    if (!report || report.status !== ReportStatus.InProgress) {
-      alert("Báo cáo không ở trạng thái Đang xử lý!");
-      return;
-    }
-    setDialog({ open: true, reportId, action });
+  const handleSubmitAction = (reportId: string, data: UpdateActionRequest) => {
+    updateStatusMutation.mutate({ reportId, request: data });
   };
 
-  // Xử lý xác nhận hành động
   const confirmAction = () => {
     if (dialog.reportId && dialog.action) {
-      const status =
-        dialog.action === "resolve"
-          ? ReportStatus.Resolved
-          : ReportStatus.Rejected;
-      updateStatusMutation.mutate({ reportId: dialog.reportId, status });
-    } else {
-      setDialog({ open: false, reportId: null, action: null });
     }
-  };
-
-  // Xử lý đóng modal
-  const handleCancel = () => {
     setDialog({ open: false, reportId: null, action: null });
   };
 
-  // Xử lý mở pop-up chi tiết
   const handleOpenDetail = (reportId: string) => {
     setSelectedReportId(reportId);
     setIsDetailOpen(true);
   };
-
   const handleCloseDetail = () => {
     setIsDetailOpen(false);
     setSelectedReportId(null);
   };
+  const handleOpenAction = (reportId: string) => {
+    setReportActionOpen(true);
+    setSelectedReportId(reportId);
+  };
+  const handleCloseAction = () => {
+    setReportActionOpen(false);
+    setSelectedReportId(null);
+  };
 
-  // Cột của ReportDataTable
   const columns = [
     {
       key: "userId",
       header: "Người báo cáo",
-      render: (report: ReportEntity) => {
-        if (isUsersLoading) return <span>Loading...</span>;
-        if (usersError || !report.userId || !usersMap[report.userId]) {
-          return <span>Không rõ</span>;
-        }
-        return <span>{usersMap[report.userId] ?? "Không rõ"}</span>;
-      },
+      width: "17.5%",
+      render: (report: Report) => (
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="size-8 rounded-full bg-gradient-to-br from-orange-400/70 to-pink-500/70 text-white grid place-items-center text-xs font-bold">
+            {kAvatar(report.reporter.username)}
+          </div>
+          <div className="min-w-0">
+            <div className="font-medium truncate">
+              {report.reporter.username}
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+              {report.reporter.displayName}
+            </div>
+          </div>
+        </div>
+      ),
+      nowrap: true,
     },
     {
       key: "target",
-      header: "Đối tượng báo cáo",
-      render: (report: ReportEntity) => {
-        switch (ReportTypeStatusLabels[report.type]) {
-          case "UserReport": {
-            if (isUsersLoading) return <span>Loading...</span>;
-            if (usersError || !report.memberId || !usersMap[report.memberId]) {
-              return <span>Không rõ</span>;
-            }
-            return <span>{usersMap[report.memberId] ?? "Không rõ"}</span>;
-          }
-          case "NovelReport": {
-            if (isNovelsLoading) return <span>Loading...</span>;
-            if (novelsError || !report.novelId) return <span>Không rõ</span>;
-            return <span>{novelsMap[report.novelId] ?? "Không rõ"}</span>;
-          }
-          case "ChapterReport": {
-            if (isChapterLoading) return <span>Loading...</span>;
-            if (chaptersError || !report.chapterId)
-              return <span>Không rõ</span>;
-            return <span>{chaptersMap[report.chapterId] ?? "Không rõ"}</span>;
-          }
-          case "CommentReport": {
-            if (isCommentsLoading) return <span>Loading...</span>;
-            if (commentsError || !report.commentId)
-              return <span>Không rõ</span>;
-            const content = commentsMap[report.commentId] ?? "Không tìm thấy";
+      header: "Đối tượng",
+      width: "25%",
+      render: (report: Report) => {
+        switch (report.scope) {
+          case 0:
             return (
-              <span>
-                {content.length > 30
-                  ? content.substring(0, 30) + "..."
-                  : content}
+              <span className="line-clamp-1">
+                {report.novelTitle ?? "Không rõ"}
+              </span>
+            );
+          case 1:
+            return (
+              <span className="line-clamp-1">
+                {report.chapterTitle ?? "Không rõ"}
+              </span>
+            );
+          case 2: {
+            const authorName = report.commentAuthor?.displayName;
+            return (
+              <span className="line-clamp-1">
+                Bình luận của {authorName ?? "Không rõ"}
               </span>
             );
           }
-          case "ForumPostReport": {
-            if (isForumPostLoading) return <span>Loading...</span>;
-            if (forumPostsError || !report.forumPostId)
-              return <span>Không rõ</span>;
-            const content =
-              forumPostMap[report.forumPostId] ?? "Không tìm thấy";
+          case 3:
             return (
-              <span>
-                {content.length > 30
-                  ? content.substring(0, 30) + "..."
-                  : content}
+              <span className="line-clamp-1">
+                {report.forumPostAuthor?.displayName ?? "Bài viết diễn đàn"}
               </span>
             );
-          }
-          case "ForumCommentReport": {
-            if (isForumPostCommentLoading) return <span>Loading...</span>;
-            if (forumPostCommentsError || !report.forumCommentId)
-              return <span>Không rõ</span>;
-            const content =
-              forumPostCommentMap[report.forumCommentId] ?? "Không tìm thấy";
+          case 4:
             return (
-              <span>
-                {content.length > 30
-                  ? content.substring(0, 30) + "..."
-                  : content}
+              <span className="line-clamp-1">
+                {report.forumPostAuthor?.displayName ?? "Bình luận diễn đàn"}
               </span>
             );
-          }
           default:
             return "-";
         }
@@ -541,155 +227,221 @@ const ReportList = () => {
     },
     {
       key: "type",
-      header: "Loại báo cáo",
-      render: (report: ReportEntity) => {
-        switch (ReportTypeStatusLabels[report.type]) {
-          case "UserReport":
-            return "Người dùng";
-          case "NovelReport":
-            return "Tiểu thuyết";
-          case "ChapterReport":
-            return "Chương";
-          case "CommentReport":
-            return "Bình luận";
-          case "ForumPostReport":
-            return "Bài viết diễn đàn";
-          case "ForumCommentReport":
-            return "Bình luận diễn đàn";
-          default:
-            return `Loại ${report.type}`;
-        }
-      },
-    },
-    {
-      key: "reason",
-      header: "Lý do",
-      render: (report: ReportEntity) => report.reason || "Không có lý do",
-    },
-    {
-      key: "status",
-      header: "Trạng thái",
+      header: "Loại",
+      width: "12.5%",
       center: true,
-      render: (report: ReportEntity) => (
+      nowrap: true,
+      render: (report: Report) => (
         <span
-          className={`px-2 py-1 rounded ${
-            ReportStatusLabels[report.status] === "InProgress"
-              ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100"
-              : ReportStatusLabels[report.status] === "Resolved"
-              ? "bg-green-200 text-green-800 dark:bg-green-600 dark:text-green-100"
-              : "bg-red-200 text-red-800 dark:bg-red-600 dark:text-red-100"
-          }`}
+          className="flex items-center justify-center w-[90px] h-8 px-2.5 truncate text-xs font-semibold rounded-xl bg-white/80 text-zinc-800 ring-1 ring-zinc-200 dark:bg-white/10 dark:text-zinc-100 dark:ring-white/10 mx-auto"
+          title={
+            report.scope === 0
+              ? "Tiểu thuyết"
+              : report.scope === 1
+              ? "Chương"
+              : report.scope === 2
+              ? "Bình luận"
+              : report.scope === 3
+              ? "Bài viết"
+              : report.scope === 4
+              ? "BL diễn đàn"
+              : "Không xác định"
+          }
         >
-          {ReportStatusLabels[report.status] === "InProgress"
-            ? "Đang xử lý"
-            : ReportStatusLabels[report.status] === "Resolved"
-            ? "Đã giải quyết"
-            : "Bị từ chối"}
+          {report.scope === 0
+            ? "Tiểu thuyết"
+            : report.scope === 1
+            ? "Chương"
+            : report.scope === 2
+            ? "Bình luận"
+            : report.scope === 3
+            ? "Bài viết"
+            : report.scope === 4
+            ? "BL diễn đàn"
+            : "Không xác định"}
         </span>
       ),
     },
     {
-      key: "actions",
-      header: "Hành động",
+      key: "reason",
+      header: "Lý do",
+      width: "15%",
+      render: (report: Report) => (
+        <span
+          title={ReportReasonLabel[report.reason] || "Không có lý do"}
+          className="line-clamp-1"
+        >
+          {ReportReasonLabel[report.reason] || "Không có lý do"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      width: "12.5%",
       center: true,
-      render: (report: ReportEntity) => (
-        <div className="flex space-x-2 justify-center">
-          <button
-            onClick={() => handleOpenDetail(report.id)}
-            className="text-[#ff4d4f] dark:text-[#ff6740] hover:underline"
-          >
-            Chi tiết
-          </button>
-          {ReportStatusLabels[report.status] === "InProgress" && (
-            <>
+      render: (report: Report) => (
+        <span
+          className={[
+            "flex items-center justify-center w-[90px] h-8 px-2.5 truncate mx-auto rounded-xl text-xs font-semibold",
+            STATUS_STYLE(report.status),
+          ].join(" ")}
+        >
+          {report.status === 0
+            ? "Đang xử lý"
+            : report.status === 1
+            ? "Đã giải quyết"
+            : report.status === 2
+            ? "Bị từ chối"
+            : "Bỏ qua"}
+        </span>
+      ),
+      nowrap: true,
+    },
+    {
+      key: "action",
+      header: "Hành động",
+      width: "17.5%",
+      center: true,
+      nowrap: true,
+      render: (report: Report) => (
+        <div className="grid grid-cols-2 gap-5 items-center">
+          <div className="min-w-[60px]">
+            {report.status === 0 ? (
               <button
-                onClick={() => handleAction(report.id, "resolve")}
-                className="text-green-600 dark:text-green-400 hover:underline"
+                onClick={() => handleOpenAction(report.id)}
+                className="w-full h-8 px-3 rounded-lg text-xs font-bold bg-emerald-600/90 hover:bg-emerald-600 text-white transition"
               >
-                Giải quyết
+                Xử lý
               </button>
-              <button
-                onClick={() => handleAction(report.id, "reject")}
-                className="text-red-600 dark:text-red-400 hover:underline"
-              >
-                Từ chối
-              </button>
-            </>
-          )}
+            ) : null}
+          </div>
+          <div className="min-w-[60px]">
+            <button
+              onClick={() => handleOpenDetail(report.id)}
+              className="w-full h-8 px-3 rounded-lg text-xs font-bold bg-white/80 text-zinc-800 ring-1 ring-zinc-200 hover:bg-white dark:bg-white/10 dark:text-zinc-100 dark:ring-white/10 dark:hover:bg-white/15 transition"
+            >
+              Chi tiết
+            </button>
+          </div>
         </div>
       ),
     },
   ];
 
-  // Filters cho FilterButtons
   const filters = [
     { label: "Tất cả", value: "All" as const },
-    { label: "Đang xử lý", value: ReportStatus.InProgress },
+    { label: "Đang xử lý", value: ReportStatus.Pending },
     { label: "Đã giải quyết", value: ReportStatus.Resolved },
     { label: "Bị từ chối", value: ReportStatus.Rejected },
+    { label: "Bỏ qua", value: ReportStatus.Ignored },
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-6 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white"
-    >
-      <h1 className="text-2xl font-bold mb-6">Danh sách báo cáo</h1>
+    <div className="flex flex-col flex-1 px-4 md:px-6 pt-4 pb-2 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
+      <div className="max-w-[95rem] mx-auto w-full px-4">
+        <div className="flex top-0 z-20">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="min-h-screen text-zinc-900 dark:text-white"
+          >
+            <div
+              className="fixed inset-0 -z-10 opacity-60 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(60rem 28rem at 110% -10%, rgba(255,103,64,0.06), transparent 60%), radial-gradient(56rem 24rem at -20% 40%, rgba(80,120,220,0.08), transparent 60%)",
+              }}
+            />
+            <div className="max-w-screen-2xl mx-auto">
+              <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-bold">Danh sách báo cáo</h1>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Quản trị & xử lý vi phạm trong hệ thống.
+                  </p>
+                </div>
+              </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-4 max-w-4xl">
-        <div className="w-full sm:w-auto sm:flex-none max-w-xs">
-          <ReportSearchBar onSearch={handleSearch} />
-        </div>
-        <div className="w-full sm:w-auto sm:flex-none max-w-xs">
-          <ReportTypeFilter
-            activeFilter={typeFilter}
-            onFilter={handleTypeFilter}
-          />
-        </div>
-        <div className="w-full sm:w-auto sm:flex-none max-w-fit">
-          <FilterButtons
-            filters={filters}
-            activeFilter={statusFilter}
-            onFilter={handleStatusFilter}
-          />
+              <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+                <div className="flex-1">
+                  <ReportSearchBar onSearch={handleSearch} />
+                </div>
+                <div>
+                  <ReportTypeFilter
+                    activeFilter={typeFilter}
+                    onFilter={handleTypeFilter}
+                  />
+                </div>
+                <div>
+                  <FilterButtons
+                    filters={filters}
+                    activeFilter={statusFilter}
+                    onFilter={handleStatusFilter}
+                  />
+                </div>
+              </div>
+
+              {isLoading ? (
+                <div className="rounded-2xl ring-1 ring-zinc-200 bg-white/80 p-8 text-zinc-600 dark:ring-white/10 dark:bg-white/10 dark:text-zinc-300">
+                  Loading...
+                </div>
+              ) : error ? (
+                <div className="rounded-2xl ring-1 ring-red-200 bg-red-50 p-8 text-red-600 dark:ring-white/10 dark:bg-red-500/10 dark:text-red-300">
+                  Failed to load reports
+                </div>
+              ) : (
+                <>
+                  <ReportDataTable
+                    data={paginatedReports}
+                    columns={columns as any}
+                    pageSize={itemsPerPage}
+                    dense
+                    isBusy={isLoading || isFetching}
+                  />
+
+                  <div className="mt-5 flex items-center justify-center gap-3">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                </>
+              )}
+
+              <ConfirmModal
+                isOpen={dialog.open}
+                onCancel={() =>
+                  setDialog({ open: false, reportId: null, action: null })
+                }
+                onConfirm={confirmAction}
+                title={
+                  dialog.action === "resolve"
+                    ? "Xác nhận giải quyết"
+                    : "Xác nhận từ chối"
+                }
+                message="Bạn có chắc muốn thực hiện hành động này?"
+              />
+
+              <ReportActionModal
+                reportId={selectedReportId!}
+                isOpen={reportActionOpen}
+                onClose={handleCloseAction}
+                onSubmit={handleSubmitAction}
+              />
+
+              <ReportDetailPopup
+                isOpen={isDetailOpen}
+                onClose={handleCloseDetail}
+                reportId={selectedReportId}
+              />
+            </div>
+          </motion.div>
         </div>
       </div>
-
-      {isLoading ? (
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      ) : error ? (
-        <p className="text-red-600 dark:text-red-400">Failed to load reports</p>
-      ) : (
-        <>
-          <ReportDataTable data={paginatedReports} columns={columns} />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </>
-      )}
-
-      <ConfirmModal
-        isOpen={dialog.open}
-        onCancel={handleCancel}
-        onConfirm={confirmAction}
-        title={
-          dialog.action === "resolve"
-            ? "Xác nhận giải quyết"
-            : "Xác nhận từ chối"
-        }
-        message="Bạn có chắc muốn thực hiện hành động này?"
-      />
-
-      <ReportDetailPopup
-        isOpen={isDetailOpen}
-        onClose={handleCloseDetail}
-        reportId={selectedReportId}
-      />
-    </motion.div>
+    </div>
   );
 };
 

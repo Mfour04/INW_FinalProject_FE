@@ -23,8 +23,17 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
   const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
+  const [openReport, setOpenReport] = useState(false);
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
+  const [reportPreview, setReportPreview] = useState<string>("");
+
   const { data: rawComments } = useComments(chapterId, novelId);
   const commentIds = Array.isArray(rawComments) ? rawComments.map((c: any) => c.id).filter(Boolean) : [];
+
+  const bindingNovelId =
+    Array.isArray(rawComments) && rawComments.length > 0
+      ? rawComments[0].novelId
+      : undefined;
 
   const repliesQueries = useQueries({
     queries: commentIds.map((commentId) => ({
@@ -62,6 +71,18 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [editedComments, setEditedComments] = useState<
     Record<string, { content?: string; timestamp?: string; likes?: number; replies?: number }>
   >({});
+
+  const handleSubmitReport = (payload: ReportPayload) => {
+    const reportRequest: ReportRequest = {
+      scope: 2,
+      commentId: payload.commentId,
+      novelId: bindingNovelId!,
+      chapterId: chapterId,
+      reason: REPORT_REASON_CODE[payload.reason],
+      message: payload.message,
+    };
+    report.mutate(reportRequest);
+  };
 
   const serverComments: Comment[] = useMemo(() => {
     const flat: Comment[] = [];

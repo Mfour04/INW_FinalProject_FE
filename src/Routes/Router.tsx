@@ -29,7 +29,7 @@ import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
-import { NovelRead } from "../pages/novelRead/NovelRead";
+import { NovelRead } from "../pages/NovelRead/NovelRead";
 
 export const Router = () => {
   return (

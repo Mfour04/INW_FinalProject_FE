@@ -1,7 +1,7 @@
 import { useContext, useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import type { Comment } from "../../commentUser/types";
+import type { Comment } from "../../CommentUser/types";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 
 import {
@@ -9,7 +9,6 @@ import {
   blogFormatVietnamTimeFromTicksForUpdate,
   blogGetCurrentTicks,
 } from "../../../utils/date_format";
-
 
 import { Composer } from "../../../components/ui/Composer";
 import { ReplyThread } from "../../../components/ui/ReplyThread";
