@@ -15,17 +15,16 @@ import {
   ReportReasonLabel,
   type UpdateActionRequest,
 } from "../../../api/Admin/Report/report.type";
-import { GetReports, UpdateReportStatus } from "../../../api/Admin/Report/report.api";
+import {
+  GetReports,
+  UpdateReportStatus,
+} from "../../../api/Admin/Report/report.api";
 import { ReportDataTable } from "./ReportDataTable";
 import { ReportActionModal } from "./ReportActionModal";
+import { useToast } from "../../../context/ToastContext/toast-context";
 
-const kAvatar = (name?: string) => (name ?? "??").trim().slice(0, 2).toUpperCase();
-
-const Badge = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center h-8 px-3 rounded-xl text-xs font-semibold bg-white/80 text-zinc-800 ring-1 ring-zinc-200 dark:bg-white/10 dark:text-zinc-100 dark:ring-white/10">
-    {children}
-  </span>
-);
+const kAvatar = (name?: string) =>
+  (name ?? "??").trim().slice(0, 2).toUpperCase();
 
 const STATUS_STYLE = (s: number) => {
   switch (s) {
@@ -58,9 +57,17 @@ const ReportList = () => {
   const [reportActionOpen, setReportActionOpen] = useState<boolean>(false);
   const itemsPerPage = 10;
 
-  const { data: reportsData, isLoading, error, isFetching } = useQuery({
+  const toast = useToast();
+
+  const {
+    data: reportsData,
+    isLoading,
+    error,
+    isFetching,
+  } = useQuery({
     queryKey: ["Reports", currentPage],
-    queryFn: () => GetReports({ limit: 10, page: 0 }).then((res) => res.data.data),
+    queryFn: () =>
+      GetReports({ limit: 10, page: 0 }).then((res) => res.data.data),
   });
 
   const updateStatusMutation = useMutation({
@@ -75,9 +82,8 @@ const ReportList = () => {
       queryClient.invalidateQueries({ queryKey: ["Reports"] });
       setDialog({ open: false, reportId: null, action: null });
     },
-    onError: (err) => {
-      console.error("Update status error:", err);
-      alert("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
+    onError: () => {
+      toast?.onOpen("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
       setDialog({ open: false, reportId: null, action: null });
     },
   });
@@ -95,8 +101,10 @@ const ReportList = () => {
         report.forumPostAuthor?.displayName?.toLowerCase().includes(term) ||
         report.targetUserId?.toLowerCase().includes(term);
 
-      const matchesStatus = statusFilter === "All" || report.status === Number(statusFilter);
-      const matchesType = typeFilter === "All" || report.scope === Number(typeFilter);
+      const matchesStatus =
+        statusFilter === "All" || report.status === Number(statusFilter);
+      const matchesType =
+        typeFilter === "All" || report.scope === Number(typeFilter);
 
       return matchesSearch && matchesStatus && matchesType;
     });
@@ -104,7 +112,11 @@ const ReportList = () => {
 
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
   const paginatedReports = useMemo(
-    () => filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    () =>
+      filteredReports.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      ),
     [filteredReports, currentPage]
   );
 
@@ -126,7 +138,8 @@ const ReportList = () => {
   };
 
   const confirmAction = () => {
-    if (dialog.reportId && dialog.action) {}
+    if (dialog.reportId && dialog.action) {
+    }
     setDialog({ open: false, reportId: null, action: null });
   };
 
@@ -158,7 +171,9 @@ const ReportList = () => {
             {kAvatar(report.reporter.username)}
           </div>
           <div className="min-w-0">
-            <div className="font-medium truncate">{report.reporter.username}</div>
+            <div className="font-medium truncate">
+              {report.reporter.username}
+            </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
               {report.reporter.displayName}
             </div>
@@ -174,12 +189,24 @@ const ReportList = () => {
       render: (report: Report) => {
         switch (report.scope) {
           case 0:
-            return <span className="line-clamp-1">{report.novelTitle ?? "Không rõ"}</span>;
+            return (
+              <span className="line-clamp-1">
+                {report.novelTitle ?? "Không rõ"}
+              </span>
+            );
           case 1:
-            return <span className="line-clamp-1">{report.chapterTitle ?? "Không rõ"}</span>;
+            return (
+              <span className="line-clamp-1">
+                {report.chapterTitle ?? "Không rõ"}
+              </span>
+            );
           case 2: {
             const authorName = report.commentAuthor?.displayName;
-            return <span className="line-clamp-1">Bình luận của {authorName ?? "Không rõ"}</span>;
+            return (
+              <span className="line-clamp-1">
+                Bình luận của {authorName ?? "Không rõ"}
+              </span>
+            );
           }
           case 3:
             return (
@@ -240,7 +267,10 @@ const ReportList = () => {
       header: "Lý do",
       width: "15%",
       render: (report: Report) => (
-        <span title={ReportReasonLabel[report.reason] || "Không có lý do"} className="line-clamp-1">
+        <span
+          title={ReportReasonLabel[report.reason] || "Không có lý do"}
+          className="line-clamp-1"
+        >
           {ReportReasonLabel[report.reason] || "Không có lý do"}
         </span>
       ),
@@ -317,73 +347,97 @@ const ReportList = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="min-h-screen text-zinc-900 dark:text-white"
           >
-          <div
-            className="fixed inset-0 -z-10 opacity-60 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(60rem 28rem at 110% -10%, rgba(255,103,64,0.06), transparent 60%), radial-gradient(56rem 24rem at -20% 40%, rgba(80,120,220,0.08), transparent 60%)",
-            }}
-          />
-          <div className="max-w-screen-2xl mx-auto">
-            <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="min-w-0">
-                <h1 className="text-2xl font-bold">Danh sách báo cáo</h1>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">Quản trị & xử lý vi phạm trong hệ thống.</p>
+            <div
+              className="fixed inset-0 -z-10 opacity-60 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(60rem 28rem at 110% -10%, rgba(255,103,64,0.06), transparent 60%), radial-gradient(56rem 24rem at -20% 40%, rgba(80,120,220,0.08), transparent 60%)",
+              }}
+            />
+            <div className="max-w-screen-2xl mx-auto">
+              <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-bold">Danh sách báo cáo</h1>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Quản trị & xử lý vi phạm trong hệ thống.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-              <div className="flex-1">
-                <ReportSearchBar onSearch={handleSearch} />
-              </div>
-              <div>
-                <ReportTypeFilter activeFilter={typeFilter} onFilter={handleTypeFilter} />
-              </div>
-              <div>
-                <FilterButtons filters={filters} activeFilter={statusFilter} onFilter={handleStatusFilter} />
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="rounded-2xl ring-1 ring-zinc-200 bg-white/80 p-8 text-zinc-600 dark:ring-white/10 dark:bg-white/10 dark:text-zinc-300">
-                Loading...
-              </div>
-            ) : error ? (
-              <div className="rounded-2xl ring-1 ring-red-200 bg-red-50 p-8 text-red-600 dark:ring-white/10 dark:bg-red-500/10 dark:text-red-300">
-                Failed to load reports
-              </div>
-            ) : (
-              <>
-                <ReportDataTable
-                  data={paginatedReports}
-                  columns={columns as any}
-                  pageSize={itemsPerPage}
-                  dense
-                  isBusy={isLoading || isFetching}
-                />
-
-                <div className="mt-5 flex items-center justify-center gap-3">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
+              <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+                <div className="flex-1">
+                  <ReportSearchBar onSearch={handleSearch} />
+                </div>
+                <div>
+                  <ReportTypeFilter
+                    activeFilter={typeFilter}
+                    onFilter={handleTypeFilter}
                   />
                 </div>
-              </>
-            )}
+                <div>
+                  <FilterButtons
+                    filters={filters}
+                    activeFilter={statusFilter}
+                    onFilter={handleStatusFilter}
+                  />
+                </div>
+              </div>
 
-            <ConfirmModal
-              isOpen={dialog.open}
-              onCancel={() => setDialog({ open: false, reportId: null, action: null })}
-              onConfirm={confirmAction}
-              title={dialog.action === "resolve" ? "Xác nhận giải quyết" : "Xác nhận từ chối"}
-              message="Bạn có chắc muốn thực hiện hành động này?"
-            />
+              {isLoading ? (
+                <div className="rounded-2xl ring-1 ring-zinc-200 bg-white/80 p-8 text-zinc-600 dark:ring-white/10 dark:bg-white/10 dark:text-zinc-300">
+                  Loading...
+                </div>
+              ) : error ? (
+                <div className="rounded-2xl ring-1 ring-red-200 bg-red-50 p-8 text-red-600 dark:ring-white/10 dark:bg-red-500/10 dark:text-red-300">
+                  Failed to load reports
+                </div>
+              ) : (
+                <>
+                  <ReportDataTable
+                    data={paginatedReports}
+                    columns={columns as any}
+                    pageSize={itemsPerPage}
+                    dense
+                    isBusy={isLoading || isFetching}
+                  />
 
-            <ReportActionModal reportId={selectedReportId!} isOpen={reportActionOpen} onClose={handleCloseAction} onSubmit={handleSubmitAction} />
+                  <div className="mt-5 flex items-center justify-center gap-3">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                </>
+              )}
 
-            <ReportDetailPopup isOpen={isDetailOpen} onClose={handleCloseDetail} reportId={selectedReportId} />
-          </div>
+              <ConfirmModal
+                isOpen={dialog.open}
+                onCancel={() =>
+                  setDialog({ open: false, reportId: null, action: null })
+                }
+                onConfirm={confirmAction}
+                title={
+                  dialog.action === "resolve"
+                    ? "Xác nhận giải quyết"
+                    : "Xác nhận từ chối"
+                }
+                message="Bạn có chắc muốn thực hiện hành động này?"
+              />
+
+              <ReportActionModal
+                reportId={selectedReportId!}
+                isOpen={reportActionOpen}
+                onClose={handleCloseAction}
+                onSubmit={handleSubmitAction}
+              />
+
+              <ReportDetailPopup
+                isOpen={isDetailOpen}
+                onClose={handleCloseDetail}
+                reportId={selectedReportId}
+              />
+            </div>
           </motion.div>
         </div>
       </div>
