@@ -6,7 +6,6 @@ import {
   formatVietnamTimeFromTicks,
   getCurrentTicks,
 } from "../../utils/date_format.ts";
-import defaultAvatar from "../../assets/img/default_avt.png";
 import { getAvatarUrl } from "../../utils/avatar";
 import { Composer } from "./components/Composer.tsx";
 import { ReplyThread } from "./components/ReplyThread.tsx";
@@ -41,7 +40,6 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
   const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
-  // 🔽 NEW: report modal state
   const [openReport, setOpenReport] = useState(false);
   const [reportCommentId, setReportCommentId] = useState<string | null>(null);
   const [reportPreview, setReportPreview] = useState<string>("");
@@ -50,6 +48,11 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const commentIds = Array.isArray(rawComments)
     ? rawComments.map((c: any) => c.id).filter(Boolean)
     : [];
+
+  const bindingNovelId =
+    Array.isArray(rawComments) && rawComments.length > 0
+      ? rawComments[0].novelId
+      : undefined;
 
   const repliesQueries = useQueries({
     queries: commentIds.map((commentId) => ({
@@ -101,8 +104,8 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     const reportRequest: ReportRequest = {
       scope: 2,
       commentId: payload.commentId,
-      novelId: payload.novelId,
-      chapterId: payload.chapterId,
+      novelId: bindingNovelId!,
+      chapterId: chapterId,
       reason: REPORT_REASON_CODE[payload.reason],
       message: payload.message,
     };
