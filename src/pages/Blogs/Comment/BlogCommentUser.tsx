@@ -23,6 +23,7 @@ import {
 import {
   LikeForumComment,
   UnlikeForumComment,
+  GetRepliesByForumComment,
 } from "../../../api/ForumComment/forum-comment.api";
 
 type Props = {
@@ -48,8 +49,11 @@ export const BlogCommentUser = ({ postId }: Props) => {
           const allReplies: any[] = [];
           for (const comment of rawComments) {
             try {
-              const response = await fetch(`https://localhost:7242/api/forums/comments/${comment.id}/replies`);
-              const data = await response.json();
+              const response = await GetRepliesByForumComment(comment.id, {
+                page: 0,
+                limit: 50,
+              });
+              const data = response.data;
               if (data.data && Array.isArray(data.data) && data.data.length > 0) {
                 allReplies.push(...data.data);
               }
