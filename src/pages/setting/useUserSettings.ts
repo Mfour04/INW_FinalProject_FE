@@ -65,6 +65,8 @@ export const useUpdateUserProfile = () => {
 
                 setAuth(updatedAuth);
                 queryClient.invalidateQueries({ queryKey: ["auth"] });
+                queryClient.invalidateQueries({ queryKey: ["userSearch"] });
+                queryClient.invalidateQueries({ queryKey: ["otherUserProfile"] });
             }
         },
         onError: (error: any) => {
