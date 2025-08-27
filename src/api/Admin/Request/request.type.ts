@@ -21,6 +21,7 @@ export interface BankInfo {
   bankBin: number;
   bankAccountNumber: number;
   bankAccountName: string;
+  bankShortName: string;
 }
 
 export interface WithdrawRequest {
