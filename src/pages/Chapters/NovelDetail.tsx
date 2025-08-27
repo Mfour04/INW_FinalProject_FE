@@ -38,6 +38,7 @@ import {
 } from "../../components/ReportModal/ReportModal";
 import type { ReportRequest } from "../../api/Report/report.type";
 import { useReport } from "../../hooks/useReport";
+import { SummarizeNovels } from "../../api/AI/ai.api";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -154,6 +155,13 @@ export const NovelDetail = () => {
     },
   });
 
+  const summarizeMutation = useMutation({
+    mutationFn: (novelId: string) => SummarizeNovels({ novelId }),
+    onSuccess: (res) => {
+      console.log(res.data);
+    },
+  });
+
   const handleClickChapter = (
     chapterId: string,
     isPaid: boolean,
@@ -250,6 +258,7 @@ export const NovelDetail = () => {
           onFollow={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
           onToggleFollow={() => setShowFollowPopup((v) => !v)}
           onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
+          onSummarizeNovel={() => summarizeMutation.mutate(novelInfo?.novelId!)}
           onOpenReport={() => setReportOpen(true)}
           onJumpToRating={jumpToRating}
           gradientBtn={gradientBtn}

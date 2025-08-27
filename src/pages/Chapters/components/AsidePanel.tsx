@@ -20,6 +20,7 @@ type Props = {
   onFollow: () => void;
   onToggleFollow: () => void;
   onOpenBuyNovel: () => void;
+  onSummarizeNovel: () => void;
   onOpenReport: () => void;
   onJumpToRating: () => void;
   gradientBtn: string;
@@ -35,7 +36,7 @@ export const AsidePanel = ({
   followBtnRef,
   onFollow,
   onToggleFollow,
-
+  onSummarizeNovel,
   onOpenBuyNovel,
   onOpenReport,
   onJumpToRating,
@@ -151,6 +152,19 @@ export const AsidePanel = ({
               <span className="inline-flex items-center gap-1.5 leading-none">
                 <ShoppingCart className="w-[15px] h-[15px]" />
                 {novelData?.isAccessFull ? "Đã mua" : "Mua trọn bộ"}
+              </span>
+            </Button>
+          )}
+
+          {novelData?.isAccessFull && (
+            <Button
+              onClick={onSummarizeNovel}
+              aria-label="Tóm tắt"
+              className={buyBtn}
+            >
+              <span className="inline-flex items-center gap-1.5 leading-none">
+                <ShoppingCart className="w-[15px] h-[15px]" />
+                Tóm tắt
               </span>
             </Button>
           )}
