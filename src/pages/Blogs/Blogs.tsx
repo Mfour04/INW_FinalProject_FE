@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
 import { useToast } from "../../context/ToastContext/toast-context";
@@ -11,7 +11,7 @@ import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 import {
   useBlogPosts,
-  useFollowingBlogPosts,
+  useUserBlogPosts,
   useCreateBlogPost,
   useDeleteBlogPost,
   useUpdateBlogPost,
@@ -72,7 +72,27 @@ export const Blogs = () => {
   const [commentInput, setCommentInput] = useState<string>("");
 
   const { data: allBlogPosts = [], isLoading: isLoadingAll, refetch: refetchAll } = useBlogPosts();
-  const { data: followingBlogPosts = [], isLoading: isLoadingFollowing, refetch: refetchFollowing } = useFollowingBlogPosts();
+
+  const { data: followingUsers = [], isLoading: isLoadingFollowingUsers } = useQuery({
+    queryKey: ['following', auth?.user?.userName],
+    queryFn: () => GetFollowing(auth?.user?.userName!),
+    enabled: !!auth?.user?.userName,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const followingUserIds = Array.isArray(followingUsers?.data) ? followingUsers.data.map((user: any) => user.id) : [];
+
+  const followingBlogPosts = useMemo(() => {
+    if (!followingUserIds.length) return [];
+
+    const filteredPosts = allBlogPosts.filter((post: any) =>
+      followingUserIds.includes(post.author?.id || post.user_id)
+    );
+
+    return filteredPosts.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+  }, [followingUserIds, allBlogPosts]);
+
+  const isLoadingFollowing = isLoadingFollowingUsers;
 
   const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
     queryKey: ['followers', auth?.user?.userName],
@@ -108,7 +128,7 @@ export const Blogs = () => {
 
   const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
   const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
-  const refetch = tab === "following" ? refetchFollowing : refetchAll;
+  const refetch = tab === "following" ? () => { } : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -122,7 +142,7 @@ export const Blogs = () => {
 
   useEffect(() => {
     if (targetPostId && blogPosts.length > 0 && !hasScrolledToTarget) {
-      const targetPost = blogPosts.find((post) => post.id === targetPostId);
+      const targetPost = blogPosts.find((post: any) => post.id === targetPostId);
       if (targetPost) {
         setTimeout(() => {
           const el = document.getElementById(`post-${targetPostId}`);
@@ -174,6 +194,8 @@ export const Blogs = () => {
           resetFileInputRef.current?.();
           toast?.onOpen("Đăng bài thành công!");
           setIsPosting(false);
+
+          refetchAll();
         },
         onError: () => {
           toast?.onOpen("Có lỗi xảy ra khi đăng bài!");
@@ -203,7 +225,10 @@ export const Blogs = () => {
   const handleDelete = () => {
     if (!confirmDeleteId) return;
     deleteBlogPostMutation.mutate(confirmDeleteId, {
-      onSuccess: () => toast?.onOpen("Xóa bài viết thành công!"),
+      onSuccess: () => {
+        toast?.onOpen("Xóa bài viết thành công!");
+        refetchAll();
+      },
       onError: () => toast?.onOpen("Có lỗi xảy ra khi xóa bài viết!"),
     });
     setConfirmDeleteId(null);
@@ -222,6 +247,8 @@ export const Blogs = () => {
           setUpdatedTimestamps((prev) => ({ ...prev, [postId]: formatted }));
           localStorage.setItem(`blog_updated_${postId}`, formatted);
           toast?.onOpen("Cập nhật bài viết thành công!");
+
+          refetchAll();
         },
         onError: () => toast?.onOpen("Có lỗi xảy ra khi cập nhật bài viết!"),
       }
@@ -240,7 +267,7 @@ export const Blogs = () => {
         setLikedPosts((p) => ({ ...p, [postId]: true }));
         localStorage.setItem(`blog_liked_${postId}`, "true");
       }
-      refetch();
+      refetchAll();
     } catch {
       toast?.onOpen("Có lỗi xảy ra khi thao tác yêu thích!");
     }
@@ -265,7 +292,7 @@ export const Blogs = () => {
                       : "text-white/70 hover:text-white hover:bg-white/10",
                   ].join(" ")}
                 >
-                  {t === "all" ? "Dành cho bạn" : `Đang theo dõi (${followingCount})`}
+                  {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
                 </button>
               );
             })}
@@ -296,42 +323,77 @@ export const Blogs = () => {
               )}
 
               {tab === "following" ? (
-                <div className="mt-6">
-                  {isLoadingFollowingStats ? (
+                <>
+                  {isLoading ? (
                     <Card className="p-10 text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
-                      <p className="text-white/70 mt-3">Đang tải danh sách đang theo dõi...</p>
+                      <p className="text-white/70 mt-3">Đang tải bài viết từ người đang theo dõi...</p>
                     </Card>
-                  ) : !followingData?.data || !Array.isArray(followingData.data) || followingData.data.length === 0 ? (
+                  ) : followingUserIds.length === 0 ? (
                     <Card className="p-10 text-center">
-                      <p className="text-white/70">Chưa theo dõi ai.</p>
+                      <p className="text-white/70 mb-2">Bạn chưa theo dõi ai.</p>
+                      <p className="text-white/50 text-sm">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
+                    </Card>
+                  ) : !blogPosts || blogPosts.length === 0 ? (
+                    <Card className="p-10 text-center">
+                      <p className="text-white/70">Chưa có bài viết nào từ người đang theo dõi.</p>
+                      <p className="text-white/50 text-sm mt-2">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
                     </Card>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {followingData.data.map((following: any) => (
-                        <Card key={following.id} className="p-4 flex flex-col items-center">
-                          <img
-                            src={following.avatar || "/images/default-avatar.png"}
-                            alt={following.displayName}
-                            className="w-16 h-16 rounded-full mb-2 object-cover"
-                          />
-                          <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
-                          <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
-                          <button
-                            className="bg-[#ff6740] hover:bg-[#e55a36] text-white font-semibold px-5 mt-2 rounded-lg text-sm transition-colors duration-200"
-                            onClick={() => {
-                              if (following.userName) {
-                                window.location.href = `/profile/${following.userName}`;
-                              }
+                    (Array.isArray(blogPosts) ? blogPosts : []).map((post: any) => (
+                      <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
+                        <div id={`post-${post.id}`}>
+                          <PostItem
+                            post={{
+                              id: post.id,
+                              user: {
+                                name: post.author?.displayName || post.author?.username || "Ẩn danh",
+                                username: post.author?.username || "user",
+                                avatar: post.author?.avatar || "/images/default-avatar.png",
+                              },
+                              content: post.content,
+                              timestamp: post.createdAt
+                                ? blogFormatVietnamTimeFromTicks(post.createdAt)
+                                : "Không rõ thời gian",
+                              likes: post.likeCount || 0,
+                              comments: post.commentCount || 0,
+                              isLiked: post.isLiked || false,
+                              imgUrls: post.imgUrls || [],
                             }}
-                          >
-                            Trang cá nhân
-                          </button>
-                        </Card>
-                      ))}
-                    </div>
+                            menuOpenPostId={menuOpenPostId}
+                            setMenuOpenPostId={setMenuOpenPostId}
+                            editingPostId={editingPostId}
+                            setEditingPostId={setEditingPostId}
+                            setReportPostId={setReportPostId}
+                            openComments={openComments}
+                            setOpenComments={setOpenComments}
+                            visibleRootComments={visibleRootComments}
+                            setVisibleRootComments={setVisibleRootComments}
+                            isMobile={isMobile}
+                            openReplyId={openReplyId}
+                            setOpenReplyId={setOpenReplyId}
+                            menuOpenCommentId={menuOpenCommentId}
+                            setMenuOpenCommentId={setMenuOpenCommentId}
+                            editingCommentId={editingCommentId}
+                            setEditingCommentId={setEditingCommentId}
+                            editedContent={editedContent}
+                            setEditedContent={setEditedContent}
+                            setReportCommentId={setReportCommentId}
+                            replyingTo={replyingTo}
+                            setReplyingTo={setReplyingTo}
+                            commentInput={commentInput}
+                            setCommentInput={setCommentInput}
+                            onRequestDelete={handleRequestDelete}
+                            onToggleLike={handleToggleLike}
+                            isLiked={Boolean(likedPosts[post.id])}
+                            onUpdatePost={handleUpdatePost}
+                            updatedTimestamp={updatedTimestamps[post.id]}
+                          />
+                        </div>
+                      </Card>
+                    ))
                   )}
-                </div>
+                </>
               ) : (
                 <>
                   {isLoading ? (
@@ -344,7 +406,7 @@ export const Blogs = () => {
                       <p className="text-white/70">Chưa có bài viết nào.</p>
                     </Card>
                   ) : (
-                    (Array.isArray(blogPosts) ? blogPosts : []).map((post) => (
+                    (Array.isArray(blogPosts) ? blogPosts : []).map((post: any) => (
                       <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
                         <div id={`post-${post.id}`}>
                           <PostItem
