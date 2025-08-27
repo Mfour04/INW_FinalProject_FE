@@ -27,10 +27,14 @@ import {
 
 import type { Tabs } from "./types";
 
+/** Card: dual-theme */
 const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <div
     className={[
-      "rounded-2xl bg-white/[0.035] ring-1 ring-white/10 backdrop-blur-md",
+      // Light
+      "rounded-2xl bg-white ring-1 ring-zinc-200 shadow-sm",
+      // Dark
+      "dark:bg-white/[0.035] dark:ring-white/10 dark:backdrop-blur-md dark:shadow-none",
       className,
     ].join(" ")}
   >
@@ -136,7 +140,7 @@ export const Blogs = () => {
   const [likedPosts, setLikedPosts] = useState<{ [id: string]: boolean }>(() => {
     const map: { [id: string]: boolean } = {};
     for (const key in localStorage)
-      if (key.startsWith("blog_liked_")) map[key.replace("blog_liked_", "")] = true;
+      if ((key as string).startsWith("blog_liked_")) map[(key as string).replace("blog_liked_", "")] = true;
     return map;
   });
 
@@ -274,11 +278,23 @@ export const Blogs = () => {
   };
 
   return (
-    <div className="relative w-full text-white px-6 lg:px-10 ">
-      <div className="fixed inset-0 -z-10 bg-[#0b0d11]" />
+    <div className="relative w-full text-zinc-900 dark:text-white">
+      {/* Background: light vs dark */}
+      <div
+        className="fixed inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(60rem 32rem at 110% -10%, rgba(255,103,64,0.08), transparent 60%), radial-gradient(36rem 26rem at -20% 40%, rgba(120,170,255,0.10), transparent 60%)",
+        }}
+      />
+      <div className="fixed inset-0 -z-10 hidden dark:block bg-[#0b0d11]" />
+
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        {/* Toggle tabs */}
         <div className="mb-6 flex justify-center">
-          <div className="inline-flex rounded-xl bg-white/[0.06] ring-1 ring-white/10 gap-2 px-2 py-2">
+          <div className="inline-flex rounded-xl gap-2 px-2 py-2
+                          bg-zinc-100/60 ring-1 ring-zinc-200
+                          dark:bg-white/[0.06] dark:ring-white/10">
             {(["all", "following"] as Tabs[]).map((t) => {
               const active = tab === t;
               return (
@@ -288,8 +304,8 @@ export const Blogs = () => {
                   className={[
                     "h-9 px-6 rounded-lg text-sm transition-all",
                     active
-                      ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow-lg"
-                      : "text-white/70 hover:text-white hover:bg-white/10",
+                      ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow"
+                      : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
                   ].join(" ")}
                 >
                   {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
@@ -327,21 +343,21 @@ export const Blogs = () => {
                   {isLoading ? (
                     <Card className="p-10 text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
-                      <p className="text-white/70 mt-3">Đang tải bài viết từ người đang theo dõi...</p>
+                      <p className="text-zinc-600 dark:text-white/70 mt-3">Đang tải bài viết từ người đang theo dõi...</p>
                     </Card>
                   ) : followingUserIds.length === 0 ? (
                     <Card className="p-10 text-center">
-                      <p className="text-white/70 mb-2">Bạn chưa theo dõi ai.</p>
-                      <p className="text-white/50 text-sm">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
+                      <p className="text-zinc-600 dark:text-white/70 mb-2">Bạn chưa theo dõi ai.</p>
+                      <p className="text-zinc-500 dark:text-white/50 text-sm">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
                     </Card>
                   ) : !blogPosts || blogPosts.length === 0 ? (
                     <Card className="p-10 text-center">
-                      <p className="text-white/70">Chưa có bài viết nào từ người đang theo dõi.</p>
-                      <p className="text-white/50 text-sm mt-2">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
+                      <p className="text-zinc-600 dark:text-white/70">Chưa có bài viết nào từ người đang theo dõi.</p>
+                      <p className="text-zinc-500 dark:text-white/50 text-sm mt-2">Hãy theo dõi một số người dùng để xem bài viết của họ ở đây.</p>
                     </Card>
                   ) : (
                     (Array.isArray(blogPosts) ? blogPosts : []).map((post: any) => (
-                      <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
+                      <Card key={post.id} className="mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition">
                         <div id={`post-${post.id}`}>
                           <PostItem
                             post={{
@@ -399,15 +415,15 @@ export const Blogs = () => {
                   {isLoading ? (
                     <Card className="p-10 text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
-                      <p className="text-white/70 mt-3">Đang tải bài viết...</p>
+                      <p className="text-zinc-600 dark:text-white/70 mt-3">Đang tải bài viết...</p>
                     </Card>
                   ) : !blogPosts || blogPosts.length === 0 ? (
                     <Card className="p-10 text-center">
-                      <p className="text-white/70">Chưa có bài viết nào.</p>
+                      <p className="text-zinc-600 dark:text-white/70">Chưa có bài viết nào.</p>
                     </Card>
                   ) : (
                     (Array.isArray(blogPosts) ? blogPosts : []).map((post: any) => (
-                      <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
+                      <Card key={post.id} className="mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition">
                         <div id={`post-${post.id}`}>
                           <PostItem
                             post={{
