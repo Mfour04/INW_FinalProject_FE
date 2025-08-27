@@ -170,14 +170,16 @@ export const UpsertChapter = () => {
         setModerationData({ flagged: true, sensitive: mapped });
         setOpenModerationModal(true);
       } else {
-        handleConfirmUpsert();
+        setStep(step + 1);
       }
     },
   });
 
   const handleNextStep = () => setStep((s) => Math.min(3, s + 1));
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
-  const handleUpsertButtonClick = () => {};
+  const handleUpsertButtonClick = () => {
+    setConfirmUpsertModal(true);
+  };
   const handleConfirmUpsert = () => {
     if (isUpdate)
       updateChapterMutation.mutate(chapterForm as UpdateChapterRequest);
