@@ -94,14 +94,14 @@ const AdminHome = () => {
   });
 
   // Fetch reports data
-  const {
-    data: reportsData,
-    isLoading: isLoadingReports,
-    error: reportsError,
-  } = useQuery({
-    queryKey: ["Reports"],
-    queryFn: () => GetReports(0, 100).then((res) => res.data),
-  });
+  // const {
+  //   data: reportsData,
+  //   isLoading: isLoadingReports,
+  //   error: reportsError,
+  // } = useQuery({
+  //   queryKey: ["Reports"],
+  //   queryFn: () => GetReports(0, 100).then((res) => res.data),
+  // });
 
   // Fetch pending withdrawal requests data
   const {
@@ -119,11 +119,11 @@ const AdminHome = () => {
   });
 
   // Count total and pending reports and requests
-  const totalReports = reportsData?.data?.length || 0;
-  const pendingReports =
-    reportsData?.data?.filter(
-      (report) => report.status === ReportStatus.InProgress
-    ).length || 0;
+  // const totalReports = reportsData?.data?.length || 0;
+  // const pendingReports =
+  //   reportsData?.data?.filter(
+  //     (report) => report.status === ReportStatus.InProgress
+  //   ).length || 0;
   const totalRequests = requestsData?.data?.length || 0;
   const pendingRequests =
     requestsData?.data?.filter(
@@ -246,7 +246,7 @@ const AdminHome = () => {
             className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
           >
             <h2 className="text-xl font-semibold mb-2">Báo cáo</h2>
-            <p className="text-3xl font-bold text-[#ff4d4f]">
+            {/* <p className="text-3xl font-bold text-[#ff4d4f]">
               {isLoadingReports
                 ? "Loading..."
                 : reportsError
@@ -256,7 +256,7 @@ const AdminHome = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Chưa xử lý:{" "}
               {isLoadingReports ? "Loading..." : pendingReports ?? 0}
-            </p>
+            </p> */}
           </motion.div>
         </Link>
         <Link to="/admin/wallets" className="block">

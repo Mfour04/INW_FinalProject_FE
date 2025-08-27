@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Flag, Ban, MoreHorizontal } from "lucide-react";
 
-export const MoreButton = () => {
+type Props = {
+  onReport?: () => void;
+  onBlock?: () => void;
+  size?: "sm" | "md";
+};
+
+export const MoreButton: React.FC<Props> = ({ onReport, onBlock, size = "sm" }) => {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const popRef = useRef<HTMLDivElement | null>(null);
@@ -24,6 +30,9 @@ export const MoreButton = () => {
     };
   }, [open]);
 
+  const btnSize = size === "md" ? "h-8 w-8 rounded-lg" : "h-6 w-6 rounded-[5px]";
+  const iconSize = size === "md" ? "h-4.5 w-4.5" : "h-3.5 w-3.5";
+
   return (
     <div className="relative flex-shrink-0">
       <button
@@ -32,17 +41,16 @@ export const MoreButton = () => {
         aria-label="Mở menu tác vụ"
         aria-expanded={open}
         className={[
-          "inline-flex items-center justify-center h-6 w-6 rounded-[5px] transition-all",
+          "inline-flex items-center justify-center transition-all",
+          btnSize,
           // light
-          "border border-gray-300 bg-white/80 hover:bg-white",
-          "shadow-sm",
+          "border border-gray-300 bg-white/80 hover:bg-white shadow-sm",
           // dark
-          "dark:border-white/20 dark:bg-white/12 dark:hover:bg-white/18",
-          "dark:focus-visible:ring-2 dark:focus-visible:ring-white/40",
+          "dark:border-white/20 dark:bg-white/12 dark:hover:bg-white/18 dark:focus-visible:ring-2 dark:focus-visible:ring-white/40",
           open ? "dark:bg-white/18 dark:border-white/30" : "",
         ].join(" ")}
       >
-        <MoreHorizontal className="h-3.5 w-3.5 opacity-90" />
+        <MoreHorizontal className={`${iconSize} opacity-90`} />
       </button>
 
       {open && (
@@ -62,12 +70,11 @@ export const MoreButton = () => {
               type="button"
               onClick={() => {
                 setOpen(false);
-                alert("Báo cáo người dùng");
+                onReport?.();
               }}
               className={[
                 "inline-flex items-center justify-center gap-1.5 h-7 rounded-lg px-1.5 text-[12px] transition",
-                "hover:bg-gray-100",
-                "dark:hover:bg-white/10",
+                "hover:bg-gray-100 dark:hover:bg-white/10",
               ].join(" ")}
             >
               <Flag className="h-[14px] w-[14px]" />
@@ -78,12 +85,11 @@ export const MoreButton = () => {
               type="button"
               onClick={() => {
                 setOpen(false);
-                alert("Đã chặn người dùng");
+                onBlock?.();
               }}
               className={[
                 "inline-flex items-center justify-center gap-1.5 h-7 rounded-lg px-1.5 text-[12px] transition",
-                "hover:bg-gray-100",
-                "dark:hover:bg-white/10",
+                "hover:bg-gray-100 dark:hover:bg-white/10",
               ].join(" ")}
             >
               <Ban className="h-[14px] w-[14px]" />
