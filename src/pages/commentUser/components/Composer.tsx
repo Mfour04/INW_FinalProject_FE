@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useAutoGrow } from "../hooks/useAutoGrow.ts";
 import defaultAvatar from "../../../assets/img/default_avt.png";
-import { getAvatarUrl } from "../../../utils/avatar";
+import { getAvatarUrl } from "../../../utils/avatar.ts";
 import { Smile, SendHorizontal, Loader2 } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox.tsx";
 
