@@ -13,7 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useReadingProcess } from "./hooks/useReadingProcess";
 import { ReaderPrefs } from "./components/ReaderPrefs";
-import { CommentUser } from "../commentUser/CommentUser";
+import { CommentUser } from "../CommentUser/CommentUser";
 import { ChapterListModal } from "./ChapterListModal";
 import { renderTextWithNewlines } from "./util";
 import { SpeechControls } from "./components/SpeechControls";
@@ -355,7 +355,6 @@ export const NovelRead = () => {
                 }}
               >
                 <div className={toolGroup}>
-                  {/* Reader Prefs */}
                   <div className="relative">
                     <button
                       onClick={() => setOpenPrefs((s) => !s)}
@@ -386,7 +385,6 @@ export const NovelRead = () => {
                     )}
                   </div>
 
-                  {/* Speech Controls */}
                   <SpeechControls
                     state={speechState}
                     onStart={handleStart}
@@ -395,7 +393,6 @@ export const NovelRead = () => {
                     onStop={handleStop}
                   />
 
-                  {/* Report */}
                   <button
                     onClick={() => setOpenReport(true)}
                     className={toolBtn}
@@ -448,7 +445,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* MOBILE bottom bar */}
           <div className="md:hidden sticky bottom-0 inset-x-0 z-50 border-t border-black/5 bg-white/95 backdrop-blur px-3 py-2 dark:bg-[#0b0c0e]/90 dark:border-white/10">
             <div className="mx-auto max-w-[680px] flex items-center justify-between gap-2">
               <button
@@ -479,7 +475,6 @@ export const NovelRead = () => {
             </div>
           </div>
 
-          {/* Footer nav */}
           <div className="px-6 pt-2 pb-8">
             <div
               className="mx-auto"
