@@ -1,6 +1,8 @@
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 const BASE_URL = "https://localhost:7242/api/";
+const SERVER_URL =
+  "https://inkwavelibrary-f3akhdacesa4hgg8.southeastasia-01.azurewebsites.net/api/";
 
 class Http {
   public instance: AxiosInstance;
@@ -9,7 +11,7 @@ class Http {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: BASE_URL,
+      baseURL: SERVER_URL,
       timeout: 1000 * 60 * 5,
       headers: {
         "Content-Type": "application/json",
@@ -17,8 +19,8 @@ class Http {
     });
 
     this.multiPartInstance = axios.create({
-      baseURL: BASE_URL,
-      timeout: 10000,
+      baseURL: SERVER_URL,
+      timeout: 1000 * 60 * 5,
       withCredentials: true,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -26,8 +28,8 @@ class Http {
     });
 
     this.privateInstance = axios.create({
-      baseURL: BASE_URL,
-      timeout: 10000,
+      baseURL: SERVER_URL,
+      timeout: 1000 * 60 * 5,
       withCredentials: true,
       headers: {
         "Content-Type": "application/json",
