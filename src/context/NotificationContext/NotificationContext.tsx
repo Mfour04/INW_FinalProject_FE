@@ -3,6 +3,10 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useAuth } from "../../hooks/useAuth";
 
+const BASE_URL = "https://localhost:7242";
+const SERVER_URL =
+  "https://inkwavelibrary-f3akhdacesa4hgg8.southeastasia-01.azurewebsites.net";
+
 type Notification = {
   message: string;
   type: string;
@@ -25,10 +29,12 @@ export const NotificationProvider = ({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { auth } = useAuth();
 
+  if (!auth) return;
+
   useEffect(() => {
     if (!auth?.accessToken) return;
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`https://localhost:7242/hubs/notification`, {
+      .withUrl(`${SERVER_URL}/hubs/notification`, {
         accessTokenFactory: () => auth.accessToken,
       })
       .withAutomaticReconnect()
