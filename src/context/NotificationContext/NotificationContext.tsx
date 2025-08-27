@@ -29,8 +29,6 @@ export const NotificationProvider = ({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { auth } = useAuth();
 
-  if (!auth) return;
-
   useEffect(() => {
     if (!auth?.accessToken) return;
     const connection = new signalR.HubConnectionBuilder()
