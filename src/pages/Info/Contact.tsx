@@ -1,11 +1,26 @@
 import React, { useState } from "react";
-import { Mail, Phone, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { gradient, textGradient } from "./constant";
 
 export const Contact = () => {
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "", website: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+    website: "",
+  });
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [statusMsg, setStatusMsg] = useState("");
 
   const onChange =
@@ -19,7 +34,8 @@ export const Contact = () => {
     const next: typeof errors = {};
     if (!form.name.trim()) next.name = "Vui lòng nhập họ tên.";
     if (!form.email.trim()) next.email = "Vui lòng nhập email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = "Email không hợp lệ.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      next.email = "Email không hợp lệ.";
     if (!form.message.trim()) next.message = "Hãy nhập nội dung cần liên hệ.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -54,7 +70,8 @@ export const Contact = () => {
             Liên hệ <span className={textGradient}>Inkwave</span>
           </h1>
           <p className="mt-2 text-sm md:text-base text-gray-600 max-w-2xl dark:text-white/70">
-            Gửi câu hỏi, góp ý hoặc hợp tác. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+            Gửi câu hỏi, góp ý hoặc hợp tác. Chúng tôi sẽ phản hồi trong thời
+            gian sớm nhất.
           </p>
         </div>
       </header>
@@ -68,11 +85,23 @@ export const Contact = () => {
               className="rounded-2xl bg-white border border-gray-200 p-5 md:p-6 dark:bg-white/[0.03] dark:border-white/10"
               noValidate
             >
-              <input type="text" value={form.website} onChange={onChange("website")} className="hidden" tabIndex={-1} autoComplete="off" />
+              <input
+                type="text"
+                value={form.website}
+                onChange={onChange("website")}
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="text-sm text-gray-600 dark:text-white/70">Họ tên *</label>
+                  <label
+                    htmlFor="name"
+                    className="text-sm text-gray-600 dark:text-white/70"
+                  >
+                    Họ tên *
+                  </label>
                   <input
                     id="name"
                     type="text"
@@ -81,10 +110,19 @@ export const Contact = () => {
                     className="mt-1 w-full rounded-xl bg-white border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300 dark:bg-[#101114] dark:border-white/10 dark:focus:border-white/20"
                     placeholder="Nhập tên của bạn"
                   />
-                  {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="email" className="text-sm text-gray-600 dark:text-white/70">Email *</label>
+                  <label
+                    htmlFor="email"
+                    className="text-sm text-gray-600 dark:text-white/70"
+                  >
+                    Email *
+                  </label>
                   <input
                     id="email"
                     type="email"
@@ -93,12 +131,21 @@ export const Contact = () => {
                     className="mt-1 w-full rounded-xl bg-white border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300 dark:bg-[#101114] dark:border-white/10 dark:focus:border-white/20"
                     placeholder="Nhập địa chỉ email của bạn"
                   />
-                  {errors.email && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.email}</p>}
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="mt-4">
-                <label htmlFor="subject" className="text-sm text-gray-600 dark:text-white/70">Tiêu đề</label>
+                <label
+                  htmlFor="subject"
+                  className="text-sm text-gray-600 dark:text-white/70"
+                >
+                  Tiêu đề
+                </label>
                 <input
                   id="subject"
                   type="text"
@@ -110,7 +157,12 @@ export const Contact = () => {
               </div>
 
               <div className="mt-4">
-                <label htmlFor="message" className="text-sm text-gray-600 dark:text-white/70">Nội dung *</label>
+                <label
+                  htmlFor="message"
+                  className="text-sm text-gray-600 dark:text-white/70"
+                >
+                  Nội dung *
+                </label>
                 <textarea
                   id="message"
                   value={form.message}
@@ -120,8 +172,14 @@ export const Contact = () => {
                   className="mt-1 w-full rounded-xl bg-white border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-300 resize-none dark:bg-[#101114] dark:border-white/10 dark:focus:border-white/20"
                   placeholder="Mô tả ngắn gọn, kèm thông tin cần thiết…"
                 />
-                {errors.message && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.message}</p>}
-                <p className="mt-1 text-xs text-gray-500 text-right dark:text-white/50">{form.message.length}/2000</p>
+                {errors.message && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                    {errors.message}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500 text-right dark:text-white/50">
+                  {form.message.length}/2000
+                </p>
               </div>
 
               {/* trạng thái */}
@@ -165,22 +223,33 @@ export const Contact = () => {
           {/* Info + Tips */}
           <aside className="lg:col-span-2 space-y-4">
             <div className="rounded-2xl bg-white border border-gray-200 p-5 dark:bg-white/[0.03] dark:border-white/10">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Thông tin liên hệ</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                Thông tin liên hệ
+              </h2>
               <ul className="mt-3 space-y-3 text-sm">
                 <li className="flex items-start gap-3">
                   <Mail className="h-5 w-5 text-gray-500 mt-0.5 dark:text-white/70" />
                   <div>
-                    <div className="text-gray-600 dark:text-white/70">Email</div>
-                    <a href="mailto:hello@your-domain.vn" className="text-gray-900 hover:underline dark:text-white">
-                      hello@your-domain.vn
+                    <div className="text-gray-600 dark:text-white/70">
+                      Email
+                    </div>
+                    <a
+                      href="mailto:taihuynh02@gmail.com"
+                      className="text-gray-900 hover:underline dark:text-white"
+                    >
+                      taihuynh02@gmail.com
                     </a>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <Phone className="h-5 w-5 text-gray-500 mt-0.5 dark:text-white/70" />
                   <div>
-                    <div className="text-gray-600 dark:text-white/70">Điện thoại</div>
-                    <div className="text-gray-900 dark:text-white">(+84) 912-345-678</div>
+                    <div className="text-gray-600 dark:text-white/70">
+                      Điện thoại
+                    </div>
+                    <div className="text-gray-900 dark:text-white">
+                      (+84) 912-345-678
+                    </div>
                   </div>
                 </li>
               </ul>
