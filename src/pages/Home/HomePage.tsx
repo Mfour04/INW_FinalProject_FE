@@ -210,7 +210,7 @@ export const HomePage = () => {
 
           <HorizontalRail
             title="Xu hướng mới"
-            icon={<TrendingUp className="h-4 w-4" />}
+            icon={<TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white"/>}
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
             onSeeMore={() => navigate("/trending")}
