@@ -37,7 +37,10 @@ export const Router = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
 
-      <Route path="/moderation-review-popup" element={<ModerationReviewPopupMock />} />
+      <Route
+        path="/moderation-review-popup"
+        element={<ModerationReviewPopupMock />}
+      />
 
       <Route
         path="/following"

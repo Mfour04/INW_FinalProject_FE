@@ -2,15 +2,8 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-import logo from "../../../assets/img/logo.png";
-import WebsiteIcon from "../../../assets/img/icon_logo.png";
-
-import HomeIcon from "../../../assets/svg/SideBar/home-11-stroke-rounded.svg";
-import BookMarkIcon from "../../../assets/svg/SideBar/bookmark-01-stroke-rounded.svg";
-import BookOpenIcon from "../../../assets/svg/SideBar/book-open-01-stroke-rounded.svg";
-import CommunityIcon from "../../../assets/svg/SideBar/user-group-02-stroke-rounded.svg";
-import PinIcon from "../../../assets/svg/SideBar/pin-stroke-rounded.svg";
-import MenuClose from "../../../assets/svg/SideBar/multiplication-sign-stroke-rounded.svg";
+import logo from "../../../assets/img/icon_logo.png";
+import { Home, Bookmark, BookOpen, Users, MapPin, X } from "lucide-react";
 
 import type { MenuItem } from "./type";
 
@@ -23,10 +16,27 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
   const { pathname } = useLocation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
+  const renderIcon = (label: string) => {
+    const cls = "w-5 h-5 shrink-0";
+    switch (label) {
+      case "Trang chủ":
+        return <Home className={cls} />;
+      case "Theo dõi":
+        return <Bookmark className={cls} />;
+      case "Tiểu thuyết":
+        return <BookOpen className={cls} />;
+      case "Cộng đồng":
+        return <Users className={cls} />;
+      case "InkWave":
+        return <MapPin className={cls} />;
+      default:
+        return <MapPin className={cls} />;
+    }
+  };
+
   const menuItems: MenuItem[] = [
-    { icon: HomeIcon, label: "Trang chủ", path: "/", isHeader: true },
+    { label: "Trang chủ", path: "/", isHeader: true },
     {
-      icon: BookMarkIcon,
       label: "Theo dõi",
       path: "/following",
       isHeader: true,
@@ -36,24 +46,21 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       ],
     },
     {
-      icon: BookOpenIcon,
       label: "Tiểu thuyết",
       path: "/",
       isHeader: true,
       subItems: [
-        { label: "Danh sách", path: "/novels" },
+        { label: "Khám phá", path: "/novels" },
         { label: "Phòng sáng tác", path: "/novels/writing-room" },
       ],
     },
     {
-      icon: CommunityIcon,
       label: "Cộng đồng",
       path: "/community",
       isHeader: true,
       subItems: [{ label: "Diễn đàn", path: "/blogs" }],
     },
     {
-      icon: PinIcon,
       label: "InkWave",
       path: "/inkwave",
       isHeader: true,
@@ -111,8 +118,9 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         display: isOpen ? "flex" : isMobile ? "none" : "flex",
       }}
       transition={{ duration: 0.26, ease: "easeInOut" }}
-      className="bg-white text-black dark:bg-[#151517] dark:text-white fixed top-0 left-0 z-40 h-screen lg:static lg:h-full flex flex-col overflow-hidden"
+      className="bg-white text-zinc-900 dark:bg-[#0a0f16] dark:text-zinc-50 fixed top-0 left-0 z-40 h-screen lg:static lg:h-full flex flex-col overflow-hidden border-r border-zinc-200 dark:border-white/10"
     >
+      {/* Header */}
       <div className="p-3 flex items-center justify-between">
         <AnimatePresence initial={false} mode="wait">
           {isOpen ? (
@@ -123,13 +131,13 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 animate={{ opacity: 1, width: 140 }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.22 }}
-                className="max-h-[46px] w-[140px] overflow-hidden flex items-center"
+                className="min-h-[40px] w-full overflow-hidden flex items-center"
               >
-                <img
-                  src={logo}
-                  alt="InkWave"
-                  className="h-[34px] w-auto object-contain"
-                />
+               <img
+                src={logo}
+                alt="InkWave"
+                className="h-[30px] w-[90px] object-fit"
+              />
               </motion.div>
               <motion.button
                 key="close"
@@ -138,31 +146,19 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
                 onClick={onClose}
-                className="h-8 w-8 grid place-items-center rounded-md hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40 transition"
+                className="h-8 w-8 grid place-items-center rounded-md hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 transition"
                 aria-label="Đóng sidebar"
               >
-                <img src={MenuClose} alt="" className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </motion.button>
             </>
-          ) : (
-            <motion.button
-              key="icon"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              onClick={onClose}
-              className="h-9 w-9 mx-auto grid place-items-center rounded-md hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40 transition"
-              aria-label="Mở sidebar"
-            >
-              <img src={WebsiteIcon} alt="" className="w-6 h-6" />
-            </motion.button>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
 
-      <div className="border-t border-[#2e2e2e]" />
+      <div className="border-t border-zinc-200 dark:border-white/10" />
 
+      {/* Nav */}
       <nav className="flex-1 py-3 space-y-1">
         {menuItems.map((item, idx) => {
           const hasSubs = !!item.subItems?.length;
@@ -179,17 +175,35 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                   end
                   className={({ isActive }) => {
                     const base =
-                      "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none";
+                      "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none transition-colors";
                     if (hasSubs) {
                       const baseGroup = `${base} focus:ring-0`;
                       if (isActive)
-                        return `${baseGroup} bg-[#ff6740]/15 text-white`;
-                      return `${baseGroup} hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40`;
+                        return [
+                          baseGroup,
+                          "bg-gradient-to-r from-[#ff512f]/20 via-[#ff6740]/20 to-[#ff9966]/20",
+                          "text-[#ff6740] dark:text-[#ff9966]",
+                          "border border-[#ff6740]/40",
+                        ].join(" ");
+                      return [
+                        baseGroup,
+                        "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
+                        "text-zinc-700 dark:text-zinc-200",
+                      ].join(" ");
                     } else {
                       const baseLeaf = `${base} focus-visible:ring-2 focus-visible:ring-[#ff6740]/45`;
                       return isActive
-                        ? `${baseLeaf} bg-[#ff6740]/15 text-white border border-[#ff6740]`
-                        : `${baseLeaf} hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40`;
+                        ? [
+                            baseLeaf,
+                            "bg-gradient-to-r from-[#ff512f]/20 via-[#ff6740]/20 to-[#ff9966]/20",
+                            "text-[#ff6740] dark:text-[#ff9966]",
+                            "border border-[#ff6740]/40",
+                          ].join(" ")
+                        : [
+                            baseLeaf,
+                            "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
+                            "text-zinc-700 dark:text-zinc-200",
+                          ].join(" ");
                     }
                   }}
                   onMouseDown={(e) => {
@@ -211,13 +225,14 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                     }
                   }}
                 >
+                  {/* Rail gradient khi hover */}
                   {!(hasSubs
                     ? pathname === item.path || hasActiveChild
                     : pathname === item.path) && (
-                    <span className="absolute left-0 inset-y-0 w-[3px] rounded-r-full bg-gradient-to-b from-[#ff512f] via-[#ff6740] to-[#ff9966] opacity-0 group-hover:opacity-60 transition" />
+                    <span className="absolute left-0 inset-y-0 w-[3px] rounded-r-full bg-gradient-to-b from-[#ff512f] via-[#ff6740] to-[#ff9966] opacity-0 group-hover:opacity-70 transition" />
                   )}
 
-                  <img src={item.icon} alt="" className="w-5 h-5 shrink-0" />
+                  {renderIcon(item.label)}
 
                   <AnimatePresence initial={false} mode="wait">
                     {isOpen ? (
@@ -249,6 +264,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 )}
               </div>
 
+              {/* Sub items */}
               <AnimatePresence initial={false}>
                 {hasSubs && open && (
                   <motion.div
@@ -267,12 +283,12 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                           [
                             "relative flex items-center gap-2 px-3 rounded-md text-[13px] h-9 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6740]/40",
                             isActive
-                              ? "bg-[#ff6740]/15 text-white border border-[#ff6740]"
-                              : "hover:bg-zinc-800/20 dark:hover:bg-zinc-800/40 text-zinc-300",
+                              ? "bg-gradient-to-r from-[#ff512f]/15 via-[#ff6740]/15 to-[#ff9966]/15 text-[#ff6740] dark:text-[#ff9966] border border-[#ff6740]/40"
+                              : "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 text-zinc-700 dark:text-zinc-300",
                           ].join(" ")
                         }
                       >
-                        <span className="leading-none before:content-['•'] before:mr-2 before:text-zinc-500">
+                        <span className="leading-none before:mr-2 before:text-zinc-400 dark:before:text-zinc-500">
                           {sub.label}
                         </span>
                       </NavLink>
@@ -285,9 +301,10 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
         })}
       </nav>
 
+      {/* Footer */}
       <div className="p-3 mt-auto">
         {isOpen ? (
-          <div className="text-[11px] text-zinc-500">
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
             © {new Date().getFullYear()} InkWave
           </div>
         ) : (
