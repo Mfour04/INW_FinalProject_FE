@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
 import { useToast } from "../../context/ToastContext/toast-context";
@@ -82,15 +82,17 @@ export const Blogs = () => {
 
   const followingUserIds = Array.isArray(followingUsers?.data) ? followingUsers.data.map((user: any) => user.id) : [];
 
-  const followingPostsQueries = followingUserIds.map((userId: string) =>
-    useUserBlogPosts(userId)
-  );
+  const followingBlogPosts = useMemo(() => {
+    if (!followingUserIds.length) return [];
 
-  const followingBlogPosts = followingPostsQueries
-    .flatMap((query: any) => query.data || [])
-    .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+    const filteredPosts = allBlogPosts.filter((post: any) =>
+      followingUserIds.includes(post.author?.id || post.user_id)
+    );
 
-  const isLoadingFollowing = isLoadingFollowingUsers || followingPostsQueries.some((query: any) => query.isLoading);
+    return filteredPosts.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+  }, [followingUserIds, allBlogPosts]);
+
+  const isLoadingFollowing = isLoadingFollowingUsers;
 
   const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
     queryKey: ['followers', auth?.user?.userName],
@@ -194,9 +196,6 @@ export const Blogs = () => {
           setIsPosting(false);
 
           refetchAll();
-          followingPostsQueries.forEach((query: any) => {
-            if (query.refetch) query.refetch();
-          });
         },
         onError: () => {
           toast?.onOpen("Có lỗi xảy ra khi đăng bài!");
@@ -229,9 +228,6 @@ export const Blogs = () => {
       onSuccess: () => {
         toast?.onOpen("Xóa bài viết thành công!");
         refetchAll();
-        followingPostsQueries.forEach((query: any) => {
-          if (query.refetch) query.refetch();
-        });
       },
       onError: () => toast?.onOpen("Có lỗi xảy ra khi xóa bài viết!"),
     });
@@ -253,9 +249,6 @@ export const Blogs = () => {
           toast?.onOpen("Cập nhật bài viết thành công!");
 
           refetchAll();
-          followingPostsQueries.forEach((query: any) => {
-            if (query.refetch) query.refetch();
-          });
         },
         onError: () => toast?.onOpen("Có lỗi xảy ra khi cập nhật bài viết!"),
       }
@@ -275,9 +268,6 @@ export const Blogs = () => {
         localStorage.setItem(`blog_liked_${postId}`, "true");
       }
       refetchAll();
-      followingPostsQueries.forEach((query: any) => {
-        if (query.refetch) query.refetch();
-      });
     } catch {
       toast?.onOpen("Có lỗi xảy ra khi thao tác yêu thích!");
     }
