@@ -32,6 +32,7 @@ import VerticalColumn from "./discovery/VerticalColumn";
 import HorizontalRail from "./discovery/HorizontalRail";
 import { Metric } from "./components/ListRow/Metric";
 import type { Novel } from "../../entity/novel";
+import { SummarizeNovel } from "./SummarizeNovel";
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
@@ -245,6 +246,7 @@ export const HomePage = () => {
           isLoading={updateUserMutation.isPending}
         />
       )}
+      <SummarizeNovel />
     </div>
   );
 };

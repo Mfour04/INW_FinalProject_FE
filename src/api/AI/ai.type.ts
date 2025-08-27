@@ -13,6 +13,10 @@ export type PlagiarismAIRequest = {
   content: string;
 };
 
+export type SummarizeAIRequest = {
+  novelId: string;
+};
+
 export type ModerationAIResponse = {
   flagged: boolean;
   sensitive: Sensitive[];
@@ -42,3 +46,4 @@ export type Chunk = {
 
 export type ModerationAIApiResponse = ApiResponse<ModerationAIResponse>;
 export type PlagiarismAIApiResponse = ApiResponse<PlagiarismAIResponse>;
+export type SummarizeAIApiResponse = ApiResponse<string>;

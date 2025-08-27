@@ -4,6 +4,8 @@ import type {
   ModerationAIRequest,
   PlagiarismAIApiResponse,
   PlagiarismAIRequest,
+  SummarizeAIApiResponse,
+  SummarizeAIRequest,
 } from "./ai.type";
 
 export const ModerationContent = (request: ModerationAIRequest) =>
@@ -11,3 +13,6 @@ export const ModerationContent = (request: ModerationAIRequest) =>
 
 export const PlagiarismCheck = (request: PlagiarismAIRequest) =>
   http.http.post<PlagiarismAIApiResponse>(`AI/plagiarism`, request);
+
+export const SummarizeNovels = (request: SummarizeAIRequest) =>
+  http.http.post<SummarizeAIApiResponse>(`AI/summarize`, request);
