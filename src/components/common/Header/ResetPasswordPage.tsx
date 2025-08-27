@@ -1,42 +1,36 @@
 // src/pages/Auth/ResetPasswordCardMock.tsx
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Eye, EyeOff, Lock } from "lucide-react";
-
-/* ---------------- Mock helpers ---------------- */
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 type PasswordValidationResult = { isValid: boolean; errors: string[] };
 function validatePassword(pwd: string): PasswordValidationResult {
   const errs: string[] = [];
-  if (pwd.length < 8) 
-  if (!/[A-Za-z]/.test(pwd) || !/\d/.test(pwd))
-    errs.push("Mật khẩu phải dài 8–32 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt.");
+  if (pwd.length < 8)
+    if (!/[A-Za-z]/.test(pwd) || !/\d/.test(pwd))
+      errs.push(
+        "Mật khẩu phải dài 8–32 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt."
+      );
   return { isValid: errs.length === 0, errors: errs };
 }
 
-function mockResetPasswordByToken({ token, password }: { token: string; password: string }) {
+function mockResetPasswordByToken({
+  token,
+  password,
+}: {
+  token: string;
+  password: string;
+}) {
   return new Promise<void>((resolve, reject) => {
     setTimeout(() => {
-      if (!token || token === "expired") return reject(new Error("Link không hợp lệ hoặc đã hết hạn."));
-      if (password === "error1234") return reject(new Error("Lỗi máy chủ (mock)."));
+      if (!token || token === "expired")
+        return reject(new Error("Link không hợp lệ hoặc đã hết hạn."));
+      if (password === "error1234")
+        return reject(new Error("Lỗi máy chủ (mock)."));
       resolve();
     }, 900);
   });
 }
-
-function MiniToast({ message, onClose }: { message: string; onClose: () => void }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-4 py-2 rounded-xl text-sm bg-zinc-900 text-white shadow-lg">
-      {message}
-      <button onClick={onClose} className="ml-3 underline opacity-80 hover:opacity-100">
-        Đóng
-      </button>
-    </div>
-  );
-}
-
-/* ---------------- Atoms matched to your card style ---------------- */
 
 function DarkInput({
   value,
@@ -95,9 +89,7 @@ function GradientButton({
   );
 }
 
-/* ---------------- Page ---------------- */
-
-export default function ResetPasswordCardMock() {
+export const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get("token") ?? "";
@@ -134,7 +126,7 @@ export default function ResetPasswordCardMock() {
 
   return (
     <div className="fixed inset-0 z-[100]">
-        <div
+      <div
         className={[
           "relative z-[101] min-h-screen grid lg:grid-cols-2",
           "bg-[#f7f8fa] text-zinc-900",
@@ -163,13 +155,12 @@ export default function ResetPasswordCardMock() {
             }}
           />
           <div className="relative h-full flex flex-col justify-center p-12">
-               
-                <h1 className="text-3xl font-semibold leading-tight">
-                  Gõ cửa thế giới truyện
-                </h1>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
-                  Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích
-                </p>
+            <h1 className="text-3xl font-semibold leading-tight">
+              Gõ cửa thế giới truyện
+            </h1>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
+              Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích
+            </p>
           </div>
         </div>
 
@@ -238,19 +229,23 @@ export default function ResetPasswordCardMock() {
                 </ul>
               )}
 
-              <GradientButton loading={loading} disabled={!canSubmit} onClick={() => submit()}>
+              <GradientButton
+                loading={loading}
+                disabled={!canSubmit}
+                onClick={() => submit()}
+              >
                 Cập nhật
               </GradientButton>
 
-               {!token && (
-              <p className="text-sm text-red-400 text-center">
+              {!token && (
+                <p className="text-sm text-red-400 text-center">
                   Liên kết không hợp lệ hoặc đã hết hạn.
-              </p>
+                </p>
               )}
             </div>
           </form>
         </div>
       </div>
-      </div>
+    </div>
   );
-}
+};
