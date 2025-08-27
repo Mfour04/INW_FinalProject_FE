@@ -19,7 +19,7 @@ const row1: Member[] = [
 ];
 
 const row2: Member[] = [
-  { name: "Phương Nhi", role: "Designer", initials: "PN" },
+  { name: "Phương Nhi", role: "Trưởng đội thiết kế", initials: "PN" },
   { name: "Thái Bình", role: "Backend Developer", initials: "TB" },
   { name: "Như Lộc", role: "Frontend Developer", initials: "NL" },
 ];
