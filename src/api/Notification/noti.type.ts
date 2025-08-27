@@ -10,4 +10,8 @@ export type GetUserNotificationRes = {
   updateAt: number;
 };
 
+export type ReadNotificationReq = {
+  notificationIds: string[];
+};
+
 export type GetUserNotificationApiRes = ApiResponse<GetUserNotificationRes[]>;
