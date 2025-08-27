@@ -15,7 +15,7 @@ export const useFollow = (targetUserId: string, enabled: boolean = true) => {
         mutationFn: FollowUser,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['followStatus', targetUserId] });
-            queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+            queryClient.invalidateQueries({ queryKey: ['otherUserProfile'] });
         },
     });
 
@@ -23,7 +23,7 @@ export const useFollow = (targetUserId: string, enabled: boolean = true) => {
         mutationFn: UnfollowUser,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['followStatus', targetUserId] });
-            queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+            queryClient.invalidateQueries({ queryKey: ['otherUserProfile'] });
         },
     });
 

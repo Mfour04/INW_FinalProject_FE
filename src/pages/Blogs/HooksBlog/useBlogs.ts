@@ -30,8 +30,11 @@ export const useBlogPosts = () => {
                 return [];
             }
         },
-        staleTime: 1000 * 60,
+        staleTime: 0,
+        gcTime: 0,
         refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
         retry: 1,
     });
 };
@@ -49,8 +52,11 @@ export const useUserBlogPosts = (userId: string) => {
             return allPosts.filter((post: BlogPost) => post.author.id === userId);
         },
         enabled: !!userId,
-        staleTime: 1000 * 60,
+        staleTime: 0,
+        gcTime: 0,
         refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
         retry: 1,
     });
 };
@@ -71,8 +77,11 @@ export const useFollowingBlogPosts = () => {
                 return [];
             }
         },
-        staleTime: 1000 * 60,
+        staleTime: 0,
+        gcTime: 0,
         refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
         retry: 1,
     });
 };
@@ -116,8 +125,18 @@ export const useDeleteBlogPost = () => {
 
     return useMutation({
         mutationFn: async (postId: string) => {
-            const res = await DeleteBlogPost(postId);
-            return res.data;
+            try {
+                const res = await DeleteBlogPost(postId);
+                return res.data;
+            } catch (error: any) {
+                console.error("Error deleting blog post:", error);
+                if (error.response?.status === 401) {
+                    alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                } else {
+                    alert("Có lỗi xảy ra khi xóa bài viết!");
+                }
+                throw error;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
@@ -130,15 +149,25 @@ export const useUpdateBlogPost = () => {
 
     return useMutation({
         mutationFn: async (data: { postId: string; content: string; images?: File[] }) => {
-            const res = await UpdateBlogPost(data.postId, {
-                content: data.content,
-                images: data.images,
-            });
-            return res.data;
+            try {
+                const res = await UpdateBlogPost(data.postId, {
+                    content: data.content,
+                });
+                return res.data;
+            } catch (error: any) {
+                console.error("Error updating blog post:", error);
+                if (error.response?.status === 401) {
+                    alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                } else {
+                    alert("Có lỗi xảy ra khi cập nhật bài viết!");
+                }
+                throw error;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
         },
     });
 };
