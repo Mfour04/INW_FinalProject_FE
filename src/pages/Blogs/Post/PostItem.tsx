@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   MoreVertical,
   Edit3,
@@ -69,18 +71,17 @@ const PostItem = ({
   updatedTimestamp,
 }: PostItemProps) => {
   const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isOwnPost = post.user.username === auth?.user?.userName;
 
   const menuRef = useRef<HTMLDivElement>(null);
   const [showCommentPopup, setShowCommentPopup] = useState(false);
   const [editContent, setEditContent] = useState(post.content ?? "");
   const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
-  const [commentCount, setCommentCount] = useState<number>(post.comments ?? 0);
-
   const content = post.content ?? "";
 
   useEffect(() => setLikeCount(post.likes ?? 0), [post.likes]);
-  useEffect(() => setCommentCount(post.comments ?? 0), [post.comments]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -118,10 +119,11 @@ const PostItem = ({
           <img
             src={post.user.avatar}
             alt={post.user.name}
-            className="w-11 h-11 rounded-full object-cover ring-1 ring-white/10"
+            className="w-11 h-11 rounded-full object-cover ring-1 ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate(`/profile/${post.user.username}`)}
           />
-          <div className="leading-tight">
-            <div className="flex items-center gap-1">
+          <div className="leading-tight cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(`/profile/${post.user.username}`)}>
+            <div className="flex flex-col">
               <span className="text-[16px] font-semibold text-white">
                 {post.user.name}
               </span>
@@ -175,7 +177,7 @@ const PostItem = ({
                       className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
                     >
                       <Trash2 size={16} />
-                      Xoá bài viết
+                      Xóa bài viết
                     </button>
                   </>
                 ) : (
@@ -217,7 +219,6 @@ const PostItem = ({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className=""
             >
               <PostInlineEditor
                 value={editContent}
@@ -228,6 +229,11 @@ const PostItem = ({
                   setEditingPostId(null);
                 }}
               />
+              {images.length > 0 && (
+                <div className="mt-4">
+                  <PostImages images={images} />
+                </div>
+              )}
             </motion.div>
           ) : (
             <>
@@ -263,11 +269,13 @@ const PostItem = ({
           </button>
 
           <button
-            onClick={() => setShowCommentPopup((v) => !v)}
+            onClick={() => {
+              setShowCommentPopup((v) => !v);
+            }}
             className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] ring-1 ring-white/10 transition"
           >
             <MessageCircle size={18} className="text-white" />
-            <span className="text-sm text-white">{commentCount}</span>
+            <span className="text-sm text-white">{post.comments ?? 0}</span>
           </button>
         </div>
 
@@ -275,7 +283,6 @@ const PostItem = ({
           <div className="mt-4">
             <BlogCommentUser
               postId={post.id}
-              onCommentCountChange={(n) => setCommentCount(n ?? 0)}
             />
           </div>
         )}

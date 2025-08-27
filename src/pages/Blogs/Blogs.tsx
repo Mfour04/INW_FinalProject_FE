@@ -11,10 +11,13 @@ import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 import {
   useBlogPosts,
+  useFollowingBlogPosts,
   useCreateBlogPost,
   useDeleteBlogPost,
   useUpdateBlogPost,
 } from "./HooksBlog";
+import { useQuery } from "@tanstack/react-query";
+import { GetFollowers, GetFollowing } from "../../api/UserFollow/user-follow.api";
 import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
 import {
   blogFormatVietnamTimeFromTicks,
@@ -68,7 +71,44 @@ export const Blogs = () => {
   const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
   const [commentInput, setCommentInput] = useState<string>("");
 
-  const { data: blogPosts = [], isLoading, refetch } = useBlogPosts();
+  const { data: allBlogPosts = [], isLoading: isLoadingAll, refetch: refetchAll } = useBlogPosts();
+  const { data: followingBlogPosts = [], isLoading: isLoadingFollowing, refetch: refetchFollowing } = useFollowingBlogPosts();
+
+  const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
+    queryKey: ['followers', auth?.user?.userName],
+    queryFn: () => GetFollowers(auth?.user?.userName!),
+    enabled: !!auth?.user?.userName,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: followingData, isLoading: isLoadingFollowingStats } = useQuery({
+    queryKey: ['following', auth?.user?.userName],
+    queryFn: () => GetFollowing(auth?.user?.userName!),
+    enabled: !!auth?.user?.userName,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const followingCount = Array.isArray(followingData?.data) ? followingData.data.length : 0;
+  const followersCount = Array.isArray(followersData?.data) ? followersData.data.length : 0;
+
+  useEffect(() => {
+    const savedTimestamps: Record<string, string> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('blog_updated_')) {
+        const postId = key.replace('blog_updated_', '');
+        const timestamp = localStorage.getItem(key);
+        if (timestamp) {
+          savedTimestamps[postId] = timestamp;
+        }
+      }
+    }
+    setUpdatedTimestamps(savedTimestamps);
+  }, []);
+
+  const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
+  const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
+  const refetch = tab === "following" ? refetchFollowing : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -174,12 +214,13 @@ export const Blogs = () => {
 
   const handleUpdatePost = (postId: string, content: string) => {
     updateBlogPostMutation.mutate(
-      { postId, data: { content } },
+      { postId, content },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();
           const formatted = blogFormatVietnamTimeFromTicksForUpdate(nowTicks);
           setUpdatedTimestamps((prev) => ({ ...prev, [postId]: formatted }));
+          localStorage.setItem(`blog_updated_${postId}`, formatted);
           toast?.onOpen("Cập nhật bài viết thành công!");
         },
         onError: () => toast?.onOpen("Có lỗi xảy ra khi cập nhật bài viết!"),
@@ -224,7 +265,7 @@ export const Blogs = () => {
                       : "text-white/70 hover:text-white hover:bg-white/10",
                   ].join(" ")}
                 >
-                  {t === "all" ? "Dành cho bạn" : "Đang theo dõi"}
+                  {t === "all" ? "Dành cho bạn" : `Đang theo dõi (${followingCount})`}
                 </button>
               );
             })}
@@ -254,68 +295,109 @@ export const Blogs = () => {
                 </Card>
               )}
 
-              {isLoading ? (
-                <Card className="p-10 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
-                  <p className="text-white/70 mt-3">Đang tải bài viết...</p>
-                </Card>
-              ) : !blogPosts || blogPosts.length === 0 ? (
-                <Card className="p-10 text-center">
-                  <p className="text-white/70">Chưa có bài viết nào.</p>
-                </Card>
-              ) : (
-                (Array.isArray(blogPosts) ? blogPosts : []).map((post) => (
-                  <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
-                    <div id={`post-${post.id}`}>
-                      <PostItem
-                        post={{
-                          id: post.id,
-                          user: {
-                            name: post.author?.username || "Ẩn danh",
-                            username: post.author?.username || "user",
-                            avatar: post.author?.avatar || "/images/default-avatar.png",
-                          },
-                          content: post.content,
-                          timestamp: post.createdAt
-                            ? blogFormatVietnamTimeFromTicks(post.createdAt)
-                            : "Không rõ thời gian",
-                          likes: post.likeCount || 0,
-                          comments: post.commentCount || 0,
-                          isLiked: post.isLiked || false,
-                          imgUrls: post.imgUrls || [],
-                        }}
-                        menuOpenPostId={menuOpenPostId}
-                        setMenuOpenPostId={setMenuOpenPostId}
-                        editingPostId={editingPostId}
-                        setEditingPostId={setEditingPostId}
-                        setReportPostId={setReportPostId}
-                        openComments={openComments}
-                        setOpenComments={setOpenComments}
-                        visibleRootComments={visibleRootComments}
-                        setVisibleRootComments={setVisibleRootComments}
-                        isMobile={isMobile}
-                        openReplyId={openReplyId}
-                        setOpenReplyId={setOpenReplyId}
-                        menuOpenCommentId={menuOpenCommentId}
-                        setMenuOpenCommentId={setMenuOpenCommentId}
-                        editingCommentId={editingCommentId}
-                        setEditingCommentId={setEditingCommentId}
-                        editedContent={editedContent}
-                        setEditedContent={setEditedContent}
-                        setReportCommentId={setReportCommentId}
-                        replyingTo={replyingTo}
-                        setReplyingTo={setReplyingTo}
-                        commentInput={commentInput}
-                        setCommentInput={setCommentInput}
-                        onRequestDelete={handleRequestDelete}
-                        onToggleLike={handleToggleLike}
-                        isLiked={Boolean(likedPosts[post.id])}
-                        onUpdatePost={handleUpdatePost}
-                        updatedTimestamp={updatedTimestamps[post.id]}
-                      />
+              {tab === "following" ? (
+                <div className="mt-6">
+                  {isLoadingFollowingStats ? (
+                    <Card className="p-10 text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
+                      <p className="text-white/70 mt-3">Đang tải danh sách đang theo dõi...</p>
+                    </Card>
+                  ) : !followingData?.data || !Array.isArray(followingData.data) || followingData.data.length === 0 ? (
+                    <Card className="p-10 text-center">
+                      <p className="text-white/70">Chưa theo dõi ai.</p>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {followingData.data.map((following: any) => (
+                        <Card key={following.id} className="p-4 flex flex-col items-center">
+                          <img
+                            src={following.avatar || "/images/default-avatar.png"}
+                            alt={following.displayName}
+                            className="w-16 h-16 rounded-full mb-2 object-cover"
+                          />
+                          <p className="font-semibold text-white text-sm text-center truncate w-full">{following.displayName}</p>
+                          <p className="text-xs text-gray-400 text-center">@{following.userName}</p>
+                          <button
+                            className="bg-[#ff6740] hover:bg-[#e55a36] text-white font-semibold px-5 mt-2 rounded-lg text-sm transition-colors duration-200"
+                            onClick={() => {
+                              if (following.userName) {
+                                window.location.href = `/profile/${following.userName}`;
+                              }
+                            }}
+                          >
+                            Trang cá nhân
+                          </button>
+                        </Card>
+                      ))}
                     </div>
-                  </Card>
-                ))
+                  )}
+                </div>
+              ) : (
+                <>
+                  {isLoading ? (
+                    <Card className="p-10 text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6740] mx-auto" />
+                      <p className="text-white/70 mt-3">Đang tải bài viết...</p>
+                    </Card>
+                  ) : !blogPosts || blogPosts.length === 0 ? (
+                    <Card className="p-10 text-center">
+                      <p className="text-white/70">Chưa có bài viết nào.</p>
+                    </Card>
+                  ) : (
+                    (Array.isArray(blogPosts) ? blogPosts : []).map((post) => (
+                      <Card key={post.id} className="mb-5 hover:bg-white/[0.05] transition">
+                        <div id={`post-${post.id}`}>
+                          <PostItem
+                            post={{
+                              id: post.id,
+                              user: {
+                                name: post.author?.displayName || post.author?.username || "Ẩn danh",
+                                username: post.author?.username || "user",
+                                avatar: post.author?.avatar || "/images/default-avatar.png",
+                              },
+                              content: post.content,
+                              timestamp: post.createdAt
+                                ? blogFormatVietnamTimeFromTicks(post.createdAt)
+                                : "Không rõ thời gian",
+                              likes: post.likeCount || 0,
+                              comments: post.commentCount || 0,
+                              isLiked: post.isLiked || false,
+                              imgUrls: post.imgUrls || [],
+                            }}
+                            menuOpenPostId={menuOpenPostId}
+                            setMenuOpenPostId={setMenuOpenPostId}
+                            editingPostId={editingPostId}
+                            setEditingPostId={setEditingPostId}
+                            setReportPostId={setReportPostId}
+                            openComments={openComments}
+                            setOpenComments={setOpenComments}
+                            visibleRootComments={visibleRootComments}
+                            setVisibleRootComments={setVisibleRootComments}
+                            isMobile={isMobile}
+                            openReplyId={openReplyId}
+                            setOpenReplyId={setOpenReplyId}
+                            menuOpenCommentId={menuOpenCommentId}
+                            setMenuOpenCommentId={setMenuOpenCommentId}
+                            editingCommentId={editingCommentId}
+                            setEditingCommentId={setEditingCommentId}
+                            editedContent={editedContent}
+                            setEditedContent={setEditedContent}
+                            setReportCommentId={setReportCommentId}
+                            replyingTo={replyingTo}
+                            setReplyingTo={setReplyingTo}
+                            commentInput={commentInput}
+                            setCommentInput={setCommentInput}
+                            onRequestDelete={handleRequestDelete}
+                            onToggleLike={handleToggleLike}
+                            isLiked={Boolean(likedPosts[post.id])}
+                            onUpdatePost={handleUpdatePost}
+                            updatedTimestamp={updatedTimestamps[post.id]}
+                          />
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useContext, useMemo, useRef, useState, useCallback, useEffect } from "react";
-import { useQueryClient, useQueries } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
-import type { Comment } from "../../CommentUser/types";
+import type { Comment } from "../../commentUser/types";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 
 import {
@@ -10,7 +10,6 @@ import {
   blogGetCurrentTicks,
 } from "../../../utils/date_format";
 
-// import defaultAvatar from "../../../assets/img/th.png";
 
 import { Composer } from "../../../components/ui/Composer";
 import { ReplyThread } from "../../../components/ui/ReplyThread";
@@ -24,15 +23,13 @@ import {
 import {
   LikeForumComment,
   UnlikeForumComment,
-  GetRepliesByForumComment,
 } from "../../../api/ForumComment/forum-comment.api";
 
 type Props = {
   postId: string;
-  onCommentCountChange?: (n: number) => void;
 };
 
-export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
+export const BlogCommentUser = ({ postId }: Props) => {
   const { auth } = useContext(AuthContext);
   const queryClient = useQueryClient();
 
@@ -41,27 +38,12 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
   const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
-  const { data: rawComments } = UseForumComments(postId);
-  const commentIds = Array.isArray(rawComments)
-    ? rawComments.map((c: any) => c?.id).filter(Boolean)
-    : [];
+  const { data: rawComments, refetch: refetchComments } = UseForumComments(postId);
 
-  const repliesQueries = useQueries({
-    queries: commentIds.map((commentId) => ({
-      queryKey: ["forum-replies", commentId],
-      queryFn: async () => {
-        const res = await GetRepliesByForumComment(commentId, {
-          page: 0,
-          limit: 50,
-          sortBy: "created_at:desc",
-        });
-        return res.data.data;
-      },
-      enabled: !!commentId,
-      staleTime: 60_000,
-    })),
-  });
-  const repliesData = repliesQueries.map((q) => q.data).filter(Boolean);
+  useEffect(() => {
+    queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
+    refetchComments();
+  }, [refetchComments, postId, queryClient]);
 
   const { mutate: postComment } = UseCreateForumComment(postId);
   const { mutate: updateComment } = UseUpdateForumComment(postId);
@@ -113,8 +95,6 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
         author.avatarUrl ||
         c.avatarUrl ||
         c.Author?.Avatar
-        // ||
-        // defaultAvatar;
 
       flat.push({
         id: c.id,
@@ -131,18 +111,12 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
       if (Array.isArray(c.replies)) c.replies.forEach(collect);
     };
 
-    if (Array.isArray(repliesData)) {
-      repliesData.forEach((rs: any, idx: number) => {
-        const rootId = commentIds[idx];
-        replyCountMap[rootId] = Array.isArray(rs) ? rs.length : 0;
-        if (Array.isArray(rs)) rs.forEach(collect);
-      });
+    if (Array.isArray(rawComments)) {
+      rawComments.forEach(collect);
     }
-    if (Array.isArray(rawComments)) rawComments.forEach(collect);
     return flat;
-  }, [rawComments, repliesData, commentIds]);
+  }, [rawComments]);
 
-  // --- Overlay edited
   const enrichedComments: Comment[] = useMemo(
     () =>
       serverComments.map((c) => ({
@@ -160,13 +134,6 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
     [enrichedComments]
   );
 
-  // Report count ra ngoài nếu cần
-  useEffect(() => {
-    onCommentCountChange?.(enrichedComments.length);
-  }, [enrichedComments, onCommentCountChange]);
-
-  // --- Handlers
-
   const handlePost = useCallback(
     (content: string) => {
       if (!content.trim()) return;
@@ -181,7 +148,11 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
               alert("Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác.");
               return;
             }
+            queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
           },
         }
       );
@@ -214,8 +185,11 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
         { content, parentCommentId: parentId },
         {
           onSuccess: () => {
+            queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
             queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-            queryClient.invalidateQueries({ queryKey: ["forum-replies", parentId] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
             setReplyValues((v) => ({ ...v, [parentId]: "" }));
           },
         }
@@ -274,13 +248,14 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
 
   const handleDelete = useCallback(
     (id: string) => {
-      const target = enrichedComments.find((c) => c.id === id);
-      const parentId = target?.parentId || null;
-
       deleteComment(id, {
         onSuccess: () => {
+          queryClient.removeQueries({ queryKey: ["forum-comments", postId] });
           queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
-          if (parentId) queryClient.invalidateQueries({ queryKey: ["forum-replies", parentId] });
+          queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+          queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
+          queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+
           setEditedComments((m) => {
             const n = { ...m };
             delete n[id];
@@ -297,61 +272,61 @@ export const BlogCommentUser = ({ postId, onCommentCountChange }: Props) => {
         },
       });
     },
-    [deleteComment, enrichedComments, postId, queryClient]
+    [deleteComment, enrichedComments, postId, queryClient, currentUser.id]
   );
 
   return (
     <section className="">
-        <div className="px-4 md:px-2 py-2">
-          <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/12 p-4">
-            <Composer
-              value={composerValue}
-              onChange={setComposerValue}
-              onSubmit={handlePost}
-              disabled={!auth?.user}
-              currentUser={
-                auth?.user
-                  ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
-                  : null
-              }
-              loginCta={() => alert("Đăng nhập để bình luận")}
-            />
-          </div>
-
-          <div className="mt-6 space-y-3">
-            {topLevel.length === 0 ? (
-              <div className="py-2 text-center text-white/70">Chưa có bình luận nào.</div>
-            ) : (
-              topLevel.map((parent) => {
-                const replies = enrichedComments.filter((r) => r.parentId === parent.id);
-                return (
-                  <ReplyThread
-                    key={parent.id}
-                    parent={parent}
-                    replies={replies}
-                    currentUser={
-                      auth?.user
-                        ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
-                        : null
-                    }
-                    canInteract={!!auth?.user}
-                    liked={likedComments}
-                    edited={editedComments}
-                    onToggleLike={handleToggleLike}
-                    onDelete={handleDelete}
-                    replyOpen={!!replyInputs[parent.id]}
-                    replyValue={replyValues[parent.id] ?? ""}
-                    setReplyValue={(v) => setReplyValues((s) => ({ ...s, [parent.id]: v }))}
-                    onSubmitReply={submitReply}
-                    setInputRef={(el) => (inputRefs.current[parent.id] = el)}
-                    onToggleReply={() => toggleReplyFor(parent.id)}
-                    onSaveEdit={saveEdit}
-                  />
-                );
-              })
-            )}
-          </div>
+      <div className="px-4 md:px-2 py-2">
+        <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/12 p-4">
+          <Composer
+            value={composerValue}
+            onChange={setComposerValue}
+            onSubmit={handlePost}
+            disabled={!auth?.user}
+            currentUser={
+              auth?.user
+                ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
+                : null
+            }
+            loginCta={() => alert("Đăng nhập để bình luận")}
+          />
         </div>
+
+        <div className="mt-6 space-y-3">
+          {topLevel.length === 0 ? (
+            <div className="py-2 text-center text-white/70">Chưa có bình luận nào.</div>
+          ) : (
+            topLevel.map((parent) => {
+              const replies = enrichedComments.filter((r) => r.parentId === parent.id);
+              return (
+                <ReplyThread
+                  key={parent.id}
+                  parent={parent}
+                  replies={replies}
+                  currentUser={
+                    auth?.user
+                      ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl }
+                      : null
+                  }
+                  canInteract={!!auth?.user}
+                  liked={likedComments}
+                  edited={editedComments}
+                  onToggleLike={handleToggleLike}
+                  onDelete={handleDelete}
+                  replyOpen={!!replyInputs[parent.id]}
+                  replyValue={replyValues[parent.id] ?? ""}
+                  setReplyValue={(v) => setReplyValues((s) => ({ ...s, [parent.id]: v }))}
+                  onSubmitReply={submitReply}
+                  setInputRef={(el) => (inputRefs.current[parent.id] = el)}
+                  onToggleReply={() => toggleReplyFor(parent.id)}
+                  onSaveEdit={saveEdit}
+                />
+              );
+            })
+          )}
+        </div>
+      </div>
     </section>
   );
 };
