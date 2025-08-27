@@ -1,4 +1,4 @@
-import type { Axios, AxiosInstance } from "axios";
+import type { AxiosInstance } from "axios";
 import axios from "axios";
 const BASE_URL = "https://localhost:7242/api/";
 
@@ -10,7 +10,7 @@ class Http {
   constructor() {
     this.instance = axios.create({
       baseURL: BASE_URL,
-      timeout: 10000,
+      timeout: 1000 * 60 * 5,
       headers: {
         "Content-Type": "application/json",
       },
