@@ -2,6 +2,7 @@ import type { NoneDataApiResponse } from "../../entity/response";
 import http from "../../utils/http";
 import type {
   ForgotPasswordParams,
+  LoginGoogleApiResponse,
   LoginParams,
   LoginResponse,
   RegisterParams,
@@ -20,3 +21,6 @@ export const ForgotPassword = (params: ForgotPasswordParams) =>
 
 export const ResetPassword = (params: ResetPasswordParams) =>
   http.http.post<NoneDataApiResponse>(`Users/reset-password`, params);
+
+export const LoginBEGoogle = (accessToken: string) =>
+  http.http.post<LoginGoogleApiResponse>(`Users/google-login`, { accessToken });

@@ -1,4 +1,5 @@
 import type { Role } from "../../context/AuthContext/AuthProvider";
+import type { ApiResponse } from "../../entity/response";
 import type { User } from "../../entity/user";
 
 export interface RegisterUser {
@@ -58,3 +59,5 @@ export interface ResetPasswordParams {
   newPassword: string;
   confirmPassword: string;
 }
+
+export type LoginGoogleApiResponse = ApiResponse<Token>;
