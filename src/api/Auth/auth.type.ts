@@ -48,3 +48,13 @@ export interface RegisterParams {
   email: string;
   password: string;
 }
+
+export interface ForgotPasswordParams {
+  email: string;
+}
+
+export interface ResetPasswordParams {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
