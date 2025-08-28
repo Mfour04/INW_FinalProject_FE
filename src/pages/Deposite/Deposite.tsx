@@ -43,7 +43,7 @@ const depositeCoinOptions: Coin[] = [
 ];
 
 export const Deposite = () => {
-  const { auth } = useAuth();
+  const { auth, setAuth } = useAuth();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [selectedCoin, setSelectedCoin] = useState<Coin | undefined>(undefined);
   const [depositeModal, setDepositeModal] = useState<boolean>(false);
@@ -54,6 +54,14 @@ export const Deposite = () => {
     onMutate: (data: { coinAmount: number }) =>
       setSelectedAmount(data.coinAmount),
     onSuccess: (data) => {
+      if (auth) {
+        setAuth({
+          ...auth,
+          user: { ...auth.user, coin: auth.user.coin + selectedCoin?.amount! },
+          accessToken: auth.accessToken,
+          refreshToken: auth.refreshToken,
+        });
+      }
       window.open(data.data.checkoutUrl, "_self");
     },
     onSettled: () => setSelectedAmount(null),
