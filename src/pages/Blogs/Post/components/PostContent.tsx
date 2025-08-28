@@ -2,11 +2,11 @@ import React, { useMemo, useState } from "react";
 
 type Props = {
   content: string;
-  clampLines?: number;    
-  className?: string;      
-  showMoreText?: string;   
-  showLessText?: string;  
-  collapsible?: boolean;   
+  clampLines?: number;
+  className?: string;
+  showMoreText?: string;
+  showLessText?: string;
+  collapsible?: boolean;
 };
 
 export const PostContent: React.FC<Props> = ({
@@ -28,7 +28,7 @@ export const PostContent: React.FC<Props> = ({
   return (
     <div className={className}>
       <div
-        className="whitespace-pre-wrap break-words text-[17px] text-white/95"
+        className="whitespace-pre-wrap break-words text-[17px] text-black/95 dark:text-white/95"
         style={
           expanded
             ? {}
@@ -46,7 +46,7 @@ export const PostContent: React.FC<Props> = ({
       {!expanded && hasMore && (
         <button
           onClick={() => setExpanded(true)}
-          className="mt-2 text-sky-400 hover:text-sky-300 font-medium"
+          className="mt-2 font-medium text-sky-600 hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300"
         >
           {showMoreText}
         </button>
@@ -55,7 +55,7 @@ export const PostContent: React.FC<Props> = ({
       {expanded && collapsible && (
         <button
           onClick={() => setExpanded(false)}
-          className="mt-2 text-sky-400 hover:text-sky-300 font-medium"
+          className="mt-2 font-medium text-sky-600 hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300"
         >
           {showLessText}
         </button>

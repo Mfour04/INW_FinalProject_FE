@@ -95,14 +95,26 @@ export const WritingRoom = () => {
   const goChapters = (novelId: string) => navigate(`${novelId}`);
 
   return (
-    <div className="min-h-screen bg-[#0a0b0e] text-white px-4 md:px-6 py-4">
-      <div
-        className="fixed inset-0 -z-10 opacity-50 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.16), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.12), transparent 60%)",
-        }}
-      />
+    <div className="min-h-screen px-4 md:px-6 py-4 bg-white text-zinc-900 dark:bg-[#0a0b0e] dark:text-white">
+      {/* Background overlay (light/dark) */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        {/* Light overlay */}
+        <div
+          className="absolute inset-0 opacity-60 dark:opacity-0 transition-opacity"
+          style={{
+            background:
+              "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.10), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.10), transparent 60%)",
+          }}
+        />
+        {/* Dark overlay */}
+        <div
+          className="absolute inset-0 opacity-0 dark:opacity-50 transition-opacity"
+          style={{
+            background:
+              "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.16), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.12), transparent 60%)",
+          }}
+        />
+      </div>
 
       {/* Top bar */}
       <header className="max-w-screen-2xl mx-auto px-4 pt-8 pb-4">
@@ -111,12 +123,14 @@ export const WritingRoom = () => {
             <h1 className="text-[22px] md:text-[26px] font-bold tracking-tight">
               Phòng sáng tác
             </h1>
-            <p className="mt-1 text-white/70 text-[13.5px]">Hôm nay viết gì?</p>
+            <p className="mt-1 text-zinc-600 dark:text-white/70 text-[13.5px]">
+              Hôm nay viết gì?
+            </p>
           </div>
 
           <button
             onClick={goCreate}
-            className="inline-flex items-center gap-2 h-10 rounded-xl px-4 text-sm font-semibold text-white shadow-sm shadow-black/30
+            className="inline-flex items-center gap-2 h-10 rounded-xl px-4 text-sm font-semibold text-white shadow-sm shadow-black/10
                        bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]
                        hover:brightness-110 active:brightness-95 transition"
           >
@@ -156,12 +170,20 @@ export const WritingRoom = () => {
 
       <main className="max-w-screen-2xl mx-auto px-4 py-8">
         {!isLoading && filtered.length === 0 && (
-          <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] backdrop-blur-md p-8 text-center">
-            <BookOpenCheck className="h-10 w-10 mx-auto text-white/60" />
-            <p className="mt-3 text-[15px] text-white/80">
+          <div
+            className={[
+              "rounded-2xl p-8 text-center",
+              // light
+              "bg-white ring-1 ring-zinc-200 shadow-sm",
+              // dark
+              "dark:bg-white/[0.02] dark:ring-1 dark:ring-white/10 dark:shadow-none dark:backdrop-blur-md",
+            ].join(" ")}
+          >
+            <BookOpenCheck className="h-10 w-10 mx-auto text-zinc-400 dark:text-white/60" />
+            <p className="mt-3 text-[15px] text-zinc-700 dark:text-white/80">
               Không tìm thấy truyện phù hợp.
             </p>
-            <p className="text-[13px] text-white/50">
+            <p className="text-[13px] text-zinc-500 dark:text-white/50">
               Hãy thử từ khóa khác, thay đổi bộ lọc hoặc tạo truyện mới.
             </p>
           </div>
@@ -172,7 +194,13 @@ export const WritingRoom = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-[130px] rounded-2xl bg-white/[0.03] ring-1 ring-white/10 animate-pulse"
+                className={[
+                  "h-[130px] rounded-2xl animate-pulse",
+                  // light
+                  "bg-zinc-100 ring-1 ring-zinc-200",
+                  // dark
+                  "dark:bg-white/[0.03] dark:ring-1 dark:ring-white/10",
+                ].join(" ")}
               />
             ))}
           </div>

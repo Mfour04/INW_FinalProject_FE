@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Fullscreen } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
   images: string[];
@@ -19,8 +19,8 @@ export const PostImages: React.FC<Props> = ({ images, rowHeight = 180, maxWidth 
   if (!total) return null;
 
   const containerClass = "mx-auto w-full";
-  const ring = "ring-1 ring-white/10";
-  const thumbClass = "relative overflow-hidden rounded-2xl " + ring + " bg-black/10";
+  const ring = "ring-1 ring-zinc-200 dark:ring-white/10";
+  const thumbClass = "relative overflow-hidden rounded-2xl " + ring + " bg-zinc-100 dark:bg-black/10";
   const imgClass = "absolute inset-0 w-full h-full object-cover";
 
   const Tile = ({
@@ -64,8 +64,8 @@ export const PostImages: React.FC<Props> = ({ images, rowHeight = 180, maxWidth 
                   alt={`attachment-${i}`}
                   onClick={() => openAt(i)}
                   overlay={
-                    <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
-                      <span className="px-3 py-1 rounded-lg text-white/95 text-xl font-semibold bg-white/10 ring-1 ring-white/20">
+                    <div className="absolute inset-0 bg-black/45 dark:bg-black/55 flex items-center justify-center">
+                      <span className="px-3 py-1 rounded-lg text-white/95 text-xl font-semibold bg-black/30 ring-1 ring-white/20">
                         +{extra}
                       </span>
                     </div>
@@ -145,7 +145,7 @@ const Lightbox: React.FC<LightboxProps> = ({ images, open, index, onClose, onCha
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.985, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="relative max-w-[94vw] max-h-[88vh] bg-transparent"
+          className="relative max-w-[94vw] max-h-[88vh]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative flex items-center justify-center bg-black rounded-2xl overflow-hidden ring-1 ring-white/10">

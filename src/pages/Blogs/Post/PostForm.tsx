@@ -165,11 +165,11 @@ const PostForm = ({
       className={[
         "rounded-2xl overflow-hidden transition-shadow",
         // Light
-        "bg-white ring-1 ring-zinc-200 shadow-sm",
+        "bg-white",
         // Dark
-        "dark:bg-[rgb(14,16,22)]/70 dark:backdrop-blur dark:ring-white/15 dark:shadow-none",
+        "dark:bg-[rgb(14,16,22)]/70 dark:backdrop-blur",
         dragOver ? "ring-2 ring-orange-400/70 dark:ring-orange-400/70" : "",
-        "focus-within:ring-2 focus-within:ring-zinc-300 dark:focus-within:ring-white/25",
+        "focus-within:ring-zinc-300 dark:focus-within:ring-white/25",
       ].join(" ")}
       onDragEnter={(e) => {
         e.preventDefault();
@@ -339,7 +339,7 @@ const PostForm = ({
           disabled={disabledSubmit}
           className={[
             "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm",
-            "whitespace-nowrap",
+            "whitespace-nowrap border-none",
             "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
             disabledSubmit ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
           ].join(" ")}
