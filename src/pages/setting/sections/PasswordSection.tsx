@@ -1,5 +1,5 @@
 // PasswordSection.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { InputShell } from "../components/InputShell";
 import { Eye, EyeOff, Info, Check, X } from "lucide-react";
@@ -30,7 +30,7 @@ type Props = {
   onChangePassword: () => void;
 };
 
-export const PasswordSection: React.FC<Props> = ({
+export const PasswordSection = ({
   currentPassword,
   newPassword,
   confirmPassword,
@@ -50,12 +50,10 @@ export const PasswordSection: React.FC<Props> = ({
   isPasswordChangeEnabled,
   isLoading,
   onChangePassword,
-}) => {
-  // tooltip nhỏ cho mobile khi người dùng bấm icon Info
+}: Props) => {
   const [showRules, setShowRules] = useState(false);
   const [touchedNew, setTouchedNew] = useState(false);
 
-  // Tính checklist/strength
   const reqs = useMemo(() => {
     const hasLen = newPassword.length >= 8 && newPassword.length <= 32;
     const hasUpper = /[A-Z]/.test(newPassword);
@@ -73,8 +71,6 @@ export const PasswordSection: React.FC<Props> = ({
         : "bg-emerald-600";
     return { hasLen, hasUpper, hasNum, hasSpec, passed, pct, tone };
   }, [newPassword]);
-
-  const shouldShowTooltip = showRules || (!!touchedNew && isNewPasswordValid === false);
 
   const StrengthBar = () => (
     <div className="mt-2">
@@ -98,19 +94,23 @@ export const PasswordSection: React.FC<Props> = ({
 
   const RuleRow = ({ ok, text }: { ok: boolean; text: string }) => (
     <li className="flex items-center gap-2 text-[12px] text-zinc-700 dark:text-zinc-300">
-      {ok ? <Check className="h-4 w-4 text-emerald-500" /> : <X className="h-4 w-4 text-red-500" />}
+      {ok ? (
+        <Check className="h-4 w-4 text-emerald-500" />
+      ) : (
+        <X className="h-4 w-4 text-red-500" />
+      )}
       {text}
     </li>
   );
 
   return (
     <div className="space-y-6">
-      <SectionCard title="Đổi mật khẩu" desc="Tăng cường bảo mật cho tài khoản.">
-        {/* Grid 2 cột: trái là form, phải là panel yêu cầu (ẩn trên <lg) */}
+      <SectionCard
+        title="Đổi mật khẩu"
+        desc="Tăng cường bảo mật cho tài khoản."
+      >
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* LEFT: Form */}
           <div className="space-y-4">
-            {/* Mật khẩu hiện tại */}
             <InputShell label="Mật khẩu hiện tại">
               <div className="relative max-w-xl">
                 <input
@@ -129,19 +129,28 @@ export const PasswordSection: React.FC<Props> = ({
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white"
-                  aria-label={showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={
+                    showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                  }
                 >
-                  {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {currentPassword && (
-                <span className={`text-xs mt-1 ${isCurrentPasswordValid ? "text-emerald-600" : "text-red-500"}`}>
+                <span
+                  className={`text-xs mt-1 ${
+                    isCurrentPasswordValid ? "text-emerald-600" : "text-red-500"
+                  }`}
+                >
                   {isCurrentPasswordValid ? "*Đúng" : "*Không đúng"}
                 </span>
               )}
             </InputShell>
 
-            {/* Mật khẩu mới */}
             <InputShell label="Mật khẩu mới">
               <div className="relative max-w-xl">
                 <input
@@ -157,17 +166,19 @@ export const PasswordSection: React.FC<Props> = ({
                   placeholder="Nhập mật khẩu mới"
                   aria-label="Mật khẩu mới"
                 />
-                {/* Toggle show password */}
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                   aria-label={showNewPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
-                  {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showNewPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
 
-                {/* Info chỉ dùng cho màn hình nhỏ để mở tooltip */}
                 <button
                   type="button"
                   onClick={() => setShowRules((v) => !v)}
@@ -177,8 +188,8 @@ export const PasswordSection: React.FC<Props> = ({
                   <Info className="h-5 w-5" />
                 </button>
 
-                {/* Tooltip (mobile) */}
-                {(showRules || (!!touchedNew && isNewPasswordValid === false)) && (
+                {(showRules ||
+                  (!!touchedNew && isNewPasswordValid === false)) && (
                   <div className="absolute left-0 right-0 mt-2 z-20 lg:hidden">
                     <div className="rounded-xl p-3 sm:p-4 shadow-xl bg-white ring-1 ring-zinc-200 dark:bg-[#0f1115] dark:ring-white/10">
                       <p className="text-[13px] font-medium text-zinc-800 dark:text-white mb-2">
@@ -187,22 +198,31 @@ export const PasswordSection: React.FC<Props> = ({
                       <StrengthBar />
                       <ul className="mt-2 space-y-1.5">
                         <RuleRow ok={reqs.hasLen} text="8–32 ký tự" />
-                        <RuleRow ok={reqs.hasUpper} text="Ít nhất 1 chữ hoa (A–Z)" />
+                        <RuleRow
+                          ok={reqs.hasUpper}
+                          text="Ít nhất 1 chữ hoa (A–Z)"
+                        />
                         <RuleRow ok={reqs.hasNum} text="Ít nhất 1 số (0–9)" />
-                        <RuleRow ok={reqs.hasSpec} text="Ít nhất 1 ký tự đặc biệt (!@#$%^&*...)" />
+                        <RuleRow
+                          ok={reqs.hasSpec}
+                          text="Ít nhất 1 ký tự đặc biệt (!@#$%^&*...)"
+                        />
                       </ul>
                     </div>
                   </div>
                 )}
               </div>
               {newPassword && (
-                <span className={`text-xs mt-1 ${isNewPasswordValid ? "text-emerald-600" : "text-red-500"}`}>
+                <span
+                  className={`text-xs mt-1 ${
+                    isNewPasswordValid ? "text-emerald-600" : "text-red-500"
+                  }`}
+                >
                   {isNewPasswordValid ? "*Hợp lệ" : "*Không hợp lệ"}
                 </span>
               )}
             </InputShell>
 
-            {/* Nhập lại mật khẩu mới */}
             <InputShell label="Nhập lại mật khẩu mới">
               <div className="relative max-w-xl">
                 <input
@@ -221,22 +241,33 @@ export const PasswordSection: React.FC<Props> = ({
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white"
-                  aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={
+                    showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                  }
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {confirmPassword && (
                 <span
-                  className={`text-xs mt-1 ${isConfirmPasswordValid ? "text-emerald-600" : "text-red-500"}`}
+                  className={`text-xs mt-1 ${
+                    isConfirmPasswordValid ? "text-emerald-600" : "text-red-500"
+                  }`}
                 >
-                  {isConfirmPasswordValid ? "*Trùng khớp với mật khẩu mới" : "*Không trùng khớp với mật khẩu mới"}
+                  {isConfirmPasswordValid
+                    ? "*Trùng khớp với mật khẩu mới"
+                    : "*Không trùng khớp với mật khẩu mới"}
                 </span>
               )}
-              {passwordError && <p className="text-red-500 text-xs mt-1">* {passwordError}</p>}
+              {passwordError && (
+                <p className="text-red-500 text-xs mt-1">* {passwordError}</p>
+              )}
             </InputShell>
 
-            {/* Action */}
             <div className="flex justify-end">
               <button
                 onClick={onChangePassword}
@@ -253,7 +284,6 @@ export const PasswordSection: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* RIGHT: Panel yêu cầu (hiện trên ≥lg) */}
           <div className="hidden lg:block">
             <div
               className={[
@@ -267,7 +297,9 @@ export const PasswordSection: React.FC<Props> = ({
                   <Info className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">Yêu cầu mật khẩu</p>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                    Yêu cầu mật khẩu
+                  </p>
                   <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
                     Thử đặt mật khẩu mạnh để bảo vệ tài khoản của bạn.
                   </p>
@@ -282,7 +314,10 @@ export const PasswordSection: React.FC<Props> = ({
                 <RuleRow ok={reqs.hasLen} text="8–32 ký tự" />
                 <RuleRow ok={reqs.hasUpper} text="Ít nhất 1 chữ hoa (A–Z)" />
                 <RuleRow ok={reqs.hasNum} text="Ít nhất 1 số (0–9)" />
-                <RuleRow ok={reqs.hasSpec} text="Ít nhất 1 ký tự đặc biệt (!@#$%^&*...)" />
+                <RuleRow
+                  ok={reqs.hasSpec}
+                  text="Ít nhất 1 ký tự đặc biệt (!@#$%^&*...)"
+                />
               </ul>
             </div>
           </div>

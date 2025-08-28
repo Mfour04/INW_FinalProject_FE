@@ -1,20 +1,14 @@
-// SectionCard.tsx
-import React from "react";
-
 type SectionCardProps = {
   children: React.ReactNode;
   className?: string;
   title?: string;
   desc?: string;
-  /** hiển thị đường kẻ mảnh dưới header */
   headerDivider?: boolean;
-  /** khu vực hành động bên phải header (nút, switch, …) */
   actions?: React.ReactNode;
-  /** tắt padding phần thân nếu muốn tự quản */
   bodyPadding?: boolean;
 };
 
-export const SectionCard: React.FC<SectionCardProps> = ({
+export const SectionCard = ({
   children,
   className,
   title,
@@ -22,13 +16,11 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   headerDivider = false,
   actions,
   bodyPadding = true,
-}) => (
+}: SectionCardProps) => (
   <div
     className={[
       "rounded-2xl",
-      // light
       "bg-white ring-1 ring-zinc-200 shadow-sm",
-      // dark
       "dark:bg-[#121418]/90 dark:ring-white/10 backdrop-blur",
       className || "",
     ].join(" ")}

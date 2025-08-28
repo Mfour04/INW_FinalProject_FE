@@ -1,4 +1,3 @@
-// DisplaySection.tsx
 import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { InputShell } from "../components/InputShell";
@@ -17,15 +16,22 @@ type Props = {
   coverPreview: string;
   setDisplayName: (v: string) => void;
   setBio: (v: string) => void;
-  onSelectFile: (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => void;
-  avatarInputRef: React.RefObject<HTMLInputElement> | React.MutableRefObject<HTMLInputElement | null>;
-  coverInputRef: React.RefObject<HTMLInputElement> | React.MutableRefObject<HTMLInputElement | null>;
+  onSelectFile: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "avatar" | "cover"
+  ) => void;
+  avatarInputRef:
+    | React.RefObject<HTMLInputElement>
+    | React.MutableRefObject<HTMLInputElement | null>;
+  coverInputRef:
+    | React.RefObject<HTMLInputElement>
+    | React.MutableRefObject<HTMLInputElement | null>;
   onSave: () => void;
   hasChanges: boolean;
   isLoading: boolean;
 };
 
-export const DisplaySection: React.FC<Props> = ({
+export const DisplaySection = ({
   displayName,
   username,
   bio,
@@ -44,15 +50,18 @@ export const DisplaySection: React.FC<Props> = ({
   onSave,
   hasChanges,
   isLoading,
-}) => {
+}: Props) => {
   return (
     <div className="space-y-6">
-      {/* Cover + Avatar */}
       <SectionCard className="overflow-hidden">
         <div className="relative">
           <div className="h-36 sm:h-48 rounded-xl overflow-hidden ring-1 ring-zinc-200 dark:ring-white/10">
             {coverPreview || coverUrl ? (
-              <img src={coverPreview || coverUrl} alt="Cover" className="w-full h-full object-cover" />
+              <img
+                src={coverPreview || coverUrl}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="h-full w-full bg-[radial-gradient(120%_100%_at_0%_0%,rgba(255,103,64,0.12)_0%,rgba(255,103,64,0.06)_38%,rgba(0,0,0,0)_70%)] dark:bg-[radial-gradient(120%_100%_at_0%_0%,rgba(255,103,64,0.28)_0%,rgba(255,103,64,0.12)_38%,rgba(255,255,255,0)_70%)]" />
             )}
@@ -77,7 +86,8 @@ export const DisplaySection: React.FC<Props> = ({
             {displayName || "Chưa có tên hiển thị"}
           </h2>
           <p className="text-[13px] text-zinc-600 dark:text-zinc-400 mt-1">
-            @{username || currentUserName || "username"} <span className="mx-2">•</span> Tham gia{" "}
+            @{username || currentUserName || "username"}{" "}
+            <span className="mx-2">•</span> Tham gia{" "}
             {joinDate || "Tháng 3/2025"}
           </p>
           {bio && (
@@ -88,10 +98,16 @@ export const DisplaySection: React.FC<Props> = ({
         </div>
       </SectionCard>
 
-      {/* Form */}
-      <SectionCard title="Thông tin cơ bản" desc="Cập nhật hiển thị hồ sơ của bạn.">
+      <SectionCard
+        title="Thông tin cơ bản"
+        desc="Cập nhật hiển thị hồ sơ của bạn."
+      >
         <div className="space-y-5">
-          <InputShell label="Tên hiển thị" required hint="Tên hiển thị có thể trùng lặp với người dùng khác">
+          <InputShell
+            label="Tên hiển thị"
+            required
+            hint="Tên hiển thị có thể trùng lặp với người dùng khác"
+          >
             <input
               type="text"
               value={displayName}
@@ -105,10 +121,17 @@ export const DisplaySection: React.FC<Props> = ({
                 "transition",
               ].join(" ")}
             />
-            {errors.displayName && <div className="text-red-500 text-xs mt-1">{errors.displayName}</div>}
+            {errors.displayName && (
+              <div className="text-red-500 text-xs mt-1">
+                {errors.displayName}
+              </div>
+            )}
           </InputShell>
 
-          <InputShell label="Tên người dùng" hint="Tên người dùng không thể thay đổi">
+          <InputShell
+            label="Tên người dùng"
+            hint="Tên người dùng không thể thay đổi"
+          >
             <div className="relative">
               <input
                 type="text"
@@ -142,10 +165,14 @@ export const DisplaySection: React.FC<Props> = ({
               rows={3}
             />
             <div className="flex items-center justify-between mt-1">
-              {errors.bio && <div className="text-red-500 text-xs">{errors.bio}</div>}
+              {errors.bio && (
+                <div className="text-red-500 text-xs">{errors.bio}</div>
+              )}
               <span
                 className={`text-xs ${
-                  bio && bio.length > 450 ? "text-orange-500" : "text-zinc-500 dark:text-zinc-400"
+                  bio && bio.length > 450
+                    ? "text-orange-500"
+                    : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
                 {bio?.length || 0}/500
@@ -153,11 +180,16 @@ export const DisplaySection: React.FC<Props> = ({
             </div>
           </InputShell>
 
-          {/* Uploads */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             <div>
               <InputShell label="Ảnh đại diện">
-                <input type="file" ref={avatarInputRef} onChange={(e) => onSelectFile(e, "avatar")} accept="image/*" className="hidden" />
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  onChange={(e) => onSelectFile(e, "avatar")}
+                  accept="image/*"
+                  className="hidden"
+                />
                 <div
                   onClick={() => avatarInputRef.current?.click()}
                   className={[
@@ -168,7 +200,11 @@ export const DisplaySection: React.FC<Props> = ({
                   ].join(" ")}
                 >
                   {avatarPreview ? (
-                    <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="w-full h-full object-cover"
+                    />
                   ) : avatarUrl ? (
                     <img
                       src={getAvatarUrl(avatarUrl)}
@@ -187,7 +223,13 @@ export const DisplaySection: React.FC<Props> = ({
 
             <div className="md:col-span-3">
               <InputShell label="Ảnh bìa">
-                <input type="file" ref={coverInputRef} onChange={(e) => onSelectFile(e, "cover")} accept="image/*" className="hidden" />
+                <input
+                  type="file"
+                  ref={coverInputRef}
+                  onChange={(e) => onSelectFile(e, "cover")}
+                  accept="image/*"
+                  className="hidden"
+                />
                 <div
                   onClick={() => coverInputRef.current?.click()}
                   className={[
@@ -198,9 +240,17 @@ export const DisplaySection: React.FC<Props> = ({
                   ].join(" ")}
                 >
                   {coverPreview ? (
-                    <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                    <img
+                      src={coverPreview}
+                      alt="Cover preview"
+                      className="w-full h-full object-cover"
+                    />
                   ) : coverUrl ? (
-                    <img src={coverUrl} alt="Current cover" className="w-full h-full object-cover" />
+                    <img
+                      src={coverUrl}
+                      alt="Current cover"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="text-zinc-400 text-sm">+ Tải ảnh</div>
                   )}
@@ -209,11 +259,12 @@ export const DisplaySection: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Save button */}
           <div className="flex justify-end">
             <button
               onClick={onSave}
-              disabled={!hasChanges || isLoading || Object.keys(errors).length > 0}
+              disabled={
+                !hasChanges || isLoading || Object.keys(errors).length > 0
+              }
               className={[
                 "rounded-full px-5 py-2 text-sm font-semibold transition",
                 hasChanges && Object.keys(errors).length === 0

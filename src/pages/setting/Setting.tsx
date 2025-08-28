@@ -1,15 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import Button from "../../components/ButtonComponent";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useGetCurrentUserInfo, useUpdateUserProfile, useChangePassword } from "./useUserSettings";
+import {
+  useGetCurrentUserInfo,
+  useUpdateUserProfile,
+  useChangePassword,
+} from "./useUserSettings";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
 import { blogFormatVietnamTimeFromTicks } from "../../utils/date_format";
 import httpClient from "../../utils/http";
 import type { ApiResponse } from "../../api/User/user-settings.type";
-import TextFieldComponent from "../../components/TextFieldComponent";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAvatarUrl } from "../../utils/avatar";
 
 import { SectionCard } from "./components/SectionCard";
 import { SidebarButton } from "./components/SidebarButton";
@@ -17,7 +24,7 @@ import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DisplaySection } from "./sections/DisplaySection";
 import { PasswordSection } from "./sections/PasswordSection";
 
-import { ArrowLeft, UserRound, KeyRound, Shield, Palette } from "lucide-react";
+import { ArrowLeft, UserRound, KeyRound } from "lucide-react";
 
 type SettingTab = "display" | "interface" | "privacy" | "password";
 
@@ -27,7 +34,6 @@ export const Setting = () => {
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -48,27 +54,40 @@ export const Setting = () => {
   });
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null
+  );
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>({});
+  const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>(
+    {}
+  );
 
   const validateForm = () => {
     const newErrors: { displayName?: string; bio?: string } = {};
-    if (!displayName || displayName.trim().length === 0) newErrors.displayName = "Tên hiển thị không được để trống";
-    else if (displayName.trim().length < 2) newErrors.displayName = "Tên hiển thị phải có ít nhất 2 ký tự";
-    else if (displayName.trim().length > 100) newErrors.displayName = "Tên hiển thị không được quá 100 ký tự";
-    if (!bio || bio.trim().length === 0) newErrors.bio = "Tiểu sử không được để trống";
-    else if (bio.trim().length > 500) newErrors.bio = "Tiểu sử không được quá 500 ký tự";
+    if (!displayName || displayName.trim().length === 0)
+      newErrors.displayName = "Tên hiển thị không được để trống";
+    else if (displayName.trim().length < 2)
+      newErrors.displayName = "Tên hiển thị phải có ít nhất 2 ký tự";
+    else if (displayName.trim().length > 100)
+      newErrors.displayName = "Tên hiển thị không được quá 100 ký tự";
+    if (!bio || bio.trim().length === 0)
+      newErrors.bio = "Tiểu sử không được để trống";
+    else if (bio.trim().length > 500)
+      newErrors.bio = "Tiểu sử không được quá 500 ký tự";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const { auth, setAuth } = useAuth();
-  const { data: userInfo, isLoading: isLoadingUser, refetch: refetchUserInfo } = useGetCurrentUserInfo();
+  const {
+    data: userInfo,
+    isLoading: isLoadingUser,
+    refetch: refetchUserInfo,
+  } = useGetCurrentUserInfo();
   const updateProfileMutation = useUpdateUserProfile();
   const changePasswordMutation = useChangePassword();
   const queryClient = useQueryClient();
@@ -84,7 +103,8 @@ export const Setting = () => {
 
   useEffect(() => {
     let hasData = false;
-    if (userInfo?.data?.Data || userInfo?.data?.data || userInfo?.data) hasData = true;
+    if (userInfo?.data?.Data || userInfo?.data?.data || userInfo?.data)
+      hasData = true;
     if (!hasData) {
       try {
         const backupData = localStorage.getItem("userProfileBackup");
@@ -103,9 +123,15 @@ export const Setting = () => {
     }
   }, [userInfo?.data?.Data]);
 
-  const [isCurrentPasswordValid, setIsCurrentPasswordValid] = useState<boolean | null>(null);
-  const [isNewPasswordValid, setIsNewPasswordValid] = useState<boolean | null>(null);
-  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState<boolean | null>(null);
+  const [isCurrentPasswordValid, setIsCurrentPasswordValid] = useState<
+    boolean | null
+  >(null);
+  const [isNewPasswordValid, setIsNewPasswordValid] = useState<boolean | null>(
+    null
+  );
+  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState<
+    boolean | null
+  >(null);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -116,8 +142,14 @@ export const Setting = () => {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return hasMinLength && hasMaxLength && hasUpperCase && hasNumber && hasSpecialChar;
-    };
+    return (
+      hasMinLength &&
+      hasMaxLength &&
+      hasUpperCase &&
+      hasNumber &&
+      hasSpecialChar
+    );
+  };
 
   const checkCurrentPassword = useCallback(
     async (password: string) => {
@@ -127,26 +159,33 @@ export const Setting = () => {
       }
       try {
         const tempPassword = "Temp@123456789";
-        await httpClient.privateHttp.post<ApiResponse>("users/change-password", {
-          UserId: auth.user.userId,
-          OldPassword: password,
-          NewPassword: tempPassword,
-          ConfirmPassword: tempPassword,
-        });
-        try {
-          await httpClient.privateHttp.post<ApiResponse>("users/change-password", {
+        await httpClient.privateHttp.post<ApiResponse>(
+          "users/change-password",
+          {
             UserId: auth.user.userId,
-            OldPassword: tempPassword,
-            NewPassword: password,
-            ConfirmPassword: password,
-          });
+            OldPassword: password,
+            NewPassword: tempPassword,
+            ConfirmPassword: tempPassword,
+          }
+        );
+        try {
+          await httpClient.privateHttp.post<ApiResponse>(
+            "users/change-password",
+            {
+              UserId: auth.user.userId,
+              OldPassword: tempPassword,
+              NewPassword: password,
+              ConfirmPassword: password,
+            }
+          );
           setIsCurrentPasswordValid(true);
         } catch {
           setIsCurrentPasswordValid(true);
         }
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || "";
-        if (errorMessage.includes("Mật khẩu cũ không đúng")) setIsCurrentPasswordValid(false);
+        if (errorMessage.includes("Mật khẩu cũ không đúng"))
+          setIsCurrentPasswordValid(false);
       }
     },
     [auth?.user?.userId]
@@ -160,13 +199,16 @@ export const Setting = () => {
     setIsNewPasswordValid(validatePassword(password));
   }, []);
 
-  const validateConfirmPassword = useCallback((confirmPass: string, newPass: string) => {
-    if (!confirmPass || !newPass) {
-      setIsConfirmPasswordValid(null);
-      return;
-    }
-    setIsConfirmPasswordValid(confirmPass === newPass);
-  }, []);
+  const validateConfirmPassword = useCallback(
+    (confirmPass: string, newPass: string) => {
+      if (!confirmPass || !newPass) {
+        setIsConfirmPasswordValid(null);
+        return;
+      }
+      setIsConfirmPasswordValid(confirmPass === newPass);
+    },
+    []
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -185,7 +227,10 @@ export const Setting = () => {
   }, [confirmPassword, newPassword, validateConfirmPassword]);
 
   const isPasswordChangeEnabled = useMemo(
-    () => isCurrentPasswordValid === true && isNewPasswordValid === true && isConfirmPasswordValid === true,
+    () =>
+      isCurrentPasswordValid === true &&
+      isNewPasswordValid === true &&
+      isConfirmPasswordValid === true,
     [isCurrentPasswordValid, isNewPasswordValid, isConfirmPasswordValid]
   );
 
@@ -195,7 +240,8 @@ export const Setting = () => {
     const originalDisplayName = originalData.displayName || "";
     const originalBio = originalData.bio || "";
 
-    const hasTextChanged = currentDisplayName !== originalDisplayName || currentBio !== originalBio;
+    const hasTextChanged =
+      currentDisplayName !== originalDisplayName || currentBio !== originalBio;
     const hasFileChanged = !!selectedAvatar || !!selectedCover;
     const hasAnyChanges = hasTextChanged || hasFileChanged;
 
@@ -208,7 +254,8 @@ export const Setting = () => {
   }, [displayName, bio, selectedAvatar, selectedCover]);
 
   useEffect(() => {
-    if (originalData.displayName !== "" || originalData.bio !== "") checkForChanges();
+    if (originalData.displayName !== "" || originalData.bio !== "")
+      checkForChanges();
   }, [originalData.displayName, originalData.bio]);
 
   useEffect(() => {
@@ -247,8 +294,6 @@ export const Setting = () => {
     }
   }, [userInfo?.data?.Data]);
 
-  const { auth: authState } = useAuth();
-
   useEffect(() => {
     let profileData = null;
     if (userInfo?.data?.Data) profileData = userInfo.data.Data;
@@ -275,7 +320,8 @@ export const Setting = () => {
           coverUrl: profileData.CoverUrl || auth.user.coverUrl,
         };
         const updatedAuth = { ...auth, user: updatedUser };
-        if (JSON.stringify(auth.user) !== JSON.stringify(updatedUser)) setAuth(updatedAuth);
+        if (JSON.stringify(auth.user) !== JSON.stringify(updatedUser))
+          setAuth(updatedAuth);
       }
 
       try {
@@ -300,7 +346,9 @@ export const Setting = () => {
       const allowedExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
       if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-        toast?.onOpen("Chỉ chấp nhận file ảnh với định dạng: JPG, PNG, GIF, WEBP");
+        toast?.onOpen(
+          "Chỉ chấp nhận file ảnh với định dạng: JPG, PNG, GIF, WEBP"
+        );
         return;
       }
       const reader = new FileReader();
@@ -321,18 +369,15 @@ export const Setting = () => {
     }
   };
 
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "avatar" | "cover"
+  ) => {
     const file = event.target.files?.[0];
     if (file) handleFileSelect(file, type);
     event.target.value = "";
   };
 
-  const handleNavigation = (path: string) => {
-    if (hasChanges) {
-      setShowConfirmDialog(true);
-      setPendingNavigation(path);
-    } else navigate(path);
-  };
   const confirmNavigation = () => {
     setShowConfirmDialog(false);
     if (pendingNavigation) navigate(pendingNavigation);
@@ -377,7 +422,8 @@ export const Setting = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu";
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu";
       toast?.onOpen(errorMessage);
     } finally {
       setIsLoading(false);
@@ -404,7 +450,8 @@ export const Setting = () => {
       const formData = new FormData();
       formData.append("DisplayName", finalDisplayName);
       formData.append("Bio", finalBio);
-      if (auth?.user?.userId) formData.append("UserId", auth.user.userId.toString());
+      if (auth?.user?.userId)
+        formData.append("UserId", auth.user.userId.toString());
       else {
         toast?.onOpen("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn");
         setIsLoading(false);
@@ -493,22 +540,35 @@ export const Setting = () => {
           localStorage.setItem("userProfileBackup", JSON.stringify(backupData));
         } catch {}
       } else {
-        const errorMessage = result.data?.message || result.data?.Message || "Cập nhật thông tin thất bại";
+        const errorMessage =
+          result.data?.message ||
+          result.data?.Message ||
+          "Cập nhật thông tin thất bại";
         toast?.onOpen(errorMessage);
       }
     } catch (mutationError: any) {
       let errorMessage = "Có lỗi xảy ra khi cập nhật thông tin";
       if (mutationError.response?.data?.errors) {
         const errs = mutationError.response.data.errors;
-        if (errs.DisplayName?.[0]) errorMessage = `Tên hiển thị: ${errs.DisplayName[0]}`;
+        if (errs.DisplayName?.[0])
+          errorMessage = `Tên hiển thị: ${errs.DisplayName[0]}`;
         else if (errs.Bio?.[0]) errorMessage = `Tiểu sử: ${errs.Bio[0]}`;
-        else if (errs.UserId?.[0]) errorMessage = `Lỗi xác thực: ${errs.UserId[0]}`;
-        else if (errs.AvatarUrl?.[0]) errorMessage = `Ảnh đại diện: ${errs.AvatarUrl[0]}`;
-        else if (errs.CoverUrl?.[0]) errorMessage = `Ảnh bìa: ${errs.CoverUrl[0]}`;
-        else errorMessage = `Lỗi validation: ${Object.values(errs).flat().join(", ")}`;
-      } else if (mutationError.response?.data?.message) errorMessage = mutationError.response.data.message;
-      else if (mutationError.response?.data?.Message) errorMessage = mutationError.response.data.Message;
-      else if (mutationError.response?.data?.title) errorMessage = mutationError.response.data.title;
+        else if (errs.UserId?.[0])
+          errorMessage = `Lỗi xác thực: ${errs.UserId[0]}`;
+        else if (errs.AvatarUrl?.[0])
+          errorMessage = `Ảnh đại diện: ${errs.AvatarUrl[0]}`;
+        else if (errs.CoverUrl?.[0])
+          errorMessage = `Ảnh bìa: ${errs.CoverUrl[0]}`;
+        else
+          errorMessage = `Lỗi validation: ${Object.values(errs)
+            .flat()
+            .join(", ")}`;
+      } else if (mutationError.response?.data?.message)
+        errorMessage = mutationError.response.data.message;
+      else if (mutationError.response?.data?.Message)
+        errorMessage = mutationError.response.data.Message;
+      else if (mutationError.response?.data?.title)
+        errorMessage = mutationError.response.data.title;
       toast?.onOpen(errorMessage);
     } finally {
       setIsLoading(false);
@@ -520,7 +580,9 @@ export const Setting = () => {
       <div className="min-h-screen bg-white text-zinc-900 dark:bg-[#0a0b0e] dark:text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ff6740] mx-auto mb-4" />
-          <p className="text-zinc-600 dark:text-zinc-400 text-sm">Đang tải...</p>
+          <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+            Đang tải...
+          </p>
         </div>
       </div>
     );
@@ -531,7 +593,10 @@ export const Setting = () => {
   const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "";
 
   const computedUserName =
-    backendData?.UserName || backendData?.userName || currentUser?.userName || "";
+    backendData?.UserName ||
+    backendData?.userName ||
+    currentUser?.userName ||
+    "";
   const computedAvatarUrl =
     originalData.avatarUrl ||
     backendData?.AvatarUrl ||
@@ -539,7 +604,10 @@ export const Setting = () => {
     currentUser?.avatarUrl ||
     "";
   const computedCoverUrl =
-    originalData.coverUrl || backendData?.CoverUrl || backendData?.coverUrl || "";
+    originalData.coverUrl ||
+    backendData?.CoverUrl ||
+    backendData?.coverUrl ||
+    "";
 
   // ========= RENDER với nền light/dark chuẩn =========
   return (
@@ -549,10 +617,13 @@ export const Setting = () => {
         {/* Light mode backdrop */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#fafafa_0%,#ffffff_40%)] dark:hidden" />
         {/* Dark mode backdrop */}
-        <div className="hidden dark:block absolute inset-0" style={{
-          background:
-            "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.14), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.10), transparent 60%)"
-        }} />
+        <div
+          className="hidden dark:block absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.14), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.10), transparent 60%)",
+          }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-10">
@@ -591,21 +662,34 @@ export const Setting = () => {
             <SectionCard>
               {/* Group: Chung */}
               <div className="space-y-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] font-semibold
-                              text-zinc-500 dark:text-zinc-400 mb-1">Chung</p>
+                <p
+                  className="text-[11px] uppercase tracking-[0.12em] font-semibold
+                              text-zinc-500 dark:text-zinc-400 mb-1"
+                >
+                  Chung
+                </p>
 
-                <SidebarButton active={activeTab === "display"} onClick={() => setActiveTab("display")}>
+                <SidebarButton
+                  active={activeTab === "display"}
+                  onClick={() => setActiveTab("display")}
+                >
                   <span className="flex items-center gap-2.5">
-                    <span className={[
-                      "h-6 w-6 grid place-items-center rounded-md ring-1 transition",
-                      activeTab === "display"
-                        ? "bg-[#ff6740]/15 ring-[#ff6740]/30"
-                        : "bg-zinc-100 ring-zinc-200 dark:bg-white/5 dark:ring-white/10",
-                    ].join(" ")}>
-                      <UserRound className={[
-                        "h-3.5 w-3.5",
-                        activeTab === "display" ? "text-white" : "text-zinc-600 dark:text-zinc-300",
-                      ].join(" ")} />
+                    <span
+                      className={[
+                        "h-6 w-6 grid place-items-center rounded-md ring-1 transition",
+                        activeTab === "display"
+                          ? "bg-[#ff6740]/15 ring-[#ff6740]/30"
+                          : "bg-zinc-100 ring-zinc-200 dark:bg-white/5 dark:ring-white/10",
+                      ].join(" ")}
+                    >
+                      <UserRound
+                        className={[
+                          "h-3.5 w-3.5",
+                          activeTab === "display"
+                            ? "text-white"
+                            : "text-zinc-600 dark:text-zinc-300",
+                        ].join(" ")}
+                      />
                     </span>
                     <span>Thông tin hiển thị</span>
                   </span>
@@ -614,21 +698,34 @@ export const Setting = () => {
 
               {/* Group: Tài khoản */}
               <div className="mt-4 space-y-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] font-semibold
-                              text-zinc-500 dark:text-zinc-400 mb-1">Tài khoản</p>
+                <p
+                  className="text-[11px] uppercase tracking-[0.12em] font-semibold
+                              text-zinc-500 dark:text-zinc-400 mb-1"
+                >
+                  Tài khoản
+                </p>
 
-                <SidebarButton active={activeTab === "password"} onClick={() => setActiveTab("password")}>
+                <SidebarButton
+                  active={activeTab === "password"}
+                  onClick={() => setActiveTab("password")}
+                >
                   <span className="flex items-center gap-2.5">
-                    <span className={[
-                      "h-6 w-6 grid place-items-center rounded-md ring-1 transition",
-                      activeTab === "password"
-                        ? "bg-[#ff6740]/15 ring-[#ff6740]/30"
-                        : "bg-zinc-100 ring-zinc-200 dark:bg-white/5 dark:ring-white/10",
-                    ].join(" ")}>
-                      <KeyRound className={[
-                        "h-3.5 w-3.5",
-                        activeTab === "password" ? "text-white" : "text-zinc-600 dark:text-zinc-300",
-                      ].join(" ")} />
+                    <span
+                      className={[
+                        "h-6 w-6 grid place-items-center rounded-md ring-1 transition",
+                        activeTab === "password"
+                          ? "bg-[#ff6740]/15 ring-[#ff6740]/30"
+                          : "bg-zinc-100 ring-zinc-200 dark:bg-white/5 dark:ring-white/10",
+                      ].join(" ")}
+                    >
+                      <KeyRound
+                        className={[
+                          "h-3.5 w-3.5",
+                          activeTab === "password"
+                            ? "text-white"
+                            : "text-zinc-600 dark:text-zinc-300",
+                        ].join(" ")}
+                      />
                     </span>
                     <span>Mật khẩu</span>
                   </span>
@@ -656,7 +753,6 @@ export const Setting = () => {
               </div>
             </SectionCard>
           </aside>
-
 
           {/* Main */}
           <main className="space-y-6">
@@ -710,7 +806,11 @@ export const Setting = () => {
         </div>
       </div>
 
-      <ConfirmDialog open={showConfirmDialog} onCancel={cancelNavigation} onConfirm={confirmNavigation} />
+      <ConfirmDialog
+        open={showConfirmDialog}
+        onCancel={cancelNavigation}
+        onConfirm={confirmNavigation}
+      />
     </div>
   );
 };
