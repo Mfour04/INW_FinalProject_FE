@@ -48,16 +48,12 @@ export default function CreateChapters() {
   const sortedList = useMemo(
     () =>
       [...activeList].sort((a, b) =>
-        sortDesc
-          ? b.chapterNumber - a.chapterNumber
-          : a.chapterNumber - b.chapterNumber
+        sortDesc ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber
       ),
     [activeList, sortDesc]
   );
 
-  const lastChapter = chapters.length
-    ? chapters[chapters.length - 1]
-    : undefined;
+  const lastChapter = chapters.length ? chapters[chapters.length - 1] : undefined;
 
   const perPage = 20;
   const totalPages = Math.max(Math.ceil(sortedList.length / perPage), 1);
@@ -65,14 +61,19 @@ export default function CreateChapters() {
   const pageItems = sortedList.slice(0, perPage);
 
   return (
-    <div className="max-w-6xl mx-auto md:px-4 py-4 text-white space-y-5">
+    <div className="max-w-6xl mx-auto md:px-4 py-4 space-y-5 text-zinc-900 dark:text-white">
+      {/* Header */}
       <div className="flex top-0 z-20">
-        <div className="relative py-3">
+        <div className="relative py-3 w-full">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 md:gap-6">
               <button
                 onClick={() => navigate(-1)}
-                className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                className={[
+                  "h-9 w-9 grid place-items-center rounded-lg transition",
+                  "bg-zinc-100 ring-1 ring-zinc-200 hover:bg-zinc-200",
+                  "dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/12",
+                ].join(" ")}
                 title="Quay lại"
                 aria-label="Quay lại"
               >
@@ -89,6 +90,7 @@ export default function CreateChapters() {
         </div>
       </div>
 
+      {/* Novel info */}
       <NovelInfoCard
         title={novel?.title}
         description={novel?.description}
@@ -98,58 +100,77 @@ export default function CreateChapters() {
         stats={{ rating: 0, bookmark: 0, comment: 0 }}
       />
 
-      <section className="rounded-2xl ring-1 ring-white/12 bg-[#121212]/80 backdrop-blur-md shadow-[0_16px_52px_-20px_rgba(0,0,0,0.6)]">
+      {/* List */}
+      <section
+        className={[
+          "rounded-2xl ring-1 backdrop-blur-md shadow-[0_16px_52px_-20px_rgba(0,0,0,0.06)]",
+          "bg-white ring-zinc-200",
+          "dark:bg-[#121212]/80 dark:ring-white/12 dark:shadow-[0_16px_52px_-20px_rgba(0,0,0,0.6)]",
+        ].join(" ")}
+      >
+        {/* Tabs + Actions */}
         <div className="px-3 md:px-4 pt-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="inline-flex rounded-xl overflow-hidden ring-1 ring-white/10">
+            {/* Tabs */}
+            <div
+              className={[
+                "inline-flex rounded-xl overflow-hidden ring-1",
+                "ring-zinc-200",
+                "dark:ring-white/10",
+              ].join(" ")}
+            >
               <button
                 onClick={() => setTab("Chapter")}
                 className={[
                   "px-4 py-2 text-[13.5px] md:text-[14px] transition",
+                  "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
+                  "dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/10",
                   tab === "Chapter"
-                    ? "bg-white/15 text-white"
-                    : "bg-white/[0.06] text-white/80 hover:bg-white/10",
+                    ? "font-semibold bg-zinc-200 dark:bg-white/15 dark:text-white"
+                    : "",
                 ].join(" ")}
               >
-                Đã đăng{" "}
-                <span className="ml-1 text-white/70">({published.length})</span>
+                Đã đăng <span className="ml-1 text-zinc-600 dark:text-white/70">({published.length})</span>
               </button>
               <button
                 onClick={() => setTab("Draft")}
                 className={[
-                  "px-4 py-2 text-[13.5px] md:text-[14px] border-l border-white/10 transition",
+                  "px-4 py-2 text-[13.5px] md:text-[14px] border-l transition",
+                  "border-zinc-200 bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
+                  "dark:border-white/10 dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/10",
                   tab === "Draft"
-                    ? "bg-white/15 text-white"
-                    : "bg-white/[0.06] text-white/80 hover:bg-white/10",
+                    ? "font-semibold bg-zinc-200 dark:bg-white/15 dark:text-white"
+                    : "",
                 ].join(" ")}
               >
-                Bản nháp{" "}
-                <span className="ml-1 text-white/70">({drafts.length})</span>
+                Bản nháp <span className="ml-1 text-zinc-600 dark:text-white/70">({drafts.length})</span>
               </button>
             </div>
 
+            {/* Actions */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSortDesc((v) => !v)}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[12.5px] hover:bg-white/10 transition"
+                className={[
+                  "group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] transition",
+                  "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200",
+                  "dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
+                ].join(" ")}
                 title="Đổi thứ tự chương"
               >
                 <SwapVert
-                  className={`transition-transform ${
-                    sortDesc ? "rotate-180" : "rotate-0"
-                  }`}
+                  className={`transition-transform ${sortDesc ? "rotate-180" : "rotate-0"}`}
                   sx={{ width: 18, height: 18 }}
                 />
-                <span className="hidden md:inline">
-                  {sortDesc ? "Mới → Cũ" : "Cũ → Mới"}
-                </span>
+                <span className="hidden md:inline">{sortDesc ? "Mới → Cũ" : "Cũ → Mới"}</span>
               </button>
 
               <button
-                onClick={() =>
-                  navigate(`/novels/writing-room/${novelId}/upsert-chapter`)
-                }
-                className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] ring-1 ring-white/10 bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90 transition"
+                onClick={() => navigate(`/novels/writing-room/${novelId}/upsert-chapter`)}
+                className={[
+                  "inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] transition",
+                  "text-white bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90",
+                ].join(" ")}
               >
                 <BookMark sx={{ width: 18, height: 18 }} />
                 Chương mới
@@ -158,20 +179,25 @@ export default function CreateChapters() {
           </div>
         </div>
 
-        <div className="mt-3 border-t border-white/10" />
+        <div className="mt-3 border-t border-zinc-200 dark:border-white/10" />
 
+        {/* Last updated */}
         <div className="px-3 md:px-4 mt-3">
-          <div className="rounded-xl border border-white/12 bg-[#151618]/85 backdrop-blur px-4 py-3 flex flex-wrap items-center gap-3 shadow-[0_14px_40px_-22px_rgba(0,0,0,0.7)]">
-            <span className="text-[12px] font-semibold tracking-wide text-white/85 uppercase">
+          <div
+            className={[
+              "rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 backdrop-blur",
+              "border border-zinc-200 bg-zinc-50",
+              "dark:border-white/12 dark:bg-[#151618]/85 dark:shadow-[0_14px_40px_-22px_rgba(0,0,0,0.7)]",
+            ].join(" ")}
+          >
+            <span className="text-[12px] font-semibold tracking-wide text-zinc-700 dark:text-white/85 uppercase">
               Cập nhật gần nhất
             </span>
-            <span className="text-[13px] text-[#ff8a5f]">
-              {lastChapter
-                ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
-                : "—"}
+            <span className="text-[13px] text-[#ff7a45] dark:text-[#ff8a5f]">
+              {lastChapter ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}` : "—"}
             </span>
-            <span className="text-white/40">•</span>
-            <span className="text-[12px] text-gray-400">
+            <span className="text-zinc-400 dark:text-white/40">•</span>
+            <span className="text-[12px] text-zinc-500 dark:text-gray-400">
               {lastChapter?.updateAt
                 ? formatTicksToRelativeTime(lastChapter.updateAt)
                 : lastChapter?.createAt
@@ -181,21 +207,17 @@ export default function CreateChapters() {
           </div>
         </div>
 
+        {/* List items */}
         <div className="p-3 md:p-4">
           {isLoading || isFetching ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-14 rounded-xl bg-white/5 animate-pulse"
-                />
+                <div key={i} className="h-14 rounded-xl bg-zinc-100 animate-pulse dark:bg-white/5" />
               ))}
             </div>
           ) : pageItems.length === 0 ? (
-            <div className="text-center py-10 text-white/60">
-              {tab === "Draft"
-                ? "Chưa có bản nháp nào."
-                : "Chưa có chương đã đăng."}
+            <div className="text-center py-10 text-zinc-600 dark:text-white/60">
+              {tab === "Draft" ? "Chưa có bản nháp nào." : "Chưa có chương đã đăng."}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -203,18 +225,14 @@ export default function CreateChapters() {
                 const isDraft = chapter.isDraft;
                 const onCardClick = () => {
                   if (isDraft) {
-                    navigate(
-                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
-                    );
+                    navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
                   } else {
                     navigate(`/novels/${novelId}/${chapter.chapterId}`);
                   }
                 };
                 const onEditClick = (e: React.MouseEvent) => {
                   e.stopPropagation();
-                  navigate(
-                    `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
-                  );
+                  navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
                 };
                 const numberShown = isDraft ? idx + 1 : chapter.chapterNumber;
 
@@ -224,65 +242,76 @@ export default function CreateChapters() {
                     onClick={onCardClick}
                     className={[
                       "group relative w-full overflow-hidden text-left rounded-2xl border px-4 py-3 transition backdrop-blur",
-                      "bg-[#141416]/92 hover:bg-[#17181b]/92",
-                      "border-white/12",
-                      "shadow-[0_18px_52px_-24px_rgba(0,0,0,0.75)] hover:shadow-[0_26px_72px_-28px_rgba(0,0,0,0.78)]",
+                      "bg-white hover:bg-zinc-50 border-zinc-200 shadow-sm",
+                      "dark:bg-[#141416]/92 dark:hover:bg-[#17181b]/92 dark:border-white/12",
+                      "dark:shadow-[0_18px_52px_-24px_rgba(0,0,0,0.75)] dark:hover:shadow-[0_26px_72px_-28px_rgba(0,0,0,0.78)]",
                     ].join(" ")}
                     title={isDraft ? "Sửa chương nháp" : "Đọc chương"}
                   >
                     <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
-                      <div className="absolute -inset-[1px] rounded-2xl bg-[conic-gradient(from_150deg_at_50%_0%,rgba(255,255,255,0.06),transparent_30%)]" />
+                      <div className="absolute -inset-[1px] rounded-2xl bg-[conic-gradient(from_150deg_at_50%_0%,rgba(0,0,0,0.03),transparent_30%)] dark:bg-[conic-gradient(from_150deg_at_50%_0%,rgba(255,255,255,0.06),transparent_30%)]" />
                     </div>
 
                     <div className="relative flex items-center gap-3">
                       <div
                         className={[
                           "shrink-0 grid place-items-center h-9 w-9 rounded-xl border text-[12px] font-semibold",
-                          isDraft
-                            ? "bg-white/[0.06] border-white/10 text-white/85"
-                            : "bg-white/[0.08] border-white/14 text-white",
+                          "bg-zinc-100 border-zinc-200 text-zinc-900",
+                          "dark:bg-white/[0.06] dark:border-white/10 dark:text-white/85",
                         ].join(" ")}
                       >
                         {numberShown}
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14px] font-medium text-white">
-                          {chapter.title}
-                        </p>
-                        <p className="mt-1 text-[12px] text-gray-400">
+                        <p className="truncate text-[14px] font-medium">{chapter.title}</p>
+                        <p className="mt-1 text-[12px] text-zinc-500 dark:text-gray-400">
                           {chapter.updateAt
                             ? formatTicksToRelativeTime(chapter.updateAt)
                             : formatTicksToRelativeTime(chapter.createAt)}
                         </p>
                       </div>
 
+                     {!isDraft && (
                       <div className="ml-2 flex items-center gap-2">
-                        {typeof chapter.price === "number" &&
-                          chapter.price > 0 && (
-                            <span className="rounded-full px-2 py-1 text-[11px] leading-none border border-amber-300/35 bg-amber-300/12 text-amber-200">
-                              {chapter.price.toLocaleString("vi-VN")} xu
-                            </span>
-                          )}
-                        {!isDraft && (
-                          <button
-                            onClick={onEditClick}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border bg-white/[0.06] border-white/14 text-white/90 hover:bg-white/[0.14] transition"
-                            title="Chỉnh sửa chương"
-                            aria-label="Chỉnh sửa chương"
-                          >
-                            <ModeEdit sx={{ width: 16, height: 16 }} />
-                          </button>
+                        {typeof chapter.price === "number" && chapter.price > 0 && (
+                          <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
+                            {chapter.price.toLocaleString("vi-VN")} xu
+                          </span>
                         )}
-                      </div>
+                        <button
+                          onClick={onEditClick}
+                          className={[
+                            "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
+                            "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
+                            "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
+                          ].join(" ")}
+                          title="Chỉnh sửa chương"
+                          aria-label="Chỉnh sửa chương"
+                        >
+                          <ModeEdit sx={{ width: 16, height: 16 }} />
+                        </button>
+                        </div>
+                      )}
 
                       {isDraft && (
-                        <span
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[11px] font-semibold text-white bg-gradient-to-r from-[#6a6f78] to-[#545b66] ring-1 ring-white/10 shadow-md"
-                          title="Nháp"
-                        >
-                          Nháp
-                        </span>
+                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          {/* {typeof chapter.price === "number" && chapter.price > 0 && (
+                            <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
+                              {chapter.price.toLocaleString("vi-VN")} xu
+                            </span>
+                          )} */}
+                          <span
+                            className={[
+                              "rounded-md px-2 py-1 text-[11px] font-semibold",
+                              "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300 shadow-sm",
+                              "dark:text-white dark:bg-gradient-to-r dark:from-[#6a6f78] dark:to-[#545b66] dark:ring-1 dark:ring-white/10 dark:shadow-md",
+                            ].join(" ")}
+                            title="Nháp"
+                          >
+                            Nháp
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>

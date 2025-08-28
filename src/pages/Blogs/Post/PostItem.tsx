@@ -2,15 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  MoreVertical,
-  Edit3,
-  Trash2,
-  Flag,
-  ShieldBan,
-  Heart,
-  MessageCircle,
-} from "lucide-react";
+import { MoreVertical, Edit3, Trash2, Flag, ShieldBan, Heart, MessageCircle } from "lucide-react";
 
 import { BlogCommentUser } from "../Comment/BlogCommentUser";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
@@ -111,7 +103,11 @@ const PostItem = ({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
-      className="rounded-2xl border border-white/[0.07] bg-[#141518] shadow-[0_10px_28px_rgba(0,0,0,0.45)]"
+      className={[
+        "rounded-2xl border shadow-sm",
+        "bg-white border-zinc-200 text-zinc-900",            // light
+        "dark:bg-[#141518] dark:border-white/[0.07] dark:text-white dark:shadow-[0_10px_28px_rgba(0,0,0,0.45)]", // dark
+      ].join(" ")}
     >
       {/* HEADER */}
       <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
@@ -119,18 +115,18 @@ const PostItem = ({
           <img
             src={post.user.avatar}
             alt={post.user.name}
-            className="w-11 h-11 rounded-full object-cover ring-1 ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+            className="w-11 h-11 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate(`/profile/${post.user.username}`)}
           />
-          <div className="leading-tight cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(`/profile/${post.user.username}`)}>
-            <div className="flex flex-col">
-              <span className="text-[16px] font-semibold text-white">
-                {post.user.name}
-              </span>
-              <span className="text-[13px] text-white/55">@{post.user.username}</span>
+          <div
+            className="leading-tight cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center gap-2 flex-wrap" onClick={() => navigate(`/profile/${post.user.username}`)}>
+              <span className="text-[16px] font-semibold">{post.user.name}</span>
+              <span className="text-[13px] text-zinc-500 dark:text-white/55">@{post.user.username}</span>
             </div>
 
-            <div className="mt-0.5 text-[12px] text-white/45">
+            <div className="mt-0.5 text-[12px] text-zinc-500 dark:text-white/45">
               {updatedTimestamp || post.timestamp}
             </div>
           </div>
@@ -141,9 +137,10 @@ const PostItem = ({
             onClick={() =>
               setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
             }
-            className="h-8 w-8 grid place-items-center rounded-lg bg-white/[0.03] hover:bg-white/[0.07] ring-1 ring-white/10 transition"
+            className="h-8 w-8 grid place-items-center rounded-lg ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700
+                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
           >
-            <MoreVertical size={18} className="text-white/85" />
+            <MoreVertical size={18} />
           </button>
 
           <AnimatePresence>
@@ -154,7 +151,8 @@ const PostItem = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden bg-[#111214] ring-1 ring-white/10 shadow-[0_12px_36px_-12px_rgba(0,0,0,0.6)] z-10"
+                className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden bg-white text-zinc-900 ring-1 ring-zinc-200 shadow-xl z-10
+                           dark:bg-[#111214] dark:text-white dark:ring-white/10 dark:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.6)]"
               >
                 {isOwnPost ? (
                   <>
@@ -164,7 +162,7 @@ const PostItem = ({
                         setEditContent(content);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
                     >
                       <Edit3 size={16} />
                       Cập nhật
@@ -174,7 +172,7 @@ const PostItem = ({
                         onRequestDelete("post", post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
                     >
                       <Trash2 size={16} />
                       Xóa bài viết
@@ -187,7 +185,7 @@ const PostItem = ({
                         alert("Chặn người dùng");
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
                     >
                       <ShieldBan size={16} />
                       Chặn người dùng
@@ -197,7 +195,7 @@ const PostItem = ({
                         setReportPostId(post.id);
                         setMenuOpenPostId(null);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-white/[0.06] flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
                     >
                       <Flag size={16} />
                       Báo cáo bài viết
@@ -250,20 +248,21 @@ const PostItem = ({
 
       {/* ACTIONS */}
       <div className="mt-3 px-4 pb-4">
-        <div className="h-px w-full bg-white/[0.06]" />
+        <div className="h-px w-full bg-zinc-200 dark:bg-white/[0.06]" />
         <div className="mt-3 flex items-center gap-4">
           <button
             onClick={() => {
               onToggleLike?.(post.id);
               setLikeCount((c) => (isLiked ? Math.max(0, c - 1) : c + 1));
             }}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] ring-1 ring-white/10 transition"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
           >
             <Heart
               size={18}
-              className={isLiked ? "fill-red-500 text-red-500" : "text-white"}
+              className={isLiked ? "fill-red-500 text-red-500" : "text-current"}
             />
-            <span className={`text-sm ${isLiked ? "text-red-400" : "text-white"}`}>
+            <span className={`text-sm ${isLiked ? "text-red-600 dark:text-red-400" : ""}`}>
               {likeCount}
             </span>
           </button>
@@ -272,18 +271,17 @@ const PostItem = ({
             onClick={() => {
               setShowCommentPopup((v) => !v);
             }}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] ring-1 ring-white/10 transition"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
           >
-            <MessageCircle size={18} className="text-white" />
-            <span className="text-sm text-white">{post.comments ?? 0}</span>
+            <MessageCircle size={18} />
+            <span className="text-sm">{post.comments ?? 0}</span>
           </button>
         </div>
 
         {showCommentPopup && (
           <div className="mt-4">
-            <BlogCommentUser
-              postId={post.id}
-            />
+            <BlogCommentUser postId={post.id} />
           </div>
         )}
       </div>

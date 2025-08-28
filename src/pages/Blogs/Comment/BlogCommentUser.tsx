@@ -169,7 +169,6 @@ export const BlogCommentUser = ({ postId }: Props) => {
           timestamp,
         };
 
-
         flat.push(comment);
       });
 
@@ -424,11 +423,19 @@ export const BlogCommentUser = ({ postId }: Props) => {
     [deleteComment, enrichedComments, postId, queryClient, currentUser.id, refetchComments]
   );
 
-
   return (
-    <section className="">
-      <div className="px-4 md:px-2 py-2">
-        <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/12 p-4">
+    <section>
+      <div className="px-4 md:px-2 py-2 text-zinc-900 dark:text-white">
+        {/* Composer card: light/dark */}
+        <div
+          className={[
+            "rounded-xl p-4",
+            // Light
+            "bg-white ring-1 ring-zinc-200 shadow-sm",
+            // Dark
+            "dark:bg-white/[0.02] dark:ring-white/10 dark:shadow-none",
+          ].join(" ")}
+        >
           <Composer
             value={composerValue}
             onChange={setComposerValue}
@@ -443,9 +450,12 @@ export const BlogCommentUser = ({ postId }: Props) => {
           />
         </div>
 
+        {/* Comments list */}
         <div className="mt-6 space-y-3">
           {topLevel.length === 0 ? (
-            <div className="py-2 text-center text-white/70">Chưa có bình luận nào.</div>
+            <div className="py-2 text-center text-zinc-500 dark:text-white/70">
+              Chưa có bình luận nào.
+            </div>
           ) : (
             topLevel.map((parent) => {
               const replies = enrichedComments.filter((r) => r.parentId === parent.id);

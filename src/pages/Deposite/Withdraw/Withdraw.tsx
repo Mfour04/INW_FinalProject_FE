@@ -199,7 +199,7 @@ export const Withdraw = () => {
                       <th className="px-2 py-2">Ngân hàng</th>
                       <th className="px-2 py-2">Số TK</th>
                       <th className="px-2 py-2">Chủ TK</th>
-                      <th className="px-2 py-2 text-center">Trạng thái</th>
+                      <th className="px-2 py-2">Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -429,7 +429,7 @@ export const Withdraw = () => {
         <ConfirmModal
           isOpen={deleteModal}
           title="Xóa tài khoản"
-          message="Xác nhận xóa tài khoản này?"
+          message="Xác nhận xóa tài khoản ngân hàng này?"
           onCancel={() => setDeleteModal(false)}
           onConfirm={handleConfirmDeleteModal}
         />

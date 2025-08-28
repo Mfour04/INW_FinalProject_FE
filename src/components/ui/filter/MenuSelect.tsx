@@ -42,12 +42,9 @@ export function MenuSelect<T extends string>({
     [options, value]
   );
 
-  const [coords, setCoords] = useState<{ left: number; top: number; maxH: number; width: number }>({
-    left: 0,
-    top: 0,
-    maxH: 280,
-    width: 200,
-  });
+  const [coords, setCoords] = useState<{ left: number; top: number; maxH: number; width: number }>(
+    { left: 0, top: 0, maxH: 280, width: 200 }
+  );
 
   const computePosition = () => {
     const btn = btnRef.current;
@@ -74,7 +71,12 @@ export function MenuSelect<T extends string>({
 
     const top = openDown ? r.bottom + margin : Math.max(margin, r.top - margin - maxH);
 
-    setCoords({ left: Math.round(left), top: Math.round(top), maxH: Math.max(160, Math.round(maxH)), width: w });
+    setCoords({
+      left: Math.round(left),
+      top: Math.round(top),
+      maxH: Math.max(160, Math.round(maxH)),
+      width: w,
+    });
   };
 
   useLayoutEffect(() => {
@@ -125,6 +127,7 @@ export function MenuSelect<T extends string>({
 
   return (
     <div className={clsx("relative", className)}>
+      {/* Button */}
       <button
         ref={btnRef}
         type="button"
@@ -134,21 +137,29 @@ export function MenuSelect<T extends string>({
         aria-haspopup="listbox"
         aria-expanded={open}
         className={clsx(
-          "w-full h-10 rounded-xl px-3 pr-9 text-sm text-left",
-          "bg-white/[0.04] ring-1 ring-white/10 text-white",
-          "hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-white/25",
-          "transition",
+          "w-full h-10 rounded-xl px-3 pr-9 text-sm text-left transition",
+          // Light
+          "bg-white ring-1 ring-zinc-200 text-zinc-900 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-orange-300/40",
+          // Dark
+          "dark:bg-white/[0.04] dark:ring-white/10 dark:text-white dark:hover:bg-white/[0.06] dark:focus:ring-white/25",
           disabled && "opacity-50 cursor-not-allowed",
           buttonClassName
         )}
       >
         <span className="truncate">{selected?.label ?? placeholder}</span>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/55 pointer-events-none" />
+        <ChevronDown
+          className={clsx(
+            "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none",
+            "text-zinc-500 dark:text-white/55"
+          )}
+        />
       </button>
 
+      {/* Menu */}
       {open &&
         createPortal(
           <AnimatePresence>
+            {/* click-away layer (transparent) */}
             <motion.div
               key="ms-backdrop"
               className="fixed inset-0 z-[9998]"
@@ -163,17 +174,22 @@ export function MenuSelect<T extends string>({
               role="listbox"
               aria-activedescendant={`opt-${activeIdx}`}
               className={clsx(
-                "fixed z-[9999] rounded-xl ring-1 ring-white/12 backdrop-blur-md",
-                "shadow-[0_18px_48px_rgba(0,0,0,0.55)]"
+                "fixed z-[9999] rounded-xl overflow-auto",
+                // Light
+                "bg-white ring-1 ring-zinc-200 shadow-lg",
+                // Dark
+                "dark:ring-white/12 dark:backdrop-blur-md dark:shadow-[0_18px_48px_rgba(0,0,0,0.55)]",
               )}
               style={{
                 top: coords.top,
                 left: coords.left,
                 width: coords.width,
                 maxHeight: coords.maxH,
-                overflow: "auto",
+                // gradient nền cho dark, light để trắng phẳng
                 background:
-                  "linear-gradient(180deg, rgba(20,22,28,0.96), rgba(16,18,24,0.94))",
+                  typeof window !== "undefined" && document.documentElement.classList.contains("dark")
+                    ? "linear-gradient(180deg, rgba(20,22,28,0.96), rgba(16,18,24,0.94))"
+                    : undefined,
               }}
               initial={{ opacity: 0, y: 6, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -197,10 +213,14 @@ export function MenuSelect<T extends string>({
                         setOpen(false);
                       }}
                       className={clsx(
-                        "w-full text-left px-3 py-2 text-sm",
-                        "transition select-none",
-                        isActive ? "bg-white/10" : "hover:bg-white/[0.06]",
-                        isSelected ? "text-white" : "text-white/85"
+                        "w-full text-left px-3 py-2 text-sm transition select-none",
+                        // Light
+                        isActive ? "bg-zinc-100" : "hover:bg-zinc-50",
+                        isSelected ? "text-zinc-900" : "text-zinc-700",
+                        // Dark (ghi đè)
+                        "dark:hover:bg-white/[0.06] dark:text-white/85",
+                        isActive && "dark:bg-white/10",
+                        isSelected && "dark:text-white"
                       )}
                     >
                       {opt.label}

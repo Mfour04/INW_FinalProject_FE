@@ -3,21 +3,47 @@ import { useQuery } from "@tanstack/react-query";
 import { GetFollowers, GetFollowing } from "../../../api/UserFollow/user-follow.api";
 import abc from "../../../assets/img/default_avt.png";
 
+const Stat = ({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: number;
+  loading?: boolean;
+}) => (
+  <div className="flex flex-col items-center gap-0.5">
+    {loading ? (
+      <>
+        <div className="h-5 w-10 rounded bg-zinc-200 dark:bg-white/10 animate-pulse" />
+        <div className="h-3 w-20 rounded bg-zinc-200 dark:bg-white/10 animate-pulse mt-1" />
+      </>
+    ) : (
+      <>
+        <span className="text-[15px] font-semibold tabular-nums text-zinc-900 dark:text-white">
+          {value}
+        </span>
+        <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{label}</span>
+      </>
+    )}
+  </div>
+);
+
 const ProfileSidebar = () => {
   const { auth } = useAuth();
   const displayName = auth?.user?.displayName || auth?.user?.userName || "User";
   const handle = auth?.user?.userName || "user";
   const avatar = auth?.user?.avatarUrl || abc;
 
-  const { data: followersData, isLoading: isLoadingFollowers } = useQuery({
-    queryKey: ['followers', handle],
+  const { data: followersData, isLoading: loadingFollowers } = useQuery({
+    queryKey: ["followers", handle],
     queryFn: () => GetFollowers(handle),
     enabled: !!handle,
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: followingData, isLoading: isLoadingFollowing } = useQuery({
-    queryKey: ['following', handle],
+  const { data: followingData, isLoading: loadingFollowing } = useQuery({
+    queryKey: ["following", handle],
     queryFn: () => GetFollowing(handle),
     enabled: !!handle,
     staleTime: 1000 * 60 * 5,
@@ -28,52 +54,31 @@ const ProfileSidebar = () => {
 
   return (
     <aside className="w-full mt-6 xl:mt-0">
-      {/* Gradient hairline border */}
-      <div className="rounded-2xl p-[1px] bg-[linear-gradient(135deg,rgba(255,103,64,0.35),rgba(255,255,255,0.08)_28%,rgba(255,255,255,0)_100%)]">
-        {/* Card */}
-        <div className="rounded-2xl overflow-hidden bg-[#1a1a1d]">
-          {/* Cover */}
-          <div className="relative h-[84px]">
-            <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_0%,rgba(255,103,64,0.35)_0%,rgba(255,103,64,0.08)_38%,rgba(255,255,255,0)_70%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(255,255,255,0)_60%)]" />
-          </div>
+      <div className="rounded-2xl bg-white ring-1 ring-zinc-200 shadow-sm p-5 text-center dark:bg-[#111317] dark:ring-white/10">
+        {/* Avatar */}
+        <div className="mx-auto w-20 h-20 rounded-full ring-1 ring-zinc-200 overflow-hidden dark:ring-white/10">
+          <img
+            src={avatar}
+            alt={displayName}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-          {/* Avatar */}
-          <div className="px-5">
-            <div className="-mt-9 inline-flex rounded-full p-[2px] bg-[conic-gradient(from_210deg,#ff512f_0%,#ff6740_40%,#ff9966_75%,#ff512f_100%)] shadow-[0_8px_30px_rgba(255,103,64,0.25)]">
-              <img
-                src={avatar}
-                alt={displayName}
-                className="w-[72px] h-[72px] rounded-full object-cover bg-zinc-900 ring-4 ring-[#1a1a1d]"
-              />
-            </div>
-          </div>
+        {/* Info */}
+        <div className="mt-3">
+          <h2 className="text-[15px] font-semibold text-zinc-900 truncate dark:text-white">
+            {displayName}
+          </h2>
+          <p className="text-xs text-zinc-500 truncate dark:text-zinc-400">@{handle}</p>
+        </div>
 
-          {/* Info */}
-          <div className="px-5 pt-3 pb-5">
-            <div className="mb-3">
-              <h2 className="text-[15px] sm:text-base font-bold text-white leading-tight">
-                {displayName}
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-400">@{handle}</p>
-            </div>
+        {/* Divider mảnh */}
+        <div className="mt-4 h-px w-full bg-zinc-200 dark:bg-white/10" />
 
-            {/* Stats */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-full px-3 py-1.5 bg-zinc-900/60 ring-1 ring-zinc-800">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                <span className="text-[13px] text-zinc-300">
-                  <b className="text-white">{followingCount}</b> Đang theo dõi
-                </span>
-              </div>
-              <div className="flex items-center gap-2 rounded-full px-3 py-1.5 bg-zinc-900/60 ring-1 ring-zinc-800">
-                <span className="h-2 w-2 rounded-full bg-sky-400" />
-                <span className="text-[13px] text-zinc-300">
-                  <b className="text-white">{followersCount}</b> Người theo dõi
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Stats: grid 2 cột, cân giữa */}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <Stat label="Đang theo dõi" value={followingCount} loading={loadingFollowing} />
+          <Stat label="Người theo dõi" value={followersCount} loading={loadingFollowers} />
         </div>
       </div>
     </aside>

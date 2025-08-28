@@ -31,10 +31,22 @@ export const NovelRowCard = ({
   const updatedAt = formatVietnamTimeFromTicks(Number(novel.createAt));
 
   return (
-    <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.03] transition shadow-[0_16px_50px_-28px_rgba(0,0,0,0.65)]">
+    <div
+      className={[
+        "rounded-2xl backdrop-blur-md transition",
+        "ring-1 ring-zinc-200 bg-white hover:bg-zinc-50 shadow-sm",
+        "dark:ring-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.03] dark:shadow-[0_16px_50px_-28px_rgba(0,0,0,0.65)]",
+      ].join(" ")}
+    >
       <div className="grid grid-cols-[120px_1fr] gap-4 p-4">
         <div className="relative">
-          <div className="w-[120px] h-[160px] overflow-hidden rounded-xl bg-[#14161b] ring-1 ring-white/10">
+          <div
+            className={[
+              "w-[120px] h-[160px] overflow-hidden rounded-xl ring-1",
+              "bg-zinc-100 ring-zinc-200",
+              "dark:bg-[#14161b] dark:ring-white/10",
+            ].join(" ")}
+          >
             {novel.novelImage ? (
               <img
                 src={novel.novelImage}
@@ -43,7 +55,7 @@ export const NovelRowCard = ({
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full grid place-items-center text-white/30">
+              <div className="w-full h-full grid place-items-center text-zinc-400 dark:text-white/30">
                 Không ảnh
               </div>
             )}
@@ -53,50 +65,13 @@ export const NovelRowCard = ({
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="text-[16px] font-semibold truncate max-w-full">
+              <h3 className="text-[16px] font-semibold truncate max-w-full text-zinc-900 dark:text-white">
                 {novel.title}
               </h3>
 
               <div className="flex gap-2">
-                <div className="mt-2">
-                  <span
-                    className={[
-                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-                      "text-[10.5px] font-semibold backdrop-blur-sm border text-white",
-                      isCompleted
-                        ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
-                        : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
-                    ].join(" ")}
-                  >
-                    <span
-                      className={[
-                        "h-1 w-1 rounded-full",
-                        isCompleted ? "bg-emerald-100" : "bg-rose-100",
-                      ].join(" ")}
-                    />
-                    {statusLabel}
-                  </span>
-                </div>
-
-                <div className="mt-2">
-                  <span
-                    className={[
-                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-                      "text-[10.5px] font-semibold backdrop-blur-sm border text-white",
-                      isPublic
-                        ? "bg-emerald-500/75 border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.55)]"
-                        : "bg-rose-500/75 border-rose-300 shadow-[0_8px_24px_rgba(244,63,94,0.55)]",
-                    ].join(" ")}
-                  >
-                    <span
-                      className={[
-                        "h-1 w-1 rounded-full",
-                        isCompleted ? "bg-emerald-100" : "bg-rose-100",
-                      ].join(" ")}
-                    />
-                    {publicLabel}
-                  </span>
-                </div>
+                <Pill tone={isCompleted ? "ok" : "warn"}>{statusLabel}</Pill>
+                <Pill tone={isPublic ? "ok" : "warn"}>{publicLabel}</Pill>
               </div>
             </div>
 
@@ -115,22 +90,16 @@ export const NovelRowCard = ({
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[12.5px]">
             <Meta label="Cập nhật" value={updatedAt} />
-            <Meta
-              label="Lượt xem"
-              value={(novel.totalViews ?? 0).toLocaleString()}
-            />
-            <Meta
-              label="Theo dõi"
-              value={(novel.followers ?? 0).toLocaleString()}
-            />
+            <Meta label="Lượt xem" value={(novel.totalViews ?? 0).toLocaleString()} />
+            <Meta label="Theo dõi" value={(novel.followers ?? 0).toLocaleString()} />
             <div className="min-w-0 flex items-center gap-2">
               <StarRating rating={rating} />
               <div className="leading-tight">
-                <p className="font-medium">
+                <p className="font-medium text-zinc-900 dark:text-white">
                   {rating.toFixed(1)}
-                  <span className="text-white/55"> / 5</span>
+                  <span className="text-zinc-500 dark:text-white/55"> / 5</span>
                 </p>
-                <p className="text-white/55 text-[11px]">
+                <p className="text-zinc-500 dark:text-white/55 text-[11px]">
                   {Number(ratingCount).toLocaleString()} đánh giá
                 </p>
               </div>
@@ -142,13 +111,23 @@ export const NovelRowCard = ({
               {tags.slice(0, maxTags).map((t) => (
                 <span
                   key={t}
-                  className="rounded-full px-2 py-[1px] text-[10.5px] text-white/80 border border-white/10 bg-white/[0.05] hover:bg-white/[0.08] transition"
+                  className={[
+                    "rounded-full px-2 py-[1px] text-[10.5px] transition",
+                    "text-zinc-700 border border-zinc-200 bg-zinc-100 hover:bg-zinc-200",
+                    "dark:text-white/80 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]",
+                  ].join(" ")}
                 >
                   {t}
                 </span>
               ))}
               {extraTags > 0 && (
-                <span className="rounded-full px-2 py-[1px] text-[10.5px] text-white/80 border border-white/10 bg-white/[0.05]">
+                <span
+                  className={[
+                    "rounded-full px-2 py-[1px] text-[10.5px]",
+                    "text-zinc-700 border border-zinc-200 bg-zinc-100",
+                    "dark:text-white/80 dark:border-white/10 dark:bg-white/[0.05]",
+                  ].join(" ")}
+                >
                   +{extraTags}
                 </span>
               )}
@@ -160,10 +139,33 @@ export const NovelRowCard = ({
   );
 };
 
+const Pill = ({
+  children,
+  tone,
+}: {
+  children: React.ReactNode;
+  tone: "ok" | "warn";
+}) => (
+  <div className="mt-2">
+    <span
+      className={[
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold backdrop-blur-sm border",
+        "text-white",
+        tone === "ok"
+          ? "bg-emerald-500/85 border-emerald-300 shadow-[0_6px_20px_rgba(16,185,129,0.25)]"
+          : "bg-rose-500/85 border-rose-300 shadow-[0_6px_20px_rgba(244,63,94,0.25)]",
+      ].join(" ")}
+    >
+      <span className="h-1 w-1 rounded-full bg-white" />
+      {children}
+    </span>
+  </div>
+);
+
 const Meta = ({ label, value }: { label: string; value: string }) => (
   <div className="min-w-0">
-    <p className="text-white/55">{label}</p>
-    <p className="mt-0.5 font-medium truncate">{value}</p>
+    <p className="text-zinc-500 dark:text-white/55">{label}</p>
+    <p className="mt-0.5 font-medium truncate text-zinc-900 dark:text-white">{value}</p>
   </div>
 );
 
@@ -187,8 +189,14 @@ const ActionBtn = ({
     className={[
       "inline-flex items-center gap-2 h-9 rounded-xl px-3 text-[12.5px] font-medium ring-1 transition",
       tone === "danger"
-        ? "bg-[rgba(255,80,80,0.12)] hover:bg-[rgba(255,80,80,0.22)] ring-[rgba(255,80,80,0.35)] text-red-300"
-        : "bg-white/[0.06] hover:bg-white/[0.1] ring-white/15 text-white/90",
+        ? [
+            "text-red-600 ring-red-200 bg-red-50 hover:bg-red-100",
+            "dark:text-red-300 dark:ring-[rgba(255,80,80,0.35)] dark:bg-[rgba(255,80,80,0.12)] dark:hover:bg-[rgba(255,80,80,0.22)]",
+          ].join(" ")
+        : [
+            "text-zinc-800 ring-zinc-200 bg-zinc-100 hover:bg-zinc-200",
+            "dark:text-white/90 dark:ring-white/15 dark:bg-white/[0.06] dark:hover:bg-white/[0.1]",
+          ].join(" "),
     ].join(" ")}
     title={label}
     aria-label={label}
@@ -202,29 +210,15 @@ const StarRating = ({ rating }: { rating: number }) => {
   const percent = Math.max(0, Math.min(100, (rating / 5) * 100));
   return (
     <div className="relative inline-flex items-center">
-      <div className="flex gap-0.5 text-white/25">
+      <div className="flex gap-0.5 text-zinc-300 dark:text-white/25">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            key={`bg-${i}`}
-            className="h-4 w-4"
-            stroke="currentColor"
-            fill="currentColor"
-          />
+          <Star key={`bg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
         ))}
       </div>
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${percent}%` }}
-        aria-hidden
-      >
-        <div className="flex gap-0.5 text-yellow-300">
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${percent}%` }} aria-hidden>
+        <div className="flex gap-0.5 text-yellow-400">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={`fg-${i}`}
-              className="h-4 w-4"
-              stroke="currentColor"
-              fill="currentColor"
-            />
+            <Star key={`fg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
           ))}
         </div>
       </div>

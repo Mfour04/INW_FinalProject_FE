@@ -16,23 +16,30 @@ export const ModerationReviewModal = ({
   data,
 }: Props) => {
   if (!open || !data) return null;
+
   const blocked = data.sensitive.some((s) => s.score >= BLOCK_LIMIT);
 
   const overallBadge = () => {
     if (blocked)
       return (
-        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1 bg-red-500/15 ring-red-400/40 text-red-200">
+        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+          bg-red-100 text-red-700 ring-red-200
+          dark:bg-red-500/15 dark:text-red-200 dark:ring-red-400/40">
           Bị chặn
         </span>
       );
     if (data.flagged)
       return (
-        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1 bg-amber-500/15 ring-amber-400/40 text-amber-100">
+        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+          bg-amber-100 text-amber-700 ring-amber-200
+          dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-400/40">
           Cảnh báo
         </span>
       );
     return (
-      <span className="px-2 py-0.5 text-[11px] rounded-full ring-1 bg-emerald-500/15 ring-emerald-400/40 text-emerald-200">
+      <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+        bg-emerald-100 text-emerald-700 ring-emerald-200
+        dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/40">
         An toàn
       </span>
     );
@@ -40,18 +47,34 @@ export const ModerationReviewModal = ({
 
   return (
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
+
+      {/* Dialog wrapper */}
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative w-full max-w-3xl rounded-2xl bg-[#0b1017] text-white shadow-2xl ring-1 ring-white/10">
+        <div
+          className="relative w-full max-w-3xl rounded-2xl shadow-2xl
+            bg-white text-zinc-900 ring-1 ring-zinc-200
+            dark:bg-[#0b1017] dark:text-white dark:ring-white/10"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Kết quả kiểm duyệt"
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div
+            className="flex items-center justify-between px-5 py-4
+              border-b border-zinc-200
+              dark:border-white/10"
+          >
             <div className="flex items-center gap-5">
               <h2 className="text-lg font-semibold">Kết quả kiểm duyệt</h2>
               {overallBadge()}
             </div>
             <button
               onClick={onClose}
-              className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-white/10 text-xl leading-none"
+              className="h-9 w-9 flex items-center justify-center rounded-full
+                hover:bg-zinc-100 text-xl leading-none
+                dark:hover:bg-white/10"
               aria-label="Đóng"
             >
               ×
@@ -60,14 +83,22 @@ export const ModerationReviewModal = ({
 
           {/* Notes */}
           {blocked && (
-            <div className="mx-5 mt-4 rounded-lg bg-red-500/10 ring-1 ring-red-400/30 p-3 text-sm text-red-200">
+            <div
+              className="mx-5 mt-4 rounded-lg p-3 text-sm
+                bg-red-50 text-red-700 ring-1 ring-red-200
+                dark:bg-red-500/10 dark:text-red-200 dark:ring-red-400/30"
+            >
               Có hạng mục vi phạm ≥ 80%. Bạn cần điều chỉnh nội dung để có thể
               tiếp tục.
             </div>
           )}
 
           {!blocked && data.flagged && (
-            <div className="mx-5 mt-4 rounded-lg bg-amber-500/10 ring-1 ring-amber-400/30 p-3 text-sm text-amber-200">
+            <div
+              className="mx-5 mt-4 rounded-lg p-3 text-sm
+                bg-amber-50 text-amber-700 ring-1 ring-amber-200
+                dark:bg-amber-500/10 dark:text-amber-100 dark:ring-amber-400/30"
+            >
               Nội dung có yếu tố nhạy cảm. Vui lòng xem xét kỹ trước khi tiếp
               tục.
             </div>
@@ -75,8 +106,15 @@ export const ModerationReviewModal = ({
 
           {/* Body */}
           <div className="px-5 py-4 max-h-[55vh] overflow-y-auto">
-            <table className="w-full text-left text-white/90 text-sm border-collapse">
-              <thead className="bg-white/5 text-xs uppercase tracking-wide">
+            <table
+              className="w-full text-left text-sm border-collapse
+                text-zinc-800 dark:text-white/90"
+            >
+              <thead
+                className="text-xs uppercase tracking-wide
+                  bg-zinc-100 text-zinc-700
+                  dark:bg-white/5 dark:text-white/90"
+              >
                 <tr>
                   <th className="px-4 py-3">Hạng mục</th>
                   <th className="px-4 py-3">Điểm</th>
@@ -89,30 +127,34 @@ export const ModerationReviewModal = ({
                     const percent = Math.round(s.score * 100);
                     const severe = s.score >= BLOCK_LIMIT;
                     const warn = s.score >= 0.4 && s.score < BLOCK_LIMIT;
+
                     const barClass = severe
                       ? "bg-red-500"
                       : warn
                       ? "bg-amber-400"
                       : "bg-emerald-500";
+
                     const badgeClass = severe
-                      ? "bg-red-500/15 ring-red-400/40 text-red-200"
+                      ? "bg-red-100 text-red-700 ring-red-200 dark:bg-red-500/15 dark:text-red-200 dark:ring-red-400/40"
                       : warn
-                      ? "bg-amber-500/15 ring-amber-400/40 text-amber-100"
-                      : "bg-emerald-500/15 ring-emerald-400/40 text-emerald-200";
-                    const label = severe
-                      ? "Nghiêm trọng"
-                      : warn
-                      ? "Cảnh báo"
-                      : "An toàn";
+                      ? "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-400/40"
+                      : "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/40";
+
+                    const label = severe ? "Nghiêm trọng" : warn ? "Cảnh báo" : "An toàn";
+
                     return (
                       <tr
                         key={i}
-                        className="border-b border-white/5 hover:bg-white/5"
+                        className="border-b border-zinc-100 hover:bg-zinc-50
+                          dark:border-white/5 dark:hover:bg-white/5"
                       >
                         <td className="px-4 py-3">{s.category}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-36 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div className="w-36 h-2 rounded-full overflow-hidden
+                              bg-zinc-200
+                              dark:bg-white/10"
+                            >
                               <div
                                 className={`h-2 ${barClass}`}
                                 style={{ width: `${percent}%` }}
@@ -136,7 +178,7 @@ export const ModerationReviewModal = ({
                 ) : (
                   <tr>
                     <td
-                      className="px-4 py-6 text-center text-white/60"
+                      className="px-4 py-6 text-center text-zinc-500 dark:text-white/60"
                       colSpan={3}
                     >
                       Không có hạng mục rủi ro.
@@ -147,7 +189,12 @@ export const ModerationReviewModal = ({
             </table>
           </div>
 
-          <div className="flex items-center justify-end px-5 py-4 border-t border-white/10">
+          {/* Footer */}
+          <div
+            className="flex items-center justify-end px-5 py-4
+              border-t border-zinc-200
+              dark:border-white/10"
+          >
             <button
               onClick={!blocked ? onContinue : undefined}
               disabled={blocked}
@@ -160,17 +207,8 @@ export const ModerationReviewModal = ({
               ].join(" ")}
             >
               Tiếp tục
-              <svg
-                viewBox="0 0 20 20"
-                className="h-3.5 w-3.5"
-                aria-hidden="true"
-              >
-                <path
-                  d="M7 5l6 5-6 5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
+              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M7 5l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="2" />
               </svg>
             </button>
           </div>
