@@ -32,7 +32,7 @@ export const NotificationProvider = ({
   useEffect(() => {
     if (!auth?.accessToken) return;
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${BASE_URL}/hubs/notification`, {
+      .withUrl(`${SERVER_URL}/hubs/notification`, {
         accessTokenFactory: () => auth.accessToken,
       })
       .withAutomaticReconnect()
