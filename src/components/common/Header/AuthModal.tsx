@@ -32,7 +32,7 @@ import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
 
 const BASE_URL = "http://localhost:5173";
 const SERVER_URL =
-  "https://inkwavelibrary-f3akhdacesa4hgg8.southeastasia-01.azurewebsites.net";
+  "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
 
 const AUTH_ACTIONS = {
   LOGIN: "login",
