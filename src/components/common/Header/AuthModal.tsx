@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   Mail,
   Lock,
@@ -28,6 +28,11 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { TextField } from "./TextField";
 import { Input } from "./Input";
+import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
+
+const BASE_URL = "http://localhost:5173";
+const SERVER_URL =
+  "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
 
 const AUTH_ACTIONS = {
   LOGIN: "login",
@@ -506,6 +511,16 @@ export default function AuthSplitModal({ onClose }: Props) {
               </button>
             ) : (
               <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href =
+                    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${YOUR_GOOGLE_CLIENT_ID}` +
+                    `&redirect_uri=${SERVER_URL}/auth/callback` +
+                    `&response_type=token%20id_token` +
+                    `&scope=openid%20email%20profile` +
+                    `&nonce=xyz` +
+                    `&prompt=consent`;
+                }}
                 className={[
                   "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",
