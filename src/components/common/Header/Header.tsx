@@ -132,8 +132,9 @@ export const Header = ({
 
   const { notifications } = useNotification();
   const { data: userNotifications, refetch: notificationsRefetch } = useQuery({
-    queryKey: ["userNotifications"],
+    queryKey: ["userNotifications", auth?.user.userId],
     queryFn: () => GetUserNotifications().then((res) => res.data.data),
+    enabled: !!auth?.accessToken,
   });
 
   const NotificationMutation = useMutation({

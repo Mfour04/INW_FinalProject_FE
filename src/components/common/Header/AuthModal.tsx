@@ -14,8 +14,12 @@ import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useMutation } from "@tanstack/react-query";
-import { Login, Register } from "../../../api/Auth/auth.api";
-import type { LoginParams, RegisterParams } from "../../../api/Auth/auth.type";
+import { ForgotPassword, Login, Register } from "../../../api/Auth/auth.api";
+import type {
+  ForgotPasswordParams,
+  LoginParams,
+  RegisterParams,
+} from "../../../api/Auth/auth.type";
 import {
   validatePassword,
   type PasswordValidationResult,
@@ -24,6 +28,11 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { TextField } from "./TextField";
 import { Input } from "./Input";
+import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
+
+const BASE_URL = "http://localhost:5173";
+const SERVER_URL =
+  "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
 
 const AUTH_ACTIONS = {
   LOGIN: "login",
@@ -39,6 +48,8 @@ const initialRegisterForm: RegisterParams = {
   password: "",
 };
 
+const initialForgotForm: ForgotPasswordParams = { email: "" };
+
 type Props = { onClose: () => void };
 
 export default function AuthSplitModal({ onClose }: Props) {
@@ -50,6 +61,8 @@ export default function AuthSplitModal({ onClose }: Props) {
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
   const [registerForm, setRegisterForm] =
     useState<RegisterParams>(initialRegisterForm);
+  const [forgotPasswordForm, setForgotPasswordForm] =
+    useState<ForgotPasswordParams>(initialForgotForm);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerMessage, setRegisterMessage] = useState("");
   const [showPwd1, setShowPwd1] = useState(false);
@@ -77,6 +90,10 @@ export default function AuthSplitModal({ onClose }: Props) {
 
   const handleConfirmPasswordChange = useCallback((v: string) => {
     setConfirmPassword(v);
+  }, []);
+
+  const handleForgotPasswordChange = useCallback((v: string) => {
+    setForgotPasswordForm({ email: v });
   }, []);
 
   const toggleShowPwd1 = useCallback(() => setShowPwd1((s) => !s), []);
@@ -115,6 +132,14 @@ export default function AuthSplitModal({ onClose }: Props) {
     },
   });
 
+  const ForgotPasswordMutation = useMutation({
+    mutationFn: (params: ForgotPasswordParams) => ForgotPassword(params),
+    onSuccess: () => {
+      toast?.onOpen("Yêu cầu thành công. Hãy kiểm tra email của bạn");
+      setAction(AUTH_ACTIONS.LOGIN);
+    },
+  });
+
   const handleLogin = useCallback(() => {
     if (!loginForm.username || !loginForm.password) return;
     loginMutate(loginForm);
@@ -131,13 +156,12 @@ export default function AuthSplitModal({ onClose }: Props) {
   ]);
 
   const handleForgot = useCallback(() => {
-    if (!loginForm.username.trim()) {
-      toast?.onOpen("Hãy nhập email hoặc tên đăng nhập để đặt lại mật khẩu");
+    if (!forgotPasswordForm.email.trim()) {
+      toast?.onOpen("Hãy nhập email để đặt lại mật khẩu");
       return;
     }
-    toast?.onOpen("Nếu tài khoản tồn tại, hướng dẫn đặt lại đã được gửi.");
-    setAction(AUTH_ACTIONS.LOGIN);
-  }, [loginForm.username, toast]);
+    ForgotPasswordMutation.mutate(forgotPasswordForm);
+  }, [forgotPasswordForm.email, toast]);
 
   const content = useMemo(() => {
     switch (action) {
@@ -333,15 +357,16 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Input>
               <TextField
                 icon={<Mail size={18} />}
-                placeholder="Email/Tên đăng nhập"
-                value={loginForm.username}
-                onChange={handleLoginUsernameChange}
+                placeholder="Email"
+                value={forgotPasswordForm.email}
+                onChange={handleForgotPasswordChange}
                 autoComplete="username"
               />
             </Input>
 
             <Button
               onClick={handleForgot}
+              isLoading={ForgotPasswordMutation.isPending}
               className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Gửi hướng dẫn đặt lại
@@ -371,6 +396,7 @@ export default function AuthSplitModal({ onClose }: Props) {
     handleRegisterEmailChange,
     handleRegisterPasswordChange,
     handleConfirmPasswordChange,
+    handleForgotPasswordChange,
     toggleShowPwd1,
     toggleShowPwd2,
     handleLogin,
@@ -485,6 +511,16 @@ export default function AuthSplitModal({ onClose }: Props) {
               </button>
             ) : (
               <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href =
+                    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${YOUR_GOOGLE_CLIENT_ID}` +
+                    `&redirect_uri=${SERVER_URL}/auth/callback` +
+                    `&response_type=token%20id_token` +
+                    `&scope=openid%20email%20profile` +
+                    `&nonce=xyz` +
+                    `&prompt=consent`;
+                }}
                 className={[
                   "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",

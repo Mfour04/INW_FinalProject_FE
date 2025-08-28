@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { QRCheckIn } from "../../api/Transaction/transaction.api";
 import Coin10 from "../../assets/img/Transaction/coin-10.png";
 import Coin20 from "../../assets/img/Transaction/coin-20.png";
@@ -12,6 +12,7 @@ import { CoinCard, type Coin } from "./CoinCard";
 import { Withdraw } from "./Withdraw/Withdraw";
 import { Coins } from "lucide-react";
 import { DepositeConfirmModal } from "../../components/ConfirmModal/DepositeConfirmModal";
+import { GetCurrentUserInfo } from "../../api/User/user-settings.api";
 
 type tabType = "Deposite" | "Withdraw";
 
@@ -43,25 +44,23 @@ const depositeCoinOptions: Coin[] = [
 ];
 
 export const Deposite = () => {
-  const { auth, setAuth } = useAuth();
+  const { auth } = useAuth();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [selectedCoin, setSelectedCoin] = useState<Coin | undefined>(undefined);
   const [depositeModal, setDepositeModal] = useState<boolean>(false);
   const [tab, setTab] = useState<tabType>("Deposite");
+
+  const { data: user } = useQuery({
+    queryKey: ["user-infor-menu"],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+    enabled: !!auth?.accessToken,
+  });
 
   const rechargeMutation = useMutation({
     mutationFn: QRCheckIn,
     onMutate: (data: { coinAmount: number }) =>
       setSelectedAmount(data.coinAmount),
     onSuccess: (data) => {
-      if (auth) {
-        setAuth({
-          ...auth,
-          user: { ...auth.user, coin: auth.user.coin + selectedCoin?.amount! },
-          accessToken: auth.accessToken,
-          refreshToken: auth.refreshToken,
-        });
-      }
       window.open(data.data.checkoutUrl, "_self");
     },
     onSettled: () => setSelectedAmount(null),
@@ -155,7 +154,7 @@ export const Deposite = () => {
               strokeWidth={2}
             />
             <span className="text-sm font-semibold tabular-nums text-gray-800 dark:text-white">
-              {(auth?.user?.coin ?? 0).toLocaleString("vi-VN")}
+              {(user?.coin ?? 0).toLocaleString("vi-VN")}
             </span>
           </div>
         </header>

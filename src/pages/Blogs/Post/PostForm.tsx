@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React from "react";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 import abc from "../../../assets/img/default_avt.png";
@@ -31,10 +32,7 @@ function useAutoGrow(ref: React.RefObject<HTMLTextAreaElement | null>, value: st
 }
 
 const splitWords = (text: string) =>
-  text
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  text.trim().split(/\s+/).filter(Boolean);
 
 const countWords = (text: string) => splitWords(text).length;
 
@@ -166,11 +164,12 @@ const PostForm = ({
     <div
       className={[
         "rounded-2xl overflow-hidden transition-shadow",
-        "bg-[rgb(14,16,22)]/70 backdrop-blur",
-        "ring-1 ring-white/15",
-        dragOver ? "ring-2 ring-orange-400/70" : "",
-        "focus-within:ring-2 focus-within:ring-white/25",
-        "shadow-[0_0_0_0_rgba(0,0,0,0)] focus-within:shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]",
+        // Light
+        "bg-white",
+        // Dark
+        "dark:bg-[rgb(14,16,22)]/70 dark:backdrop-blur",
+        dragOver ? "ring-2 ring-orange-400/70 dark:ring-orange-400/70" : "",
+        "focus-within:ring-zinc-300 dark:focus-within:ring-white/25",
       ].join(" ")}
       onDragEnter={(e) => {
         e.preventDefault();
@@ -191,13 +190,13 @@ const PostForm = ({
           <img
             src={auth?.user?.avatarUrl || abc}
             alt="avatar"
-            className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+            className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
           />
           <div className="leading-tight">
-            <div className="font-semibold text-[14px]">
+            <div className="font-semibold text-[14px] text-zinc-900 dark:text-white">
               {auth?.user?.displayName || auth?.user?.userName || "User"}
             </div>
-            <div className="text-xs text-white/50">
+            <div className="text-xs text-zinc-500 dark:text-white/50">
               @{auth?.user?.userName || "user"}
             </div>
           </div>
@@ -205,7 +204,7 @@ const PostForm = ({
         <span
           className={[
             "text-[11px] tabular-nums transition-opacity",
-            nearLimit ? "text-white" : "text-white/70",
+            nearLimit ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-white/70",
             focused || nearLimit ? "opacity-100" : "opacity-0",
           ].join(" ")}
         >
@@ -214,8 +213,7 @@ const PostForm = ({
       </div>
 
       <div className="px-4">
-        <div className="h-px w-full bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
-        <div className="-mt-px h-px w-full bg-black/40 opacity-60" />
+        <div className="h-px w-full bg-zinc-200 dark:bg-white/10" />
       </div>
 
       <div className="px-4 pt-4 pb-2 relative">
@@ -227,14 +225,14 @@ const PostForm = ({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Chia sẻ điều gì đó…"
-          className="w-full bg-transparent resize-none placeholder:text-white/35 focus:outline-none text-[15px] leading-6"
+          className="w-full bg-transparent resize-none placeholder:text-zinc-400 dark:placeholder:text-white/35 focus:outline-none text-[15px] leading-6 text-zinc-900 dark:text-white"
           rows={1}
         />
       </div>
 
       {fileError && (
         <div className="px-4 -mt-1 pb-1">
-          <p className="text-[12px] text-red-300">{fileError}</p>
+          <p className="text-[12px] text-red-600 dark:text-red-300">{fileError}</p>
         </div>
       )}
 
@@ -245,7 +243,7 @@ const PostForm = ({
             return (
               <div
                 key={index}
-                className="relative group rounded-xl overflow-hidden ring-1 ring-white/10"
+                className="relative group rounded-xl overflow-hidden ring-1 ring-zinc-200 dark:ring-white/10"
               >
                 <div className="w-full aspect-[4/3]">
                   <img
@@ -261,7 +259,7 @@ const PostForm = ({
                   title="Xoá ảnh"
                   type="button"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-3.5 w-3.5 text-white" />
                 </button>
                 <div className="absolute bottom-0 left-0 right-0 bg-black/45 backdrop-blur-[1px] text-white text-[11px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity truncate">
                   {image.name}
@@ -273,8 +271,7 @@ const PostForm = ({
       )}
 
       <div className="px-4">
-        <div className="h-px w-full bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
-        <div className="-mt-px h-px w-full bg-black/40 opacity-60" />
+        <div className="h-px w-full bg-zinc-200 dark:bg-white/10" />
       </div>
 
       <div className="px-4 py-3 flex items-center justify-between">
@@ -282,14 +279,11 @@ const PostForm = ({
           <button
             type="button"
             onClick={openFileDialog}
-            title={
-              remainingSlots
-                ? `Thêm ảnh (${remainingSlots} còn lại)`
-                : "Đã đạt giới hạn ảnh"
-            }
+            title={remainingSlots ? `Thêm ảnh (${remainingSlots} còn lại)` : "Đã đạt giới hạn ảnh"}
             className={[
-              "h-9 px-3 inline-flex items-center gap-2 rounded-xl ring-1 ring-white/10",
-              "bg-white/[0.03] hover:bg-white/[0.06] transition",
+              "h-9 px-3 inline-flex items-center gap-2 rounded-xl ring-1",
+              "bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900",
+              "dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white",
               remainingSlots ? "" : "opacity-50 cursor-not-allowed",
             ].join(" ")}
             aria-disabled={!remainingSlots}
@@ -297,7 +291,7 @@ const PostForm = ({
             <ImagePlus className="h-4 w-4" />
             <span className="text-xs hidden sm:inline">Ảnh</span>
             {selectedImages.length > 0 && (
-              <span className="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-[#ff6740] text-[10px]">
+              <span className="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-[#ff6740] text-[10px] text-white">
                 {selectedImages.length}
               </span>
             )}
@@ -316,7 +310,7 @@ const PostForm = ({
               ref={emojiBtnRef}
               type="button"
               onClick={() => setEmojiOpen((v) => !v)}
-              className="h-9 w-9 inline-grid place-items-center rounded-xl ring-1 ring-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition"
+              className="h-9 w-9 inline-grid place-items-center rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900 dark:ring-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:text-white transition"
               title="Chèn emoji"
             >
               <Smile className="h-4 w-4" />
@@ -344,8 +338,8 @@ const PostForm = ({
           }}
           disabled={disabledSubmit}
           className={[
-            "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm shadow-black/10",
-            "whitespace-nowrap",
+            "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm",
+            "whitespace-nowrap border-none",
             "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
             disabledSubmit ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
           ].join(" ")}

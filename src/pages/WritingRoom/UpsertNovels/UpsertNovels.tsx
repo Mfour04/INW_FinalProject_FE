@@ -268,48 +268,83 @@ export const UpsertNovels = () => {
   const previewSlug = form.slug || "ten-truyen";
 
   return (
-    <section className="min-h-screen bg-[#0b0d11] text-white">
+    <section className="min-h-screen bg-white text-zinc-900 dark:bg-[#0b0d11] dark:text-white">
       <div className="max-w-[71rem] mx-auto px-4 md:px-6 py-8">
         <header className="mb-6">
           <h1 className="text-[20px] md:text-[22px] font-semibold tracking-tight">
             {isUpdate ? "Chỉnh sửa truyện" : "Tạo truyện mới"}
           </h1>
-          <p className="text-white/80 text-[13px] mt-1">
+          <p className="text-zinc-600 dark:text-white/80 text-[13px] mt-1">
             Viết chill — xuất bản liền tay.
           </p>
         </header>
 
         <div className="grid grid-cols-12 gap-6">
           <main className="col-span-12 md:col-span-8 space-y-6">
-            <div className="rounded-lg bg-[#0e1117]/92 ring-1 ring-white/8 backdrop-blur-sm shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)] p-5 md:p-6">
+            {/* Card chính */}
+            <div
+              className={[
+                "rounded-lg p-5 md:p-6",
+                // light
+                "bg-white ring-1 ring-zinc-200 shadow-sm",
+                // dark
+                "dark:bg-[#0e1117]/92 dark:ring-1 dark:ring-white/8 dark:backdrop-blur-sm dark:shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)]",
+              ].join(" ")}
+            >
+              {/* Tên truyện */}
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
-                  Tên truyện{" "}
-                  <span className="text-red-500 font-semibold">*</span>
+                  Tên truyện <span className="text-red-500 font-semibold">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={(e) => onTitleChange(e.target.value)}
                   placeholder="Nhập tên truyện"
-                  className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35"
+                  className={[
+                    "w-full rounded-md px-3 py-2.5 text-[14px] outline-none transition",
+                    // light
+                    "bg-white ring-1 ring-zinc-300 focus:ring-2 focus:ring-orange-300",
+                    // dark
+                    "dark:bg-[#0b0e13] dark:ring-white/10 dark:focus:ring-[#ff8a5c]/35",
+                  ].join(" ")}
                 />
-                <div className="mt-1 text-right text-xs text-white/50">
+                <div className="mt-1 text-right text-xs text-zinc-500 dark:text-white/50">
                   {form.title.length}/100
                 </div>
               </div>
 
+              {/* Slug */}
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
                   Đường dẫn
                 </label>
-                <div className="flex items-stretch rounded-md overflow-hidden ring-1 ring-white/10 bg-[#0b0e13]">
-                  <span className="hidden sm:flex items-center px-3 text-white/70 text-[13px] bg-white/[0.04] ring-1 ring-inset ring-white/10">
+                <div
+                  className={[
+                    "flex items-stretch rounded-md overflow-hidden",
+                    // light
+                    "ring-1 ring-zinc-300 bg-white",
+                    // dark
+                    "dark:ring-1 dark:ring-white/10 dark:bg-[#0b0e13]",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "hidden sm:flex items-center px-3 text-[13px]",
+                      // light
+                      "text-zinc-600 bg-zinc-50 ring-1 ring-inset ring-zinc-200",
+                      // dark
+                      "dark:text-white/70 dark:bg-white/[0.04] dark:ring-white/10",
+                    ].join(" ")}
+                  >
                     inkwave.io/novels/
                   </span>
                   <input
                     type="text"
-                    className="flex-1 bg-transparent px-3 py-2.5 text-[14px] placeholder-white/40 outline-none"
+                    className={[
+                      "flex-1 bg-transparent px-3 py-2.5 text-[14px] placeholder-zinc-400 outline-none",
+                      "dark:placeholder-white/40",
+                    ].join(" ")}
                     placeholder="ten-truyen"
                     value={form.slug}
                     onChange={(e) => onSlugChange(e.target.value)}
@@ -321,7 +356,13 @@ export const UpsertNovels = () => {
                   <button
                     onClick={handleCheckSlug}
                     disabled={isChecking || !form.slug.trim()}
-                    className="px-3 sm:px-4 text-[13px] font-medium bg-white/[0.06] hover:bg-white/[0.12] transition disabled:opacity-60"
+                    className={[
+                      "px-3 sm:px-4 text-[13px] font-medium transition disabled:opacity-60",
+                      // light
+                      "bg-zinc-50 hover:bg-zinc-100",
+                      // dark
+                      "dark:bg-white/[0.06] dark:hover:bg-white/[0.12]",
+                    ].join(" ")}
                   >
                     {isChecking ? "Đang kiểm..." : "Kiểm tra"}
                   </button>
@@ -331,10 +372,10 @@ export const UpsertNovels = () => {
                     className={[
                       "text-[12px] inline-flex items-center gap-1.5",
                       urlError
-                        ? "text-red-400"
+                        ? "text-red-500 dark:text-red-400"
                         : urlOk
-                        ? "text-emerald-400"
-                        : "text-white/55",
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-zinc-500 dark:text-white/55",
                     ].join(" ")}
                   >
                     {urlOk && (
@@ -350,12 +391,13 @@ export const UpsertNovels = () => {
                     )}
                     {urlError || urlOk || ""}
                   </p>
-                  <p className="text-[12px] text-white/55">
+                  <p className="text-[12px] text-zinc-500 dark:text-white/55">
                     {form.slug.length}/{SLUG_MAX}
                   </p>
                 </div>
               </div>
 
+              {/* Mô tả */}
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
                   Mô tả <span className="text-red-500">*</span>
@@ -367,20 +409,34 @@ export const UpsertNovels = () => {
                     setForm((p) => ({ ...p, description: e.target.value }))
                   }
                   placeholder="Viết tóm tắt 1–3 đoạn, nêu bật điểm khác biệt."
-                  className="w-full rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35 resize-none"
+                  className={[
+                    "w-full rounded-md px-3 py-3 text-[14px] outline-none resize-none transition",
+                    // light
+                    "bg-white ring-1 ring-zinc-300 focus:ring-2 focus:ring-orange-300",
+                    // dark
+                    "dark:bg-[#0b0e13] dark:ring-white/10 dark:focus:ring-[#ff8a5c]/35",
+                  ].join(" ")}
                 />
-                <div className="mt-1 text-right text-xs text-white/50">
+                <div className="mt-1 text-right text-xs text-zinc-500 dark:text-white/50">
                   {form.description.length}/1000
                 </div>
               </div>
 
+              {/* Ảnh */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] mb-2 font-semibold">
-                    Bìa truyện{" "}
-                    <span className="text-red-500 font-semibold">*</span>
+                    Bìa truyện <span className="text-red-500 font-semibold">*</span>
                   </label>
-                  <label className="relative inline-flex items-center justify-center w-[180px] h-[250px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
+                  <label
+                    className={[
+                      "relative inline-flex items-center justify-center w-[180px] h-[250px] rounded-md cursor-pointer overflow-hidden transition",
+                      // light
+                      "bg-white ring-1 ring-zinc-300 hover:bg-zinc-50",
+                      // dark
+                      "dark:bg-[#0b0e13] dark:ring-white/10 dark:hover:bg-white/[0.06]",
+                    ].join(" ")}
+                  >
                     <input
                       type="file"
                       accept="image/*"
@@ -396,12 +452,12 @@ export const UpsertNovels = () => {
                         className="absolute inset-0 h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-[13px] text-white/65">
+                      <span className="text-[13px] text-zinc-500 dark:text-white/65">
                         + Tải ảnh bìa
                       </span>
                     )}
                   </label>
-                  <p className="mt-2 text-[12px] text-white/55">
+                  <p className="mt-2 text-[12px] text-zinc-500 dark:text-white/55">
                     3:4 • JPG/PNG • &lt; 5MB
                   </p>
                 </div>
@@ -410,7 +466,15 @@ export const UpsertNovels = () => {
                   <label className="block text-[13px] mb-2 font-semibold">
                     Banner (tuỳ chọn)
                   </label>
-                  <label className="relative inline-flex items-center justify-center w-full max-w-[340px] h-[110px] rounded-md bg-[#0b0e13] ring-1 ring-white/10 hover:bg-white/[0.06] transition cursor-pointer overflow-hidden">
+                  <label
+                    className={[
+                      "relative inline-flex items-center justify-center w-full max-w-[340px] h-[110px] rounded-md cursor-pointer overflow-hidden transition",
+                      // light
+                      "bg-white ring-1 ring-zinc-300 hover:bg-zinc-50",
+                      // dark
+                      "dark:bg-[#0b0e13] dark:ring-white/10 dark:hover:bg-white/[0.06]",
+                    ].join(" ")}
+                  >
                     <input
                       type="file"
                       accept="image/*"
@@ -426,23 +490,24 @@ export const UpsertNovels = () => {
                         className="absolute inset-0 h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-[13px] text-white/65">
+                      <span className="text-[13px] text-zinc-500 dark:text-white/65">
                         + Tải banner
                       </span>
                     )}
                   </label>
-                  <p className="mt-2 text-[12px] text-white/55">
+                  <p className="mt-2 text-[12px] text-zinc-500 dark:text-white/55">
                     16:5 • JPG/PNG
                   </p>
                 </div>
               </div>
 
+              {/* Tags */}
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-[13px] font-semibold">
                     Chủ đề
                   </label>
-                  <span className="text-[12px] text-white/60">
+                  <span className="text-[12px] text-zinc-600 dark:text-white/60">
                     {selectedTags.length}/3
                   </span>
                 </div>
@@ -450,7 +515,13 @@ export const UpsertNovels = () => {
                   value={tagQuery}
                   onChange={(e) => setTagQuery(e.target.value)}
                   placeholder="Tìm thẻ..."
-                  className="w-full mb-3 rounded-md bg-[#0b0e13] ring-1 ring-white/10 px-3 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#ff8a5c]/35"
+                  className={[
+                    "w-full mb-3 rounded-md px-3 py-2.5 text-[14px] outline-none transition",
+                    // light
+                    "bg-white ring-1 ring-zinc-300 focus:ring-2 focus:ring-orange-300",
+                    // dark
+                    "dark:bg-[#0b0e13] dark:ring-white/10 dark:focus:ring-[#ff8a5c]/35",
+                  ].join(" ")}
                 />
                 <div className="flex flex-wrap gap-2">
                   {filteredTags?.map((tag: any) => {
@@ -465,8 +536,13 @@ export const UpsertNovels = () => {
                         className={[
                           "px-3 py-1.5 rounded-full text-[13px] ring-1 transition",
                           active
-                            ? "ring-transparent bg-[linear-gradient(90deg,#ff512f,0%,#ff6740,55%,#ff9966)] text-white shadow-[0_10px_26px_-14px_rgba(255,102,64,0.55)]"
-                            : "ring-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
+                            ? "ring-transparent text-white shadow-[0_10px_26px_-14px_rgba(255,102,64,0.55)] bg-[linear-gradient(90deg,#ff512f,0%,#ff6740,55%,#ff9966)]"
+                            : [
+                                // light
+                                "bg-zinc-100 ring-zinc-200 hover:bg-zinc-200",
+                                // dark
+                                "dark:ring-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]",
+                              ].join(" "),
                           disabled ? "opacity-40 cursor-not-allowed" : "",
                         ].join(" ")}
                         title={
@@ -482,7 +558,7 @@ export const UpsertNovels = () => {
                     );
                   })}
                   {filteredTags?.length === 0 && (
-                    <span className="text-[13px] text-white/50">
+                    <span className="text-[13px] text-zinc-500 dark:text-white/50">
                       Không có thẻ phù hợp.
                     </span>
                   )}

@@ -5,7 +5,7 @@ import { MoreButton } from "./actions/MoreButton";
 import { MoreUser } from "./actions/MoreUser";
 import { Reply } from "./Reply";
 import { EmojiPickerBox } from "./EmojiPickerBox";
-import type { Comment } from "../../pages/commentUser/types.ts";
+import type { Comment } from "../../pages/CommentUser/types.ts";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
 type EditedMap = Record<
@@ -115,10 +115,10 @@ export const ReplyThread = ({
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <p className="truncate text-[14px] font-semibold">{name}</p>
-          <span className="truncate text-[11px] text-white/55">{user}</span>
+          <p className="truncate text-[14px] font-semibold text-zinc-900 dark:text-white">{name}</p>
+          <span className="truncate text-[11px] text-zinc-500 dark:text-white/55">{user}</span>
         </div>
-        <p className="mt-0.5 text-[11px] text-white/45">{timestamp}</p>
+        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-white/45">{timestamp}</p>
       </div>
       {actions}
     </div>
@@ -137,7 +137,13 @@ export const ReplyThread = ({
               placeholder="Chỉnh sửa bình luận…"
               rows={3}
               maxLength={300}
-              className="w-full rounded-lg bg-[#0b0e12] px-3 py-2 text-[14px] leading-6 outline-none ring-1 ring-white/10 focus:ring-[#8ecbff]/35 resize-none"
+              className={[
+                "w-full rounded-lg px-3 py-2 text-[14px] leading-6 outline-none resize-none",
+                // Light
+                "bg-white ring-1 ring-zinc-200 focus:ring-sky-300 shadow-sm",
+                // Dark
+                "dark:bg-[#0b0e12] dark:ring-white/10 dark:focus:ring-[#8ecbff]/35",
+              ].join(" ")}
             />
             <div className="absolute bottom-2 left-2">
               <button
@@ -145,9 +151,13 @@ export const ReplyThread = ({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setEmojiOpenId((v) => (v === id ? null : id))}
-                className="inline-grid place-items-center h-7 w-7 rounded-md ring-1 ring-white/10 bg-white/[0.05] hover:bg-white/[0.1] mb-2"
+                className={[
+                  "inline-grid place-items-center h-7 w-7 rounded-md mb-2 transition",
+                  "bg-zinc-50 ring-1 ring-zinc-200 hover:bg-zinc-100",
+                  "dark:bg-white/[0.05] dark:ring-white/10 dark:hover:bg-white/[0.1]",
+                ].join(" ")}
               >
-                <Smile className="w-4 h-4" />
+                <Smile className="w-4 h-4 text-zinc-700 dark:text-white" />
               </button>
               <EmojiPickerBox
                 open={emojiOpenId === id}
@@ -162,20 +172,28 @@ export const ReplyThread = ({
           <div className="flex gap-2">
             <button
               onClick={() => saveLocalEdit(id)}
-              className="rounded-full px-3.5 py-1.5 text-[12.5px] text-white bg-white/10 hover:bg-white/15"
+              className={[
+                "rounded-full px-3.5 py-1.5 text-[12.5px]",
+                "text-white bg-zinc-900 hover:bg-zinc-800",
+                "dark:text-white dark:bg-white/10 dark:hover:bg-white/15",
+              ].join(" ")}
             >
               Lưu
             </button>
             <button
               onClick={cancelLocalEdit}
-              className="rounded-full px-3.5 py-1.5 text-[12.5px] border border-white/10 hover:bg-white/5"
+              className={[
+                "rounded-full px-3.5 py-1.5 text-[12.5px]",
+                "border border-zinc-200 hover:bg-zinc-50",
+                "dark:border-white/10 dark:hover:bg-white/5",
+              ].join(" ")}
             >
               Hủy
             </button>
           </div>
         </div>
       ) : (
-        <p className="whitespace-pre-wrap text-[14px] leading-relaxed">
+        <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-900 dark:text-white">
           {content}
         </p>
       )}
@@ -196,18 +214,23 @@ export const ReplyThread = ({
       title={liked[id] ? "Bỏ thích" : "Thích"}
       className={[
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px]",
-        "bg-white/[0.06] ring-1 ring-white/10",
-        hover ? "hover:bg-white/[0.1]" : "",
+        // Light
+        "bg-zinc-50 ring-1 ring-zinc-200",
+        hover ? "hover:bg-zinc-100" : "",
+        // Dark
+        "dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.1]",
         canInteract ? "" : "opacity-50 cursor-not-allowed",
       ].join(" ")}
     >
       <Heart
         className={[
           "h-4 w-4",
-          liked[id] ? "text-rose-400 fill-current" : "text-white/80",
+          liked[id]
+            ? "text-rose-500 fill-current"
+            : "text-zinc-700 dark:text-white/80",
         ].join(" ")}
       />
-      <span>{count}</span>
+      <span className="text-zinc-800 dark:text-white">{count}</span>
     </button>
   );
 
@@ -221,20 +244,34 @@ export const ReplyThread = ({
     <button
       onClick={onClick}
       title="Xem phản hồi"
-      className="relative inline-flex items-center justify-center rounded-full px-2.5 py-1 ring-1 ring-white/10 bg-white/[0.06] hover:bg-white/[0.1]"
+      className={[
+        "relative inline-flex items-center justify-center rounded-full px-2.5 py-1",
+        // Light
+        "ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100",
+        // Dark
+        "dark:ring-white/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.1]",
+      ].join(" ")}
       aria-label={`Có ${count} phản hồi`}
     >
-      <MessageSquare className="h-4 w-4 text-white/85" />
-      <span className="ml-1 text-[12.5px]">{count}</span>
+      <MessageSquare className="h-4 w-4 text-zinc-700 dark:text-white/85" />
+      <span className="ml-1 text-[12.5px] text-zinc-800 dark:text-white">{count}</span>
     </button>
   );
 
   return (
-    <div className="rounded-2xl bg-[#0e1014] ring-1 ring-white/[0.05] p-3 md:p-4">
+    <div
+      className={[
+        "rounded-2xl p-3 md:p-4",
+        // Light
+        "bg-white ring-1 ring-zinc-200 shadow-sm",
+        // Dark
+        "dark:bg-[#0e1014] dark:ring-white/[0.05]",
+      ].join(" ")}
+    >
       <div className="grid grid-cols-[40px_1fr] gap-3 items-start">
         <img
           src={parent.avatarUrl || defaultAvatar}
-          className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
         />
         <div className="min-w-0">
           <Header
@@ -243,8 +280,7 @@ export const ReplyThread = ({
             timestamp={edited[parent.id]?.timestamp ?? parent.timestamp}
             actions={
               canInteract ? (
-                parent.user === currentUser?.user ||
-                  parent.name === currentUser?.name ? (
+                parent.user === currentUser?.user || parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}
@@ -279,13 +315,14 @@ export const ReplyThread = ({
               onClick={() => canInteract && onToggleReply()}
               className={[
                 "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px]",
-                "bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.1]",
+                "bg-zinc-50 ring-1 ring-zinc-200 hover:bg-zinc-100",
+                "dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.1]",
                 canInteract ? "" : "opacity-50 cursor-not-allowed",
               ].join(" ")}
               title={replyOpen ? "Đóng hộp trả lời" : "Trả lời"}
               aria-label="Trả lời"
             >
-              <CornerDownRight className="h-4 w-4" />
+              <CornerDownRight className="h-4 w-4 text-zinc-700 dark:text-white" />
             </button>
           </div>
         </div>
@@ -306,7 +343,7 @@ export const ReplyThread = ({
               >
                 <img
                   src={r.avatarUrl || defaultAvatar}
-                  className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+                  className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
                 />
                 <div className="min-w-0">
                   <Header
@@ -332,10 +369,7 @@ export const ReplyThread = ({
                       ) : null
                     }
                   />
-                  <Body
-                    id={r.id}
-                    content={edited[r.id]?.content ?? r.content}
-                  />
+                  <Body id={r.id} content={edited[r.id]?.content ?? r.content} />
                   <div className="mt-2">
                     <LikeButton id={r.id} count={rLikes} hover={false} />
                   </div>

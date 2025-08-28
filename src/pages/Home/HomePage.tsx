@@ -217,7 +217,7 @@ export const HomePage = () => {
             }
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            onSeeMore={() => navigate("/trending")}
+            onSeeMore={() => navigate("/novels")}
           />
         </div>
 

@@ -8,7 +8,6 @@ import { NovelsExplore } from "../pages/NovelsExplore/NovelsExplore";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelDetail } from "../pages/Chapters/NovelDetail";
-import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 import { Blogs } from "../pages/Blogs/Blogs";
@@ -31,13 +30,15 @@ import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
+import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
+import AuthCallback from "../components/common/Header/AuthCallBack";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}

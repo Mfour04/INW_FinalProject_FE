@@ -33,11 +33,7 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
       >
         <UnderlineIcon className="h-4 w-4" />
       </TBtn>
-
-      <TBtn
-        onClick={() => editor.chain().focus().undo().run()}
-        label="Hoàn tác"
-      >
+      <TBtn onClick={() => editor.chain().focus().undo().run()} label="Hoàn tác">
         <Undo2 className="h-4 w-4" />
       </TBtn>
       <TBtn onClick={() => editor.chain().focus().redo().run()} label="Làm lại">

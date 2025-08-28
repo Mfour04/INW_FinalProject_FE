@@ -49,7 +49,7 @@ export const NotificationProvider = ({
     return () => {
       connection.stop();
     };
-  }, []);
+  }, [auth?.accessToken]);
 
   return (
     <NotificationContext.Provider value={{ notifications }}>

@@ -75,8 +75,11 @@ const PostInlineEditor: React.FC<Props> = ({
   return (
     <div
       className={[
-        "rounded-2xl bg-[rgb(14,16,22)]/70 backdrop-blur",
-        "border border-white/12 focus-within:border-white/25",
+        // light
+        "rounded-2xl bg-white ring-1 ring-zinc-200 shadow-sm",
+        // dark
+        "dark:bg-[rgb(14,16,22)]/70 dark:backdrop-blur dark:ring-white/12 dark:focus-within:ring-white/25 dark:shadow-none",
+        "focus-within:ring-2 focus-within:ring-zinc-300",
       ].join(" ")}
     >
       <div className="px-3.5 pt-3 pb-2">
@@ -86,15 +89,15 @@ const PostInlineEditor: React.FC<Props> = ({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Chỉnh sửa nội dung…"
-          className="w-full bg-transparent resize-none placeholder:text-white/35 focus:outline-none text-[15px] leading-6"
+          className="w-full bg-transparent resize-none focus:outline-none text-[15px] leading-6 text-zinc-900 placeholder:text-zinc-400 dark:text-white dark:placeholder:text-white/35"
           rows={1}
           autoFocus
         />
       </div>
 
-      {/* Divider trong hộp để viền không bị “đứt khúc” cảm giác */}
+      {/* Divider */}
       <div className="px-3.5">
-        <div className="h-px w-full bg-white/[0.08]" />
+        <div className="h-px w-full bg-zinc-200 dark:bg-white/[0.08]" />
       </div>
 
       <div className="px-3.5 py-2 flex items-center justify-between">
@@ -103,7 +106,8 @@ const PostInlineEditor: React.FC<Props> = ({
             ref={emojiBtnRef}
             type="button"
             onClick={() => setEmojiOpen((v) => !v)}
-            className="h-9 w-9 inline-grid place-items-center rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition"
+            className="h-9 w-9 inline-grid place-items-center rounded-xl ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 transition
+                       dark:ring-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:text-white"
             title="Chèn emoji"
           >
             <Smile className="h-4 w-4" />
@@ -127,9 +131,9 @@ const PostInlineEditor: React.FC<Props> = ({
             type="button"
             onClick={onCancel}
             className={[
-              "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm shadow-black/10",
-              "border border-white/10 bg-white/[0.06] hover:bg-white/[0.1]",
-              "whitespace-nowrap transition",
+              "rounded-full px-3.5 py-1.5 text-[12px] font-semibold whitespace-nowrap transition",
+              "ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-900",
+              "dark:ring-white/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] dark:text-white",
             ].join(" ")}
             title="Hủy (Esc)"
           >
@@ -143,8 +147,7 @@ const PostInlineEditor: React.FC<Props> = ({
             }}
             disabled={disabled}
             className={[
-              "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm shadow-black/10",
-              "whitespace-nowrap flex items-center gap-2 transition",
+              "rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white whitespace-nowrap flex items-center gap-2 transition",
               "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
               disabled ? "opacity-60 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
             ].join(" ")}
