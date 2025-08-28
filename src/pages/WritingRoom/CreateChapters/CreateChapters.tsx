@@ -363,7 +363,7 @@ export const CreateChapters = () => {
                       )}
 
                       {isDraft && (
-                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <div className=" absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                           {/* {typeof chapter.price === "number" && chapter.price > 0 && (
                             <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
                               {chapter.price.toLocaleString("vi-VN")} xu
@@ -379,6 +379,21 @@ export const CreateChapters = () => {
                           >
                             Nháp
                           </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteClick(chapter.chapterId);
+                            }}
+                            className={[
+                              "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
+                              "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
+                              "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
+                            ].join(" ")}
+                            title="Xóa"
+                            aria-label="Xóa"
+                          >
+                            <Delete className="h-4 w-4" />
+                          </button>
                         </div>
                       )}
                     </div>
