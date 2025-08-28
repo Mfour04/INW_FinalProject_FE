@@ -178,7 +178,7 @@ const RequestList = () => {
     <div className="flex flex-col flex-1 px-4 md:px-6 pt-4 pb-2 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4 mb-2">
         <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Quản lý yêu cầu rút tiền</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Danh sách báo cáo</h1>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />

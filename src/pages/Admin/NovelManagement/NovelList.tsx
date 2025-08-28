@@ -247,7 +247,7 @@ const NovelList = () => {
     setDialog({ isOpen: true, type: action, title, novelId });
   };
 
-  const handleConfirmDialog = () => {
+  const handleConfirmDialog = (_?: { duration?: string; note?: string }) => {
     if (dialog.novelId && dialog.type) {
       const isLocked = dialog.type === "lock";
       updateNovelLockMutation.mutate({ novelId: dialog.novelId, isLocked });
@@ -346,12 +346,14 @@ const NovelList = () => {
                 type="novel"
                 onOpenChapterPopup={handleOpenChapterPopup}
                 onLockUnlockNovel={handleLockUnlock}
-              />
-              <MemoizedPagination
-                currentPage={currentPage}
-                totalPages={novelData?.data?.totalPages || 1}
-                onPageChange={handlePageChange}
-              />
+                />
+                <div className="mt-4">
+                  <MemoizedPagination
+                    currentPage={currentPage}
+                    totalPages={novelData?.data?.totalPages || 1}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
             </>
           )}
         </>
@@ -366,16 +368,18 @@ const NovelList = () => {
           error={chapterError}
         />
       )}
-      <ConfirmDialog
+     <ConfirmDialog
         isOpen={dialog.isOpen}
         onClose={() =>
           setDialog({ isOpen: false, type: null, title: "", novelId: null })
         }
         onConfirm={handleConfirmDialog}
         title={dialog.title}
-        isLockAction={dialog.type === "lock"}
-        type="novel"
-        isLoading={updateNovelLockMutation.isPending}
+        variant={dialog.type === "lock" ? "danger" : "success"}
+        /* Khóa/Mở khóa novel chỉ cần xác nhận đơn giản: */
+        showDuration={false}
+        showNote={false}
+        loading={updateNovelLockMutation.isPending}
       />
     </motion.div>
   );

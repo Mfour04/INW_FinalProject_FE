@@ -1,10 +1,21 @@
-import { useEffect, useRef, useState, forwardRef } from "react";
+import { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { AnimatePresence, motion, type Transition } from "framer-motion";
-import { CheckCircle2, ShieldAlert, AlertTriangle, X, Loader2, Clock, FileText } from "lucide-react";
+import {
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  X,
+  Loader2,
+  Clock,
+  ChevronDown,
+  Check,
+  FileText,
+} from "lucide-react";
 
-type Variant = "neutral" | "success" | "danger";
+/* ====================== Types ====================== */
+export type Variant = "neutral" | "success" | "danger";
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (extra?: { duration?: string; note?: string }) => void;
@@ -29,62 +40,46 @@ interface ConfirmDialogProps {
   loading?: boolean;
 }
 
-/* ---------- Buttons (internal) ---------- */
-type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  loading?: boolean;
-  leftIcon?: React.ReactNode;
-};
+/* ====================== Internal ====================== */
+type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean };
 const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
-  ({ loading, leftIcon, children, className = "", ...rest }, ref) => (
+  ({ loading, children, className = "", ...rest }, ref) => (
     <button
       ref={ref}
       {...rest}
       disabled={loading || rest.disabled}
       aria-busy={loading ? "true" : "false"}
       className={[
-        "h-10 px-4 rounded-xl text-sm font-medium inline-flex items-center justify-center gap-2",
-        "focus-visible:outline-none focus-visible:ring-2",
+        "h-10 px-4 rounded-xl text-sm font-semibold inline-flex items-center justify-center",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6740]/40",
+        "transition-colors",
         loading ? "opacity-70 cursor-not-allowed" : "",
         className,
       ].join(" ")}
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : leftIcon}
-      <span className="truncate">{children}</span>
+      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+      {children}
     </button>
   )
 );
 BaseBtn.displayName = "BaseBtn";
 
-/* ---------- Theming by variant ---------- */
+const spring: Transition = { type: "spring", stiffness: 420, damping: 36, mass: 0.65 };
+
+const DURATIONS = ["12 tiếng", "1 ngày", "3 ngày", "7 ngày", "15 ngày", "30 ngày", "Vĩnh viễn"] as const;
+
 const tone = (v: Variant) => {
   switch (v) {
     case "success":
-      return {
-        ring: "ring-emerald-500/30",
-        chip: "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20",
-        icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
-        cta: "bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400",
-      };
+      return { icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" />, cta: "bg-emerald-600 hover:bg-emerald-500 text-white" };
     case "danger":
-      return {
-        ring: "ring-rose-500/30",
-        chip: "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20",
-        icon: <ShieldAlert className="w-5 h-5 text-rose-400" />,
-        cta: "bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400",
-      };
+      return { icon: <ShieldAlert className="w-6 h-6 text-rose-500" />, cta: "bg-rose-600 hover:bg-rose-500 text-white" };
     default:
-      return {
-        ring: "ring-[#ff6740]/30",
-        chip: "bg-white/10 text-white/80 ring-1 ring-white/15",
-        icon: <AlertTriangle className="w-5 h-5 text-white/80" />,
-        cta: "bg-[#ff6740] hover:bg-[#e14b2e] focus-visible:ring-[#ff6740]/40",
-      };
+      return { icon: <AlertTriangle className="w-6 h-6 text-[#ff6740]" />, cta: "bg-[#ff6740] hover:bg-[#e14b2e] text-white" };
   }
 };
 
-/* ---------- Animations ---------- */
-const spring: Transition = { type: "spring", stiffness: 420, damping: 36, mass: 0.65 };
-
+/* ====================== Component ====================== */
 const ConfirmDialog = ({
   isOpen,
   onClose,
@@ -101,188 +96,300 @@ const ConfirmDialog = ({
   const t = tone(variant);
   const overlayRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  const [duration, setDuration] = useState("12 tiếng");
+  const [duration, setDuration] = useState<string>(DURATIONS[0]);
   const [note, setNote] = useState("");
 
-  // Always call hooks in same order; focus when open:
+  // custom dropdown state
+  const [openSelect, setOpenSelect] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const selectBtnRef = useRef<HTMLButtonElement>(null);
+  const selectListRef = useRef<HTMLDivElement>(null);
+
+  const currentIdx = useMemo(() => Math.max(0, DURATIONS.findIndex((d) => d === duration)), [duration]);
+
+  /* Focus confirm on open */
   useEffect(() => {
     if (isOpen) confirmRef.current?.focus();
   }, [isOpen]);
 
-  const closeOnBackdrop = (e: React.MouseEvent) => {
+  /* Close dropdown on outside click */
+  useEffect(() => {
+    if (!openSelect) return;
+    const onDoc = (e: MouseEvent) => {
+      if (
+        !selectBtnRef.current?.contains(e.target as Node) &&
+        !selectListRef.current?.contains(e.target as Node)
+      ) {
+        setOpenSelect(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [openSelect]);
+
+  /* Focus trap: loop Tab inside dialog */
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const root = dialogRef.current;
+      if (!root) return;
+      const focusables = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        (last as HTMLElement).focus(); e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        (first as HTMLElement).focus(); e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [isOpen]);
+
+  const closeOnBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === overlayRef.current && !loading) onClose();
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-    if (e.key === "Enter") {
+  const onKeyDownDialog = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      if (openSelect) { setOpenSelect(false); return; }
+      onClose();
+    }
+    if (e.key === "Enter" && !openSelect) {
       e.preventDefault();
-      if (!loading) onConfirm({ duration: showDuration ? duration : undefined, note: showNote ? note.trim() : undefined });
+      if (!loading) handleConfirm();
     }
   };
 
-  const durationOptions = [
-    "12 tiếng",
-    "1 ngày",
-    "3 ngày",
-    "7 ngày",
-    "15 ngày",
-    "30 ngày",
-    "Vĩnh viễn",
-  ];
+  /* Dropdown keyboard */
+  const onKeyDownSelect = (e: React.KeyboardEvent) => {
+    if (!openSelect) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpenSelect(true);
+        setActiveIndex(currentIdx);
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault(); setOpenSelect(false); selectBtnRef.current?.focus(); return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); setActiveIndex((i) => (i + 1) % DURATIONS.length); return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault(); setActiveIndex((i) => (i - 1 + DURATIONS.length) % DURATIONS.length); return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const idx = activeIndex === -1 ? currentIdx : activeIndex;
+      commitSelect(idx);
+      return;
+    }
+  };
 
-  if (!isOpen) return null;
+  const commitSelect = (idx: number) => {
+    if (idx < 0 || idx >= DURATIONS.length) return;
+    setDuration(DURATIONS[idx]);
+    setOpenSelect(false);
+    selectBtnRef.current?.focus();
+  };
+
+  const handleConfirm = () => {
+    onConfirm({
+      duration: showDuration ? duration : undefined,
+      note: showNote ? note.trim() : undefined,
+    });
+  };
 
   return (
     <AnimatePresence>
-      <motion.div
-        key="overlay"
-        ref={overlayRef}
-        onMouseDown={closeOnBackdrop}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm"
-      />
-      <motion.div
-        key="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cd-title"
-        aria-describedby="cd-subtitle"
-        onKeyDown={onKeyDown}
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={spring}
-        className="fixed inset-0 z-[1001] grid place-items-center px-4"
-      >
-        <div
-          className={[
-            "w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden",
-            // glass surface
-            "bg-white/90 dark:bg-[#0b0e13]/80 backdrop-blur-xl",
-            // gradient hairline border
-            "border border-white/40 dark:border-white/10",
-            // subtle ring by tone
-            "ring-1", t.ring,
-          ].join(" ")}
-        >
-          {/* Header */}
-          <div className="p-5 pb-4 flex items-start gap-3">
-            <div className={`shrink-0 rounded-xl p-2 ${t.chip}`}>
-              {t.icon}
-            </div>
-            <div className="min-w-0">
-              <h3 id="cd-title" className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
-                {title}
-              </h3>
-              {subtitle && (
-                <p id="cd-subtitle" className="mt-1 text-sm text-zinc-600 dark:text-zinc-300/90">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={onClose}
-              disabled={loading}
-              className="ml-auto inline-flex items-center justify-center rounded-lg p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50"
-              aria-label="Đóng"
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            ref={overlayRef}
+            onMouseDown={closeOnBackdrop}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm"
+          />
+          {/* Dialog */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cd-title"
+            aria-describedby="cd-subtitle"
+            onKeyDown={onKeyDownDialog}
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={spring}
+            className="fixed inset-0 z-[1001] grid place-items-center px-4"
+          >
+            <div
+              ref={dialogRef}
+              className="w-full max-w-md rounded-2xl overflow-hidden border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-[#0b0e13]/90 backdrop-blur shadow-xl"
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Body */}
-          {(showDuration || showNote) && (
-            <div className="px-5 pb-1 space-y-4">
-              {showDuration && (
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-zinc-700 dark:text-zinc-200">
-                    Thời hạn
-                  </label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <select
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      disabled={loading}
-                      className={[
-                        "w-full h-10 pl-9 pr-3 rounded-xl",
-                        "bg-white/80 dark:bg-zinc-900/60",
-                        "border border-zinc-200 dark:border-white/10",
-                        "text-zinc-900 dark:text-white",
-                        "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
-                        loading ? "opacity-50 cursor-not-allowed" : "",
-                      ].join(" ")}
-                    >
-                      {durationOptions.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  </div>
+              {/* Header */}
+              <div className="flex items-start gap-3 p-5 border-b border-zinc-200 dark:border-white/10">
+                <div className="shrink-0 p-2 rounded-xl bg-white/70 dark:bg-white/10 border border-zinc-200/60 dark:border-white/10">
+                  {t.icon}
                 </div>
-              )}
+                <div className="min-w-0">
+                  <h3 id="cd-title" className="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {title}
+                  </h3>
+                  {subtitle && (
+                    <p id="cd-subtitle" className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
+                  )}
+                </div>
+                <button
+                  onClick={onClose}
+                  disabled={loading}
+                  className="ml-auto inline-flex items-center justify-center rounded-lg p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-white/10 focus-visible:ring-2"
+                  aria-label="Đóng"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-              {showNote && (
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-zinc-700 dark:text-zinc-200">
-                    Ghi chú / Lý do
-                  </label>
-                  <div className="relative">
-                    <FileText className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
-                    <textarea
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      rows={3}
-                      maxLength={500}
-                      placeholder="Nhập ghi chú (tối đa 500 ký tự)…"
-                      className={[
-                        "w-full rounded-xl pl-9 pr-3 py-2",
-                        "bg-white/80 dark:bg-zinc-900/60",
-                        "border border-zinc-200 dark:border-white/10",
-                        "text-zinc-900 dark:text-white",
-                        "placeholder:text-zinc-400",
-                        "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
-                      ].join(" ")}
-                    />
-                    <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">
-                      {note.length}/500
+              {/* Body */}
+              <div className="p-5 space-y-4">
+                {showDuration && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
+                      Thời hạn khóa
+                    </label>
+
+                    {/* Custom Select (listbox) */}
+                    <div className="relative" onKeyDown={onKeyDownSelect}>
+                      <button
+                        ref={selectBtnRef}
+                        type="button"
+                        disabled={loading}
+                        onClick={() => !loading && setOpenSelect((s) => !s)}
+                        aria-haspopup="listbox"
+                        aria-expanded={openSelect}
+                        className={[
+                          "w-full h-11 rounded-xl border pl-10 pr-8 text-left",
+                          "bg-white/80 dark:bg-zinc-900/70",
+                          "border-zinc-200 dark:border-white/10",
+                          "text-zinc-900 dark:text-white",
+                          "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
+                          "disabled:opacity-60 disabled:cursor-not-allowed",
+                        ].join(" ")}
+                      >
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                          <Clock className="w-4 h-4" />
+                        </span>
+                        <span className="truncate">{duration}</span>
+                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500">
+                          <ChevronDown className="w-4 h-4" />
+                        </span>
+                      </button>
+
+                      <AnimatePresence>
+                        {openSelect && (
+                          <motion.div
+                            ref={selectListRef}
+                            role="listbox"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.14 }}
+                            className={[
+                              "absolute z-20 mt-1 w-full rounded-xl overflow-hidden",
+                              "border border-zinc-200 dark:border-white/10",
+                              "bg-white/95 dark:bg-[#0b0e13]/95 backdrop-blur",
+                              "shadow-xl",
+                            ].join(" ")}
+                          >
+                            <div className="max-h-56 overflow-auto overscroll-contain">
+                              {DURATIONS.map((opt, idx) => {
+                                const selected = opt === duration;
+                                const active = idx === activeIndex || (activeIndex === -1 && selected);
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    role="option"
+                                    aria-selected={selected}
+                                    onMouseEnter={() => setActiveIndex(idx)}
+                                    onClick={() => commitSelect(idx)}
+                                    className={[
+                                      "w-full text-left px-3 py-2.5 text-sm flex items-center gap-2",
+                                      active
+                                        ? "bg-zinc-100/80 dark:bg-white/10"
+                                        : "bg-transparent",
+                                      selected
+                                        ? "font-semibold text-zinc-900 dark:text-white"
+                                        : "text-zinc-700 dark:text-zinc-200",
+                                    ].join(" ")}
+                                  >
+                                    <span className="inline-flex items-center justify-center w-5">
+                                      {selected ? <Check className="w-4 h-4" /> : null}
+                                    </span>
+                                    <span className="truncate">{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {showNote && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
+                      Ghi chú / Lý do
+                    </label>
+                    <div className="relative">
+                      <FileText className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
+                      <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        rows={3}
+                        maxLength={500}
+                        placeholder="(Tuỳ chọn) Nhập ghi chú…"
+                        className={[
+                          "w-full rounded-xl pl-9 pr-3 py-2",
+                          "bg-white/80 dark:bg-zinc-900/70",
+                          "border border-zinc-200 dark:border-white/10",
+                          "text-zinc-900 dark:text-white",
+                          "placeholder:text-zinc-400",
+                          "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
+                        ].join(" ")}
+                      />
+                      <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">{note.length}/500</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-2 px-5 py-4 border-t border-zinc-200 dark:border-white/10">
+                <BaseBtn onClick={onClose} loading={loading} className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white">
+                  {cancelLabel ?? "Hủy"}
+                </BaseBtn>
+                <BaseBtn ref={confirmRef} onClick={handleConfirm} loading={loading} className={t.cta}>
+                  {confirmLabel ?? (variant === "danger" ? "Xác nhận" : variant === "success" ? "Duyệt" : "Đồng ý")}
+                </BaseBtn>
+              </div>
             </div>
-          )}
-
-          {/* Footer */}
-          <div className="p-5 pt-3 flex items-center justify-end gap-2">
-            <BaseBtn
-              onClick={onClose}
-              loading={loading}
-              className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white"
-            >
-              {cancelLabel ?? "Hủy"}
-            </BaseBtn>
-
-            <BaseBtn
-              ref={confirmRef}
-              loading={loading}
-              onClick={() =>
-                onConfirm({
-                  duration: showDuration ? duration : undefined,
-                  note: showNote ? note.trim() : undefined,
-                })
-              }
-              className={["text-white", t.cta].join(" ")}
-            >
-              {confirmLabel ??
-                (variant === "danger" ? "Xác nhận" : variant === "success" ? "Duyệt" : "Đồng ý")}
-            </BaseBtn>
-          </div>
-        </div>
-      </motion.div>
+          </motion.div>
+        </>
+      )}
     </AnimatePresence>
   );
 };
