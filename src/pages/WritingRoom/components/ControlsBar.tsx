@@ -28,7 +28,6 @@ export const ControlsBar = ({
         "dark:ring-white/10 dark:bg-white/[0.02] dark:shadow-[0_20px_60px_-25px_rgba(0,0,0,0.6)]",
       ].join(" ")}
       style={{
-        // nhấn nhẹ brand ở dark, còn light thì nền trắng phẳng
         background:
           "radial-gradient(900px 600px at 0% -20%, rgba(255,103,64,0.00), transparent 45%), linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,1))",
       }}

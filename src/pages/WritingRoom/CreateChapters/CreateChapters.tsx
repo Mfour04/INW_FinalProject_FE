@@ -4,11 +4,15 @@ import ModeEdit from "@mui/icons-material/ModeEdit";
 import SwapVert from "@mui/icons-material/SwapVert";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { GetNovelById } from "../../../api/Novels/novel.api";
 import { formatTicksToRelativeTime } from "../../../utils/date_format";
 import { MiniPager } from "./MiniPager";
 import NovelInfoCard from "./NovelInfoCard";
+import { Delete } from "lucide-react";
+import { DeleteChapter } from "../../../api/Chapters/chapter.api";
+import { useToast } from "../../../context/ToastContext/toast-context";
+import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 
 type Tabs = "Chapter" | "Draft";
 
@@ -23,11 +27,15 @@ type Chapter = {
   price?: number;
 };
 
-export default function CreateChapters() {
+export const CreateChapters = () => {
   const [tab, setTab] = useState<Tabs>("Chapter");
   const [sortDesc, setSortDesc] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [selectedChaptersId, setSelectedChaptersId] = useState<string>("");
   const { novelId } = useParams();
   const navigate = useNavigate();
+
+  const toast = useToast();
 
   const { data, isFetching, isLoading } = useQuery({
     queryKey: ["novel", novelId],
@@ -48,12 +56,30 @@ export default function CreateChapters() {
   const sortedList = useMemo(
     () =>
       [...activeList].sort((a, b) =>
-        sortDesc ? b.chapterNumber - a.chapterNumber : a.chapterNumber - b.chapterNumber
+        sortDesc
+          ? b.chapterNumber - a.chapterNumber
+          : a.chapterNumber - b.chapterNumber
       ),
     [activeList, sortDesc]
   );
 
-  const lastChapter = chapters.length ? chapters[chapters.length - 1] : undefined;
+  const DeleteChapterMutation = useMutation({
+    mutationFn: (id: string) => DeleteChapter(id),
+    onSuccess: () => toast?.onOpen("Xóa chương truyện thành công!"),
+  });
+
+  const onDeleteClick = (id: string) => {
+    setSelectedChaptersId(id);
+    setDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    DeleteChapterMutation.mutate(selectedChaptersId);
+  };
+
+  const lastChapter = chapters.length
+    ? chapters[chapters.length - 1]
+    : undefined;
 
   const perPage = 20;
   const totalPages = Math.max(Math.ceil(sortedList.length / perPage), 1);
@@ -130,7 +156,10 @@ export default function CreateChapters() {
                     : "",
                 ].join(" ")}
               >
-                Đã đăng <span className="ml-1 text-zinc-600 dark:text-white/70">({published.length})</span>
+                Đã đăng{" "}
+                <span className="ml-1 text-zinc-600 dark:text-white/70">
+                  ({published.length})
+                </span>
               </button>
               <button
                 onClick={() => setTab("Draft")}
@@ -143,7 +172,10 @@ export default function CreateChapters() {
                     : "",
                 ].join(" ")}
               >
-                Bản nháp <span className="ml-1 text-zinc-600 dark:text-white/70">({drafts.length})</span>
+                Bản nháp{" "}
+                <span className="ml-1 text-zinc-600 dark:text-white/70">
+                  ({drafts.length})
+                </span>
               </button>
             </div>
 
@@ -159,14 +191,20 @@ export default function CreateChapters() {
                 title="Đổi thứ tự chương"
               >
                 <SwapVert
-                  className={`transition-transform ${sortDesc ? "rotate-180" : "rotate-0"}`}
+                  className={`transition-transform ${
+                    sortDesc ? "rotate-180" : "rotate-0"
+                  }`}
                   sx={{ width: 18, height: 18 }}
                 />
-                <span className="hidden md:inline">{sortDesc ? "Mới → Cũ" : "Cũ → Mới"}</span>
+                <span className="hidden md:inline">
+                  {sortDesc ? "Mới → Cũ" : "Cũ → Mới"}
+                </span>
               </button>
 
               <button
-                onClick={() => navigate(`/novels/writing-room/${novelId}/upsert-chapter`)}
+                onClick={() =>
+                  navigate(`/novels/writing-room/${novelId}/upsert-chapter`)
+                }
                 className={[
                   "inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] transition",
                   "text-white bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90",
@@ -194,7 +232,9 @@ export default function CreateChapters() {
               Cập nhật gần nhất
             </span>
             <span className="text-[13px] text-[#ff7a45] dark:text-[#ff8a5f]">
-              {lastChapter ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}` : "—"}
+              {lastChapter
+                ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
+                : "—"}
             </span>
             <span className="text-zinc-400 dark:text-white/40">•</span>
             <span className="text-[12px] text-zinc-500 dark:text-gray-400">
@@ -212,12 +252,17 @@ export default function CreateChapters() {
           {isLoading || isFetching ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl bg-zinc-100 animate-pulse dark:bg-white/5" />
+                <div
+                  key={i}
+                  className="h-14 rounded-xl bg-zinc-100 animate-pulse dark:bg-white/5"
+                />
               ))}
             </div>
           ) : pageItems.length === 0 ? (
             <div className="text-center py-10 text-zinc-600 dark:text-white/60">
-              {tab === "Draft" ? "Chưa có bản nháp nào." : "Chưa có chương đã đăng."}
+              {tab === "Draft"
+                ? "Chưa có bản nháp nào."
+                : "Chưa có chương đã đăng."}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -225,15 +270,20 @@ export default function CreateChapters() {
                 const isDraft = chapter.isDraft;
                 const onCardClick = () => {
                   if (isDraft) {
-                    navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                    navigate(
+                      `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
+                    );
                   } else {
                     navigate(`/novels/${novelId}/${chapter.chapterId}`);
                   }
                 };
                 const onEditClick = (e: React.MouseEvent) => {
                   e.stopPropagation();
-                  navigate(`/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`);
+                  navigate(
+                    `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
+                  );
                 };
+
                 const numberShown = isDraft ? idx + 1 : chapter.chapterNumber;
 
                 return (
@@ -264,7 +314,9 @@ export default function CreateChapters() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14px] font-medium">{chapter.title}</p>
+                        <p className="truncate text-[14px] font-medium">
+                          {chapter.title}
+                        </p>
                         <p className="mt-1 text-[12px] text-zinc-500 dark:text-gray-400">
                           {chapter.updateAt
                             ? formatTicksToRelativeTime(chapter.updateAt)
@@ -272,25 +324,41 @@ export default function CreateChapters() {
                         </p>
                       </div>
 
-                     {!isDraft && (
-                      <div className="ml-2 flex items-center gap-2">
-                        {typeof chapter.price === "number" && chapter.price > 0 && (
-                          <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
-                            {chapter.price.toLocaleString("vi-VN")} xu
-                          </span>
-                        )}
-                        <button
-                          onClick={onEditClick}
-                          className={[
-                            "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
-                            "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
-                            "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
-                          ].join(" ")}
-                          title="Chỉnh sửa chương"
-                          aria-label="Chỉnh sửa chương"
-                        >
-                          <ModeEdit sx={{ width: 16, height: 16 }} />
-                        </button>
+                      {!isDraft && (
+                        <div className="ml-2 flex items-center gap-2">
+                          {typeof chapter.price === "number" &&
+                            chapter.price > 0 && (
+                              <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
+                                {chapter.price.toLocaleString("vi-VN")} xu
+                              </span>
+                            )}
+                          <button
+                            onClick={onEditClick}
+                            className={[
+                              "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
+                              "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
+                              "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
+                            ].join(" ")}
+                            title="Chỉnh sửa chương"
+                            aria-label="Chỉnh sửa chương"
+                          >
+                            <ModeEdit sx={{ width: 16, height: 16 }} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteClick(chapter.chapterId);
+                            }}
+                            className={[
+                              "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
+                              "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
+                              "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
+                            ].join(" ")}
+                            title="Xóa"
+                            aria-label="Xóa"
+                          >
+                            <Delete className="h-4 w-4" />
+                          </button>
                         </div>
                       )}
 
@@ -331,6 +399,14 @@ export default function CreateChapters() {
           </div>
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={deleteModal}
+        title="Xóa Chương truyện"
+        message="Bạn có chắc chắc muốn xóa chương truyện không?"
+        onCancel={() => setDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
-}
+};
