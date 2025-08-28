@@ -2,6 +2,10 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import type { ResetPasswordParams } from "../../../api/Auth/auth.type";
+import { ResetPassword } from "../../../api/Auth/auth.api";
+import { useToast } from "../../../context/ToastContext/toast-context";
 
 type PasswordValidationResult = { isValid: boolean; errors: string[] };
 function validatePassword(pwd: string): PasswordValidationResult {
@@ -12,24 +16,6 @@ function validatePassword(pwd: string): PasswordValidationResult {
         "Mật khẩu phải dài 8–32 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt."
       );
   return { isValid: errs.length === 0, errors: errs };
-}
-
-function mockResetPasswordByToken({
-  token,
-  password,
-}: {
-  token: string;
-  password: string;
-}) {
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(() => {
-      if (!token || token === "expired")
-        return reject(new Error("Link không hợp lệ hoặc đã hết hạn."));
-      if (password === "error1234")
-        return reject(new Error("Lỗi máy chủ (mock)."));
-      resolve();
-    }, 900);
-  });
 }
 
 function DarkInput({
@@ -98,31 +84,42 @@ export const ResetPasswordPage = () => {
   const [cfm, setCfm] = useState("");
   const [show1, setShow1] = useState(false);
   const [show2, setShow2] = useState(false);
-  const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const toast = useToast();
 
   const rule = useMemo(() => validatePassword(pwd), [pwd]);
   const mismatch = cfm.length > 0 && pwd !== cfm;
   const canSubmit = !!token && rule.isValid && !mismatch && !loading;
 
-  useEffect(() => {
-    if (!token) setToast("Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn.");
-  }, [token]);
+  const ResetPasswordMutation = useMutation({
+    mutationFn: (param: ResetPasswordParams) => ResetPassword(param),
+    onSuccess: () => {
+      toast?.onOpen("Đổi mật khẩu thành công. Hãy thử đăng nhập");
+    },
+  });
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!canSubmit) return;
     setLoading(true);
     try {
-      await mockResetPasswordByToken({ token, password: pwd });
-      setToast("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
-      setTimeout(() => navigate("/auth"), 1100);
+      await ResetPasswordMutation.mutate({
+        token: token,
+        confirmPassword: cfm,
+        newPassword: pwd,
+      });
+      setTimeout(() => navigate("/"), 1100);
     } catch (err: any) {
-      setToast(err?.message ?? "Đổi mật khẩu thất bại, vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!token)
+      toast?.onOpen("Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn.");
+  }, [token]);
 
   return (
     <div className="fixed inset-0 z-[100]">
@@ -230,7 +227,7 @@ export const ResetPasswordPage = () => {
               )}
 
               <GradientButton
-                loading={loading}
+                loading={ResetPasswordMutation.isPending}
                 disabled={!canSubmit}
                 onClick={() => submit()}
               >

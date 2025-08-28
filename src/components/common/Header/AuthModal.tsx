@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import {
   Mail,
   Lock,
@@ -14,8 +14,12 @@ import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useMutation } from "@tanstack/react-query";
-import { Login, Register } from "../../../api/Auth/auth.api";
-import type { LoginParams, RegisterParams } from "../../../api/Auth/auth.type";
+import { ForgotPassword, Login, Register } from "../../../api/Auth/auth.api";
+import type {
+  ForgotPasswordParams,
+  LoginParams,
+  RegisterParams,
+} from "../../../api/Auth/auth.type";
 import {
   validatePassword,
   type PasswordValidationResult,
@@ -39,6 +43,8 @@ const initialRegisterForm: RegisterParams = {
   password: "",
 };
 
+const initialForgotForm: ForgotPasswordParams = { email: "" };
+
 type Props = { onClose: () => void };
 
 export default function AuthSplitModal({ onClose }: Props) {
@@ -50,6 +56,8 @@ export default function AuthSplitModal({ onClose }: Props) {
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
   const [registerForm, setRegisterForm] =
     useState<RegisterParams>(initialRegisterForm);
+  const [forgotPasswordForm, setForgotPasswordForm] =
+    useState<ForgotPasswordParams>(initialForgotForm);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerMessage, setRegisterMessage] = useState("");
   const [showPwd1, setShowPwd1] = useState(false);
@@ -77,6 +85,10 @@ export default function AuthSplitModal({ onClose }: Props) {
 
   const handleConfirmPasswordChange = useCallback((v: string) => {
     setConfirmPassword(v);
+  }, []);
+
+  const handleForgotPasswordChange = useCallback((v: string) => {
+    setForgotPasswordForm({ email: v });
   }, []);
 
   const toggleShowPwd1 = useCallback(() => setShowPwd1((s) => !s), []);
@@ -115,6 +127,14 @@ export default function AuthSplitModal({ onClose }: Props) {
     },
   });
 
+  const ForgotPasswordMutation = useMutation({
+    mutationFn: (params: ForgotPasswordParams) => ForgotPassword(params),
+    onSuccess: () => {
+      toast?.onOpen("Yêu cầu thành công. Hãy kiểm tra email của bạn");
+      setAction(AUTH_ACTIONS.LOGIN);
+    },
+  });
+
   const handleLogin = useCallback(() => {
     if (!loginForm.username || !loginForm.password) return;
     loginMutate(loginForm);
@@ -131,13 +151,12 @@ export default function AuthSplitModal({ onClose }: Props) {
   ]);
 
   const handleForgot = useCallback(() => {
-    if (!loginForm.username.trim()) {
-      toast?.onOpen("Hãy nhập email hoặc tên đăng nhập để đặt lại mật khẩu");
+    if (!forgotPasswordForm.email.trim()) {
+      toast?.onOpen("Hãy nhập email để đặt lại mật khẩu");
       return;
     }
-    toast?.onOpen("Nếu tài khoản tồn tại, hướng dẫn đặt lại đã được gửi.");
-    setAction(AUTH_ACTIONS.LOGIN);
-  }, [loginForm.username, toast]);
+    ForgotPasswordMutation.mutate(forgotPasswordForm);
+  }, [forgotPasswordForm.email, toast]);
 
   const content = useMemo(() => {
     switch (action) {
@@ -333,15 +352,16 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Input>
               <TextField
                 icon={<Mail size={18} />}
-                placeholder="Email/Tên đăng nhập"
-                value={loginForm.username}
-                onChange={handleLoginUsernameChange}
+                placeholder="Email"
+                value={forgotPasswordForm.email}
+                onChange={handleForgotPasswordChange}
                 autoComplete="username"
               />
             </Input>
 
             <Button
               onClick={handleForgot}
+              isLoading={ForgotPasswordMutation.isPending}
               className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Gửi hướng dẫn đặt lại
@@ -371,6 +391,7 @@ export default function AuthSplitModal({ onClose }: Props) {
     handleRegisterEmailChange,
     handleRegisterPasswordChange,
     handleConfirmPasswordChange,
+    handleForgotPasswordChange,
     toggleShowPwd1,
     toggleShowPwd2,
     handleLogin,
