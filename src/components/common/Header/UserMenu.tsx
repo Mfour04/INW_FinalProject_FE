@@ -5,6 +5,8 @@ import { getAvatarUrl } from "../../../utils/avatar";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { User as UserIcon, Clock, Settings, LogOut, Coins } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { GetCurrentUserInfo } from "../../../api/User/user-settings.api";
 
 type Props = { onClose: () => void };
 
@@ -13,6 +15,12 @@ const UserMenu = ({ onClose }: Props) => {
   const toast = useToast();
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
+
+  const { data } = useQuery({
+    queryKey: ["user-infor-menu"],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+    enabled: !!auth?.accessToken,
+  });
 
   // Click outside
   useEffect(() => {
@@ -45,8 +53,8 @@ const UserMenu = ({ onClose }: Props) => {
     toast?.onOpen("Đăng xuất thành công!");
   };
 
-  const avatarSrc = getAvatarUrl(auth.user.avatarUrl) || DefaultAvatar;
-  const coins = (auth.user.coin ?? 0).toLocaleString("vi-VN");
+  const avatarSrc = getAvatarUrl(data?.avatarUrl) || DefaultAvatar;
+  const coins = (data?.coin ?? 0).toLocaleString("vi-VN");
 
   return (
     <div
@@ -71,10 +79,10 @@ const UserMenu = ({ onClose }: Props) => {
         />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium truncate">
-            {auth.user.displayName}
+            {data?.displayName}
           </div>
           <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
-            @{auth.user.userName}
+            @{data?.userName}
           </div>
         </div>
       </div>
