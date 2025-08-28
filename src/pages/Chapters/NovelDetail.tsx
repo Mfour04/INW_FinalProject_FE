@@ -85,6 +85,8 @@ export const NovelDetail = () => {
   ];
   const novelInfo = novelData?.novelInfo;
 
+  const isAuthor = auth?.user.userId === novelData?.novelInfo.authorId;
+
   const {
     data: novelFollowers,
     refetch: refetchNovelFollowers,
@@ -247,6 +249,7 @@ export const NovelDetail = () => {
           novelData={novelData}
           follower={follower}
           isCompleted={isCompleted}
+          isAuthor={isAuthor}
           onFollow={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
           onToggleFollow={() => setShowFollowPopup((v) => !v)}
           onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
@@ -335,7 +338,9 @@ export const NovelDetail = () => {
           </section>
 
           <div ref={ratingRef}>
-            {novelInfo && <RatingSection novelInfo={novelInfo} />}
+            {novelInfo && (
+              <RatingSection isAuthor={isAuthor} novelInfo={novelInfo} />
+            )}
           </div>
         </main>
       </div>

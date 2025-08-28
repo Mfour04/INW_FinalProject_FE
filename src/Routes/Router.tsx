@@ -30,11 +30,13 @@ import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
+import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route
         path="/following"
