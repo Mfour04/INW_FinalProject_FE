@@ -16,6 +16,7 @@ type Props = {
   novelData: any;
   follower: any;
   isCompleted: boolean;
+  isAuthor: boolean;
   followBtnRef: React.Ref<HTMLDivElement>;
   onFollow: () => void;
   onToggleFollow: () => void;
@@ -32,6 +33,7 @@ export const AsidePanel = ({
   novelData,
   follower,
   isCompleted,
+  isAuthor,
   followBtnRef,
   onFollow,
   onToggleFollow,
@@ -106,36 +108,37 @@ export const AsidePanel = ({
         </div>
 
         <div className="p-2.5 flex flex-col gap-3.5">
-          {!follower ? (
-            <Button
-              onClick={onFollow}
-              isLoading={loadingFollow}
-              aria-label="Theo dõi tiểu thuyết"
-              className={[gradientBtn, "text-[12px] px-3 py-1.5 mt-1.5"].join(
-                " "
-              )}
-            >
-              <span className="inline-flex items-center gap-1.5 leading-none">
-                <Pencil className="w-[15px] h-[15px]" />
-                Theo dõi
-              </span>
-            </Button>
-          ) : (
-            <div className="relative" ref={followBtnRef}>
+          {!isAuthor &&
+            (!follower ? (
               <Button
-                onClick={onToggleFollow}
-                isLoading={loadingUnfollow}
-                aria-label="Tùy chọn theo dõi"
-                className="w-full rounded-full text-[12px] px-3 py-1.5 transition border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
+                onClick={onFollow}
+                isLoading={loadingFollow}
+                aria-label="Theo dõi tiểu thuyết"
+                className={[gradientBtn, "text-[12px] px-3 py-1.5 mt-1.5"].join(
+                  " "
+                )}
               >
-                <span className="inline-flex items-center justify-center gap-1.5 leading-none">
-                  <Bell className="w-[15px] h-[15px]" />
-                  Đang theo dõi
-                  <ChevronDown className="w-[15px] h-[15px]" />
+                <span className="inline-flex items-center gap-1.5 leading-none">
+                  <Pencil className="w-[15px] h-[15px]" />
+                  Theo dõi
                 </span>
               </Button>
-            </div>
-          )}
+            ) : (
+              <div className="relative" ref={followBtnRef}>
+                <Button
+                  onClick={onToggleFollow}
+                  isLoading={loadingUnfollow}
+                  aria-label="Tùy chọn theo dõi"
+                  className="w-full rounded-full text-[12px] px-3 py-1.5 transition border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
+                >
+                  <span className="inline-flex items-center justify-center gap-1.5 leading-none">
+                    <Bell className="w-[15px] h-[15px]" />
+                    Đang theo dõi
+                    <ChevronDown className="w-[15px] h-[15px]" />
+                  </span>
+                </Button>
+              </div>
+            ))}
 
           {isCompleted && (
             <Button
