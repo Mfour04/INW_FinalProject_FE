@@ -158,11 +158,6 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
             </div>
           )}
         </div>
-
-        {/* helper note */}
-        <div className="rounded-2xl ring-1 p-4 bg-white ring-zinc-200 dark:bg-white/[0.02] dark:ring-white/10">
-          <p className="text-[12.5px] text-zinc-600 dark:text-white/70 leading-relaxed">{helperText}</p>
-        </div>
       </div>
     </section>
   );

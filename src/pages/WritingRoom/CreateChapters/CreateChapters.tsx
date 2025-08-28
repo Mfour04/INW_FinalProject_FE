@@ -272,39 +272,46 @@ export default function CreateChapters() {
                         </p>
                       </div>
 
+                     {!isDraft && (
                       <div className="ml-2 flex items-center gap-2">
                         {typeof chapter.price === "number" && chapter.price > 0 && (
                           <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
                             {chapter.price.toLocaleString("vi-VN")} xu
                           </span>
                         )}
-                        {!isDraft && (
-                          <button
-                            onClick={onEditClick}
-                            className={[
-                              "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
-                              "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
-                              "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
-                            ].join(" ")}
-                            title="Chỉnh sửa chương"
-                            aria-label="Chỉnh sửa chương"
-                          >
-                            <ModeEdit sx={{ width: 16, height: 16 }} />
-                          </button>
-                        )}
-                      </div>
+                        <button
+                          onClick={onEditClick}
+                          className={[
+                            "inline-flex h-8 w-8 items-center justify-center rounded-xl transition",
+                            "border border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-800",
+                            "dark:bg-white/[0.06] dark:border-white/14 dark:text-white/90 dark:hover:bg-white/[0.14]",
+                          ].join(" ")}
+                          title="Chỉnh sửa chương"
+                          aria-label="Chỉnh sửa chương"
+                        >
+                          <ModeEdit sx={{ width: 16, height: 16 }} />
+                        </button>
+                        </div>
+                      )}
 
                       {isDraft && (
-                        <span
-                          className={[
-                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[11px] font-semibold",
-                            "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300 shadow-sm",
-                            "dark:text-white dark:bg-gradient-to-r dark:from-[#6a6f78] dark:to-[#545b66] dark:ring-1 dark:ring-white/10 dark:shadow-md",
-                          ].join(" ")}
-                          title="Nháp"
-                        >
-                          Nháp
-                        </span>
+                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          {/* {typeof chapter.price === "number" && chapter.price > 0 && (
+                            <span className="rounded-full px-2 py-1 text-[11px] leading-none border bg-amber-100 text-amber-700 border-amber-300/60 dark:border-amber-300/35 dark:bg-amber-300/12 dark:text-amber-200">
+                              {chapter.price.toLocaleString("vi-VN")} xu
+                            </span>
+                          )} */}
+                          <span
+                            className={[
+                              "rounded-md px-2 py-1 text-[11px] font-semibold",
+                              "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300 shadow-sm",
+                              "dark:text-white dark:bg-gradient-to-r dark:from-[#6a6f78] dark:to-[#545b66] dark:ring-1 dark:ring-white/10 dark:shadow-md",
+                            ].join(" ")}
+                            title="Nháp"
+                          >
+                            Nháp
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import ArrowLeft02 from "../../../assets/svg/Novels/arrow-left-02-stroke-rounded.svg";
-import ArrowRight02 from "../../../assets/svg/Novels/arrow-right-02-stroke-rounded.svg";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
@@ -34,6 +33,7 @@ export const MiniPager = ({ totalPages, currentPage, onChange }: MiniPagerProps)
         role="group"
         aria-label="Phân trang"
       >
+        {/* Prev */}
         <button
           onClick={() => onChange(clamp(currentPage - 1, 1, totalPages))}
           disabled={currentPage === 1}
@@ -46,9 +46,10 @@ export const MiniPager = ({ totalPages, currentPage, onChange }: MiniPagerProps)
           title="Trang trước"
           aria-label="Trang trước"
         >
-          <img src={ArrowLeft02} alt="prev" />
+          <ChevronLeft className="w-4 h-4" />
         </button>
 
+        {/* Input */}
         <div className="inline-flex items-center gap-1.5 text-[12px] text-zinc-700 dark:text-white/85">
           <span className="hidden sm:inline">Trang</span>
           <input
@@ -75,6 +76,7 @@ export const MiniPager = ({ totalPages, currentPage, onChange }: MiniPagerProps)
           <span className="text-zinc-600 dark:text-white/60">/ {totalPages}</span>
         </div>
 
+        {/* Next */}
         <button
           onClick={() => onChange(clamp(currentPage + 1, 1, totalPages))}
           disabled={currentPage === totalPages}
@@ -87,7 +89,7 @@ export const MiniPager = ({ totalPages, currentPage, onChange }: MiniPagerProps)
           title="Trang sau"
           aria-label="Trang sau"
         >
-          <img src={ArrowRight02} alt="next" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
