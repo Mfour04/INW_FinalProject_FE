@@ -1,4 +1,4 @@
-import ArrowLeft02 from "../../../assets/svg/WritingRoom/arrow-left-02-stroke-rounded.svg";
+import { ArrowLeft, ChevronLeft } from "lucide-react"; // ⬅️ dùng lucide
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -23,13 +23,15 @@ import type {
 import { ModerationContent } from "../../../api/AI/ai.api";
 import { stripHtmlTags } from "../../../utils/regex";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
-import { ModerationModal } from "./ModerationModal";
 
 // new
 import { SaveStatus } from "./components/SaveStatus";
-import { Stepper } from "./components/Stepper"; // non-click version
+import { Stepper } from "./components/Stepper";
 import { StatusSummary } from "./components/StatusSummary";
 import { ticksToDate } from "../../../utils/date_format";
+import { ModerationReviewModal } from "./ModerationReviewModal";
+import { PrimaryButton } from "./components/PrimaryButton";
+import { SecondaryButton } from "./components/SecondaryButton";
 
 export type ChapterForm = CreateChapterRequest & UpdateChapterRequest;
 
@@ -62,18 +64,35 @@ const categoryMap: Record<string, string> = {
   "violence/graphic": "Bạo lực có yếu tố hình ảnh kinh hoàng",
 };
 
+// so sánh shallow các field quan trọng để biết có thay đổi không
+function isSameChapter(a: ChapterForm, b: ChapterForm) {
+  return (
+    a.novelId === b.novelId &&
+    a.title === b.title &&
+    a.content === b.content &&
+    a.isPaid === b.isPaid &&
+    a.price === b.price &&
+    a.isDraft === b.isDraft &&
+    a.isPublic === b.isPublic &&
+    a.chapterId === b.chapterId &&
+    a.chapterNumber === b.chapterNumber &&
+    (a.scheduledAt ?? null) === (b.scheduledAt ?? null)
+  );
+}
+
 export const UpsertChapter = () => {
   const [chapterForm, setChapterForm] =
     useState<ChapterForm>(initialChapterForm);
   const [currentForm, setCurrentForm] =
     useState<ChapterForm>(initialChapterForm);
-  const [isDraftChange, setIsDraftChange] = useState<boolean>(false);
+  const [isDraftChange, setIsDraftChange] = useState<boolean>(true);
   const [step, setStep] = useState<number>(1);
   const [confirmUpsertModal, setConfirmUpsertModal] = useState<boolean>(false);
   const [moderationData, setModerationData] =
     useState<ModerationAIResponse | null>(null);
   const [openModerationModal, setOpenModerationModal] = useState(false);
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
+  const [isPlagiarismCheck, setIsPlagiarismCheck] = useState<boolean>(false);
 
   const chapterFormRef = useRef(chapterForm);
 
@@ -119,9 +138,9 @@ export const UpsertChapter = () => {
       if (isUpdate) return UpdateChapter(request as UpdateChapterRequest);
       return CreateChapter(request as CreateChapterRequest);
     },
-    onSuccess: (data) => {
-      const chapter = data.data.data.chapter;
-      setChapterForm({
+    onSuccess: (resp) => {
+      const chapter = resp.data.data.chapter;
+      const filled: ChapterForm = {
         chapterId: chapter.chapterId,
         novelId: chapter.novelId,
         title: chapter.title,
@@ -131,28 +150,16 @@ export const UpsertChapter = () => {
         isPaid: chapter.isPaid,
         isPublic: chapter.isPublic,
         price: chapter.price,
-        scheduledAt: chapter.scheduledAt
-          ? ticksToDate(chapter.scheduledAt)
-          : null,
-      });
-      setCurrentForm({
-        chapterId: chapter.chapterId,
-        novelId: chapter.novelId,
-        title: chapter.title,
-        content: chapter.content,
-        chapterNumber: chapter.chapterNumber!,
-        isDraft: chapter.isDraft,
-        isPaid: chapter.isPaid,
-        isPublic: chapter.isPublic,
-        price: chapter.price,
-        scheduledAt: chapter.scheduledAt
-          ? ticksToDate(chapter.scheduledAt)
-          : null,
-      });
+        scheduledAt: chapter.scheduledAt ? ticksToDate(chapter.scheduledAt) : null,
+      };
+      setChapterForm(filled);
+      setCurrentForm(filled);
       if (!isUpdate) {
         setIsUpdate(true);
         toast?.onOpen("Tự động lưu bản nháp hiện tại.");
-      } else toast?.onOpen("Tự động lưu chỉnh sửa hiện tại.");
+      } else {
+        toast?.onOpen("Tự động lưu chỉnh sửa hiện tại.");
+      }
     },
   });
 
@@ -167,22 +174,25 @@ export const UpsertChapter = () => {
         setModerationData({ flagged: true, sensitive: mapped });
         setOpenModerationModal(true);
       } else {
-        handleConfirmUpsert();
+        setStep((s) => Math.min(3, s + 1));
       }
     },
   });
 
   const handleNextStep = () => setStep((s) => Math.min(3, s + 1));
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
-  const handleUpsertButtonClick = () => {
-    const rawContent = stripHtmlTags(chapterForm.content);
-    ModerationMutation.mutate({ content: rawContent });
-  };
+  const handleUpsertButtonClick = () => setConfirmUpsertModal(true);
+
   const handleConfirmUpsert = () => {
     if (isUpdate)
       updateChapterMutation.mutate(chapterForm as UpdateChapterRequest);
     else createChapterMutation.mutate(chapterForm as CreateChapterRequest);
     setConfirmUpsertModal(false);
+  };
+
+  const handleModerationCheck = () => {
+    const rawContent = stripHtmlTags(chapterForm.content);
+    ModerationMutation.mutate({ content: rawContent });
   };
 
   const content = useMemo(() => {
@@ -193,7 +203,11 @@ export const UpsertChapter = () => {
         );
       case 2:
         return (
-          <Content chapterForm={chapterForm} setChapterForm={setChapterForm} />
+          <Content
+            chapterForm={chapterForm}
+            setChapterForm={setChapterForm}
+            setIsCheck={setIsPlagiarismCheck}
+          />
         );
       case 3:
         return (
@@ -202,8 +216,10 @@ export const UpsertChapter = () => {
             setChapterForm={setChapterForm}
           />
         );
+      default:
+        return null;
     }
-  }, [step, chapterForm, setChapterForm]);
+  }, [step, chapterForm]);
 
   useEffect(() => {
     if (novelId) setChapterForm((prev) => ({ ...prev, novelId }));
@@ -212,7 +228,7 @@ export const UpsertChapter = () => {
   useEffect(() => {
     if (data) {
       setIsUpdate(true);
-      setChapterForm({
+      const filled: ChapterForm = {
         chapterId: chapterId!,
         novelId: data.chapter.novelId,
         title: data.chapter.title,
@@ -223,70 +239,86 @@ export const UpsertChapter = () => {
         isPublic: data.chapter.isPublic,
         price: data.chapter.price,
         scheduledAt: data.chapter.scheduledAt,
-      });
-      setCurrentForm({
-        chapterId: chapterId!,
-        novelId: data.chapter.novelId,
-        title: data.chapter.title,
-        content: data.chapter.content,
-        chapterNumber: data.chapter.chapterNumber,
-        isDraft: data.chapter.isDraft,
-        isPaid: data.chapter.isPaid,
-        isPublic: data.chapter.isPublic,
-        price: data.chapter.price,
-        scheduledAt: data.chapter.scheduledAt,
-      });
+      };
+      setChapterForm(filled);
+      setCurrentForm(filled);
     }
   }, [data, chapterId]);
 
   useEffect(() => {
-    setIsDraftChange(chapterForm === currentForm);
+    // true = đã lưu (không thay đổi), false = có thay đổi nháp
+    setIsDraftChange(isSameChapter(chapterForm, currentForm));
   }, [chapterForm, currentForm]);
 
   useEffect(() => {
     chapterFormRef.current = chapterForm;
   }, [chapterForm]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      const currentForm = chapterFormRef.current;
-      if (currentForm.title || currentForm.content) {
-        autoSaveMutation.mutate(currentForm);
-      }
-    }, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, [isUpdate, autoSaveMutation]);
+  // Auto-save mẫu (đã comment sẵn)
+  // useEffect(() => {
+  //   const id = setInterval(() => {
+  //     const cf = chapterFormRef.current;
+  //     if (cf.title || cf.content) autoSaveMutation.mutate(cf);
+  //   }, 5 * 60 * 1000);
+  //   return () => clearInterval(id);
+  // }, [isUpdate, autoSaveMutation]);
 
   return (
-    <div
-      className="min-h-screen bg-[#0b0c10] text-white"
-      style={{
-        backgroundImage:
-          "radial-gradient(1200px 700px at 10% -10%, rgba(255,103,64,0.08), transparent 45%), radial-gradient(1000px 600px at 110% 0%, rgba(255,153,102,0.06), transparent 46%)",
-      }}
-    >
+    <div className="min-h-screen bg-white text-zinc-900 dark:bg-[#0b0c10] dark:text-white">
+      {/* overlay light / dark */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        {/* light */}
+        <div
+          className="absolute inset-0 opacity-60 dark:opacity-0 transition-opacity"
+          style={{
+            backgroundImage:
+              "radial-gradient(1200px 700px at 10% -10%, rgba(255,103,64,0.08), transparent 45%), radial-gradient(1000px 600px at 110% 0%, rgba(255,153,102,0.06), transparent 46%)",
+          }}
+        />
+        {/* dark */}
+        <div
+          className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity"
+          style={{
+            backgroundImage:
+              "radial-gradient(1200px 700px at 10% -10%, rgba(255,103,64,0.08), transparent 45%), radial-gradient(1000px 600px at 110% 0%, rgba(255,153,102,0.06), transparent 46%)",
+          }}
+        />
+      </div>
+
       <div className="max-w-6xl mx-auto py-4">
-        {/* Header */}
+        {/* Header card */}
         <div className="flex top-0 z-20 mb-10">
-          <div className="w-full rounded-2xl backdrop-blur-md shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)] overflow-hidden">
-            <div className="relative py-3">
+          <div
+            className={[
+              "w-full rounded-2xl overflow-hidden",
+              // light
+              "bg-white ring-1 ring-zinc-200 shadow-sm",
+              // dark
+              "dark:backdrop-blur-md dark:bg-white/[0.04] dark:ring-1 dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]",
+            ].join(" ")}
+          >
+            <div className="relative py-3 px-3 md:px-4">
               <div className="flex items-center justify-between">
-                {/* Trái */}
                 <div className="flex items-center gap-4 md:gap-6">
                   <button
                     onClick={() => navigate(-1)}
-                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] 
-                              ring-1 ring-white/10 hover:bg-white/[0.12] transition"
+                    className={[
+                      "h-9 w-9 grid place-items-center rounded-lg ring-1 transition",
+                      // light
+                      "bg-zinc-100 ring-zinc-200 hover:bg-zinc-200/80",
+                      // dark
+                      "dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]",
+                    ].join(" ")}
                     title="Quay lại"
                     aria-label="Quay lại"
                   >
-                    <img src={ArrowLeft02} className="h-4 w-4" />
+                    <ArrowLeft className="h-4 w-4" />
                   </button>
                   <div className="flex flex-col">
                     <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
                       {isUpdate ? "Chỉnh sửa chương" : "Tạo chương mới"}
                     </div>
-                    <div className="text-white/60 text-[12.5px]">
+                    <div className="text-zinc-600 dark:text-white/60 text-[12.5px]">
                       {chapterForm.title?.trim()
                         ? chapterForm.title
                         : "Chưa đặt tiêu đề"}
@@ -294,17 +326,7 @@ export const UpsertChapter = () => {
                   </div>
                 </div>
 
-                {/* Phải */}
                 <div className="flex items-center gap-3">
-                  {/* <button
-                    onClick={() => refetch()}
-                    className="h-9 w-9 grid place-items-center rounded-lg bg-white/[0.06] 
-                              ring-1 ring-white/10 hover:bg-white/[0.12] transition"
-                    title="Làm mới"
-                    aria-label="Làm mới"
-                  >
-                    <span className="i-lucide-rotate-ccw h-4 w-4" />
-                  </button> */}
                   <SaveStatus
                     loading={
                       autoSaveMutation.isPending ||
@@ -329,26 +351,47 @@ export const UpsertChapter = () => {
             2xl:grid-cols-[300px_minmax(0,1fr)]
           "
         >
-          {/* Sidebar: Stepper + Status Summary */}
           <aside className="space-y-6">
-            <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.04] p-3 md:p-4">
+            <div
+              className={[
+                "rounded-2xl p-3 md:p-4",
+                // light
+                "bg-white ring-1 ring-zinc-200 shadow-sm",
+                // dark
+                "dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none",
+              ].join(" ")}
+            >
               <Stepper current={step} />
             </div>
-            <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.04] p-3 md:p-4">
+            <div
+              className={[
+                "rounded-2xl p-3 md:p-4",
+                // light
+                "bg-white ring-1 ring-zinc-200 shadow-sm",
+                // dark
+                "dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none",
+              ].join(" ")}
+            >
               <StatusSummary chapterForm={chapterForm} />
             </div>
           </aside>
 
-          {/* Main content + per-step actions */}
           <main className="space-y-6">
-            <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.04] p-4 md:p-5">
+            <div
+              className={[
+                "rounded-2xl p-4 md:p-5",
+                // light
+                "bg-white ring-1 ring-zinc-200 shadow-sm",
+                // dark
+                "dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none",
+              ].join(" ")}
+            >
               {content}
 
-              {/* Actions ngay dưới mỗi step */}
               <div className="mt-4 flex items-center justify-between px-2">
                 {step > 1 ? (
                   <SecondaryButton onClick={handlePrevStep}>
-                    <ChevronLeftMini />
+                    <ChevronLeft className="h-4 w-4" />
                     <span>Quay lại</span>
                   </SecondaryButton>
                 ) : (
@@ -356,9 +399,21 @@ export const UpsertChapter = () => {
                 )}
 
                 {step < 3 ? (
-                  <PrimaryButton onClick={handleNextStep}>
-                    Tiếp theo
-                  </PrimaryButton>
+                  step === 2 ? (
+                    <PrimaryButton
+                      onClick={handleModerationCheck}
+                      loading={ModerationMutation.isPending}
+                      disabled={!isPlagiarismCheck}
+                    >
+                      {ModerationMutation.isPending
+                        ? "Đang kiểm duyệt"
+                        : "Kiểm duyệt"}
+                    </PrimaryButton>
+                  ) : (
+                    <PrimaryButton onClick={handleNextStep}>
+                      Tiếp theo
+                    </PrimaryButton>
+                  )
                 ) : (
                   <PrimaryButton
                     onClick={handleUpsertButtonClick}
@@ -380,112 +435,15 @@ export const UpsertChapter = () => {
         onCancel={() => setConfirmUpsertModal(false)}
         onConfirm={handleConfirmUpsert}
       />
-      <ModerationModal
+      <ModerationReviewModal
         open={openModerationModal}
         onClose={() => {
           setOpenModerationModal(false);
           setModerationData(null);
         }}
-        onConfirm={handleConfirmUpsert}
+        onContinue={() => setStep((s) => Math.min(3, s + 1))}
         data={moderationData}
       />
     </div>
   );
 };
-
-/* ================= UI buttons (tự tạo, nhỏ gọn) ================ */
-function PrimaryButton({
-  children,
-  onClick,
-  disabled,
-  loading,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={[
-        "inline-flex items-center justify-center gap-2 h-8 px-4",
-        "rounded-full text-[14px] font-semibold",
-        "text-white ring-1 ring-white/10 shadow-sm shadow-black/10",
-        "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]",
-        disabled || loading
-          ? "opacity-70 cursor-not-allowed"
-          : "hover:brightness-110 active:brightness-95",
-        "transition",
-      ].join(" ")}
-    >
-      {loading && (
-        <svg
-          className="animate-spin h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden
-        >
-          <circle
-            className="opacity-30"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            d="M22 12a10 10 0 0 1-10 10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-        </svg>
-      )}
-      <span className="whitespace-nowrap">{children}</span>
-    </button>
-  );
-}
-
-function SecondaryButton({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={[
-        "rounded-full text-[14px] font-semibold",
-        "inline-flex items-center justify-center gap-2 h-8 px-4",
-        "bg-white/10 hover:bg-white/18",
-        "ring-1 ring-white/12 text-white/90",
-        disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
-        "transition",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ChevronLeftMini() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}

@@ -1,3 +1,4 @@
+import type { NoneDataApiResponse } from "../../entity/response";
 import http from "../../utils/http";
 import type {
   BuyChapterApiResponse,
@@ -44,3 +45,6 @@ export const UpdateChapterLock = (request: UpdateChapterLockRequest) =>
     `Chapters/update-lock-chapters`,
     request
   );
+
+export const DeleteChapter = (id: string) =>
+  http.privateHttp.delete<NoneDataApiResponse>(`Chapters/${id}`);

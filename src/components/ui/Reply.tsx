@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import avatarImage from "../../../assets/img/default_avt.png";
-import { getAvatarUrl } from "../../../utils/avatar";
+import avatarImage from "../../assets/img/default_avt.png";
 import { Smile, SendHorizontal } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox";
 
@@ -25,7 +24,7 @@ export const Reply = ({
 }: ReplyProps) => {
   const name = currentUser.name || "Người dùng";
   const user = currentUser.user || "@anonymous";
-  const avatarSrc = getAvatarUrl(currentUser.avatarUrl);
+  const avatarSrc = currentUser.avatarUrl || avatarImage;
 
   const len = replyValue.length;
   const disabled = replyValue.trim().length === 0;
@@ -80,34 +79,31 @@ export const Reply = ({
       <img
         src={avatarSrc}
         alt={name}
-        className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10 select-none"
+        className="h-8 w-8 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10 select-none"
       />
       <form className="flex-1" onSubmit={handleSubmit}>
         <div
           className={[
             "rounded-xl p-2.5 transition-all",
-            // light / dark background
-            "bg-white text-gray-900 ring-1 ring-gray-200 shadow-[0_8px_26px_-18px_rgba(0,0,0,0.12)]",
-            "dark:bg-[rgba(14,16,22,0.75)] dark:text-white dark:ring-white/10 dark:backdrop-blur-md dark:shadow-none",
-            // focus styles
+            // Light
+            "bg-white ring-1 ring-zinc-200 shadow-sm",
+            // Dark
+            "dark:bg-[rgba(14,16,22,0.75)] dark:backdrop-blur-md dark:ring-white/10",
             focused
-              ? "ring-gray-300 dark:ring-white/25 dark:shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]"
-              : "",
+              ? "ring-zinc-300 dark:ring-white/25 shadow-[0_12px_24px_-18px_rgba(0,0,0,0.25)] dark:shadow-[0_12px_36px_-18px_rgba(255,255,255,0.25)]"
+              : "shadow-none",
           ].join(" ")}
         >
           <div className="px-2 mb-1 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[14px]">{name}</span>
-              <span className="text-xs text-gray-500 dark:text-white/45">
-                {user}
-              </span>
+              <span className="font-semibold text-[14px] text-zinc-900 dark:text-white">{name}</span>
+              <span className="text-xs text-zinc-500 dark:text-white/45">{user}</span>
             </div>
             <span
               className={[
                 "text-[11px] tabular-nums transition-opacity",
-                len > MAX_CHARS - 30
-                  ? "text-gray-900 dark:text-white"
-                  : "text-gray-600 dark:text-white/70",
+                "text-zinc-500 dark:text-white/70",
+                len > MAX_CHARS - 30 ? "text-zinc-900 dark:text-white" : "",
                 focused || len > MAX_CHARS - 30 ? "opacity-100" : "opacity-0",
               ].join(" ")}
             >
@@ -115,9 +111,11 @@ export const Reply = ({
             </span>
           </div>
 
+          {/* Divider */}
           <div className="px-2">
-            <div className="h-px w-full bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5" />
-            <div className="-mt-px h-px w-full bg-black/5 opacity-50 dark:bg-black/30 dark:opacity-40" />
+            <div className="h-px w-full bg-zinc-200 dark:bg-transparent" />
+            <div className="-mt-px h-px w-full hidden dark:block bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
+            <div className="-mt-px h-px w-full hidden dark:block bg-black/40 opacity-60" />
           </div>
 
           <div className="px-2 pt-6">
@@ -142,14 +140,14 @@ export const Reply = ({
                   handleSubmit();
                 }
               }}
-              className="w-full min-w-[260px] bg-transparent text-[14px] leading-5 focus:outline-none resize-none placeholder:text-gray-500 dark:placeholder:text-white/45 text-gray-900 dark:text-white"
+              className="w-full min-w-[260px] bg-transparent text-[14px] leading-5 focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-white/45 resize-none text-zinc-900 dark:text-white"
             />
           </div>
 
-          {/* Hairline đôi – light/dark */}
           <div className="px-2 mt-2">
-            <div className="h-px w-full bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5" />
-            <div className="-mt-px h-px w-full bg-black/3 opacity-30 dark:bg-black/30 dark:opacity-40" />
+            <div className="h-px w-full bg-zinc-200 dark:bg-transparent" />
+            <div className="-mt-px h-px w-full hidden dark:block bg-gradient-to-r from-white/5 via-white/15 to-white/5" />
+            <div className="-mt-px h-px w-full hidden dark:block bg-black/40 opacity-60" />
           </div>
 
           <div className="px-2 pt-2 flex items-center justify-between relative">
@@ -163,19 +161,19 @@ export const Reply = ({
                 setEmojiOpen((v) => !v);
               }}
               className={[
-                "inline-grid place-items-center h-8 w-8 rounded-xl transition focus:outline-none",
-                "ring-1 bg-gray-100 hover:bg-gray-200 ring-gray-200",
-                "dark:ring-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:focus:ring-2 dark:focus:ring-white/25",
+                "inline-grid place-items-center h-8 w-8 rounded-xl transition focus:outline-none focus:ring-2",
+                // Light
+                "bg-zinc-50 ring-1 ring-zinc-200 hover:bg-zinc-100 focus:ring-zinc-300",
+                // Dark
+                "dark:bg-white/[0.03] dark:ring-white/10 dark:hover:bg-white/[0.06] dark:focus:ring-white/25",
               ].join(" ")}
             >
-              <Smile className="h-4 w-4 text-gray-700 dark:text-white" />
+              <Smile className="h-4 w-4 text-zinc-700 dark:text-white" />
             </button>
 
             <EmojiPickerBox
               open={emojiOpen}
-              onPick={(e) => {
-                pickEmoji(e);
-              }}
+              onPick={pickEmoji}
               anchorRef={emojiBtnRef}
               align="left"
               placement="top"
@@ -187,7 +185,7 @@ export const Reply = ({
               disabled={disabled}
               aria-disabled={disabled}
               className={[
-                "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-white shadow-sm shadow-black/10",
+                "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-white shadow-sm",
                 "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]",
                 disabled
                   ? "opacity-60 cursor-not-allowed"

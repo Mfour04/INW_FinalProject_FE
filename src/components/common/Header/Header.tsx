@@ -12,21 +12,25 @@ import {
 import { createPortal } from "react-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import { Bell, X, Search, ListFilter } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   SORT_BY_FIELDS,
   SORT_DIRECTIONS,
 } from "../../../pages/Home/hooks/useSortedNovels";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
-import { GetUserNotifications } from "../../../api/Notification/noti.api";
+import {
+  GetUserNotifications,
+  ReadNotification,
+} from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
 import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useNavigate } from "react-router-dom";
-import  AuthModal  from "./AuthModal";
+import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
+import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
 
 type HeaderProps = {
   onToggleSidebar: () => void;
@@ -128,8 +132,15 @@ export const Header = ({
 
   const { notifications } = useNotification();
   const { data: userNotifications, refetch: notificationsRefetch } = useQuery({
-    queryKey: ["userNotifications"],
+    queryKey: ["userNotifications", auth?.user.userId],
     queryFn: () => GetUserNotifications().then((res) => res.data.data),
+    enabled: !!auth?.accessToken,
+  });
+
+  const NotificationMutation = useMutation({
+    mutationFn: async (request: ReadNotificationReq) =>
+      await ReadNotification(request),
+    onSuccess: () => notificationsRefetch(),
   });
 
   const handleSearchNovels = useCallback(() => {
@@ -143,9 +154,16 @@ export const Header = ({
     navigate(`/novels?${params.toString()}`);
   }, [searchTerm, selectedSort, selectedTag, navigate]);
 
+  const handleClickNotification = async (id: string) => {
+    await NotificationMutation.mutate({
+      notificationIds: [id],
+    });
+    setIsNotificationOpen(false);
+  };
+
   useEffect(() => {
     if (notifications[0]) {
-      toast?.onOpen("Tác giả vừa đăng chương mới");
+      toast?.onOpen(notifications[0].message);
       notificationsRefetch();
     }
   }, [notifications, toast, notificationsRefetch]);
@@ -248,7 +266,7 @@ export const Header = ({
           open={isNotificationOpen}
           notifications={userNotifications}
           onClose={() => setIsNotificationOpen(false)}
-          onItemClick={() => setIsNotificationOpen(false)}
+          onItemClick={handleClickNotification}
         />
       </PortalLayer>
 

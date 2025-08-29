@@ -34,6 +34,7 @@ const initialNovelRatingRequest: CreateNovelRatingRequest = {
 
 export type RatingSectionProps = {
   novelInfo: Novel;
+  isAuthor: boolean;
 };
 
 const Hairline = () => (
@@ -43,7 +44,7 @@ const Hairline = () => (
   </div>
 );
 
-const RatingSection = ({ novelInfo }: RatingSectionProps) => {
+const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
   const [ratingRequest, setRatingRequest] = useState<CreateNovelRatingRequest>(
     initialNovelRatingRequest
   );
@@ -341,12 +342,14 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <StarIcon
                         key={star}
-                        className={`w-4 h-4 cursor-pointer transition-all ${(hoverRating || ratingRequest.score) >= star
+                        className={`w-4 h-4 cursor-pointer transition-all ${
+                          (hoverRating || ratingRequest.score) >= star
                             ? "text-yellow-400 fill-yellow-400 scale-110"
                             : "text-gray-300 fill-gray-300"
-                          }`}
+                        }`}
                         fill="currentColor"
                         onClick={() =>
+                          !isAuthor &&
                           setRatingRequest((prev) => ({
                             ...prev,
                             score: star,
@@ -377,6 +380,7 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
               >
                 <textarea
                   value={(ratingRequest.content ?? "").slice(0, MAX_LEN)}
+                  disabled={isAuthor}
                   onChange={(e) => {
                     const next = e.target.value.slice(0, MAX_LEN);
                     setRatingRequest((prev) => ({ ...prev, content: next }));
@@ -393,23 +397,25 @@ const RatingSection = ({ novelInfo }: RatingSectionProps) => {
               </div>
 
               <div className="mt-3 flex justify-end">
-                <Button
-                  onClick={handleSendReview}
-                  isLoading={
-                    CreateNovelRatingMutation.isPending ||
-                    UpdateNovelRatingMutation.isPending
-                  }
-                  className={[
-                    "relative rounded-full border-none text-white font-semibold",
-                    "text-[12px] px-3.5 py-1.5",
-                    "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
-                    "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
-                    "shadow-[0_10px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_10px_24px_rgba(255,255,255,0.18)]",
-                    "transition-colors duration-300",
-                  ].join(" ")}
-                >
-                  {myRating ? `Cập nhật` : `Gửi đánh giá`}
-                </Button>
+                {!isAuthor && (
+                  <Button
+                    onClick={handleSendReview}
+                    isLoading={
+                      CreateNovelRatingMutation.isPending ||
+                      UpdateNovelRatingMutation.isPending
+                    }
+                    className={[
+                      "relative rounded-full border-none text-white font-semibold",
+                      "text-[12px] px-3.5 py-1.5",
+                      "!bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966]",
+                      "hover:from-[#ff6a3d] hover:via-[#ff6740] hover:to-[#ffa177]",
+                      "shadow-[0_10px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_10px_24px_rgba(255,255,255,0.18)]",
+                      "transition-colors duration-300",
+                    ].join(" ")}
+                  >
+                    {myRating ? `Cập nhật` : `Gửi đánh giá`}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

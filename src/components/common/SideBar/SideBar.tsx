@@ -47,7 +47,7 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     },
     {
       label: "Tiểu thuyết",
-      path: "/",
+      path: "/undefined",
       isHeader: true,
       subItems: [
         { label: "Khám phá", path: "/novels" },
@@ -79,7 +79,6 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
       m.subItems?.some((s) => pathname.startsWith(s.path))
     );
     setOpenMenu(parent ? parent.path : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const isMobile =
@@ -134,11 +133,11 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
                 transition={{ duration: 0.22 }}
                 className="min-h-[40px] w-full overflow-hidden flex items-center"
               >
-               <img
-                src={logo}
-                alt="InkWave"
-                className="h-[30px] w-[90px] object-fit"
-              />
+                <img
+                  src={logo}
+                  alt="InkWave"
+                  className="h-[30px] w-[90px] object-fit"
+                />
               </motion.div>
               <motion.button
                 key="close"

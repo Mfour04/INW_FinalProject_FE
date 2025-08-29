@@ -73,7 +73,7 @@ export const UnlikeBlogPost = (postId: string) =>
 export const DeleteBlogPost = (postId: string) =>
     http.privateHttp.delete(`forums/posts/${postId}`);
 
-export const UpdateBlogPost = (postId: string, data: CreateBlogPostRequest) => {
+export const UpdateBlogPost = (postId: string, data: { content: string }) => {
     return http.privateHttp.put<CreateBlogPostResponse>(`forums/posts/${postId}`, {
         content: data.content
     });

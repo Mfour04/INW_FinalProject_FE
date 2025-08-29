@@ -8,7 +8,6 @@ import { NovelsExplore } from "../pages/NovelsExplore/NovelsExplore";
 import { LoginNeeded } from "../pages/LoginNeeded";
 import { WritingRoom } from "../pages/WritingRoom/WritingRoom";
 import { NovelDetail } from "../pages/Chapters/NovelDetail";
-import CreateChapters from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 import { Blogs } from "../pages/Blogs/Blogs";
@@ -23,20 +22,24 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
-import { UserProfile } from "../pages/userProfile/UserProfile";
-import { TestUserProfile } from "../pages/userProfile/TestUserProfile";
+import { UserProfile } from "../pages/UserProfile/UserProfile";
+import { TestUserProfile } from "../pages/UserProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
 import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
+import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
+import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
+import { AuthCallback } from "../components/common/Header/AuthCallBack";
 
 export const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/following"
         element={<ProtectedRoutes role={[Roles.User]} />}
@@ -71,7 +74,6 @@ export const Router = () => {
         <Route path="reports" element={<ReportList />} />
         <Route path="wallets" element={<RequestList />} />
       </Route>
-      {/* <Route path="/novelRead" element={<NovelRead />} /> */}
       <Route path="/deposite" element={<Deposite />} />
       <Route path="/transaction-history" element={<TransactionHistory />} />
       <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>

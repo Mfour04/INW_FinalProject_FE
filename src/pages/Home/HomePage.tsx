@@ -140,7 +140,9 @@ export const HomePage = () => {
     }
   }, [auth]);
 
-  const trending = (trendingData as Novel[]) ?? [];
+  const trending = ((trendingData as Novel[]) ?? []).filter(
+    (novel) => novel.isPublic
+  );
   const hero = trending[nNovelsIndex];
 
   return (
@@ -210,10 +212,12 @@ export const HomePage = () => {
 
           <HorizontalRail
             title="Xu hướng mới"
-            icon={<TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white"/>}
+            icon={
+              <TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white" />
+            }
             items={trending}
             onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            onSeeMore={() => navigate("/trending")}
+            onSeeMore={() => navigate("/novels")}
           />
         </div>
 
