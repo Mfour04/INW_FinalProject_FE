@@ -17,7 +17,6 @@ import { useQuery } from "@tanstack/react-query";
 import { GetHomeDashboard } from "../../api/Admin/Home/home.api";
 import { GetReports } from "../../api/Admin/Report/report.api";
 import { GetPendingWithdrawRequests } from "../../api/Admin/Request/request.api";
-import { ReportStatus } from "../../api/Admin/Report/report.type";
 import { PaymentStatus } from "../../api/Admin/Request/request.type";
 import { useDarkMode } from "../../context/ThemeContext/ThemeContext";
 
@@ -83,17 +82,20 @@ const AdminHome = () => {
     },
   };
 
-  // Fetch dashboard data
-  const {
-    data: dashboardData,
-    isLoading: isLoadingDashboard,
-    error: dashboardError,
-  } = useQuery({
+  const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery({
     queryKey: ["HomeDashboard"],
     queryFn: () => GetHomeDashboard().then((res) => res.data),
   });
 
-  // Fetch pending withdrawal requests data
+  const { data: reportsData, isLoading: reportLoading } = useQuery({
+    queryKey: ["ReportsAdminHome"],
+    queryFn: () => GetReports().then((res) => res.data.data),
+  });
+
+  const reports = reportsData?.reports ?? [];
+
+  const pendingReports = reports.filter((report) => report.status === 0).length;
+
   const {
     data: requestsData,
     isLoading: isLoadingRequests,
@@ -217,13 +219,17 @@ const AdminHome = () => {
           <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
             <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.18),transparent_70%)]" />
             <div className="p-5 relative">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">Người dùng</div>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Người dùng
+              </div>
               <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
                 {isLoadingDashboard ? "…" : dashboardData?.data.totalUsers ?? 0}
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                 Mới hôm nay:{" "}
-                {isLoadingDashboard ? "…" : dashboardData?.data.newUsersToday ?? 0}
+                {isLoadingDashboard
+                  ? "…"
+                  : dashboardData?.data.newUsersToday ?? 0}
               </div>
             </div>
           </div>
@@ -234,9 +240,13 @@ const AdminHome = () => {
           <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
             <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.14),transparent_70%)]" />
             <div className="p-5 relative">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">Tiểu thuyết</div>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Tiểu thuyết
+              </div>
               <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
-                {isLoadingDashboard ? "…" : dashboardData?.data.totalNovels ?? 0}
+                {isLoadingDashboard
+                  ? "…"
+                  : dashboardData?.data.totalNovels ?? 0}
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                 Mới hôm nay: {isLoadingDashboard ? "…" : newNovelsToday ?? 0}
@@ -250,9 +260,24 @@ const AdminHome = () => {
           <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
             <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.10),transparent_70%)]" />
             <div className="p-5 relative">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">Báo cáo</div>
-              <div className="mt-1 h-8 w-24 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
-              <div className="mt-1 h-4 w-32 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Báo cáo
+              </div>
+              {!reportLoading ? (
+                <>
+                  <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
+                    {(reports ?? []).length}
+                  </div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Chưa xử lý: {pendingReports}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-1 h-8 w-24 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+                  <div className="mt-1 h-4 w-32 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+                </>
+              )}
             </div>
           </div>
         </Link>
@@ -262,9 +287,15 @@ const AdminHome = () => {
           <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
             <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.12),transparent_70%)]" />
             <div className="p-5 relative">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">Yêu cầu</div>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Yêu cầu
+              </div>
               <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
-                {isLoadingRequests ? "…" : requestsError ? "Error" : `${totalRequests}`}
+                {isLoadingRequests
+                  ? "…"
+                  : requestsError
+                  ? "Error"
+                  : `${totalRequests}`}
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                 Chưa xử lý: {isLoadingRequests ? "…" : pendingRequests ?? 0}
@@ -278,26 +309,38 @@ const AdminHome = () => {
       <div className="space-y-6 lg:space-y-8">
         <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm">
           <div className="px-5 pt-5">
-            <h2 className="text-lg font-semibold">Người dùng mới (Tuần hiện tại)</h2>
+            <h2 className="text-lg font-semibold">
+              Người dùng mới (Tuần hiện tại)
+            </h2>
           </div>
           <div className="h-[320px] sm:h-[360px] p-5">
             {isLoadingDashboard ? (
               <div className="h-full rounded-xl bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
             ) : (
-              <Line ref={chartRefs.line} data={userChartData} options={chartOptions} />
+              <Line
+                ref={chartRefs.line}
+                data={userChartData}
+                options={chartOptions}
+              />
             )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm">
           <div className="px-5 pt-5">
-            <h2 className="text-lg font-semibold">Tiểu thuyết mới (Tuần hiện tại)</h2>
+            <h2 className="text-lg font-semibold">
+              Tiểu thuyết mới (Tuần hiện tại)
+            </h2>
           </div>
           <div className="h-[320px] sm:h-[360px] p-5">
             {isLoadingDashboard ? (
               <div className="h-full rounded-xl bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
             ) : (
-              <Bar ref={chartRefs.bar} data={novelChartData} options={chartOptions} />
+              <Bar
+                ref={chartRefs.bar}
+                data={novelChartData}
+                options={chartOptions}
+              />
             )}
           </div>
         </div>

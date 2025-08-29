@@ -27,6 +27,7 @@ interface DataTableProps<T> {
   type: "novel" | "user";
   onOpenChapterPopup?: (novelId: string) => void;
   onLockUnlockNovel?: (novelId: string, isLock: boolean) => void;
+  onDetailUser?: (user: User) => void;
   onLockUnlockUser?: (userId: string, isBanned: boolean) => void;
 }
 
@@ -35,7 +36,13 @@ const COLS_USER = [26, 10, 10, 8, 15, 16, 15];
 const COLS_NOVEL = [22, 16, 10, 8, 8, 10, 10, 10, 16];
 
 /** Ô mũi tên cố định 12px để không rung cột */
-const SortArrow = ({ active, dir }: { active: boolean; dir: "asc" | "desc" }) => (
+const SortArrow = ({
+  active,
+  dir,
+}: {
+  active: boolean;
+  dir: "asc" | "desc";
+}) => (
   <span className="inline-block w-3 text-center align-middle select-none">
     {active ? (dir === "asc" ? "↑" : "↓") : " "}
   </span>
@@ -49,31 +56,72 @@ const DataTable = <T extends NovelAdmin | User>({
   onOpenChapterPopup,
   onLockUnlockNovel,
   onLockUnlockUser,
+  onDetailUser,
 }: DataTableProps<T>) => {
   const { darkMode } = useDarkMode();
 
-  // Giữ sort CHỈ ở Username, Thời hạn, Ngày tạo (User) và Ngày tạo (Novel)
   const headers: HeaderDef[] =
     type === "novel"
       ? [
-          { key: "Title",       label: "Tên truyện",  sortable: false },
-          { key: "AuthorName",  label: "Tác giả",     sortable: false },
-          { key: "Status",      label: "Trạng thái",  sortable: false },
-          { key: "IsPublic",    label: "Công khai",   sortable: false, center: true },
-          { key: "IsLock",      label: "Khóa",        sortable: false, center: true },
-          { key: "TotalViews",  label: "Lượt xem",    sortable: false, center: true },
-          { key: "RatingAvg",   label: "Đánh giá",    sortable: false, center: true },
-          { key: "CreateAt",    sortKey: "CreateAt",  label: "Ngày tạo",  sortable: true },
-          { key: "Actions",     label: "Hành động",   sortable: false, center: true },
+          { key: "Title", label: "Tên truyện", sortable: false },
+          { key: "AuthorName", label: "Tác giả", sortable: false },
+          { key: "Status", label: "Trạng thái", sortable: false },
+          {
+            key: "IsPublic",
+            label: "Công khai",
+            sortable: false,
+            center: true,
+          },
+          { key: "IsLock", label: "Khóa", sortable: false, center: true },
+          {
+            key: "TotalViews",
+            label: "Lượt xem",
+            sortable: false,
+            center: true,
+          },
+          {
+            key: "RatingAvg",
+            label: "Đánh giá",
+            sortable: false,
+            center: true,
+          },
+          {
+            key: "CreateAt",
+            sortKey: "CreateAt",
+            label: "Ngày tạo",
+            sortable: true,
+          },
+          { key: "Actions", label: "Hành động", sortable: false, center: true },
         ]
       : [
-          { key: "userName",     sortKey: "userName",    label: "Username",  sortable: true },
-          { key: "role",         label: "Vai trò",       sortable: false },
-          { key: "isVerified",   label: "Xác thực",      sortable: false, center: true },
-          { key: "isBanned",     label: "Khóa",          sortable: false, center: true },
-          { key: "bannedUntil",  sortKey: "bannedUntil", label: "Thời hạn",  sortable: true, center: true },
-          { key: "createdAt",    sortKey: "createdAt",   label: "Ngày tạo",  sortable: true },
-          { key: "Actions",      label: "Hành động",     sortable: false, center: true },
+          {
+            key: "userName",
+            sortKey: "userName",
+            label: "Username",
+            sortable: true,
+          },
+          { key: "role", label: "Vai trò", sortable: false },
+          {
+            key: "isVerified",
+            label: "Xác thực",
+            sortable: false,
+            center: true,
+          },
+          { key: "isBanned", label: "Khóa", sortable: false, center: true },
+          {
+            key: "bannedUntil",
+            sortKey: "bannedUntil",
+            label: "Thời hạn",
+            sortable: true,
+            center: true,
+          },
+          {
+            key: "createdAt",
+            sortKey: "createdAt",
+            label: "Ngày tạo",
+            sortable: true,
+          },
+          { key: "Actions", label: "Hành động", sortable: false, center: true },
         ];
 
   const colPercents = type === "novel" ? COLS_NOVEL : COLS_USER;
@@ -120,7 +168,9 @@ const DataTable = <T extends NovelAdmin | User>({
       ref={outerRef}
       className={[
         "rounded-xl border shadow-sm overflow-hidden relative",
-        darkMode ? "bg-[#0b0f15]/80 text-white border-white/10" : "bg-white text-zinc-900 border-zinc-200",
+        darkMode
+          ? "bg-[#0b0f15]/80 text-white border-white/10"
+          : "bg-white text-zinc-900 border-zinc-200",
       ].join(" ")}
     >
       <div
@@ -131,14 +181,23 @@ const DataTable = <T extends NovelAdmin | User>({
           width: "fit-content",
         }}
       >
-        <table className="w-full table-fixed text-sm" style={{ minWidth: `${minDesignWidth}px` }}>
+        <table
+          className="w-full table-fixed text-sm"
+          style={{ minWidth: `${minDesignWidth}px` }}
+        >
           <colgroup>
             {colPercents.map((w, i) => (
               <col key={i} style={{ width: `${w}%` }} />
             ))}
           </colgroup>
 
-          <thead className={darkMode ? "bg-[#0b0f15]/90 text-zinc-300" : "bg-zinc-50 text-zinc-600"}>
+          <thead
+            className={
+              darkMode
+                ? "bg-[#0b0f15]/90 text-zinc-300"
+                : "bg-zinc-50 text-zinc-600"
+            }
+          >
             <tr>
               {headers.map((h) => (
                 <th
@@ -146,14 +205,31 @@ const DataTable = <T extends NovelAdmin | User>({
                   className={[
                     "px-3 py-2 text-[12.5px] md:text-xs font-semibold uppercase tracking-wide whitespace-nowrap",
                     h.center ? "text-center" : "text-left",
-                    h.sortable ? "cursor-pointer select-none" : "cursor-default",
+                    h.sortable
+                      ? "cursor-pointer select-none"
+                      : "cursor-default",
                   ].join(" ")}
-                  aria-sort={isActive(h) ? (sortConfig.direction === "asc" ? "ascending" : "descending") : "none"}
+                  aria-sort={
+                    isActive(h)
+                      ? sortConfig.direction === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
                   onClick={() => h.sortable && h.sortKey && onSort(h.sortKey)}
                 >
-                  <div className={`inline-flex items-center gap-1 ${h.center ? "justify-center w-full" : ""}`}>
+                  <div
+                    className={`inline-flex items-center gap-1 ${
+                      h.center ? "justify-center w-full" : ""
+                    }`}
+                  >
                     <span>{h.label}</span>
-                    {h.sortable && <SortArrow active={isActive(h)} dir={sortConfig.direction} />}
+                    {h.sortable && (
+                      <SortArrow
+                        active={isActive(h)}
+                        dir={sortConfig.direction}
+                      />
+                    )}
                   </div>
                 </th>
               ))}
@@ -163,11 +239,19 @@ const DataTable = <T extends NovelAdmin | User>({
           <tbody>
             {data.map((item) => (
               <motion.tr
-                key={String(type === "novel" ? (item as NovelAdmin).NovelId : (item as User).userId)}
+                key={String(
+                  type === "novel"
+                    ? (item as NovelAdmin).NovelId
+                    : (item as User).userId
+                )}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18 }}
-                className={darkMode ? "even:bg-white/5 hover:bg-white/10" : "even:bg-zinc-50 hover:bg-zinc-100"}
+                className={
+                  darkMode
+                    ? "even:bg-white/5 hover:bg-white/10"
+                    : "even:bg-zinc-50 hover:bg-zinc-100"
+                }
               >
                 {headers.map((h) => {
                   const value: any = (item as any)[h.key];
@@ -176,7 +260,10 @@ const DataTable = <T extends NovelAdmin | User>({
                   if (type === "user" && h.key === "userName") {
                     const u = item as User;
                     return (
-                      <td key={h.key} className="px-3 py-2 truncate font-medium">
+                      <td
+                        key={h.key}
+                        className="px-3 py-2 truncate font-medium"
+                      >
                         <Link
                           to={`/admin/users/${u.userId}`}
                           className="text-[#ff5f3d] hover:underline decoration-1 underline-offset-2"
@@ -210,11 +297,17 @@ const DataTable = <T extends NovelAdmin | User>({
                     return (
                       <td key={h.key} className="px-3 py-2 text-center">
                         {isBanned ? (
-                          <span title="Đang bị khóa" className="inline-flex items-center justify-center">
+                          <span
+                            title="Đang bị khóa"
+                            className="inline-flex items-center justify-center"
+                          >
                             <Lock className="h-4 w-4 text-rose-500" />
                           </span>
                         ) : (
-                          <span title="Đang mở khóa" className="inline-flex items-center justify-center">
+                          <span
+                            title="Đang mở khóa"
+                            className="inline-flex items-center justify-center"
+                          >
                             <Unlock className="h-4 w-4 text-emerald-500" />
                           </span>
                         )}
@@ -226,10 +319,18 @@ const DataTable = <T extends NovelAdmin | User>({
                     const u = item as User;
                     let display = "—";
                     if (u.isBanned) {
-                      display = u.bannedUntil === 0 ? "∞" : formatVietnamTimeFromTicks(Number(u.bannedUntil)).slice(0, 5);
+                      display =
+                        u.bannedUntil === 0
+                          ? "∞"
+                          : formatVietnamTimeFromTicks(
+                              Number(u.bannedUntil)
+                            ).slice(0, 5);
                     }
                     return (
-                      <td key={h.key} className="px-3 py-2 text-center tabular-nums">
+                      <td
+                        key={h.key}
+                        className="px-3 py-2 text-center tabular-nums"
+                      >
                         {display}
                       </td>
                     );
@@ -240,8 +341,8 @@ const DataTable = <T extends NovelAdmin | User>({
                     return (
                       <td key={h.key} className="px-3 py-2 text-center">
                         <div className="inline-flex items-center gap-2">
-                          <Link
-                            to={`/admin/users/${u.userId}`}
+                          <button
+                            onClick={() => onDetailUser?.(u!)}
                             className={[
                               "px-2.5 py-1.5 text-xs font-semibold rounded-xl border",
                               darkMode
@@ -250,9 +351,11 @@ const DataTable = <T extends NovelAdmin | User>({
                             ].join(" ")}
                           >
                             Chi tiết
-                          </Link>
+                          </button>
                           <button
-                            onClick={() => onLockUnlockUser?.(u.userId, u.isBanned)}
+                            onClick={() =>
+                              onLockUnlockUser?.(u.userId, u.isBanned)
+                            }
                             className={[
                               "px-2.5 py-1.5 text-xs font-semibold rounded-xl",
                               u.isBanned
@@ -274,11 +377,17 @@ const DataTable = <T extends NovelAdmin | User>({
                     return (
                       <td key={h.key} className="px-3 py-2 text-center">
                         {isPublic ? (
-                          <span title="Công khai" className="inline-flex items-center justify-center">
+                          <span
+                            title="Công khai"
+                            className="inline-flex items-center justify-center"
+                          >
                             <Eye className="h-4 w-4 text-emerald-500" />
                           </span>
                         ) : (
-                          <span title="Không công khai" className="inline-flex items-center justify-center">
+                          <span
+                            title="Không công khai"
+                            className="inline-flex items-center justify-center"
+                          >
                             <EyeOff className="h-4 w-4 text-zinc-400" />
                           </span>
                         )}
@@ -292,11 +401,17 @@ const DataTable = <T extends NovelAdmin | User>({
                     return (
                       <td key={h.key} className="px-3 py-2 text-center">
                         {isLocked ? (
-                          <span title="Đang khóa" className="inline-flex items-center justify-center">
+                          <span
+                            title="Đang khóa"
+                            className="inline-flex items-center justify-center"
+                          >
                             <Lock className="h-4 w-4 text-rose-500" />
                           </span>
                         ) : (
-                          <span title="Đang mở" className="inline-flex items-center justify-center">
+                          <span
+                            title="Đang mở"
+                            className="inline-flex items-center justify-center"
+                          >
                             <Unlock className="h-4 w-4 text-emerald-500" />
                           </span>
                         )}
@@ -322,7 +437,9 @@ const DataTable = <T extends NovelAdmin | User>({
                             Chương
                           </button>
                           <button
-                            onClick={() => onLockUnlockNovel?.(n.NovelId, n.IsLock)}
+                            onClick={() =>
+                              onLockUnlockNovel?.(n.NovelId, n.IsLock)
+                            }
                             className={[
                               "px-2.5 py-1.5 text-xs font-semibold rounded-xl",
                               n.IsLock
