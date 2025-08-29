@@ -351,7 +351,12 @@ export const SearchBar = ({
           placeholder="Tìm kiếm…"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSubmit();
+            }
+          }}
           className={[
             "flex-1 h-full bg-transparent text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 outline-none px-1",
             INPUT_TXT,
