@@ -25,7 +25,6 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const { pathname } = useLocation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  // Map nhãn -> icon lucide
   const renderIcon = (label: string) => {
     const cls = "w-5 h-5 shrink-0";
     switch (label) {
@@ -36,7 +35,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       case "Tiểu thuyết":
         return <BookOpen className={cls} />;
       case "Ngân sách":
-        return <Receipt className={cls} />; // hoặc Banknote/Wallet tuỳ gu
+        return <Receipt className={cls} />;
       case "Báo cáo":
         return <Flag className={cls} />;
       case "Yêu cầu":
@@ -46,7 +45,6 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     }
   };
 
-  // Bạn có thể thêm subItems nếu muốn nhóm mục theo danh mục
   const menuItems: MenuItem[] = [
     { label: "Trang chủ", path: "/admin", isHeader: true },
     { label: "Người dùng", path: "/admin/users", isHeader: true },
@@ -56,13 +54,11 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { label: "Yêu cầu", path: "/admin/wallets", isHeader: true },
   ];
 
-  // Nếu có subItems, tự động mở nhóm chứa route hiện tại
   useEffect(() => {
     const parent = menuItems.find((m) =>
       m.subItems?.some((s) => pathname.startsWith(s.path))
     );
     setOpenMenu(parent ? parent.path : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const isMobile =
@@ -104,7 +100,6 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       transition={{ duration: 0.26, ease: "easeInOut" }}
       className="bg-white text-zinc-900 dark:bg-[#0a0f16] dark:text-zinc-50 fixed top-0 left-0 z-40 h-screen lg:static lg:h-full flex flex-col overflow-hidden border-r border-zinc-200 dark:border-white/10"
     >
-      {/* Header */}
       <div className="p-3 flex items-center justify-between">
         <AnimatePresence initial={false} mode="wait">
           {isOpen ? (
@@ -285,7 +280,6 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="p-3 mt-auto">
         {isOpen ? (
           <div className="text-[11px] text-zinc-500 dark:text-zinc-400">

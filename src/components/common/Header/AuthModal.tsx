@@ -515,7 +515,7 @@ export default function AuthSplitModal({ onClose }: Props) {
                   e.preventDefault();
                   window.location.href =
                     `https://accounts.google.com/o/oauth2/v2/auth?client_id=${YOUR_GOOGLE_CLIENT_ID}` +
-                    `&redirect_uri=${BASE_URL}/auth/callback` +
+                    `&redirect_uri=${SERVER_URL}/auth/callback` +
                     `&response_type=token%20id_token` +
                     `&scope=openid%20email%20profile` +
                     `&nonce=xyz` +
