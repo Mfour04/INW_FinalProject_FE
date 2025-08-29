@@ -13,6 +13,8 @@ import { EmptyState } from "../../components/ui/feedback/EmptyState";
 import type { ViewMode } from "./types";
 import { LayoutGrid, List, RotateCcw, ChevronLeft } from "lucide-react";
 import type { Novel } from "../../entity/novel";
+import { getTags } from "../../api/Tags/tag.api";
+import { sortOptions } from "../../components/common/Header/Header";
 
 type Props = { sidebarCollapsed?: boolean };
 
@@ -27,20 +29,33 @@ export const NovelsExplore = ({}: Props) => {
   const [sp] = useSearchParams();
 
   const searchTerm = sp.get("query") || "";
-  const sortBy = sp.get("selectedSort") || "";
-  const searchTagTerm = sp.get("tag") || "";
+  const sortBy = sp.get("sortBy") || "";
+  const searchTags: string[] = sp.getAll("tag");
+
+  const { data: tags } = useQuery({
+    queryKey: ["tag_novel_explore"],
+    queryFn: () => getTags().then((res) => res.data),
+  });
+
+  const mappedTagNames: string[] = searchTags
+    .map((id) => tags?.data.find((t) => t.tagId === id)?.name)
+    .filter((n): n is string => !!n);
 
   const { data, isFetching, isError, refetch } = useQuery({
-    queryKey: ["novels", { searchTerm, page, limit, sortBy, searchTagTerm }],
-    queryFn: () =>
-      GetNovels({
-        ...(searchTerm.trim() ? { searchTerm } : {}),
+    queryKey: ["novels", { searchTerm, page, limit, sortBy, searchTags }],
+    queryFn: () => {
+      const params = {
         page,
         limit,
+        ...(searchTerm.trim() ? { searchTerm } : {}),
         ...(sortBy ? { sortBy } : {}),
-        ...(searchTagTerm ? { searchTagTerm } : {}),
-      }),
-    staleTime: 30_000,
+        ...(searchTags && searchTags.length > 0
+          ? { searchTagTerm: searchTags.join(",") }
+          : {}),
+      };
+      return GetNovels(params);
+    },
+    staleTime: 0,
   });
 
   const novels: Novel[] = Array.isArray(data?.data?.data?.novels)
@@ -102,27 +117,41 @@ export const NovelsExplore = ({}: Props) => {
   const filterChips = (
     <div className="flex flex-wrap items-center gap-2">
       {searchTerm && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
                          bg-gray-100 border border-gray-200 text-gray-700
-                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
+                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90"
+        >
           Từ khóa:
-          <span className="font-medium text-gray-900 dark:text-white">{searchTerm}</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {searchTerm}
+          </span>
         </span>
       )}
-      {searchTagTerm && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
-                         bg-gray-100 border border-gray-200 text-gray-700
-                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
+      {mappedTagNames.length > 0 && (
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+               bg-gray-100 border border-gray-200 text-gray-700
+               dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90"
+        >
           Thẻ:
-          <span className="font-medium text-gray-900 dark:text-white">{searchTagTerm}</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {mappedTagNames.join(", ")}
+          </span>
         </span>
       )}
+
       {sortBy && (
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
-                         bg-gray-100 border border-gray-200 text-gray-700
-                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]
+               bg-gray-100 border border-gray-200 text-gray-700
+               dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90"
+        >
           Sắp xếp:
-          <span className="font-medium text-gray-900 dark:text-white">{sortBy}</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {sortOptions.find((option) => option.value === sortBy)?.label ||
+              sortBy}
+          </span>
         </span>
       )}
     </div>
@@ -133,8 +162,10 @@ export const NovelsExplore = ({}: Props) => {
       <div className="max-w-[95rem] mx-auto w-full px-4">
         {/* Header */}
         <div className="flex top-0 z-20 mb-10">
-          <div className="w-full rounded-2xl backdrop-blur-md overflow-hidden
-                          dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]">
+          <div
+            className="w-full rounded-2xl backdrop-blur-md overflow-hidden
+                          dark:bg-transparent dark:ring-white/10 dark:shadow-[0_16px_56px_-28px_rgba(0,0,0,0.75)]"
+          >
             <div className="relative py-3 px-1 flex items-center justify-between">
               <div className="flex items-center gap-10">
                 <button
@@ -152,7 +183,7 @@ export const NovelsExplore = ({}: Props) => {
                   <div className="text-[18px] md:text-[20px] font-semibold leading-tight">
                     Khám phá tiểu thuyết
                   </div>
-                  {(searchTerm || searchTagTerm || sortBy) && (
+                  {(searchTerm || searchTags || sortBy) && (
                     <div className="mt-1">{filterChips}</div>
                   )}
                 </div>

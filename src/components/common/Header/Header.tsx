@@ -31,6 +31,7 @@ import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
 import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
+import { getTags } from "../../../api/Tags/tag.api";
 
 type HeaderProps = {
   onToggleSidebar: () => void;
@@ -38,7 +39,12 @@ type HeaderProps = {
   isAdminRoute?: boolean;
 };
 
-const sortOptions = [
+export type TagSelectProps = {
+  value: string;
+  label: string;
+};
+
+export const sortOptions = [
   {
     label: "Ngày ra mắt ↑",
     value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`,
@@ -63,6 +69,16 @@ const sortOptions = [
     label: "Đánh giá ↓",
     value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}`,
   },
+];
+
+const TAG_OPTIONS: TagSelectProps[] = [
+  { value: "romance", label: "Ngôn tình" },
+  { value: "action", label: "Hành động" },
+  { value: "fantasy", label: "Phiêu lưu" },
+  { value: "comedy", label: "Hài hước" },
+  { value: "school", label: "Học đường" },
+  { value: "isekai", label: "Chuyển sinh" },
+  { value: "drama", label: "Drama" },
 ];
 
 function PortalLayer<T extends HTMLElement>({
@@ -120,12 +136,10 @@ export const Header = ({
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<string>("");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSort] = useState(
-    `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`
-  );
-  const [selectedTag] = useState("");
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
   const avatarBtnRef = useRef<HTMLButtonElement>(null);
@@ -143,16 +157,32 @@ export const Header = ({
     onSuccess: () => notificationsRefetch(),
   });
 
+  const { data: tags } = useQuery({
+    queryKey: ["tags-options"],
+    queryFn: () => getTags().then((res) => res.data),
+  });
+
+  const selectTagOptions: TagSelectProps[] = (tags?.data ?? [])
+    .map((tag) => {
+      const match = TAG_OPTIONS.find((option) => option.label === tag.name);
+      return match ? { value: tag.tagId, label: match.label } : null;
+    })
+    .filter((x): x is TagSelectProps => x !== null);
+
   const handleSearchNovels = useCallback(() => {
     const trimmed = searchTerm.trim();
-    if (!trimmed) return;
-    const params = new URLSearchParams({
-      query: trimmed,
-      ...(selectedSort && { selectedSort }),
-      ...(selectedTag && { tag: selectedTag }),
-    });
+
+    const params = new URLSearchParams();
+    if (trimmed) params.set("query", trimmed);
+
+    if (sortBy) params.set("sortBy", sortBy);
+
+    if (tagFilter && tagFilter.length > 0) {
+      tagFilter.forEach((tag) => params.append("tag", tag));
+    }
+
     navigate(`/novels?${params.toString()}`);
-  }, [searchTerm, selectedSort, selectedTag, navigate]);
+  }, [searchTerm, sortBy, tagFilter, navigate]);
 
   const handleClickNotification = async (id: string) => {
     await NotificationMutation.mutate({
@@ -214,6 +244,7 @@ export const Header = ({
             onSearchTermChange={setSearchTerm}
             onSubmit={handleSearchNovels}
             sortOptions={sortOptions}
+            tagFilterOptions={selectTagOptions}
             searchIcon={
               <Search className="h-5 w-5 text-gray-600 dark:text-white" />
             }
@@ -221,8 +252,10 @@ export const Header = ({
             filterIcon={
               <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
             }
-            initialSort=""
-            initialTags={[]}
+            initialSort={sortBy}
+            setSort={setSortBy}
+            initialTags={tagFilter}
+            setTags={setTagFilter}
           />
         </div>
 
