@@ -67,7 +67,9 @@ const ReportList = () => {
   } = useQuery({
     queryKey: ["Reports", currentPage],
     queryFn: () =>
-      GetReports({ limit: 10, page: 0 }).then((res) => res.data.data),
+      GetReports({ limit: itemsPerPage, page: currentPage - 1 }).then(
+        (res) => res.data.data
+      ),
   });
 
   const updateStatusMutation = useMutation({
@@ -108,17 +110,14 @@ const ReportList = () => {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [reportsData, searchTerm, statusFilter, typeFilter]);
-
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-  const paginatedReports = useMemo(
-    () =>
-      filteredReports.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      ),
-    [filteredReports, currentPage]
-  );
+  }, [
+    reportsData,
+    searchTerm,
+    statusFilter,
+    typeFilter,
+    currentPage,
+    reportsData,
+  ]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -394,8 +393,8 @@ const ReportList = () => {
               ) : (
                 <>
                   <ReportDataTable
-                    data={paginatedReports}
-                    columns={columns as any}
+                    data={filteredReports}
+                    columns={columns}
                     pageSize={itemsPerPage}
                     dense
                     isBusy={isLoading || isFetching}
@@ -404,7 +403,7 @@ const ReportList = () => {
                   <div className="mt-5 flex items-center justify-center gap-3">
                     <Pagination
                       currentPage={currentPage}
-                      totalPages={totalPages}
+                      totalPages={reportsData?.totalPages!}
                       onPageChange={setCurrentPage}
                     />
                   </div>

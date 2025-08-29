@@ -1,8 +1,15 @@
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
+import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { MoreVertical, Edit3, Trash2, Flag, ShieldBan, Heart, MessageCircle } from "lucide-react";
+import {
+  MoreVertical,
+  Edit3,
+  Trash2,
+  Flag,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 
 import { BlogCommentUser } from "../Comment/BlogCommentUser";
 import { AuthContext } from "../../../context/AuthContext/AuthProvider";
@@ -12,6 +19,7 @@ import { PostImages } from "./components/PostImages";
 import PostInlineEditor from "./components/PostInlineEditor";
 
 import type { Post, VisibleRootComments } from "../types";
+import type { Comment } from "../../CommentUser/types";
 
 interface PostItemProps {
   post: Post;
@@ -38,7 +46,9 @@ interface PostItemProps {
   setReportCommentId?: (value: string | null) => void;
 
   replyingTo?: { commentId: string; username: string } | null;
-  setReplyingTo?: (value: { commentId: string; username: string } | null) => void;
+  setReplyingTo?: (
+    value: { commentId: string; username: string } | null
+  ) => void;
   commentInput?: string;
   setCommentInput?: (value: string) => void;
 
@@ -61,6 +71,7 @@ const PostItem = ({
   isLiked = false,
   onUpdatePost,
   updatedTimestamp,
+  setReportCommentId,
 }: PostItemProps) => {
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -73,6 +84,10 @@ const PostItem = ({
   const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
   const content = post.content ?? "";
 
+  const handleReport = (comment: Comment) => {
+    setReportCommentId?.(comment.id);
+  };
+
   useEffect(() => setLikeCount(post.likes ?? 0), [post.likes]);
 
   useEffect(() => {
@@ -81,7 +96,8 @@ const PostItem = ({
         setMenuOpenPostId(null);
       }
     };
-    if (menuOpenPostId === post.id) document.addEventListener("mousedown", onClick);
+    if (menuOpenPostId === post.id)
+      document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [menuOpenPostId, post.id, setMenuOpenPostId]);
 
@@ -105,7 +121,7 @@ const PostItem = ({
       transition={{ duration: 0.18 }}
       className={[
         "rounded-2xl border shadow-sm",
-        "bg-white border-zinc-200 text-zinc-900",            // light
+        "bg-white border-zinc-200 text-zinc-900", // light
         "dark:bg-[#141518] dark:border-white/[0.07] dark:text-white dark:shadow-[0_10px_28px_rgba(0,0,0,0.45)]", // dark
       ].join(" ")}
     >
@@ -118,12 +134,17 @@ const PostItem = ({
             className="w-11 h-11 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate(`/profile/${post.user.username}`)}
           />
-          <div
-            className="leading-tight cursor-pointer hover:opacity-80 transition-opacity"
-          >
-            <div className="flex items-center gap-2 flex-wrap" onClick={() => navigate(`/profile/${post.user.username}`)}>
-              <span className="text-[16px] font-semibold">{post.user.name}</span>
-              <span className="text-[13px] text-zinc-500 dark:text-white/55">@{post.user.username}</span>
+          <div className="leading-tight cursor-pointer hover:opacity-80 transition-opacity">
+            <div
+              className="flex items-center gap-2 flex-wrap"
+              onClick={() => navigate(`/profile/${post.user.username}`)}
+            >
+              <span className="text-[16px] font-semibold">
+                {post.user.name}
+              </span>
+              <span className="text-[13px] text-zinc-500 dark:text-white/55">
+                @{post.user.username}
+              </span>
             </div>
 
             <div className="mt-0.5 text-[12px] text-zinc-500 dark:text-white/45">
@@ -182,18 +203,7 @@ const PostItem = ({
                   <>
                     <button
                       onClick={() => {
-                        alert("Chặn người dùng");
-                        setMenuOpenPostId(null);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
-                    >
-                      <ShieldBan size={16} />
-                      Chặn người dùng
-                    </button>
-                    <button
-                      onClick={() => {
                         setReportPostId(post.id);
-                        setMenuOpenPostId(null);
                       }}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
                     >
@@ -262,7 +272,11 @@ const PostItem = ({
               size={18}
               className={isLiked ? "fill-red-500 text-red-500" : "text-current"}
             />
-            <span className={`text-sm ${isLiked ? "text-red-600 dark:text-red-400" : ""}`}>
+            <span
+              className={`text-sm ${
+                isLiked ? "text-red-600 dark:text-red-400" : ""
+              }`}
+            >
               {likeCount}
             </span>
           </button>
@@ -281,7 +295,7 @@ const PostItem = ({
 
         {showCommentPopup && (
           <div className="mt-4">
-            <BlogCommentUser postId={post.id} />
+            <BlogCommentUser postId={post.id} onReport={handleReport} />
           </div>
         )}
       </div>
