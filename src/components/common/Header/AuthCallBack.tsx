@@ -6,7 +6,7 @@ import { LoginBEGoogle } from "../../../api/Auth/auth.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useAuth } from "../../../hooks/useAuth";
 
-export default function GoogleCallback() {
+export const AuthCallback = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { setAuth } = useAuth();
@@ -46,4 +46,4 @@ export default function GoogleCallback() {
   }, [navigate]);
 
   return <div>Đang đăng nhập với Google...</div>;
-}
+};

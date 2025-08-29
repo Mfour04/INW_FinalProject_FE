@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import { HomePage } from "../pages/Home/HomePage";
 import { NotFound } from "../pages/NotFound";
 import { ProtectedRoutes } from "./ProtectedRoutes";
@@ -31,64 +31,68 @@ import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
-import AuthCallback from "../components/common/Header/AuthCallBack";
+import { AuthCallback } from "../components/common/Header/AuthCallBack";
 
 export const Router = () => {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route
-        path="/following"
-        element={<ProtectedRoutes role={[Roles.User]} />}
-      >
-        <Route index element={<NovelLib />} />
-        <Route path="library" element={<NovelLib />} />
-        <Route path="history" element={<ReadingProcess />} />
-      </Route>
-      <Route path="/novels">
-        <Route index element={<NovelsExplore />} />
-        <Route path=":novelId" element={<NovelDetail />} />
-        <Route path=":novelId/:chapterId" element={<NovelRead />} />
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
-          path="writing-room"
+          path="/following"
           element={<ProtectedRoutes role={[Roles.User]} />}
         >
-          <Route index element={<WritingRoom />} />
-          <Route path="upsert-novel/:id?" element={<UpsertNovels />} />
-          <Route path=":novelId" element={<CreateChapters />} />
-          <Route
-            path=":novelId/upsert-chapter/:chapterId?"
-            element={<UpsertChapter />}
-          />
+          <Route index element={<NovelLib />} />
+          <Route path="library" element={<NovelLib />} />
+          <Route path="history" element={<ReadingProcess />} />
         </Route>
-      </Route>
-      <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
-        <Route index element={<AdminHome />} />
-        <Route path="users" element={<UserList />} />
-        <Route path="novels" element={<NovelList />} />
-        <Route path="transaction" element={<TransactionList />} />
-        <Route path="reports" element={<ReportList />} />
-        <Route path="wallets" element={<RequestList />} />
-      </Route>
-      {/* <Route path="/novelRead" element={<NovelRead />} /> */}
-      <Route path="/deposite" element={<Deposite />} />
-      <Route path="/transaction-history" element={<TransactionHistory />} />
-      <Route path="/profile" element={<ProtectedRoutes role={[Roles.User]} />}>
-        <Route index element={<UserProfile />} />
-        <Route path=":username" element={<UserProfile />} />
-      </Route>
-      <Route path="/blogs" element={<Blogs />} />
-      <Route path="/test-profile" element={<TestUserProfile />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="/about" element={<AboutUs />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/rules" element={<Rules />} />
-      <Route path="/terms" element={<Terms />} />
-      <Route path="/needlogin" element={<LoginNeeded />} />
-      <Route path="/setting" element={<Setting />} />
-      <Route path="/*" element={<NotFound />} />
-    </Routes>
+        <Route path="/novels">
+          <Route index element={<NovelsExplore />} />
+          <Route path=":novelId" element={<NovelDetail />} />
+          <Route path=":novelId/:chapterId" element={<NovelRead />} />
+          <Route
+            path="writing-room"
+            element={<ProtectedRoutes role={[Roles.User]} />}
+          >
+            <Route index element={<WritingRoom />} />
+            <Route path="upsert-novel/:id?" element={<UpsertNovels />} />
+            <Route path=":novelId" element={<CreateChapters />} />
+            <Route
+              path=":novelId/upsert-chapter/:chapterId?"
+              element={<UpsertChapter />}
+            />
+          </Route>
+        </Route>
+        <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
+          <Route index element={<AdminHome />} />
+          <Route path="users" element={<UserList />} />
+          <Route path="novels" element={<NovelList />} />
+          <Route path="transaction" element={<TransactionList />} />
+          <Route path="reports" element={<ReportList />} />
+          <Route path="wallets" element={<RequestList />} />
+        </Route>
+        <Route path="/deposite" element={<Deposite />} />
+        <Route path="/transaction-history" element={<TransactionHistory />} />
+        <Route
+          path="/profile"
+          element={<ProtectedRoutes role={[Roles.User]} />}
+        >
+          <Route index element={<UserProfile />} />
+          <Route path=":username" element={<UserProfile />} />
+        </Route>
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/test-profile" element={<TestUserProfile />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/rules" element={<Rules />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/needlogin" element={<LoginNeeded />} />
+        <Route path="/setting" element={<Setting />} />
+        <Route path="/*" element={<NotFound />} />
+      </Routes>
+    </HashRouter>
   );
 };

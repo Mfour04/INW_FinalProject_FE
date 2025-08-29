@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
@@ -8,20 +8,14 @@ import DataTable from "../AdminModal/DataTable";
 import Pagination from "../AdminModal/Pagination";
 import UserTopSection from "./UserTopSection";
 import type { User } from "../../../api/Admin/User/user.type";
-import {
-  GetAllUsers,
-  GetUsers,
-  UpdateBanUser,
-} from "../../../api/Admin/User/user.api";
+import { GetAllUsers, GetUsers, UpdateBanUser } from "../../../api/Admin/User/user.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { formatTicksToDateString } from "../../../utils/date_format";
-import { memo } from "react";
 
 interface SortConfig {
   key: keyof User;
   direction: "asc" | "desc";
 }
-
 interface DialogState {
   isOpen: boolean;
   type: "lock" | "unlock" | null;
@@ -55,37 +49,23 @@ const keyToApiField: Record<keyof User, string> = {
   updatedAt: "updateAt",
 };
 
-// Memo hóa UserTopSection
 const MemoizedUserTopSection = memo(UserTopSection);
-
-// Memo hóa Pagination
 const MemoizedPagination = memo(Pagination);
 
 const UserList = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const { darkMode } = useDarkMode();
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "displayName",
-    direction: "asc",
-  });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "displayName", direction: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
-  const [dialog, setDialog] = useState<DialogState>({
-    isOpen: false,
-    type: null,
-    title: "",
-    userId: null,
-  });
+  const [dialog, setDialog] = useState<DialogState>({ isOpen: false, type: null, title: "", userId: null });
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
-  // Fetch users for DataTable (paginated)
-  const {
-    data: userData,
-    isLoading: isLoadingUsers,
-    error: userError,
-  } = useQuery({
+  // Paged users
+  const { data: userData, isLoading: isLoadingUsers, error: userError } = useQuery({
     queryKey: ["users", { searchTerm, currentPage, sortBy }],
     queryFn: () =>
       GetUsers({
@@ -96,125 +76,107 @@ const UserList = () => {
       }).then((res) => res.data),
   });
 
-  // Fetch all users for UserTopSection (no pagination)
-  const {
-    data: allUsersData,
-    isLoading: isLoadingAllUsers,
-    error: allUsersError,
-  } = useQuery({
+  // All users for KPI + TopSection
+  const { data: allUsersData, isLoading: isLoadingAllUsers, error: allUsersError, refetch: refetchAll } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => GetAllUsers().then((res) => res.data),
   });
 
-  // Map API user data to User interface for DataTable
+  // Map for table
   const mappedUsers: User[] =
-    userData?.data?.users?.map((user) => ({
-      userId: user.userId,
-      userName: user.userName,
-      displayName: user.displayName,
-      email: user.email,
-      avatarUrl: user.avatarUrl,
-      coverUrl: user.coverUrl,
-      bio: user.bio,
-      role: user.role,
-      isVerified: user.isVerified,
-      isBanned: user.isBanned,
-      bannedUntil: user.bannedUntil,
-      coin: user.coin,
-      blockCoin: user.blockCoin,
-      novelFollowCount: user.novelFollowCount,
-      badgeId: user.badgeId,
-      lastLogin: user.lastLogin,
-      favouriteType: user.favouriteType,
-      readCount: user.readCount ?? 0,
-      createdAt: formatTicksToDateString(Number(user.createAt)),
-      updatedAt: formatTicksToDateString(Number(user.updateAt)),
+    userData?.data?.users?.map((u: any) => ({
+      userId: u.userId,
+      userName: u.userName,
+      displayName: u.displayName,
+      email: u.email,
+      avatarUrl: u.avatarUrl,
+      coverUrl: u.coverUrl,
+      bio: u.bio,
+      role: u.role,
+      isVerified: u.isVerified,
+      isBanned: u.isBanned,
+      bannedUntil: u.bannedUntil,
+      coin: u.coin,
+      blockCoin: u.blockCoin,
+      novelFollowCount: u.novelFollowCount,
+      badgeId: u.badgeId,
+      lastLogin: u.lastLogin,
+      favouriteType: u.favouriteType,
+      readCount: u.readCount ?? 0,
+      createdAt: formatTicksToDateString(Number(u.createAt)),
+      updatedAt: formatTicksToDateString(Number(u.updateAt)),
     })) || [];
 
-  // Memo hóa mappedAllUsers để tránh tính toán lại
+  // Map for KPIs/Top
   const mappedAllUsers: User[] = useMemo(
     () =>
-      allUsersData?.data?.users?.map((user) => ({
-        userId: user.userId,
-        userName: user.userName,
-        displayName: user.displayName,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        coverUrl: user.coverUrl,
-        bio: user.bio,
-        role: user.role,
-        isVerified: user.isVerified,
-        isBanned: user.isBanned,
-        bannedUntil: user.bannedUntil,
-        coin: user.coin,
-        blockCoin: user.blockCoin,
-        novelFollowCount: user.novelFollowCount,
-        badgeId: user.badgeId,
-        lastLogin: user.lastLogin,
-        favouriteType: user.favouriteType,
-        readCount: user.readCount ?? 0,
-        createdAt: formatTicksToDateString(Number(user.createAt)),
-        updatedAt: formatTicksToDateString(Number(user.updateAt)),
+      allUsersData?.data?.users?.map((u: any) => ({
+        userId: u.userId,
+        userName: u.userName,
+        displayName: u.displayName,
+        email: u.email,
+        avatarUrl: u.avatarUrl,
+        coverUrl: u.coverUrl,
+        bio: u.bio,
+        role: u.role,
+        isVerified: u.isVerified,
+        isBanned: u.isBanned,
+        bannedUntil: u.bannedUntil,
+        coin: u.coin,
+        blockCoin: u.blockCoin,
+        novelFollowCount: u.novelFollowCount,
+        badgeId: u.badgeId,
+        lastLogin: u.lastLogin,
+        favouriteType: u.favouriteType,
+        readCount: u.readCount ?? 0,
+        createdAt: formatTicksToDateString(Number(u.createAt)),
+        updatedAt: formatTicksToDateString(Number(u.updateAt)),
       })) || [],
     [allUsersData]
   );
 
-  // Mutation for ban/unban
+  // KPIs
+  const kTotal = mappedAllUsers.length;
+  const kVerified = mappedAllUsers.filter((u) => u.isVerified).length;
+  const kBanned = mappedAllUsers.filter((u) => u.isBanned).length;
+  const kReads = mappedAllUsers.reduce((s, u) => s + (Number(u.readCount) || 0), 0);
+
+  // Ban/unban
   const updateBanUserMutation = useMutation({
-    mutationFn: ({
-      userId,
-      isBanned,
-      durationType,
-    }: {
-      userId: string;
-      isBanned: boolean;
-      durationType: string;
-    }) =>
-      UpdateBanUser({ userIds: [userId], isBanned, durationType }).then(
-        (res) => res.data
-      ),
+    mutationFn: ({ userId, isBanned, durationType }: { userId: string; isBanned: boolean; durationType: string }) =>
+      UpdateBanUser({ userIds: [userId], isBanned, durationType }).then((res) => res.data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
       toast?.onOpen(data.message);
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
-    onError: (error: Error) => {
-      toast?.onOpen(error.message || "Cập nhật trạng thái khóa thất bại");
+    onError: (error: any) => {
+      toast?.onOpen(error?.message || "Cập nhật trạng thái khóa thất bại");
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
   });
 
-  const handleSort = (key: string) => {
-    setSortConfig((prev) => ({
-      key: key as keyof User,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  };
+  const handleSort = (key: string) =>
+    setSortConfig((prev) => ({ key: key as keyof User, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }));
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= (userData?.data?.totalPages || 1)) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= (userData?.data?.totalPages || 1)) setCurrentPage(page);
   };
 
   const handleLockUnlock = (userId: string, isBanned: boolean) => {
     const user = mappedUsers.find((u) => u.userId === userId);
     const action = isBanned ? "unlock" : "lock";
-    const title = `Bạn muốn ${
-      action === "lock" ? "khóa" : "mở khóa"
-    } tài khoản: ${user?.displayName} ?`;
+    const title = `Bạn muốn ${action === "lock" ? "khóa" : "mở khóa"} tài khoản: ${user?.displayName} ?`;
     setDialog({ isOpen: true, type: action, title, userId });
   };
 
-  const handleConfirmDialog = (durationType?: string) => {
+  const handleConfirmDialog = (extra?: { duration?: string; note?: string }) => {
     if (dialog.userId && dialog.type) {
       const isBanned = dialog.type === "lock";
-      updateBanUserMutation.mutate({
-        userId: dialog.userId,
-        isBanned,
-        durationType: durationType || "",
-      });
+      // durationType gửi lên API: lấy trực tiếp từ dialog (nếu cần) hoặc từ extra.duration
+      const durationType = extra?.duration || dialog.durationType || "";
+      updateBanUserMutation.mutate({ userId: dialog.userId, isBanned, durationType });
     }
   };
 
@@ -222,108 +184,165 @@ const UserList = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className={`p-6 min-h-screen ${
-        darkMode ? "bg-[#0f0f11] text-white" : "bg-gray-100 text-gray-900"
-      }`}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
+      className={`min-h-screen p-6 ${darkMode ? "bg-[#0a0f16] text-white" : "bg-zinc-50 text-zinc-900"}`}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
-        {/* <DarkModeToggler /> */}
+      {/* Header */}
+      <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Giám sát số liệu và thao tác nhanh với tài khoản.</p>
+        </div>
+        <button
+          onClick={() => refetchAll()}
+          className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-white/10 backdrop-blur hover:bg-white dark:hover:bg-white/15 transition"
+          title="Làm mới thống kê"
+        >
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            <path d="M21 3v6h-6" />
+          </svg>
+          Làm mới
+        </button>
       </div>
-      {isLoadingAllUsers ? (
-        <p
-          className={`text-center ${
-            darkMode ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
-          Đang tải...
-        </p>
-      ) : allUsersError ? (
-        <p
-          className={`text-center ${
-            darkMode ? "text-red-400" : "text-red-600"
-          }`}
-        >
-          Không thể tải danh sách người dùng
-        </p>
+
+      {/* KPI row */}
+      <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard label="Tổng người dùng" value={kTotal.toLocaleString()} />
+        <KpiCard label="Đã xác minh" value={kVerified.toLocaleString()} />
+        <KpiCard label="Đang bị khóa" value={kBanned.toLocaleString()} />
+        <KpiCard label="Tổng lượt đọc" value={kReads.toLocaleString()} />
+      </div>
+
+      {/* Top section */}
+      <div className="mb-6">
+        {isLoadingAllUsers ? (
+          <SkeletonTop />
+        ) : allUsersError ? (
+          <StateCard tone="error" title="Không thể tải danh sách người dùng" desc="Vui lòng thử lại sau." />
+        ) : (
+          <MemoizedUserTopSection users={mappedAllUsers} />
+        )}
+      </div>
+
+      <div className="top-0 z-10 -mx-6 mb-4 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-[#0a0f16]/60">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} />
+        </div>
+      </div>
+
+      {isLoadingUsers ? (
+        <div className="p-6">
+          <SkeletonTable />
+        </div>
+      ) : userError ? (
+        <div className="p-6">
+          <StateCard tone="error" title="Không thể tải danh sách người dùng" desc="Vui lòng thử lại." />
+        </div>
+      ) : mappedUsers.length === 0 ? (
+        <div className="p-8">
+          <StateCard tone="empty" title="Không có kết quả" desc="Thử từ khóa khác." />
+        </div>
       ) : (
         <>
-          <MemoizedUserTopSection users={mappedAllUsers} />
-          <div className="flex justify-end items-center mb-4 flex-wrap gap-2">
-            <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} />
+          <div className="relative pb-2"> 
+            <DataTable
+              data={mappedUsers}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+              type="user"
+              onLockUnlockUser={handleLockUnlock}
+            />
           </div>
-          {isLoadingUsers ? (
-            <div className="text-center">
-              <svg
-                className={`animate-spin h-8 w-8 mx-auto ${
-                  darkMode ? "text-[#ff4d4f]" : "text-[#ff4d4f]"
-                }`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              <p
-                className={`mt-2 ${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Đang tải...
-              </p>
-            </div>
-          ) : userError ? (
-            <p
-              className={`text-center ${
-                darkMode ? "text-red-400" : "text-red-600"
-              }`}
-            >
-              Không thể tải danh sách người dùng
-            </p>
-          ) : (
-            <>
-              <DataTable
-                data={mappedUsers}
-                sortConfig={sortConfig}
-                onSort={handleSort}
-                type="user"
-                onLockUnlockUser={handleLockUnlock}
-              />
-              <MemoizedPagination
-                currentPage={currentPage}
-                totalPages={userData?.data?.totalPages || 1}
-                onPageChange={handlePageChange}
-              />
-            </>
-          )}
+          <div className="flex items-center justify-center mt-2">
+            <MemoizedPagination
+              currentPage={currentPage}
+              totalPages={userData?.data?.totalPages || 1}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </>
       )}
-      <ConfirmDialog
+
+     <ConfirmDialog
         isOpen={dialog.isOpen}
-        onClose={() =>
-          setDialog({ isOpen: false, type: null, title: "", userId: null })
-        }
+        onClose={() => setDialog({ isOpen: false, type: null, title: "", userId: null })}
         onConfirm={handleConfirmDialog}
         title={dialog.title}
-        isLockAction={dialog.type === "lock"}
-        type="user"
-        isLoading={updateBanUserMutation.isPending}
+        // dùng API mới:
+        variant={dialog.type === "lock" ? "danger" : "success"}
+        showDuration={dialog.type === "lock"}   // mở dropdown thời hạn khi KHÓA
+        showNote={dialog.type === "lock"}       // tuỳ bạn: bật ô ghi chú khi KHÓA
+        loading={updateBanUserMutation.isPending}
       />
+
     </motion.div>
   );
 };
 
 export default UserList;
+
+/* ------- tiny presentational components ------- */
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-white/5 p-3 shadow-sm backdrop-blur">
+      <div className="text-sm text-zinc-600 dark:text-zinc-300">{label}</div>
+      <div className="mt-1 text-xl font-semibold tracking-tight">{value}</div>
+    </div>
+  );
+}
+
+function StateCard({ tone, title, desc }: { tone: "error" | "empty"; title: string; desc: string }) {
+  const isError = tone === "error";
+  return (
+    <div
+      className={[
+        "rounded-xl border p-4",
+        isError
+          ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
+          : "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300",
+      ].join(" ")}
+    >
+      <div className="text-sm font-semibold">{title}</div>
+      <div className="text-sm mt-0.5">{desc}</div>
+    </div>
+  );
+}
+
+function SkeletonTop() {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/70 dark:bg-white/5 p-4 backdrop-blur"
+        >
+          <div className="h-4 w-28 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse mb-3" />
+          <div className="space-y-2.5">
+            {[0, 1, 2].map((j) => (
+              <div key={j} className="flex items-center gap-3">
+                <div className="h-6 w-6 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+                <div className="h-9 w-9 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-4 w-2/3 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+                </div>
+                <div className="h-4 w-16 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SkeletonTable() {
+  return (
+    <div className="space-y-3">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="h-10 rounded-lg bg-zinc-200/70 dark:bg-zinc-700/40 animate-pulse" />
+      ))}
+    </div>
+  );
+}

@@ -4,10 +4,20 @@ import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 import type { NovelAdmin } from "../../../api/Novels/novel.type";
 import type { User } from "../../../api/Admin/User/user.type";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
+import { Lock, Unlock, Eye, EyeOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface SortConfig<T> {
   key: keyof T;
   direction: "asc" | "desc";
+}
+
+interface HeaderDef {
+  key: string;
+  sortKey?: string;
+  label: string;
+  sortable?: boolean;
+  center?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -20,6 +30,17 @@ interface DataTableProps<T> {
   onLockUnlockUser?: (userId: string, isBanned: boolean) => void;
 }
 
+/** Col width % cho mỗi type – giữ tổng ~100 để table-fixed không nhảy cột */
+const COLS_USER = [26, 10, 10, 8, 15, 16, 15];
+const COLS_NOVEL = [22, 16, 10, 8, 8, 10, 10, 10, 16];
+
+/** Ô mũi tên cố định 12px để không rung cột */
+const SortArrow = ({ active, dir }: { active: boolean; dir: "asc" | "desc" }) => (
+  <span className="inline-block w-3 text-center align-middle select-none">
+    {active ? (dir === "asc" ? "↑" : "↓") : " "}
+  </span>
+);
+
 const DataTable = <T extends NovelAdmin | User>({
   data,
   sortConfig,
@@ -31,304 +52,311 @@ const DataTable = <T extends NovelAdmin | User>({
 }: DataTableProps<T>) => {
   const { darkMode } = useDarkMode();
 
-  const headers =
+  // Giữ sort CHỈ ở Username, Thời hạn, Ngày tạo (User) và Ngày tạo (Novel)
+  const headers: HeaderDef[] =
     type === "novel"
       ? [
-          {
-            key: "Title",
-            label: "Tên truyện",
-            width: "20%",
-            minWidth: "150px",
-          },
-          {
-            key: "AuthorName",
-            label: "Tác giả",
-            width: "15%",
-            minWidth: "150px",
-          },
-          {
-            key: "Status",
-            label: "Trạng thái",
-            width: "10%",
-            minWidth: "100px",
-          },
-          {
-            key: "IsPublic",
-            label: "Công khai",
-            width: "10%",
-            minWidth: "80px",
-            center: true,
-          },
-          {
-            key: "IsLock",
-            label: "Khóa",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "TotalViews",
-            label: "Lượt xem",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "Followers",
-            label: "Follow",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "RatingAvg",
-            label: "Đánh giá",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "CreateAt",
-            label: "Ngày tạo",
-            width: "10%",
-            minWidth: "120px",
-          },
-          {
-            key: "Actions",
-            label: "Hành động",
-            width: "15%",
-            minWidth: "150px",
-            center: true,
-          },
+          { key: "Title",       label: "Tên truyện",  sortable: false },
+          { key: "AuthorName",  label: "Tác giả",     sortable: false },
+          { key: "Status",      label: "Trạng thái",  sortable: false },
+          { key: "IsPublic",    label: "Công khai",   sortable: false, center: true },
+          { key: "IsLock",      label: "Khóa",        sortable: false, center: true },
+          { key: "TotalViews",  label: "Lượt xem",    sortable: false, center: true },
+          { key: "RatingAvg",   label: "Đánh giá",    sortable: false, center: true },
+          { key: "CreateAt",    sortKey: "CreateAt",  label: "Ngày tạo",  sortable: true },
+          { key: "Actions",     label: "Hành động",   sortable: false, center: true },
         ]
       : [
-          {
-            key: "displayName",
-            label: "Tên hiển thị",
-            width: "20%",
-            minWidth: "150px",
-          },
-          { key: "email", label: "Email", width: "20%", minWidth: "150px" },
-          { key: "role", label: "Vai trò", width: "10%", minWidth: "100px" },
-          {
-            key: "isVerified",
-            label: "Xác thực",
-            width: "10%",
-            minWidth: "80px",
-            center: true,
-          },
-          {
-            key: "isBanned",
-            label: "Khóa",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "bannedUntil",
-            label: "Thời hạn",
-            width: "15%",
-            minWidth: "120px",
-            center: true,
-          },
-          {
-            key: "novelFollowCount",
-            label: "Follow",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "coin",
-            label: "Coin",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
-          {
-            key: "createdAt",
-            label: "Ngày tạo",
-            width: "15%",
-            minWidth: "120px",
-          },
-          {
-            key: "Actions",
-            label: "Hành động",
-            width: "10%",
-            minWidth: "100px",
-            center: true,
-          },
+          { key: "userName",     sortKey: "userName",    label: "Username",  sortable: true },
+          { key: "role",         label: "Vai trò",       sortable: false },
+          { key: "isVerified",   label: "Xác thực",      sortable: false, center: true },
+          { key: "isBanned",     label: "Khóa",          sortable: false, center: true },
+          { key: "bannedUntil",  sortKey: "bannedUntil", label: "Thời hạn",  sortable: true, center: true },
+          { key: "createdAt",    sortKey: "createdAt",   label: "Ngày tạo",  sortable: true },
+          { key: "Actions",      label: "Hành động",     sortable: false, center: true },
         ];
+
+  const colPercents = type === "novel" ? COLS_NOVEL : COLS_USER;
+  const isActive = (h: HeaderDef): boolean =>
+    !!(h.sortable && h.sortKey && (sortConfig.key as any) === h.sortKey);
+
+  /** ---------- Auto-scale to fit container ---------- */
+  const minDesignWidth = type === "novel" ? 1120 : 900;
+
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const outer = outerRef.current;
+      const inner = innerRef.current;
+      if (!outer || !inner) return;
+
+      const table = inner.querySelector("table") as HTMLTableElement | null;
+      if (table) {
+        table.style.minWidth = `${minDesignWidth}px`;
+      }
+
+      const containerWidth = outer.clientWidth;
+      const naturalWidth = inner.scrollWidth;
+      const nextScale = Math.min(1, containerWidth / Math.max(naturalWidth, 1));
+
+      setScale(nextScale);
+
+      const naturalHeight = inner.scrollHeight;
+      outer.style.height = `${naturalHeight * nextScale}px`;
+    };
+
+    const ro = new ResizeObserver(updateScale);
+    if (outerRef.current) ro.observe(outerRef.current);
+    if (innerRef.current) ro.observe(innerRef.current);
+    updateScale();
+    return () => ro.disconnect();
+  }, [data, type, minDesignWidth]);
 
   return (
     <div
-      className={`overflow-x-auto overflow-y-hidden rounded-lg shadow-sm border ${
-        darkMode
-          ? "bg-[#1a1a1c] text-white border-gray-700"
-          : "bg-white text-gray-900 border-gray-200"
-      }`}
+      ref={outerRef}
+      className={[
+        "rounded-xl border shadow-sm overflow-hidden relative",
+        darkMode ? "bg-[#0b0f15]/80 text-white border-white/10" : "bg-white text-zinc-900 border-zinc-200",
+      ].join(" ")}
     >
-      <table className="w-full table-fixed text-left text-sm">
-        <thead
-          className={`h-16 ${
-            darkMode ? "bg-[#2c2c2c]" : "bg-gray-50"
-          } text-base font-semibold`}
-        >
-          <tr>
-            {headers.map((header) => (
-              <th
-                key={header.key}
-                className={`p-4 cursor-pointer ${header.width} ${
-                  header.minWidth
-                } ${header.center ? "text-center" : ""}`}
-                onClick={() => header.key !== "Actions" && onSort(header.key)}
-              >
-                {header.label}{" "}
-                {sortConfig.key === header.key &&
-                  header.key !== "Actions" &&
-                  (sortConfig.direction === "asc" ? "↑" : "↓")}
-              </th>
+      <div
+        ref={innerRef}
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "left top",
+          width: "fit-content",
+        }}
+      >
+        <table className="w-full table-fixed text-sm" style={{ minWidth: `${minDesignWidth}px` }}>
+          <colgroup>
+            {colPercents.map((w, i) => (
+              <col key={i} style={{ width: `${w}%` }} />
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <motion.tr
-              key={String(
-                type === "novel"
-                  ? (item as NovelAdmin).NovelId
-                  : (item as User).userId
-              )}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`border-t ${
-                darkMode
-                  ? "border-gray-700 hover:bg-[#2c2c2c]"
-                  : "border-gray-200 hover:bg-gray-100"
-              }`}
-            >
-              {headers.map((header) => (
-                <td
-                  key={header.key}
-                  className={`p-4 ${header.center ? "text-center" : ""} ${
-                    header.key === "Title" ||
-                    header.key === "displayName" ||
-                    header.key === "email"
-                      ? "truncate"
-                      : ""
-                  }`}
+          </colgroup>
+
+          <thead className={darkMode ? "bg-[#0b0f15]/90 text-zinc-300" : "bg-zinc-50 text-zinc-600"}>
+            <tr>
+              {headers.map((h) => (
+                <th
+                  key={h.key}
+                  className={[
+                    "px-3 py-2 text-[12.5px] md:text-xs font-semibold uppercase tracking-wide whitespace-nowrap",
+                    h.center ? "text-center" : "text-left",
+                    h.sortable ? "cursor-pointer select-none" : "cursor-default",
+                  ].join(" ")}
+                  aria-sort={isActive(h) ? (sortConfig.direction === "asc" ? "ascending" : "descending") : "none"}
+                  onClick={() => h.sortable && h.sortKey && onSort(h.sortKey)}
                 >
-                  {header.key === "Title" && type === "novel" ? (
-                    <Link
-                      to={`/novels/${String((item as NovelAdmin).Slug)}`}
-                      className="text-[#ff4d4f] hover:underline"
-                    >
-                      {String((item as NovelAdmin).Title)}
-                    </Link>
-                  ) : header.key === "displayName" && type === "user" ? (
-                    <Link
-                      to={`/admin/users/${String((item as User).userId)}`}
-                      className="text-[#ff4d4f] hover:underline"
-                    >
-                      {String((item as User).displayName)}
-                    </Link>
-                  ) : header.key === "Actions" && type === "novel" ? (
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() =>
-                          onOpenChapterPopup &&
-                          onOpenChapterPopup(
-                            String((item as NovelAdmin).NovelId)
-                          )
-                        }
-                        className={`px-3 py-1 rounded-md text-white ${
-                          darkMode
-                            ? "bg-[#ff4d4f] hover:bg-[#e63939]"
-                            : "bg-[#ff4d4f] hover:bg-[#e63939]"
-                        }`}
-                      >
-                        Quản lý chương
-                      </button>
-                      <button
-                        onClick={() =>
-                          onLockUnlockNovel &&
-                          onLockUnlockNovel(
-                            String((item as NovelAdmin).NovelId),
-                            (item as NovelAdmin).IsLock
-                          )
-                        }
-                        className={`px-3 py-1 rounded-md text-white ${
-                          darkMode
-                            ? "bg-[#ff4d4f] hover:bg-[#e63939]"
-                            : "bg-[#ff4d4f] hover:bg-[#e63939]"
-                        }`}
-                      >
-                        {(item as NovelAdmin).IsLock ? "Mở khóa" : "Khóa"}
-                      </button>
-                    </div>
-                  ) : header.key === "Actions" && type === "user" ? (
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() =>
-                          onLockUnlockUser &&
-                          onLockUnlockUser(
-                            String((item as User).userId),
-                            (item as User).isBanned
-                          )
-                        }
-                        className={`px-3 py-1 rounded-md text-white ${
-                          darkMode
-                            ? "bg-[#ff4d4f] hover:bg-[#e63939]"
-                            : "bg-[#ff4d4f] hover:bg-[#e63939]"
-                        }`}
-                      >
-                        {(item as User).isBanned ? "Mở khóa" : "Khóa"}
-                      </button>
-                    </div>
-                  ) : header.key === "IsPublic" ||
-                    header.key === "isVerified" ? (
-                    item[header.key] ? (
-                      "✅"
-                    ) : (
-                      "❌"
-                    )
-                  ) : header.key === "IsLock" || header.key === "isBanned" ? (
-                    item[header.key] ? (
-                      "🔒"
-                    ) : (
-                      "❌"
-                    )
-                  ) : header.key === "bannedUntil" && type === "user" ? (
-                    (item as User).bannedUntil === 0 ? (
-                      (item as User).isBanned ? (
-                        "Vĩnh viễn"
-                      ) : (
-                        "Không khóa"
-                      )
-                    ) : (
-                      formatVietnamTimeFromTicks(
-                        Number((item as User).bannedUntil)
-                      )
-                    )
-                  ) : header.key === "RatingAvg" && type === "novel" ? (
-                    Number((item as NovelAdmin).RatingAvg).toFixed(1)
-                  ) : header.key === "role" && type === "user" ? (
-                    String((item as User).role)
-                      .charAt(0)
-                      .toUpperCase() + String((item as User).role).slice(1)
-                  ) : header.key === "CreateAt" ||
-                    header.key === "createdAt" ? (
-                    String(item[header.key])
-                  ) : (
-                    String(item[header.key])
-                  )}
-                </td>
+                  <div className={`inline-flex items-center gap-1 ${h.center ? "justify-center w-full" : ""}`}>
+                    <span>{h.label}</span>
+                    {h.sortable && <SortArrow active={isActive(h)} dir={sortConfig.direction} />}
+                  </div>
+                </th>
               ))}
-            </motion.tr>
-          ))}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.map((item) => (
+              <motion.tr
+                key={String(type === "novel" ? (item as NovelAdmin).NovelId : (item as User).userId)}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18 }}
+                className={darkMode ? "even:bg-white/5 hover:bg-white/10" : "even:bg-zinc-50 hover:bg-zinc-100"}
+              >
+                {headers.map((h) => {
+                  const value: any = (item as any)[h.key];
+
+                  /** ---------- USER CELLS ---------- */
+                  if (type === "user" && h.key === "userName") {
+                    const u = item as User;
+                    return (
+                      <td key={h.key} className="px-3 py-2 truncate font-medium">
+                        <Link
+                          to={`/admin/users/${u.userId}`}
+                          className="text-[#ff5f3d] hover:underline decoration-1 underline-offset-2"
+                          title={String(value ?? "")}
+                        >
+                          {value}
+                        </Link>
+                      </td>
+                    );
+                  }
+
+                  if (type === "user" && h.key === "isVerified") {
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        {value ? (
+                          <span
+                            title="Đã xác thực"
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500 text-[11px] font-bold"
+                          >
+                            ✓
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">—</span>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (type === "user" && h.key === "isBanned") {
+                    const isBanned = Boolean(value);
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        {isBanned ? (
+                          <span title="Đang bị khóa" className="inline-flex items-center justify-center">
+                            <Lock className="h-4 w-4 text-rose-500" />
+                          </span>
+                        ) : (
+                          <span title="Đang mở khóa" className="inline-flex items-center justify-center">
+                            <Unlock className="h-4 w-4 text-emerald-500" />
+                          </span>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  if (type === "user" && h.key === "bannedUntil") {
+                    const u = item as User;
+                    let display = "—";
+                    if (u.isBanned) {
+                      display = u.bannedUntil === 0 ? "∞" : formatVietnamTimeFromTicks(Number(u.bannedUntil)).slice(0, 5);
+                    }
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center tabular-nums">
+                        {display}
+                      </td>
+                    );
+                  }
+
+                  if (h.key === "Actions" && type === "user") {
+                    const u = item as User;
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        <div className="inline-flex items-center gap-2">
+                          <Link
+                            to={`/admin/users/${u.userId}`}
+                            className={[
+                              "px-2.5 py-1.5 text-xs font-semibold rounded-xl border",
+                              darkMode
+                                ? "border-white/10 bg-white/5 hover:bg-white/10"
+                                : "border-zinc-200 bg-white hover:bg-zinc-50",
+                            ].join(" ")}
+                          >
+                            Chi tiết
+                          </Link>
+                          <button
+                            onClick={() => onLockUnlockUser?.(u.userId, u.isBanned)}
+                            className={[
+                              "px-2.5 py-1.5 text-xs font-semibold rounded-xl",
+                              u.isBanned
+                                ? "border border-emerald-500/30 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
+                                : "text-white bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] shadow-sm hover:opacity-95",
+                            ].join(" ")}
+                          >
+                            {u.isBanned ? "Mở khóa" : "Khóa"}
+                          </button>
+                        </div>
+                      </td>
+                    );
+                  }
+
+                  /** ---------- NOVEL CELLS ---------- */
+                  // Novel: Công khai -> icon Eye/EyeOff
+                  if (type === "novel" && h.key === "IsPublic") {
+                    const isPublic = Boolean(value);
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        {isPublic ? (
+                          <span title="Công khai" className="inline-flex items-center justify-center">
+                            <Eye className="h-4 w-4 text-emerald-500" />
+                          </span>
+                        ) : (
+                          <span title="Không công khai" className="inline-flex items-center justify-center">
+                            <EyeOff className="h-4 w-4 text-zinc-400" />
+                          </span>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Novel: Khóa -> icon Lock/Unlock (khác với nút hành động)
+                  if (type === "novel" && h.key === "IsLock") {
+                    const isLocked = Boolean(value);
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        {isLocked ? (
+                          <span title="Đang khóa" className="inline-flex items-center justify-center">
+                            <Lock className="h-4 w-4 text-rose-500" />
+                          </span>
+                        ) : (
+                          <span title="Đang mở" className="inline-flex items-center justify-center">
+                            <Unlock className="h-4 w-4 text-emerald-500" />
+                          </span>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // ACTIONS: NOVEL (đã bỏ nút “Chi tiết” như yêu cầu)
+                  if (h.key === "Actions" && type === "novel") {
+                    const n = item as NovelAdmin;
+                    return (
+                      <td key={h.key} className="px-3 py-2 text-center">
+                        <div className="inline-flex items-center gap-2">
+                          <button
+                            onClick={() => onOpenChapterPopup?.(n.NovelId)}
+                            className={[
+                              "px-2.5 py-1.5 text-xs font-semibold rounded-xl border",
+                              darkMode
+                                ? "border-white/10 bg-white/5 hover:bg-white/10"
+                                : "border-zinc-200 bg-white hover:bg-zinc-50",
+                            ].join(" ")}
+                          >
+                            Chương
+                          </button>
+                          <button
+                            onClick={() => onLockUnlockNovel?.(n.NovelId, n.IsLock)}
+                            className={[
+                              "px-2.5 py-1.5 text-xs font-semibold rounded-xl",
+                              n.IsLock
+                                ? "border border-emerald-500/30 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
+                                : "text-white bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] shadow-sm hover:opacity-95",
+                            ].join(" ")}
+                          >
+                            {n.IsLock ? "Mở" : "Khóa"}
+                          </button>
+                        </div>
+                      </td>
+                    );
+                  }
+
+                  /** DEFAULT CELL */
+                  return (
+                    <td
+                      key={h.key}
+                      className={[
+                        "px-3 py-2 truncate",
+                        h.center ? "text-center" : "",
+                        typeof value === "number" ? "tabular-nums" : "",
+                      ].join(" ")}
+                      title={typeof value === "string" ? value : undefined}
+                    >
+                      {String(value ?? "")}
+                    </td>
+                  );
+                })}
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
