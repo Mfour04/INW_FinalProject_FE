@@ -1,5 +1,14 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { Mail, Lock, User, Eye, EyeOff, ChevronLeft, X, Check } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  ChevronLeft,
+  X,
+  Check,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 import LoginLogo from "../../../assets/img/icon_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
@@ -7,15 +16,24 @@ import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useMutation } from "@tanstack/react-query";
 import { ForgotPassword, Login, Register } from "../../../api/Auth/auth.api";
-import type { ForgotPasswordParams, LoginParams, RegisterParams } from "../../../api/Auth/auth.type";
-import { validatePassword, type PasswordValidationResult } from "../../../utils/validation";
+import type {
+  ForgotPasswordParams,
+  LoginParams,
+  RegisterParams,
+} from "../../../api/Auth/auth.type";
+import {
+  validatePassword,
+  type PasswordValidationResult,
+} from "../../../utils/validation";
 import { useAuth } from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { TextField } from "./TextField";
 import { Input } from "./Input";
 import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
 
-const SERVER_URL = "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
+const BASE_URL = "http://localhost:5173";
+const SERVER_URL =
+  "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
 
 const AUTH_ACTIONS = {
   LOGIN: "login",
@@ -25,10 +43,12 @@ const AUTH_ACTIONS = {
 type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
 
 const initialLoginForm: LoginParams = { username: "", password: "" };
-const initialRegisterForm: RegisterParams = { username: "", email: "", password: "" };
+const initialRegisterForm: RegisterParams = {
+  username: "",
+  email: "",
+  password: "",
+};
 const initialForgotForm: ForgotPasswordParams = { email: "" };
-
-const inputRef = useRef<HTMLInputElement>(null);
 
 type Props = { onClose: () => void };
 
@@ -39,12 +59,16 @@ export default function AuthModal({ onClose }: Props) {
 
   const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
-  const [registerForm, setRegisterForm] = useState<RegisterParams>(initialRegisterForm);
-  const [forgotPasswordForm, setForgotPasswordForm] = useState<ForgotPasswordParams>(initialForgotForm);
+  const [registerForm, setRegisterForm] =
+    useState<RegisterParams>(initialRegisterForm);
+  const [forgotPasswordForm, setForgotPasswordForm] =
+    useState<ForgotPasswordParams>(initialForgotForm);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerMessage, setRegisterMessage] = useState("");
   const [showPwd1, setShowPwd1] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
@@ -67,23 +91,45 @@ export default function AuthModal({ onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const handleLoginUsernameChange = useCallback((v: string) => setLoginForm(p => ({ ...p, username: v })), []);
-  const handleLoginPasswordChange = useCallback((v: string) => setLoginForm(p => ({ ...p, password: v })), []);
-  const handleRegisterUsernameChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, username: v })), []);
-  const handleRegisterEmailChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, email: v })), []);
-  const handleRegisterPasswordChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, password: v })), []);
-  const handleConfirmPasswordChange = useCallback((v: string) => setConfirmPassword(v), []);
-  const handleForgotPasswordChange = useCallback((v: string) => setForgotPasswordForm({ email: v }), []);
+  const handleLoginUsernameChange = useCallback(
+    (v: string) => setLoginForm((p) => ({ ...p, username: v })),
+    []
+  );
+  const handleLoginPasswordChange = useCallback(
+    (v: string) => setLoginForm((p) => ({ ...p, password: v })),
+    []
+  );
+  const handleRegisterUsernameChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, username: v })),
+    []
+  );
+  const handleRegisterEmailChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, email: v })),
+    []
+  );
+  const handleRegisterPasswordChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, password: v })),
+    []
+  );
+  const handleConfirmPasswordChange = useCallback(
+    (v: string) => setConfirmPassword(v),
+    []
+  );
+  const handleForgotPasswordChange = useCallback(
+    (v: string) => setForgotPasswordForm({ email: v }),
+    []
+  );
 
-  const toggleShowPwd1 = useCallback(() => setShowPwd1(s => !s), []);
-  const toggleShowPwd2 = useCallback(() => setShowPwd2(s => !s), []);
+  const toggleShowPwd1 = useCallback(() => setShowPwd1((s) => !s), []);
+  const toggleShowPwd2 = useCallback(() => setShowPwd2((s) => !s), []);
 
   const validationPassword: PasswordValidationResult = useMemo(
     () => validatePassword(registerForm.password),
     [registerForm.password]
   );
   const isRegisterError = useMemo(
-    () => registerForm.password !== confirmPassword && confirmPassword.length > 0,
+    () =>
+      registerForm.password !== confirmPassword && confirmPassword.length > 0,
     [registerForm.password, confirmPassword]
   );
 
@@ -101,7 +147,8 @@ export default function AuthModal({ onClose }: Props) {
 
   const { mutate: registerMutate, isPending: isRegisterPending } = useMutation({
     mutationFn: (body: RegisterParams) => Register(body),
-    onError: (res: any) => setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
+    onError: (res: any) =>
+      setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
     onSuccess: () => {
       toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
       setAction(AUTH_ACTIONS.LOGIN);
@@ -124,7 +171,12 @@ export default function AuthModal({ onClose }: Props) {
   const handleRegister = useCallback(() => {
     if (!validationPassword.isValid || isRegisterError) return;
     registerMutate(registerForm);
-  }, [validationPassword.isValid, isRegisterError, registerForm, registerMutate]);
+  }, [
+    validationPassword.isValid,
+    isRegisterError,
+    registerForm,
+    registerMutate,
+  ]);
 
   const handleForgot = useCallback(() => {
     if (!forgotPasswordForm.email.trim()) {
@@ -141,12 +193,12 @@ export default function AuthModal({ onClose }: Props) {
           <>
             <Input>
               <TextField
-                 ref={inputRef}
-                  icon={<User size={18} />}
-                  placeholder="Tên đăng nhập / Email"
-                  value={loginForm.username}
-                  onChange={handleLoginUsernameChange}
-                  autoComplete="username"
+                ref={inputRef}
+                icon={<User size={18} />}
+                placeholder="Tên đăng nhập / Email"
+                value={loginForm.username}
+                onChange={handleLoginUsernameChange}
+                autoComplete="username"
               />
             </Input>
             <Input>
@@ -181,7 +233,11 @@ export default function AuthModal({ onClose }: Props) {
                     "[&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100",
                   ].join(" ")}
                 >
-                  <Check size={12} strokeWidth={3} className="text-white dark:text-black transition-opacity" />
+                  <Check
+                    size={12}
+                    strokeWidth={3}
+                    className="text-white dark:text-black transition-opacity"
+                  />
                 </span>
                 Ghi nhớ tôi
               </label>
@@ -204,7 +260,10 @@ export default function AuthModal({ onClose }: Props) {
 
             <p className="text-xs text-center text-zinc-600 dark:text-zinc-300">
               Chưa có tài khoản?{" "}
-              <button onClick={() => setAction(AUTH_ACTIONS.REGISTER)} className="text-[#ff6740] font-bold hover:underline">
+              <button
+                onClick={() => setAction(AUTH_ACTIONS.REGISTER)}
+                className="text-[#ff6740] font-bold hover:underline"
+              >
                 Đăng ký ngay
               </button>
             </p>
@@ -253,7 +312,11 @@ export default function AuthModal({ onClose }: Props) {
                 }
               />
             </Input>
-            <Input error={isRegisterError ? "Mật khẩu nhập lại không khớp" : undefined}>
+            <Input
+              error={
+                isRegisterError ? "Mật khẩu nhập lại không khớp" : undefined
+              }
+            >
               <TextField
                 icon={<Lock size={18} />}
                 placeholder="Nhập lại mật khẩu"
@@ -280,7 +343,11 @@ export default function AuthModal({ onClose }: Props) {
                 ))}
               </ul>
             )}
-            {registerMessage && <p className="text-sm text-red-600 dark:text-red-400 -mt-0.5">{registerMessage}</p>}
+            {registerMessage && (
+              <p className="text-sm text-red-600 dark:text-red-400 -mt-0.5">
+                {registerMessage}
+              </p>
+            )}
 
             <Button
               isLoading={isRegisterPending}
@@ -292,7 +359,10 @@ export default function AuthModal({ onClose }: Props) {
 
             <p className="text-xs text-center text-zinc-600 dark:text-zinc-300">
               Đã có tài khoản?{" "}
-              <button onClick={() => setAction(AUTH_ACTIONS.LOGIN)} className="text-[#ff6740] font-bold hover:underline">
+              <button
+                onClick={() => setAction(AUTH_ACTIONS.LOGIN)}
+                className="text-[#ff6740] font-bold hover:underline"
+              >
                 Đăng nhập
               </button>
             </p>
@@ -397,13 +467,21 @@ export default function AuthModal({ onClose }: Props) {
           <div className="relative h-full flex flex-col justify-center p-12">
             {action === AUTH_ACTIONS.REGISTER ? (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">Tham gia InkWave ngay</h1>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">Đồng bộ tủ truyện & gợi ý cá nhân hóa</p>
+                <h1 className="text-3xl font-semibold leading-tight">
+                  Tham gia InkWave ngay
+                </h1>
+                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
+                  Đồng bộ tủ truyện & gợi ý cá nhân hóa
+                </p>
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">Gõ cửa thế giới truyện</h1>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích</p>
+                <h1 className="text-3xl font-semibold leading-tight">
+                  Gõ cửa thế giới truyện
+                </h1>
+                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
+                  Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích
+                </p>
               </>
             )}
           </div>
@@ -436,7 +514,9 @@ export default function AuthModal({ onClose }: Props) {
 
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
               <h2 className="text-[15px] sm:text-base font-semibold">
-                {action === AUTH_ACTIONS.REGISTER ? "Tạo tài khoản" : "Chào mừng trở lại"}
+                {action === AUTH_ACTIONS.REGISTER
+                  ? "Tạo tài khoản"
+                  : "Chào mừng trở lại"}
               </h2>
             </div>
             <p className="text-[12.5px] sm:text-sm text-zinc-600 dark:text-zinc-400 -mt-0.5 mb-3 sm:mb-4">
@@ -455,7 +535,9 @@ export default function AuthModal({ onClose }: Props) {
                 ].join(" ")}
               >
                 <img src={GoogleLogin} alt="Google" className="w-4 h-4" />
-                <span className="text-sm font-bold">Tạo tài khoản với Google</span>
+                <span className="text-sm font-bold">
+                  Tạo tài khoản với Google
+                </span>
               </button>
             ) : (
               <button
@@ -482,7 +564,9 @@ export default function AuthModal({ onClose }: Props) {
 
             <div className="my-3 sm:my-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">hoặc</span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                hoặc
+              </span>
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
             </div>
 
