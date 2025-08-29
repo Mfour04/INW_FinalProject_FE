@@ -13,7 +13,6 @@ import { EmptyState } from "../../components/ui/feedback/EmptyState";
 import type { ViewMode } from "./types";
 import { LayoutGrid, List, RotateCcw, ChevronLeft } from "lucide-react";
 import type { Novel } from "../../entity/novel";
-import { getTags } from "../../api/Tags/tag.api";
 import { sortOptions } from "../../components/common/Header/Header";
 
 type Props = { sidebarCollapsed?: boolean };
@@ -31,15 +30,6 @@ export const NovelsExplore = ({}: Props) => {
   const searchTerm = sp.get("query") || "";
   const sortBy = sp.get("sortBy") || "";
   const searchTags: string[] = sp.getAll("tag");
-
-  const { data: tags } = useQuery({
-    queryKey: ["tag_novel_explore"],
-    queryFn: () => getTags().then((res) => res.data),
-  });
-
-  const mappedTagNames: string[] = searchTags
-    .map((id) => tags?.data.find((t) => t.tagId === id)?.name)
-    .filter((n): n is string => !!n);
 
   const { data, isFetching, isError, refetch } = useQuery({
     queryKey: ["novels", { searchTerm, page, limit, sortBy, searchTags }],
