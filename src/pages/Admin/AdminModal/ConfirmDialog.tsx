@@ -1,46 +1,24 @@
 import { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { AnimatePresence, motion, type Transition } from "framer-motion";
-import {
-  ShieldAlert,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  Loader2,
-  Clock,
-  ChevronDown,
-  Check,
-  FileText,
-} from "lucide-react";
+import { ShieldAlert, CheckCircle2, AlertTriangle, X, Loader2, Clock, ChevronDown, Check, FileText } from "lucide-react";
 
-/* ====================== Types ====================== */
 export type Variant = "neutral" | "success" | "danger";
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (extra?: { duration?: string; note?: string }) => void;
-
   title: string;
   subtitle?: string;
-
-  /** success = duyệt, danger = từ chối, neutral = xác nhận chung */
   variant?: Variant;
-
-  /** Hiện dropdown thời hạn (ví dụ khóa user) */
   showDuration?: boolean;
-
-  /** Hiện ô “Ghi chú / Lý do” */
   showNote?: boolean;
-
-  /** Nhãn nút */
   confirmLabel?: string;
   cancelLabel?: string;
-
-  /** Trạng thái tải khi xác nhận */
   loading?: boolean;
+  type?: string; // "novel" => ẩn body, nối sát header-footer, bỏ border
 }
 
-/* ====================== Internal ====================== */
 type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean };
 const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
   ({ loading, children, className = "", ...rest }, ref) => (
@@ -50,7 +28,7 @@ const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
       disabled={loading || rest.disabled}
       aria-busy={loading ? "true" : "false"}
       className={[
-        "h-10 px-4 rounded-xl text-sm font-semibold inline-flex items-center justify-center",
+        "h-8 px-3.5 py-1.5 rounded-xl text-sm font-semibold inline-flex items-center justify-center",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6740]/40",
         "transition-colors",
         loading ? "opacity-70 cursor-not-allowed" : "",
@@ -65,7 +43,6 @@ const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
 BaseBtn.displayName = "BaseBtn";
 
 const spring: Transition = { type: "spring", stiffness: 420, damping: 36, mass: 0.65 };
-
 const DURATIONS = ["12 tiếng", "1 ngày", "3 ngày", "7 ngày", "15 ngày", "30 ngày", "Vĩnh viễn"] as const;
 
 const tone = (v: Variant) => {
@@ -79,7 +56,6 @@ const tone = (v: Variant) => {
   }
 };
 
-/* ====================== Component ====================== */
 const ConfirmDialog = ({
   isOpen,
   onClose,
@@ -92,6 +68,7 @@ const ConfirmDialog = ({
   confirmLabel,
   cancelLabel,
   loading = false,
+  type,
 }: ConfirmDialogProps) => {
   const t = tone(variant);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -100,28 +77,22 @@ const ConfirmDialog = ({
 
   const [duration, setDuration] = useState<string>(DURATIONS[0]);
   const [note, setNote] = useState("");
-
-  // custom dropdown state
   const [openSelect, setOpenSelect] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const selectBtnRef = useRef<HTMLButtonElement>(null);
   const selectListRef = useRef<HTMLDivElement>(null);
 
   const currentIdx = useMemo(() => Math.max(0, DURATIONS.findIndex((d) => d === duration)), [duration]);
+  const isNovel = type === "novel";
 
-  /* Focus confirm on open */
   useEffect(() => {
     if (isOpen) confirmRef.current?.focus();
   }, [isOpen]);
 
-  /* Close dropdown on outside click */
   useEffect(() => {
     if (!openSelect) return;
     const onDoc = (e: MouseEvent) => {
-      if (
-        !selectBtnRef.current?.contains(e.target as Node) &&
-        !selectListRef.current?.contains(e.target as Node)
-      ) {
+      if (!selectBtnRef.current?.contains(e.target as Node) && !selectListRef.current?.contains(e.target as Node)) {
         setOpenSelect(false);
       }
     };
@@ -129,16 +100,13 @@ const ConfirmDialog = ({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [openSelect]);
 
-  /* Focus trap: loop Tab inside dialog */
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const root = dialogRef.current;
       if (!root) return;
-      const focusables = root.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
+      const focusables = root.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
@@ -167,7 +135,6 @@ const ConfirmDialog = ({
     }
   };
 
-  /* Dropdown keyboard */
   const onKeyDownSelect = (e: React.KeyboardEvent) => {
     if (!openSelect) {
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -208,25 +175,34 @@ const ConfirmDialog = ({
     });
   };
 
+  // Header/Footer classes — khi isNovel: bỏ border và loại bỏ khoảng trống giữa 2 phần
+  const headerClass = isNovel
+    ? "flex items-center gap-3 p-5 border-b border-zinc-200 dark:border-white/10"
+    : "flex items-center gap-3 px-5 pt-5 pb-0";
+
+  const footerClass = isNovel
+    ? "flex justify-end gap-2 px-5 py-4 border-t border-zinc-200 dark:border-white/10"
+    : "flex justify-end gap-2 px-5 pt-0 pb-4";
+
+  const ariaDescribedBy = !isNovel && (subtitle || showDuration || showNote) ? "cd-subtitle" : undefined;
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             ref={overlayRef}
             onMouseDown={closeOnBackdrop}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[1000] backdrop-blur-sm"
           />
-          {/* Dialog */}
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-labelledby="cd-title"
-            aria-describedby="cd-subtitle"
+            aria-describedby={ariaDescribedBy}
             onKeyDown={onKeyDownDialog}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -238,16 +214,15 @@ const ConfirmDialog = ({
               ref={dialogRef}
               className="w-full max-w-md rounded-2xl overflow-hidden border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-[#0b0e13]/90 backdrop-blur shadow-xl"
             >
-              {/* Header */}
-              <div className="flex items-start gap-3 p-5 border-b border-zinc-200 dark:border-white/10">
+              <div className={headerClass}>
                 <div className="shrink-0 p-2 rounded-xl bg-white/70 dark:bg-white/10 border border-zinc-200/60 dark:border-white/10">
                   {t.icon}
                 </div>
                 <div className="min-w-0">
-                  <h3 id="cd-title" className="text-lg font-semibold text-zinc-900 dark:text-white">
+                  <h3 id="cd-title" className="text-md font-semibold text-zinc-900 dark:text-white">
                     {title}
                   </h3>
-                  {subtitle && (
+                  {!isNovel && subtitle && (
                     <p id="cd-subtitle" className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
                   )}
                 </div>
@@ -261,125 +236,115 @@ const ConfirmDialog = ({
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="p-5 space-y-4">
-                {showDuration && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
-                      Thời hạn khóa
-                    </label>
+              {!isNovel && (
+                <div className="p-5 space-y-4">
+                  {showDuration && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">Thời hạn khóa</label>
+                      <div className="relative" onKeyDown={onKeyDownSelect}>
+                        <button
+                          ref={selectBtnRef}
+                          type="button"
+                          disabled={loading}
+                          onClick={() => !loading && setOpenSelect((s) => !s)}
+                          aria-haspopup="listbox"
+                          aria-expanded={openSelect}
+                          className={[
+                            "w-full h-11 rounded-xl border pl-10 pr-8 text-left",
+                            "bg-white/80 dark:bg-zinc-900/70",
+                            "border-zinc-200 dark:border-white/10",
+                            "text-zinc-900 dark:text-white",
+                            "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
+                            "disabled:opacity-60 disabled:cursor-not-allowed",
+                          ].join(" ")}
+                        >
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                            <Clock className="w-4 h-4" />
+                          </span>
+                          <span className="truncate">{duration}</span>
+                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500">
+                            <ChevronDown className="w-4 h-4" />
+                          </span>
+                        </button>
 
-                    {/* Custom Select (listbox) */}
-                    <div className="relative" onKeyDown={onKeyDownSelect}>
-                      <button
-                        ref={selectBtnRef}
-                        type="button"
-                        disabled={loading}
-                        onClick={() => !loading && setOpenSelect((s) => !s)}
-                        aria-haspopup="listbox"
-                        aria-expanded={openSelect}
-                        className={[
-                          "w-full h-11 rounded-xl border pl-10 pr-8 text-left",
-                          "bg-white/80 dark:bg-zinc-900/70",
-                          "border-zinc-200 dark:border-white/10",
-                          "text-zinc-900 dark:text-white",
-                          "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
-                          "disabled:opacity-60 disabled:cursor-not-allowed",
-                        ].join(" ")}
-                      >
-                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                          <Clock className="w-4 h-4" />
-                        </span>
-                        <span className="truncate">{duration}</span>
-                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500">
-                          <ChevronDown className="w-4 h-4" />
-                        </span>
-                      </button>
-
-                      <AnimatePresence>
-                        {openSelect && (
-                          <motion.div
-                            ref={selectListRef}
-                            role="listbox"
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 6 }}
-                            transition={{ duration: 0.14 }}
-                            className={[
-                              "absolute z-20 mt-1 w-full rounded-xl overflow-hidden",
-                              "border border-zinc-200 dark:border-white/10",
-                              "bg-white/95 dark:bg-[#0b0e13]/95 backdrop-blur",
-                              "shadow-xl",
-                            ].join(" ")}
-                          >
-                            <div className="max-h-56 overflow-auto overscroll-contain">
-                              {DURATIONS.map((opt, idx) => {
-                                const selected = opt === duration;
-                                const active = idx === activeIndex || (activeIndex === -1 && selected);
-                                return (
-                                  <button
-                                    key={opt}
-                                    type="button"
-                                    role="option"
-                                    aria-selected={selected}
-                                    onMouseEnter={() => setActiveIndex(idx)}
-                                    onClick={() => commitSelect(idx)}
-                                    className={[
-                                      "w-full text-left px-3 py-2.5 text-sm flex items-center gap-2",
-                                      active
-                                        ? "bg-zinc-100/80 dark:bg-white/10"
-                                        : "bg-transparent",
-                                      selected
-                                        ? "font-semibold text-zinc-900 dark:text-white"
-                                        : "text-zinc-700 dark:text-zinc-200",
-                                    ].join(" ")}
-                                  >
-                                    <span className="inline-flex items-center justify-center w-5">
-                                      {selected ? <Check className="w-4 h-4" /> : null}
-                                    </span>
-                                    <span className="truncate">{opt}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                        <AnimatePresence>
+                          {openSelect && (
+                            <motion.div
+                              ref={selectListRef}
+                              role="listbox"
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 6 }}
+                              transition={{ duration: 0.14 }}
+                              className={[
+                                "absolute z-20 mt-1 w-full rounded-xl overflow-hidden",
+                                "border border-zinc-200 dark:border-white/10",
+                                "bg-white/95 dark:bg-[#0b0e13]/95 backdrop-blur",
+                                "shadow-xl",
+                              ].join(" ")}
+                            >
+                              <div className="max-h-56 overflow-auto overscroll-contain">
+                                {DURATIONS.map((opt, idx) => {
+                                  const selected = opt === duration;
+                                  const active = idx === activeIndex || (activeIndex === -1 && selected);
+                                  return (
+                                    <button
+                                      key={opt}
+                                      type="button"
+                                      role="option"
+                                      aria-selected={selected}
+                                      onMouseEnter={() => setActiveIndex(idx)}
+                                      onClick={() => commitSelect(idx)}
+                                      className={[
+                                        "w-full text-left px-3 py-2.5 text-sm flex items-center gap-2",
+                                        active ? "bg-zinc-100/80 dark:bg-white/10" : "bg-transparent",
+                                        selected ? "font-semibold text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-200",
+                                      ].join(" ")}
+                                    >
+                                      <span className="inline-flex items-center justify-center w-5">
+                                        {selected ? <Check className="w-4 h-4" /> : null}
+                                      </span>
+                                      <span className="truncate">{opt}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {showNote && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
-                      Ghi chú / Lý do
-                    </label>
-                    <div className="relative">
-                      <FileText className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
-                      <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        rows={3}
-                        maxLength={500}
-                        placeholder="(Tuỳ chọn) Nhập ghi chú…"
-                        className={[
-                          "w-full rounded-xl pl-9 pr-3 py-2",
-                          "bg-white/80 dark:bg-zinc-900/70",
-                          "border border-zinc-200 dark:border-white/10",
-                          "text-zinc-900 dark:text-white",
-                          "placeholder:text-zinc-400",
-                          "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
-                        ].join(" ")}
-                      />
-                      <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">{note.length}/500</div>
+                  {showNote && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">Ghi chú / Lý do</label>
+                      <div className="relative">
+                        <FileText className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
+                        <textarea
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          rows={3}
+                          maxLength={500}
+                          placeholder="(Tuỳ chọn) Nhập ghi chú…"
+                          className={[
+                            "w-full rounded-xl pl-9 pr-3 py-2",
+                            "bg-white/80 dark:bg-zinc-900/70",
+                            "border border-zinc-200 dark:border-white/10",
+                            "text-zinc-900 dark:text-white",
+                            "placeholder:text-zinc-400",
+                            "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
+                          ].join(" ")}
+                        />
+                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">{note.length}/500</div>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
-              {/* Footer */}
-              <div className="flex justify-end gap-2 px-5 py-4 border-t border-zinc-200 dark:border-white/10">
-                <BaseBtn onClick={onClose} loading={loading} className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white">
+              <div className={footerClass}>
+                <BaseBtn onClick={onClose} loading={loading} className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white">
                   {cancelLabel ?? "Hủy"}
                 </BaseBtn>
                 <BaseBtn ref={confirmRef} onClick={handleConfirm} loading={loading} className={t.cta}>
