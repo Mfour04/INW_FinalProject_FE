@@ -149,7 +149,6 @@ export const HomePage = () => {
   };
 
   useEffect(() => {
-    console.log(user);
     if (
       user &&
       Array.isArray(user.favouriteType) &&

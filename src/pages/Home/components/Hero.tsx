@@ -36,7 +36,6 @@ export const Hero = ({
     (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") onPrev();
       if (e.key === "ArrowRight") onNext();
-      if (e.key === "Enter") onRead?.();
     },
     [onPrev, onNext, onRead]
   );
@@ -48,7 +47,10 @@ export const Hero = ({
 
   if (!hero) return null;
 
-  const handleDragEnd = (_: any, info: { offset: { x: number }; velocity: { x: number } }) => {
+  const handleDragEnd = (
+    _: any,
+    info: { offset: { x: number }; velocity: { x: number } }
+  ) => {
     const { x: dx } = info.offset;
     const { x: vx } = info.velocity;
     const distanceThreshold = 80;
@@ -116,7 +118,11 @@ export const Hero = ({
               >
                 <div className="group h-auto max-w-[92vw] overflow-hidden rounded-2xl bg-black/40 p-4 ring-1 ring-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.45)] sm:max-w-3xl sm:rounded-3xl sm:p-6">
                   <div className="min-w-0">
-                    <Typography variant="h4" size="small" className="mb-1 text-white/95">
+                    <Typography
+                      variant="h4"
+                      size="small"
+                      className="mb-1 text-white/95"
+                    >
                       {title}
                     </Typography>
                     <div className="inline-block max-w-full align-top">
@@ -150,15 +156,21 @@ export const Hero = ({
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       <div className="flex items-center gap-2 rounded-xl bg-white/7 px-2.5 py-2 ring-1 ring-white/15 backdrop-blur-md">
                         <RemoveRedEye sx={{ height: 18, width: 18 }} />
-                        <span className="text-sm tabular-nums">{hero?.totalViews ?? "—"}</span>
+                        <span className="text-sm tabular-nums">
+                          {hero?.totalViews ?? "—"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 rounded-xl bg-white/7 px-2.5 py-2 ring-1 ring-white/15 backdrop-blur-md">
                         <StarRate sx={{ height: 18, width: 18 }} />
-                        <span className="text-sm tabular-nums">{hero?.ratingCount ?? "—"}</span>
+                        <span className="text-sm tabular-nums">
+                          {hero?.ratingCount ?? "—"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 rounded-xl bg-white/7 px-2.5 py-2 ring-1 ring-white/15 backdrop-blur-md">
                         <img className="h-4" src={PencilEdit} alt="edit" />
-                        <span className="text-sm tabular-nums">{(hero as any)?.chapterCount ?? "—"}</span>
+                        <span className="text-sm tabular-nums">
+                          {(hero as any)?.chapterCount ?? "—"}
+                        </span>
                       </div>
                     </div>
                     <button
