@@ -8,10 +8,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { SearchUsers } from "../../../api/User/user-search.api";
 import type { UserSearchResult } from "../../../api/User/user-search.type";
-import { useNavigate } from "react-router-dom";
 import { FollowButton } from "../FollowButton";
 import { ClickableUserInfo } from "../ClickableUserInfo";
 import type { ReactNode, RefObject } from "react";
+import type { TagSelectProps } from "./Header";
 
 type SortOption = { value: string; label: string };
 
@@ -21,8 +21,8 @@ type SearchProps = {
   onSubmit: () => void;
 
   sortOptions?: SortOption[];
+  tagFilterOptions?: TagSelectProps[];
 
-  // icon có thể là URL string hoặc ReactNode (vd: <SearchIcon />)
   searchIcon?: string | ReactNode;
   clearIcon?: string | ReactNode;
   filterIcon?: string | ReactNode;
@@ -30,18 +30,10 @@ type SearchProps = {
   onApplyFilters?: (filters: { sort: string; tags: string[] }) => void;
 
   initialSort?: string;
+  setSort: (sortBy: string) => void;
   initialTags?: string[];
+  setTags: (tags: string[]) => void;
 };
-
-const MOCK_TAG_OPTIONS: { value: string; label: string }[] = [
-  { value: "romance", label: "Lãng mạn" },
-  { value: "action", label: "Hành động" },
-  { value: "fantasy", label: "Giả tưởng" },
-  { value: "comedy", label: "Hài hước" },
-  { value: "school", label: "Học đường" },
-  { value: "isekai", label: "Isekai" },
-  { value: "drama", label: "Drama" },
-];
 
 function useOnClickOutside(
   refs: RefObject<HTMLElement>[],
@@ -135,7 +127,6 @@ function TagChip({
   );
 }
 
-/* ===================== ModernSelect (custom, kbd nav) ===================== */
 function ModernSelect({
   value,
   onChange,
@@ -280,36 +271,35 @@ export const SearchBar = ({
   clearIcon,
   filterIcon,
   onApplyFilters,
+  tagFilterOptions,
   initialSort = "",
   initialTags = [],
+  setSort,
+  setTags,
 }: SearchProps) => {
   const [selectedSort, setSelectedSort] = useState<string>(initialSort ?? "");
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTags ?? []);
 
   const [showDropdown, setShowDropdown] = useState(false);
-  const [tempSort, setTempSort] = useState<string>(selectedSort);
   const [tempTags, setTempTags] = useState<string[]>(selectedTags);
   const [showUserResults, setShowUserResults] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null!);
-  const navigate = useNavigate();
 
-  // Query để tìm kiếm user
   const { data: userSearchResults, isLoading: isSearchingUsers } = useQuery({
     queryKey: ["userSearch", searchTerm],
     queryFn: async () => {
       const result = await SearchUsers(searchTerm);
       return result;
     },
-    enabled: searchTerm.length >= 2, // Chỉ gọi API khi searchTerm >= 2
-    staleTime: 0, // Không cache, luôn refetch khi cần
-    gcTime: 5 * 60 * 1000, // 5 phút (thay thế cacheTime)
-    refetchOnWindowFocus: true, // Refetch khi focus window
-    refetchOnMount: true, // Refetch khi mount
+    enabled: searchTerm.length >= 2,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
-  // Hiển thị kết quả tìm kiếm user khi có searchTerm
   useEffect(() => {
     if (searchTerm.length >= 2) {
       setShowUserResults(true);
@@ -318,10 +308,9 @@ export const SearchBar = ({
     }
   }, [searchTerm]);
 
-  // Auto sync temp khi mở
   useEffect(() => {
     if (showDropdown) {
-      setTempSort(selectedSort || "");
+      setSort(selectedSort || "");
       setTempTags(selectedTags || []);
     }
   }, [showDropdown, selectedSort, selectedTags]);
@@ -342,26 +331,8 @@ export const SearchBar = ({
     [selectedSort, selectedTags]
   );
 
-  const handleUserClick = (username: string) => {
-    try {
-      // Kiểm tra xem navigate có hoạt động không
-      if (typeof navigate === "function") {
-        navigate(`/profile/${username}`);
-        setShowUserResults(false);
-        onSearchTermChange("");
-      } else {
-        // Fallback: sử dụng window.location
-        window.location.href = `/profile/${username}`;
-      }
-    } catch (error) {
-      // Fallback: sử dụng window.location
-      window.location.href = `/profile/${username}`;
-    }
-  };
-
   const users = userSearchResults?.data?.users || [];
 
-  // Thêm type guard để đảm bảo an toàn
   const hasValidData =
     userSearchResults &&
     typeof userSearchResults === "object" &&
@@ -372,11 +343,13 @@ export const SearchBar = ({
     "users" in userSearchResults.data;
   const popupWidth = useElementWidth(containerRef, 720, 24);
 
+  useEffect(() => {
+    setTags(tempTags);
+  }, [tempTags]);
+
   return (
     <div className="relative w-full max-w-[760px]" ref={containerRef}>
-      {/* Thanh tìm kiếm */}
       <div className="bg-white/90 dark:bg-[#232023]/90 h-12 rounded-2xl backdrop-blur-md ring-1 ring-gray-200 dark:ring-white/10 flex items-center px-2 gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.15)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_10px_30px_-12px_rgba(0,0,0,.65)]">
-        {/* Search button */}
         <button
           onClick={onSubmit}
           aria-label="Tìm kiếm"
@@ -389,7 +362,6 @@ export const SearchBar = ({
           )}
         </button>
 
-        {/* Input */}
         <input
           type="text"
           placeholder="Tìm kiếm truyện, tác giả…"
@@ -415,7 +387,6 @@ export const SearchBar = ({
           </button>
         )}
 
-        {/* Filter button */}
         <button
           onClick={() => setShowDropdown((v) => !v)}
           aria-haspopup="dialog"
@@ -437,7 +408,6 @@ export const SearchBar = ({
         </button>
       </div>
 
-      {/* Dropdown kết quả tìm kiếm user */}
       {showUserResults && (
         <div className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-2xl border border-zinc-800 bg-[#1c1c1f] shadow-xl z-[9999] max-h-96 overflow-y-auto">
           {isSearchingUsers ? (
@@ -469,11 +439,7 @@ export const SearchBar = ({
                     )}
                   </div>
                   <div className="flex-shrink-0">
-                    <FollowButton
-                      targetUserId={user.id}
-                      size="small"
-                      variant="outlined"
-                    />
+                    <FollowButton targetUserId={user.id} size="sm" />
                   </div>
                 </div>
               ))}
@@ -498,15 +464,14 @@ export const SearchBar = ({
             minWidth: Math.min(320, popupWidth || 320),
           }}
         >
-          {/* Sort */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">
                 Sắp xếp theo
               </span>
-              {tempSort && (
+              {initialSort && (
                 <button
-                  onClick={() => setTempSort("")}
+                  onClick={() => setSort("")}
                   className="text-xs text-gray-500 hover:text-gray-700 transition dark:text-zinc-400 dark:hover:text-zinc-200"
                 >
                   Bỏ sắp xếp
@@ -514,8 +479,8 @@ export const SearchBar = ({
               )}
             </div>
             <ModernSelect
-              value={tempSort}
-              onChange={setTempSort}
+              value={initialSort}
+              onChange={setSort}
               options={Array.isArray(sortOptions) ? sortOptions : []}
               placeholder="Không sắp xếp"
             />
@@ -537,21 +502,19 @@ export const SearchBar = ({
               )}
             </div>
 
-            {/* Lưới tag: CHỈ hiện tag CHƯA chọn */}
             <div className="flex flex-wrap gap-2">
-              {MOCK_TAG_OPTIONS.filter(
-                (tag) => !tempTags.includes(tag.value)
-              ).map((tag) => (
-                <TagChip
-                  key={tag.value}
-                  onClick={() => toggleTempTag(tag.value)}
-                >
-                  {tag.label}
-                </TagChip>
-              ))}
+              {tagFilterOptions
+                ?.filter((tag) => !tempTags.includes(tag.value))
+                .map((tag) => (
+                  <TagChip
+                    key={tag.value}
+                    onClick={() => toggleTempTag(tag.value)}
+                  >
+                    {tag.label}
+                  </TagChip>
+                ))}
             </div>
 
-            {/* Dải "Đã chọn" (nếu có) */}
             {tempTags.length > 0 && (
               <div className="mt-4">
                 <div className="mb-2 text-[11px] font-semibold tracking-wide text-gray-500 dark:text-zinc-400 uppercase">
@@ -560,7 +523,7 @@ export const SearchBar = ({
                 <div className="flex flex-wrap gap-2">
                   {tempTags.map((t) => {
                     const label =
-                      MOCK_TAG_OPTIONS.find((x) => x.value === t)?.label || t;
+                      tagFilterOptions?.find((x) => x.value === t)?.label || t;
                     return (
                       <TagChip
                         key={`sel-${t}`}
@@ -580,7 +543,7 @@ export const SearchBar = ({
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
-                setTempSort("");
+                setSort("");
                 setTempTags([]);
               }}
               className="text-xs px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 
@@ -601,10 +564,10 @@ export const SearchBar = ({
               <button
                 onClick={() => {
                   onApplyFilters?.({
-                    sort: tempSort || "",
+                    sort: initialSort || "",
                     tags: tempTags || [],
                   });
-                  setSelectedSort(tempSort || "");
+                  setSelectedSort(initialSort || "");
                   setSelectedTags(tempTags || []);
                   setShowDropdown(false);
                 }}
