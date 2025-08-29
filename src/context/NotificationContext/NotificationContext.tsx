@@ -38,7 +38,6 @@ export const NotificationProvider = ({
           signalR.HttpTransportType.WebSockets |
           signalR.HttpTransportType.LongPolling,
       })
-      .configureLogging(signalR.LogLevel.Debug)
       .withAutomaticReconnect()
       .build();
 

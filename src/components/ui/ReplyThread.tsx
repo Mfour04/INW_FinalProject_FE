@@ -30,6 +30,7 @@ type Props = {
   setReplyValue: (v: string) => void;
   onSubmitReply: (parentId: string) => void;
   setInputRef?: (el: HTMLTextAreaElement | null) => void;
+  onReport: (comment: Comment) => void;
 
   onToggleReply: () => void;
 
@@ -52,6 +53,7 @@ export const ReplyThread = ({
   setInputRef,
   onToggleReply,
   onSaveEdit,
+  onReport,
 }: Props) => {
   const [expanded, setExpanded] = useState(true);
   const [activeEditId, setActiveEditId] = useState<string | null>(null);
@@ -115,10 +117,16 @@ export const ReplyThread = ({
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <p className="truncate text-[14px] font-semibold text-zinc-900 dark:text-white">{name}</p>
-          <span className="truncate text-[11px] text-zinc-500 dark:text-white/55">{user}</span>
+          <p className="truncate text-[14px] font-semibold text-zinc-900 dark:text-white">
+            {name}
+          </p>
+          <span className="truncate text-[11px] text-zinc-500 dark:text-white/55">
+            {user}
+          </span>
         </div>
-        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-white/45">{timestamp}</p>
+        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-white/45">
+          {timestamp}
+        </p>
       </div>
       {actions}
     </div>
@@ -254,7 +262,9 @@ export const ReplyThread = ({
       aria-label={`Có ${count} phản hồi`}
     >
       <MessageSquare className="h-4 w-4 text-zinc-700 dark:text-white/85" />
-      <span className="ml-1 text-[12.5px] text-zinc-800 dark:text-white">{count}</span>
+      <span className="ml-1 text-[12.5px] text-zinc-800 dark:text-white">
+        {count}
+      </span>
     </button>
   );
 
@@ -280,7 +290,8 @@ export const ReplyThread = ({
             timestamp={edited[parent.id]?.timestamp ?? parent.timestamp}
             actions={
               canInteract ? (
-                parent.user === currentUser?.user || parent.name === currentUser?.name ? (
+                parent.user === currentUser?.user ||
+                parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}
@@ -292,7 +303,7 @@ export const ReplyThread = ({
                     }
                   />
                 ) : (
-                  <MoreButton />
+                  <MoreButton onReport={() => onReport(parent)} />
                 )
               ) : null
             }
@@ -364,12 +375,15 @@ export const ReplyThread = ({
                             }
                           />
                         ) : (
-                          <MoreButton />
+                          <MoreButton onReport={() => onReport(r)} />
                         )
                       ) : null
                     }
                   />
-                  <Body id={r.id} content={edited[r.id]?.content ?? r.content} />
+                  <Body
+                    id={r.id}
+                    content={edited[r.id]?.content ?? r.content}
+                  />
                   <div className="mt-2">
                     <LikeButton id={r.id} count={rLikes} hover={false} />
                   </div>

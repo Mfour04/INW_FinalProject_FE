@@ -13,9 +13,15 @@ import { createPortal } from "react-dom";
 import DefaultAvatar from "../../../assets/img/default_avt.png";
 import { Bell, X, Search, ListFilter } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { SORT_BY_FIELDS, SORT_DIRECTIONS } from "../../../pages/Home/hooks/useSortedNovels";
+import {
+  SORT_BY_FIELDS,
+  SORT_DIRECTIONS,
+} from "../../../pages/Home/hooks/useSortedNovels";
 import { useNotification } from "../../../context/NotificationContext/NotificationContext";
-import { GetUserNotifications, ReadNotification } from "../../../api/Notification/noti.api";
+import {
+  GetUserNotifications,
+  ReadNotification,
+} from "../../../api/Notification/noti.api";
 import { SearchBar } from "./SearchBar";
 import { DarkModeToggler } from "../../DarkModeToggler";
 import { useAuth } from "../../../hooks/useAuth";
@@ -78,8 +84,18 @@ function PortalLayer<T extends HTMLElement>({
     const spaceAbove = r.top - 8;
     const spaceBelow = vh - r.bottom - 8;
 
-    if (placement === "above" && ch + offset > spaceAbove && spaceBelow >= spaceAbove) finalPlacement = "below";
-    if (placement === "below" && ch + offset > spaceBelow && spaceAbove > spaceBelow) finalPlacement = "above";
+    if (
+      placement === "above" &&
+      ch + offset > spaceAbove &&
+      spaceBelow >= spaceAbove
+    )
+      finalPlacement = "below";
+    if (
+      placement === "below" &&
+      ch + offset > spaceBelow &&
+      spaceAbove > spaceBelow
+    )
+      finalPlacement = "above";
 
     const top = Math.round(finalPlacement === "above" ? r.top : r.bottom);
 
@@ -87,7 +103,10 @@ function PortalLayer<T extends HTMLElement>({
       position: "fixed",
       top,
       right,
-      transform: finalPlacement === "above" ? `translateY(calc(-100% - ${offset}px))` : `translateY(${offset}px)`,
+      transform:
+        finalPlacement === "above"
+          ? `translateY(calc(-100% - ${offset}px))`
+          : `translateY(${offset}px)`,
       zIndex: 2147483647,
       pointerEvents: "auto",
     });
@@ -112,8 +131,17 @@ function PortalLayer<T extends HTMLElement>({
   if (!open) return null;
 
   return createPortal(
-    <div style={{ position: "fixed", inset: 0, zIndex: 2147483647, pointerEvents: "none" }}>
-      <div ref={childRef} style={{ ...style, pointerEvents: "auto" }}>{children}</div>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2147483647,
+        pointerEvents: "none",
+      }}
+    >
+      <div ref={childRef} style={{ ...style, pointerEvents: "auto" }}>
+        {children}
+      </div>
     </div>,
     document.body
   );
@@ -126,15 +154,33 @@ type HeaderProps = {
   isAdminRoute?: boolean;
 };
 
-export type TagSelectProps = { value: string; label: string; };
+export type TagSelectProps = { value: string; label: string };
 
 export const sortOptions = [
-  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Đánh giá ↑", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
+  {
+    label: "Ngày ra mắt ↑",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Ngày ra mắt ↓",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Lượt xem ↑",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Lượt xem ↓",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Đánh giá ↑",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Đánh giá ↓",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}`,
+  },
 ];
 
 const TAG_OPTIONS: TagSelectProps[] = [
@@ -172,7 +218,8 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   });
 
   const NotificationMutation = useMutation({
-    mutationFn: async (request: ReadNotificationReq) => ReadNotification(request),
+    mutationFn: async (request: ReadNotificationReq) =>
+      ReadNotification(request),
     onSuccess: () => notificationsRefetch(),
   });
 
@@ -191,10 +238,19 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   const handleSearchNovels = useCallback(() => {
     const params = new URLSearchParams();
     const trimmed = searchTerm.trim();
+
     if (trimmed) params.set("query", trimmed);
-    if (sortBy) params.set("selectedSort", sortBy); // <- khớp với NovelsExplore
-    if (tagFilter && tagFilter.length > 0) tagFilter.forEach((t) => params.append("tag", t));
-    navigate(`/novels?${params.toString()}`);
+    if (sortBy) params.set("sortBy", sortBy);
+    if (tagFilter && tagFilter.length > 0) {
+      tagFilter.forEach((t) => params.append("tag", t));
+    }
+
+    const queryString = params.toString();
+    if (queryString) {
+      navigate(`/novels?${queryString}`);
+    } else {
+      navigate(`novels`);
+    }
   }, [searchTerm, sortBy, tagFilter, navigate]);
 
   const handleClickNotification = async (id: string) => {
@@ -223,7 +279,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
 
   // Không cho 2 popup cùng lúc
   useEffect(() => {
-    if (isNotificationOpen) { setIsUserMenuOpen(false); setIsAuthOpen(false); }
+    if (isNotificationOpen) {
+      setIsUserMenuOpen(false);
+      setIsAuthOpen(false);
+    }
   }, [isNotificationOpen]);
 
   const onAvatarClick = () => {
@@ -231,8 +290,8 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
       setIsUserMenuOpen((v) => !v);
       setIsNotificationOpen(false);
     } else {
-      setIsAuthOpen(true);           // mở auth modal full-screen
-      setIsNotificationOpen(false);  // đóng dropdown khác
+      setIsAuthOpen(true); // mở auth modal full-screen
+      setIsNotificationOpen(false); // đóng dropdown khác
       setIsUserMenuOpen(false);
     }
   };
@@ -252,8 +311,19 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                   aria-label="Mở sidebar"
                   title="Mở sidebar"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 sm:h-6 sm:w-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   </svg>
                 </button>
               )}
@@ -266,9 +336,15 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 onSubmit={handleSearchNovels}
                 sortOptions={sortOptions}
                 tagFilterOptions={selectTagOptions}
-                searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
-                clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
-                filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
+                searchIcon={
+                  <Search className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                clearIcon={
+                  <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                filterIcon={
+                  <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
                 initialSort={sortBy}
                 setSort={setSortBy}
                 initialTags={tagFilter}
@@ -291,7 +367,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 >
                   <Bell className="h-5 w-5 text-black dark:text-white" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]" aria-hidden />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]"
+                      aria-hidden
+                    />
                   )}
                 </button>
 
@@ -303,7 +382,11 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                   aria-expanded={auth?.user ? isUserMenuOpen : isAuthOpen}
                   aria-label="Tài khoản"
                 >
-                  <img src={auth?.user?.avatarUrl || DefaultAvatar} alt="User Avatar" className="h-full w-full object-cover" />
+                  <img
+                    src={auth?.user?.avatarUrl || DefaultAvatar}
+                    alt="User Avatar"
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               </div>
             )}
@@ -319,7 +402,11 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                   aria-expanded={auth?.user ? isUserMenuOpen : isAuthOpen}
                   aria-label="Tài khoản"
                 >
-                  <img src={auth?.user?.avatarUrl || DefaultAvatar} alt="User Avatar" className="h-full w-full object-cover" />
+                  <img
+                    src={auth?.user?.avatarUrl || DefaultAvatar}
+                    alt="User Avatar"
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               </div>
             )}
@@ -332,7 +419,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         <div className="fixed inset-x-0 bottom-0 z-50">
           <div className="mx-auto w-full bg-white/85 dark:bg-[#0b0c0f]/85 backdrop-blur-md border-t border-zinc-200 dark:border-white/10">
             <div className={`${DESIGN_TOKENS.container} px-4`}>
-              <div className="flex items-center justify-around py-2" style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}>
+              <div
+                className="flex items-center justify-around py-2"
+                style={{
+                  paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+                }}
+              >
                 <div className="scale-[0.92]">
                   <DarkModeToggler />
                 </div>
@@ -347,7 +439,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 >
                   <Bell className="h-5 w-5 text-black dark:text-white" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]" aria-hidden />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]"
+                      aria-hidden
+                    />
                   )}
                 </button>
               </div>
@@ -357,7 +452,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
       )}
 
       {/* Dropdowns (anchored) */}
-      <PortalLayer anchorRef={notifBtnRef} open={isNotificationOpen} offset={8} placement={isSmall ? "above" : "below"}>
+      <PortalLayer
+        anchorRef={notifBtnRef}
+        open={isNotificationOpen}
+        offset={8}
+        placement={isSmall ? "above" : "below"}
+      >
         <NotificationDropdown
           open={isNotificationOpen}
           notifications={userNotifications}
@@ -368,13 +468,20 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
       </PortalLayer>
 
       {auth?.user && (
-        <PortalLayer anchorRef={avatarBtnRef} open={isUserMenuOpen} offset={8} placement={isSmall ? "below" : "below"}>
+        <PortalLayer
+          anchorRef={avatarBtnRef}
+          open={isUserMenuOpen}
+          offset={8}
+          placement={isSmall ? "below" : "below"}
+        >
           <UserMenu onClose={() => setIsUserMenuOpen(false)} />
         </PortalLayer>
       )}
 
       {/* Auth modal: KHÔNG dùng PortalLayer, render thẳng ra body */}
-      {!auth?.user && isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
+      {!auth?.user && isAuthOpen && (
+        <AuthModal onClose={() => setIsAuthOpen(false)} />
+      )}
     </>
   );
 };

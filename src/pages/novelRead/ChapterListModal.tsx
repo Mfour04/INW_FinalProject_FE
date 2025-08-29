@@ -49,8 +49,8 @@ export const ChapterListModal = ({
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const acceptedChapters = [
-    ...novel.purchasedChapterIds,
-    ...novel.freeChapters,
+    ...(novel.purchasedChapterIds ?? []),
+    ...(novel.freeChapters ?? []),
   ];
 
   const handleClose = () => {
