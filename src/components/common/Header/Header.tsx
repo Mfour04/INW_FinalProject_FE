@@ -240,7 +240,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   const selectTagOptions: TagSelectProps[] = (tags?.data ?? [])
     .map((tag) => {
       const match = TAG_OPTIONS.find((option) => option.label === tag.name);
-      return match ? { value: tag.tagId, label: match.label } : null;
+      return match ? { value: tag.name, label: match.label } : null;
     })
     .filter((x): x is TagSelectProps => x !== null);
 

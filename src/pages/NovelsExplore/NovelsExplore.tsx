@@ -128,15 +128,15 @@ export const NovelsExplore = ({}: Props) => {
           </span>
         </span>
       )}
-      {mappedTagNames.length > 0 && (
+      {searchTags.length > 0 && (
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px]
                          bg-gray-100 border border-gray-200 text-gray-700
-                         dark:bg:white/[0.07] dark:border-white/10 dark:text-white/90"
+                         dark:bg-white/[0.07] dark:border-white/10 dark:text-white/90"
         >
           Thẻ:
           <span className="font-medium text-gray-900 dark:text-white">
-            {mappedTagNames.join(", ")}
+            {searchTags.join(", ")}
           </span>
         </span>
       )}
