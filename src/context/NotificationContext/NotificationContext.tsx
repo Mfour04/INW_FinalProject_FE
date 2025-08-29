@@ -34,7 +34,11 @@ export const NotificationProvider = ({
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${SERVER_URL}/hubs/notification`, {
         accessTokenFactory: () => auth.accessToken,
+        transport:
+          signalR.HttpTransportType.WebSockets |
+          signalR.HttpTransportType.LongPolling,
       })
+      .configureLogging(signalR.LogLevel.Debug)
       .withAutomaticReconnect()
       .build();
 

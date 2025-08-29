@@ -8,9 +8,14 @@ import DataTable from "../AdminModal/DataTable";
 import Pagination from "../AdminModal/Pagination";
 import UserTopSection from "./UserTopSection";
 import type { User } from "../../../api/Admin/User/user.type";
-import { GetAllUsers, GetUsers, UpdateBanUser } from "../../../api/Admin/User/user.api";
+import {
+  GetAllUsers,
+  GetUsers,
+  UpdateBanUser,
+} from "../../../api/Admin/User/user.api";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { formatTicksToDateString } from "../../../utils/date_format";
+import { UserDetailModal } from "../AdminModal/UserDetailModal";
 
 interface SortConfig {
   key: keyof User;
@@ -58,14 +63,29 @@ const UserList = () => {
   const { darkMode } = useDarkMode();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "displayName", direction: "asc" });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "displayName",
+    direction: "asc",
+  });
   const [currentPage, setCurrentPage] = useState(1);
-  const [dialog, setDialog] = useState<DialogState>({ isOpen: false, type: null, title: "", userId: null });
+  const [dialog, setDialog] = useState<DialogState>({
+    isOpen: false,
+    type: null,
+    title: "",
+    userId: null,
+  });
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isDetail, setIsDetail] = useState<boolean>(false);
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
   // Paged users
-  const { data: userData, isLoading: isLoadingUsers, error: userError } = useQuery({
+  const {
+    data: userData,
+    isLoading: isLoadingUsers,
+    error: userError,
+  } = useQuery({
     queryKey: ["users", { searchTerm, currentPage, sortBy }],
     queryFn: () =>
       GetUsers({
@@ -77,12 +97,16 @@ const UserList = () => {
   });
 
   // All users for KPI + TopSection
-  const { data: allUsersData, isLoading: isLoadingAllUsers, error: allUsersError, refetch: refetchAll } = useQuery({
+  const {
+    data: allUsersData,
+    isLoading: isLoadingAllUsers,
+    error: allUsersError,
+    refetch: refetchAll,
+  } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => GetAllUsers().then((res) => res.data),
   });
 
-  // Map for table
   const mappedUsers: User[] =
     userData?.data?.users?.map((u: any) => ({
       userId: u.userId,
@@ -139,12 +163,25 @@ const UserList = () => {
   const kTotal = mappedAllUsers.length;
   const kVerified = mappedAllUsers.filter((u) => u.isVerified).length;
   const kBanned = mappedAllUsers.filter((u) => u.isBanned).length;
-  const kReads = mappedAllUsers.reduce((s, u) => s + (Number(u.readCount) || 0), 0);
+  const kReads = mappedAllUsers.reduce(
+    (s, u) => s + (Number(u.readCount) || 0),
+    0
+  );
 
   // Ban/unban
   const updateBanUserMutation = useMutation({
-    mutationFn: ({ userId, isBanned, durationType }: { userId: string; isBanned: boolean; durationType: string }) =>
-      UpdateBanUser({ userIds: [userId], isBanned, durationType }).then((res) => res.data),
+    mutationFn: ({
+      userId,
+      isBanned,
+      durationType,
+    }: {
+      userId: string;
+      isBanned: boolean;
+      durationType: string;
+    }) =>
+      UpdateBanUser({ userIds: [userId], isBanned, durationType }).then(
+        (res) => res.data
+      ),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
@@ -158,26 +195,44 @@ const UserList = () => {
   });
 
   const handleSort = (key: string) =>
-    setSortConfig((prev) => ({ key: key as keyof User, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }));
+    setSortConfig((prev) => ({
+      key: key as keyof User,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= (userData?.data?.totalPages || 1)) setCurrentPage(page);
+    if (page >= 1 && page <= (userData?.data?.totalPages || 1))
+      setCurrentPage(page);
   };
 
   const handleLockUnlock = (userId: string, isBanned: boolean) => {
     const user = mappedUsers.find((u) => u.userId === userId);
     const action = isBanned ? "unlock" : "lock";
-    const title = `Bạn muốn ${action === "lock" ? "khóa" : "mở khóa"} tài khoản: ${user?.displayName} ?`;
+    const title = `Bạn muốn ${
+      action === "lock" ? "khóa" : "mở khóa"
+    } tài khoản: ${user?.displayName} ?`;
     setDialog({ isOpen: true, type: action, title, userId });
   };
 
-  const handleConfirmDialog = (extra?: { duration?: string; note?: string }) => {
+  const handleConfirmDialog = (extra?: {
+    duration?: string;
+    note?: string;
+  }) => {
     if (dialog.userId && dialog.type) {
       const isBanned = dialog.type === "lock";
       // durationType gửi lên API: lấy trực tiếp từ dialog (nếu cần) hoặc từ extra.duration
       const durationType = extra?.duration || dialog.durationType || "";
-      updateBanUserMutation.mutate({ userId: dialog.userId, isBanned, durationType });
+      updateBanUserMutation.mutate({
+        userId: dialog.userId,
+        isBanned,
+        durationType,
+      });
     }
+  };
+
+  const handleClickUserDetail = (user: User) => {
+    setSelectedUser(user);
+    setIsDetail(true);
   };
 
   return (
@@ -185,20 +240,32 @@ const UserList = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35, ease: "easeInOut" }}
-      className={`min-h-screen p-6 ${darkMode ? "bg-[#0a0f16] text-white" : "bg-zinc-50 text-zinc-900"}`}
+      className={`min-h-screen p-6 ${
+        darkMode ? "bg-[#0a0f16] text-white" : "bg-zinc-50 text-zinc-900"
+      }`}
     >
       {/* Header */}
       <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">Giám sát số liệu và thao tác nhanh với tài khoản.</p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Quản lý người dùng
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Giám sát số liệu và thao tác nhanh với tài khoản.
+          </p>
         </div>
         <button
           onClick={() => refetchAll()}
           className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-white/10 backdrop-blur hover:bg-white dark:hover:bg-white/15 transition"
           title="Làm mới thống kê"
         >
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            viewBox="0 0 24 24"
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             <path d="M21 3v6h-6" />
           </svg>
@@ -219,7 +286,11 @@ const UserList = () => {
         {isLoadingAllUsers ? (
           <SkeletonTop />
         ) : allUsersError ? (
-          <StateCard tone="error" title="Không thể tải danh sách người dùng" desc="Vui lòng thử lại sau." />
+          <StateCard
+            tone="error"
+            title="Không thể tải danh sách người dùng"
+            desc="Vui lòng thử lại sau."
+          />
         ) : (
           <MemoizedUserTopSection users={mappedAllUsers} />
         )}
@@ -237,21 +308,30 @@ const UserList = () => {
         </div>
       ) : userError ? (
         <div className="p-6">
-          <StateCard tone="error" title="Không thể tải danh sách người dùng" desc="Vui lòng thử lại." />
+          <StateCard
+            tone="error"
+            title="Không thể tải danh sách người dùng"
+            desc="Vui lòng thử lại."
+          />
         </div>
       ) : mappedUsers.length === 0 ? (
         <div className="p-8">
-          <StateCard tone="empty" title="Không có kết quả" desc="Thử từ khóa khác." />
+          <StateCard
+            tone="empty"
+            title="Không có kết quả"
+            desc="Thử từ khóa khác."
+          />
         </div>
       ) : (
         <>
-          <div className="relative pb-2"> 
+          <div className="relative pb-2">
             <DataTable
               data={mappedUsers}
               sortConfig={sortConfig}
               onSort={handleSort}
               type="user"
               onLockUnlockUser={handleLockUnlock}
+              onDetailUser={handleClickUserDetail}
             />
           </div>
           <div className="flex items-center justify-center mt-2">
@@ -264,25 +344,29 @@ const UserList = () => {
         </>
       )}
 
-     <ConfirmDialog
+      <ConfirmDialog
         isOpen={dialog.isOpen}
-        onClose={() => setDialog({ isOpen: false, type: null, title: "", userId: null })}
+        onClose={() =>
+          setDialog({ isOpen: false, type: null, title: "", userId: null })
+        }
         onConfirm={handleConfirmDialog}
         title={dialog.title}
         // dùng API mới:
         variant={dialog.type === "lock" ? "danger" : "success"}
-        showDuration={dialog.type === "lock"}   // mở dropdown thời hạn khi KHÓA
-        showNote={dialog.type === "lock"}       // tuỳ bạn: bật ô ghi chú khi KHÓA
+        showDuration={dialog.type === "lock"} // mở dropdown thời hạn khi KHÓA
+        showNote={dialog.type === "lock"} // tuỳ bạn: bật ô ghi chú khi KHÓA
         loading={updateBanUserMutation.isPending}
       />
-
+      <UserDetailModal
+        onClose={() => setIsDetail(false)}
+        open={isDetail}
+        user={selectedUser}
+      />
     </motion.div>
   );
 };
 
 export default UserList;
-
-/* ------- tiny presentational components ------- */
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
@@ -293,7 +377,15 @@ function KpiCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StateCard({ tone, title, desc }: { tone: "error" | "empty"; title: string; desc: string }) {
+function StateCard({
+  tone,
+  title,
+  desc,
+}: {
+  tone: "error" | "empty";
+  title: string;
+  desc: string;
+}) {
   const isError = tone === "error";
   return (
     <div
@@ -341,7 +433,10 @@ function SkeletonTable() {
   return (
     <div className="space-y-3">
       {[...Array(8)].map((_, i) => (
-        <div key={i} className="h-10 rounded-lg bg-zinc-200/70 dark:bg-zinc-700/40 animate-pulse" />
+        <div
+          key={i}
+          className="h-10 rounded-lg bg-zinc-200/70 dark:bg-zinc-700/40 animate-pulse"
+        />
       ))}
     </div>
   );

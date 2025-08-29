@@ -140,23 +140,28 @@ export const AsidePanel = ({
               </div>
             ))}
 
-          {isCompleted && (
-            <Button
-              onClick={onOpenBuyNovel}
-              disabled={novelData?.isAccessFull}
-              aria-label="Mua trọn bộ"
-              className={
-                novelData?.isAccessFull
-                  ? "w-full rounded-full bg-gray-100 text-gray-500 text-[12px] px-3 py-1.5 dark:bg:white/5 dark:text-gray-300"
-                  : buyBtn
-              }
-            >
-              <span className="inline-flex items-center gap-1.5 leading-none">
-                <ShoppingCart className="w-[15px] h-[15px]" />
-                {novelData?.isAccessFull ? "Đã mua" : "Mua trọn bộ"}
-              </span>
-            </Button>
-          )}
+          {isCompleted &&
+            (isAuthor ? (
+              <div className="w-full rounded-full bg-gray-100 text-gray-600 text-[12px] px-3 py-1.5 text-center dark:bg-white/5 dark:text-gray-300">
+                Tiểu thuyết của bạn
+              </div>
+            ) : (
+              <Button
+                onClick={onOpenBuyNovel}
+                disabled={novelData?.isAccessFull}
+                aria-label="Mua trọn bộ"
+                className={
+                  novelData?.isAccessFull
+                    ? "w-full rounded-full bg-gray-100 text-gray-500 text-[12px] px-3 py-1.5 dark:bg:white/5 dark:text-gray-300"
+                    : buyBtn
+                }
+              >
+                <span className="inline-flex items-center gap-1.5 leading-none">
+                  <ShoppingCart className="w-[15px] h-[15px]" />
+                  {novelData?.isAccessFull ? "Đã mua" : "Mua trọn bộ"}
+                </span>
+              </Button>
+            ))}
 
           <div className="grid grid-cols-2 gap-2.5">
             <button
@@ -176,13 +181,13 @@ export const AsidePanel = ({
 
             <button
               onClick={onOpenReport}
-              className="h-7 rounded-full transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg:white/10 dark:text:white"
+              className="h-7 rounded-full transition flex items-center justify-center px-2.5 text-[11.5px] whitespace-nowrap border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white"
               aria-label="Báo cáo"
               type="button"
             >
               <span className="inline-flex items-center gap-1.5 leading-none">
-                <Flag className="w-[13px] h-[13px]" />
-                <span className="leading-none">Báo cáo</span>
+                <Flag className="w-[13px] h-[13px] " />
+                <span className="leading-none ">Báo cáo</span>
               </span>
             </button>
           </div>

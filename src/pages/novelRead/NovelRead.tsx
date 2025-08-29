@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Type, Flag, Settings2 } from "lucide-react";
 
-import { GetChapter, GetChapters } from "../../api/Chapters/chapter.api";
+import {
+  BuyChapter,
+  GetChapter,
+  GetChapters,
+} from "../../api/Chapters/chapter.api";
 import { GetNovelByUrl } from "../../api/Novels/novel.api";
-import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
+import type {
+  BuyChapterRequest,
+  ChapterByNovel,
+} from "../../api/Chapters/chapter.type";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useSpeech } from "react-text-to-speech";
 import { htmlToPlainText } from "../../utils/text-speech";
@@ -25,6 +32,8 @@ import {
 } from "../../components/ReportModal/ReportModal";
 import { useReport } from "../../hooks/useReport";
 import type { ReportRequest } from "../../api/Report/report.type";
+import { GetCurrentUserInfo } from "../../api/User/user-settings.api";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 
 const WIDTH_LEVELS = [880, 1080, 1320] as const;
 const DEFAULTS = { fontSize: 18, lineHeight: 1.65, widthIdx: 1 as number };
@@ -64,6 +73,9 @@ export const NovelRead = () => {
     "reader:widthIdx",
     DEFAULTS.widthIdx
   );
+  const [isBuyChapter, setIsBuyChapter] = useState<boolean>(false);
+  const [chapterPrice, setChapterPrice] = useState<number>(0);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
 
   const pageTopRef = useRef<HTMLDivElement | null>(null);
   const contentWrapRef = useRef<HTMLDivElement | null>(null);
@@ -71,7 +83,7 @@ export const NovelRead = () => {
 
   const report = useReport();
 
-  const { data: novelInfo } = useQuery({
+  const { data: novelInfo, refetch: refetchNovelData } = useQuery({
     queryKey: ["novel-by-slug", novelId],
     queryFn: async () => {
       try {
@@ -83,6 +95,17 @@ export const NovelRead = () => {
     },
     enabled: !!novelId,
   });
+
+  const { data: user, refetch: refetchUser } = useQuery({
+    queryKey: ["user-chapter-list"],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+    enabled: !!auth?.accessToken,
+  });
+
+  const acceptedChapters = [
+    ...(novelInfo?.purchasedChapterIds ?? []),
+    ...(novelInfo?.freeChapters ?? []),
+  ];
 
   const { data, isLoading: isChapterLoading } = useQuery({
     queryKey: ["chapter", chapterId],
@@ -183,14 +206,37 @@ export const NovelRead = () => {
       return cnum === currentNumber + offset;
     });
     if (!next) return;
+
+    const nextChapterId = "id" in next ? next.id : next.chapterId;
+
     const isPaid = "is_paid" in next ? next.is_paid : next.isPaid;
-    if (isPaid) {
-      toast?.onOpen("Bạn không sở hữu chương này");
+    if (
+      isPaid &&
+      !novelInfo?.isAccessFull &&
+      !acceptedChapters.includes(nextChapterId)
+    ) {
+      setChapterPrice(next.price);
+      setSelectedChapterId(nextChapterId);
+      setIsBuyChapter(true);
       return;
     }
-    const nextChapterId = "id" in next ? next.id : next.chapterId;
     navigate(`/novels/${novelId}/${nextChapterId}`);
   };
+
+  const BuyChapterMutation = useMutation({
+    mutationFn: ({
+      chapterId,
+      request,
+    }: {
+      chapterId: string;
+      request: BuyChapterRequest;
+    }) => BuyChapter(chapterId, request),
+    onSuccess: (res) => {
+      toast?.onOpen(res.data.message);
+      refetchNovelData();
+      refetchUser();
+    },
+  });
 
   const cleanText = htmlToPlainText(data?.chapter?.content ?? "");
   const { start, pause, stop } = useSpeech({ text: cleanText, lang: "vi-VN" });
@@ -275,6 +321,26 @@ export const NovelRead = () => {
       message: payload.message,
     };
     report.mutate(reportRequest);
+  };
+
+  const confirmBuy = () => {
+    if ((user?.coin ?? 0) < chapterPrice) {
+      toast?.onOpen("Bạn không có đủ xu để mua chương này");
+      return;
+    }
+
+    if (selectedChapterId)
+      BuyChapterMutation.mutate({
+        chapterId: selectedChapterId,
+        request: { coinCost: chapterPrice },
+      });
+    setIsBuyChapter(false);
+  };
+
+  const handleCancel = () => {
+    setIsBuyChapter(false);
+    setChapterPrice(0);
+    setSelectedChapterId("");
   };
 
   return (
@@ -514,11 +580,15 @@ export const NovelRead = () => {
 
         {adaptedChapterList.length > 0 && (
           <ChapterListModal
+            novel={novelInfo!}
+            user={user!}
             open={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             chapters={adaptedChapterList}
             novelId={novelId!}
             novelSlug={novelId!}
+            refetchNovelData={refetchNovelData}
+            refetchUser={refetchUser}
           />
         )}
       </div>
@@ -531,6 +601,15 @@ export const NovelRead = () => {
         chapterId={chapterId!}
         chapterTitle={chapterTitle}
         onSubmit={(payload: ReportPayload) => handleReportChapter(payload)}
+      />
+
+      <ConfirmModal
+        isOpen={isBuyChapter}
+        title={`Hiện tại bạn đang có ${user?.coin} xu`}
+        message={`Chương truyện này có giá ${chapterPrice} xu. Bạn có muốn mua không?`}
+        onConfirm={confirmBuy}
+        confirmText="Mua"
+        onCancel={handleCancel}
       />
     </div>
   );

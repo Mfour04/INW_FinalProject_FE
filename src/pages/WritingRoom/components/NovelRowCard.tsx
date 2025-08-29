@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { PencilLine, BookOpenCheck, Trash2, Star } from "lucide-react";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
 import type { Novel } from "../../../entity/novel";
@@ -13,6 +14,15 @@ export const NovelRowCard = ({
   onChapters: () => void;
   onDelete: () => void;
 }) => {
+  const [isSmall, setIsSmall] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 639.5px)");
+    const update = () => setIsSmall(m.matches);
+    update();
+    m.addEventListener("change", update);
+    return () => m.removeEventListener("change", update);
+  }, []);
+
   const isCompleted = novel.status === 0;
   const isPublic = novel.isPublic;
   const statusLabel = isCompleted ? "Hoàn thành" : "Đang diễn ra";
@@ -21,11 +31,12 @@ export const NovelRowCard = ({
   const ratingRaw = novel.ratingAvg ?? 0;
   const rating = Math.max(0, Math.min(5, Number(ratingRaw) || 0));
   const ratingCount = novel.ratingCount ?? 0;
+
   const rawTags: any[] = novel.tags ?? [];
   const tags = (rawTags || [])
     .map((t) => (typeof t === "string" ? t : t?.name || t?.title || ""))
     .filter(Boolean);
-  const maxTags = 8;
+  const maxTags = isSmall ? 5 : 8;
   const extraTags = Math.max(0, tags.length - maxTags);
 
   const updatedAt = formatVietnamTimeFromTicks(Number(novel.createAt));
@@ -38,11 +49,11 @@ export const NovelRowCard = ({
         "dark:ring-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.03] dark:shadow-[0_16px_50px_-28px_rgba(0,0,0,0.65)]",
       ].join(" ")}
     >
-      <div className="grid grid-cols-[120px_1fr] gap-4 p-4">
+      <div className="grid grid-cols-[88px_1fr] sm:grid-cols-[120px_1fr] gap-3 sm:gap-4 p-3 sm:p-4">
         <div className="relative">
           <div
             className={[
-              "w-[120px] h-[160px] overflow-hidden rounded-xl ring-1",
+              "w-[88px] h-[118px] sm:w-[120px] sm:h-[160px] overflow-hidden rounded-xl ring-1",
               "bg-zinc-100 ring-zinc-200",
               "dark:bg-[#14161b] dark:ring-white/10",
             ].join(" ")}
@@ -63,19 +74,19 @@ export const NovelRowCard = ({
         </div>
 
         <div className="min-w-0">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <h3 className="text-[16px] font-semibold truncate max-w-full text-zinc-900 dark:text-white">
+              <h3 className="text-[14px] sm:text-[16px] font-semibold truncate max-w-full text-zinc-900 dark:text-white">
                 {novel.title}
               </h3>
 
-              <div className="flex gap-2">
+              <div className="mt-1.5 flex gap-1.5 sm:gap-2">
                 <Pill tone={isCompleted ? "ok" : "warn"}>{statusLabel}</Pill>
                 <Pill tone={isPublic ? "ok" : "warn"}>{publicLabel}</Pill>
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-2">
+            <div className="shrink-0 flex items-center gap-1 sm:gap-2">
               <ActionBtn onClick={onEdit} label="Sửa">
                 <PencilLine className="h-4 w-4" />
               </ActionBtn>
@@ -88,7 +99,7 @@ export const NovelRowCard = ({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[12.5px]">
+          <div className="mt-3 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-[11.5px] sm:text-[12.5px]">
             <Meta label="Cập nhật" value={updatedAt} />
             <Meta label="Lượt xem" value={(novel.totalViews ?? 0).toLocaleString()} />
             <Meta label="Theo dõi" value={(novel.followers ?? 0).toLocaleString()} />
@@ -99,7 +110,7 @@ export const NovelRowCard = ({
                   {rating.toFixed(1)}
                   <span className="text-zinc-500 dark:text-white/55"> / 5</span>
                 </p>
-                <p className="text-zinc-500 dark:text-white/55 text-[11px]">
+                <p className="text-zinc-500 dark:text-white/55 text-[10.5px] sm:text-[11px]">
                   {Number(ratingCount).toLocaleString()} đánh giá
                 </p>
               </div>
@@ -107,12 +118,12 @@ export const NovelRowCard = ({
           </div>
 
           {tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1">
+            <div className="mt-3 sm:mt-4 flex flex-wrap gap-1">
               {tags.slice(0, maxTags).map((t) => (
                 <span
                   key={t}
                   className={[
-                    "rounded-full px-2 py-[1px] text-[10.5px] transition",
+                    "rounded-full px-2 py-[1px] text-[10px] sm:text-[10.5px] transition",
                     "text-zinc-700 border border-zinc-200 bg-zinc-100 hover:bg-zinc-200",
                     "dark:text-white/80 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]",
                   ].join(" ")}
@@ -123,7 +134,7 @@ export const NovelRowCard = ({
               {extraTags > 0 && (
                 <span
                   className={[
-                    "rounded-full px-2 py-[1px] text-[10.5px]",
+                    "rounded-full px-2 py-[1px] text-[10px] sm:text-[10.5px]",
                     "text-zinc-700 border border-zinc-200 bg-zinc-100",
                     "dark:text-white/80 dark:border-white/10 dark:bg-white/[0.05]",
                   ].join(" ")}
@@ -146,20 +157,18 @@ const Pill = ({
   children: React.ReactNode;
   tone: "ok" | "warn";
 }) => (
-  <div className="mt-2">
-    <span
-      className={[
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold backdrop-blur-sm border",
-        "text-white",
-        tone === "ok"
-          ? "bg-emerald-500/85 border-emerald-300 shadow-[0_6px_20px_rgba(16,185,129,0.25)]"
-          : "bg-rose-500/85 border-rose-300 shadow-[0_6px_20px_rgba(244,63,94,0.25)]",
-      ].join(" ")}
-    >
-      <span className="h-1 w-1 rounded-full bg-white" />
-      {children}
-    </span>
-  </div>
+  <span
+    className={[
+      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] sm:text-[10.5px] font-semibold backdrop-blur-sm border",
+      "text-white",
+      tone === "ok"
+        ? "bg-emerald-500/85 border-emerald-300 shadow-[0_6px_20px_rgba(16,185,129,0.25)]"
+        : "bg-rose-500/85 border-rose-300 shadow-[0_6px_20px_rgba(244,63,94,0.25)]",
+    ].join(" ")}
+  >
+    <span className="h-1 w-1 rounded-full bg-white" />
+    {children}
+  </span>
 );
 
 const Meta = ({ label, value }: { label: string; value: string }) => (
@@ -187,7 +196,7 @@ const ActionBtn = ({
       onClick();
     }}
     className={[
-      "inline-flex items-center gap-2 h-9 rounded-xl px-3 text-[12.5px] font-medium ring-1 transition",
+      "inline-flex items-center gap-2 h-8 sm:h-9 rounded-xl px-2 sm:px-3 text-[12px] sm:text-[12.5px] font-medium ring-1 transition",
       tone === "danger"
         ? [
             "text-red-600 ring-red-200 bg-red-50 hover:bg-red-100",

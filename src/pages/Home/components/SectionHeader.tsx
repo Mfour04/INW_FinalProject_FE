@@ -9,11 +9,11 @@ export type SectionHeaderProps = {
 };
 
 export const SectionHeader = ({ icon, title, right }: SectionHeaderProps) => (
-  <div className={HEADER}>
-    <div className="flex items-center gap-3">
-      {icon}
-      <Typography className="tracking-wide">{title}</Typography>
+  <div className={`${HEADER} min-w-0`}>
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      {icon ? <span className="[&>svg]:h-5 [&>svg]:w-5">{icon}</span> : null}
+      <Typography className="truncate tracking-wide">{title}</Typography>
     </div>
-    {right}
+    <div className="shrink-0">{right}</div>
   </div>
 );

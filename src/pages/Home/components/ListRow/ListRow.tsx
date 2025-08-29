@@ -10,6 +10,9 @@ type BaseProps = {
 
 export type ListRowProps = BaseProps & React.HTMLAttributes<HTMLDivElement>;
 
+const thumbBase =
+  "rounded-md object-cover bg-white/10 border border-white/10";
+
 export const ListRow = ({
   title,
   image,
@@ -23,7 +26,7 @@ export const ListRow = ({
     <div
       onClick={onClick}
       className={[
-        "flex items-center gap-4 p-3 rounded-xl cursor-pointer",
+        "flex items-center gap-3 sm:gap-4 rounded-xl p-2.5 sm:p-3 cursor-pointer min-w-0",
         "bg-zinc-900/60 hover:bg-zinc-800/70 transition-colors",
         className ?? "",
       ].join(" ")}
@@ -33,14 +36,18 @@ export const ListRow = ({
         <img
           src={image}
           alt="cover"
-          className="h-16 w-12 object-cover rounded-md"
+          className={`h-14 w-11 sm:h-16 sm:w-12 ${thumbBase}`}
+          loading="lazy"
+          decoding="async"
         />
       ) : (
-        <div className="h-16 w-12 rounded-md bg-white/10" />
+        <div className={`h-14 w-11 sm:h-16 sm:w-12 ${thumbBase}`} />
       )}
 
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold truncate">{title}</h4>
+      <div className="min-w-0 flex-1">
+        <h4 className="truncate text-[13.5px] sm:text-[14.5px] font-semibold">
+          {title}
+        </h4>
 
         <div className="mt-1 flex items-center gap-2">
           {primary}

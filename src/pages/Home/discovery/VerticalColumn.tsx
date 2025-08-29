@@ -22,23 +22,24 @@ export const VerticalColumn = ({
   rightMeta,
 }: VerticalColumnsProps) => (
   <section
-    className="rounded-2xl p-3 
-              bg-white ring-1 ring-gray-200 shadow-sm 
-              dark:bg-[#181818] dark:ring-[#2a2c2e]"
+    className="min-w-0 rounded-2xl p-3 bg-white ring-1 ring-gray-200 shadow-sm 
+               dark:bg-[#181818] dark:ring-[#2a2c2e]"
   >
+    {/* Header */}
     <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-3
-              bg-gradient-to-r ${ORANGE_GRAD} ring-1 ring-orange-200/40
-              bg-[#2a2c2e] ring-[#3a3c3e]`}
+      className={`mb-3 flex items-center gap-2 rounded-xl px-3 py-2 ring-1
+                  bg-gradient-to-r ${ORANGE_GRAD} ring-orange-200/40
+                  dark:ring-white/10`}
     >
       {icon ? (
-        <span className="text-gray-700 dark:text-white">{icon}</span>
+        <span className="text-white [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
       ) : null}
-      <h3 className="text-[16px] font-semibold tracking-wide text-gray-800 text-white">
+      <h3 className="text-[15px] font-semibold tracking-wide text-white">
         {title}
       </h3>
     </div>
 
+    {/* Items */}
     <div className="space-y-2">
       {items.map((n) => (
         <VerticalItem
