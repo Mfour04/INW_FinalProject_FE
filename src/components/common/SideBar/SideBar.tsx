@@ -12,9 +12,25 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 1023.5px)").matches
+      : false
+  );
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023.5px)");
+    const h = () => setM(media.matches);
+    media.addEventListener("change", h);
+    return () => media.removeEventListener("change", h);
+  }, []);
+  return m;
+}
+
 export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
   const { pathname } = useLocation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const renderIcon = (label: string) => {
     const cls = "w-5 h-5 shrink-0";
@@ -80,8 +96,14 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     setOpenMenu(parent ? parent.path : null);
   }, [pathname]);
 
-  const isMobile =
-    typeof window !== "undefined" ? window.innerWidth < 1024 : false;
+  useEffect(() => {
+    if (!isMobile) return;
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, isOpen]);
+
   const expandedW = 220;
   const collapsedW = 56;
 
@@ -110,206 +132,220 @@ export const SideBar = ({ isOpen, onClose }: SidebarProps) => {
     </motion.svg>
   );
 
+  const animateProps = isMobile
+    ? { x: isOpen ? 0 : "-100%" }
+    : { width: isOpen ? expandedW : collapsedW };
+
   return (
-    <motion.aside
-      animate={{
-        width: isOpen ? expandedW : isMobile ? 0 : collapsedW,
-        display: isOpen ? "flex" : isMobile ? "none" : "flex",
-      }}
-      transition={{ duration: 0.26, ease: "easeInOut" }}
-      className="bg-white text-zinc-900 dark:bg-[#0a0f16] dark:text-zinc-50 fixed top-0 left-0 z-40 h-screen lg:static lg:h-full flex flex-col overflow-hidden border-r border-zinc-200 dark:border-white/10"
-    >
-      {/* Header */}
-      <div className="p-3 flex items-center justify-between">
-        <AnimatePresence initial={false} mode="wait">
-          {isOpen ? (
-            <>
-              <motion.div
-                key="logo"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 140 }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.22 }}
-                className="min-h-[40px] w-full overflow-hidden flex items-center"
-              >
-                <img
-                  src={logo}
-                  alt="InkWave"
-                  className="h-[30px] w-[90px] object-fit"
-                />
-              </motion.div>
-              <motion.button
-                key="close"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                onClick={onClose}
-                className="h-8 w-8 grid place-items-center rounded-md hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 transition"
-                aria-label="Đóng sidebar"
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
-            </>
-          ) : null}
-        </AnimatePresence>
-      </div>
+    <>
+      {/* Overlay cho mobile */}
+      <AnimatePresence>
+        {isMobile && isOpen && (
+          <motion.div
+            key="sb-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="border-t border-zinc-200 dark:border-white/10" />
+      <motion.aside
+        initial={false}
+        animate={animateProps}
+        transition={{ duration: 0.26, ease: "easeInOut" }}
+        style={{ width: isMobile ? "100vw" : undefined }}
+        className="fixed top-0 left-0 z-50 h-screen lg:static lg:z-40 lg:h-full flex flex-col overflow-hidden
+                   bg-white text-zinc-900 dark:bg-[#0a0f16] dark:text-zinc-50
+                   border-r border-zinc-200 dark:border-white/10"
+      >
+        {/* Header */}
+        <div className="p-3 flex items-center justify-between">
+          <AnimatePresence initial={false} mode="wait">
+            {isOpen ? (
+              <>
+                <motion.div
+                  key="logo"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 140 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.22 }}
+                  className="min-h-[40px] w-full overflow-hidden flex items-center"
+                >
+                  <img src={logo} alt="InkWave" className="h-[30px] w-[90px]" />
+                </motion.div>
+                <motion.button
+                  key="close"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  onClick={onClose}
+                  className="h-8 w-8 grid place-items-center rounded-md hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 transition"
+                  aria-label="Đóng sidebar"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </>
+            ) : null}
+          </AnimatePresence>
+        </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-3 space-y-1">
-        {menuItems.map((item, idx) => {
-          const hasSubs = !!item.subItems?.length;
-          const open = openMenu === item.path && isOpen;
-          const hasActiveChild = hasSubs
-            ? item.subItems!.some((s) => pathname.startsWith(s.path))
-            : false;
+        <div className="border-t border-zinc-200 dark:border-white/10" />
 
-          return (
-            <div key={idx} className="px-1.5">
-              <div className="group relative">
-                <NavLink
-                  to={item.path}
-                  end
-                  className={({ isActive }) => {
-                    const base =
-                      "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none transition-colors";
-                    if (hasSubs) {
-                      const baseGroup = `${base} focus:ring-0`;
-                      if (isActive)
-                        return [
-                          baseGroup,
-                          "bg-gradient-to-r from-[#ff512f]/20 via-[#ff6740]/20 to-[#ff9966]/20",
-                          "text-[#ff6740] dark:text-[#ff9966]",
-                          "border border-[#ff6740]/40",
-                        ].join(" ");
-                      return [
-                        baseGroup,
-                        "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
-                        "text-zinc-700 dark:text-zinc-200",
-                      ].join(" ");
-                    } else {
-                      const baseLeaf = `${base} focus-visible:ring-2 focus-visible:ring-[#ff6740]/45`;
-                      return isActive
-                        ? [
-                            baseLeaf,
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-3 space-y-1">
+          {menuItems.map((item, idx) => {
+            const hasSubs = !!item.subItems?.length;
+            const open = openMenu === item.path && isOpen;
+            const hasActiveChild = hasSubs
+              ? item.subItems!.some((s) => pathname.startsWith(s.path))
+              : false;
+
+            return (
+              <div key={idx} className="px-1.5">
+                <div className="group relative">
+                  <NavLink
+                    to={item.path}
+                    end
+                    className={({ isActive }) => {
+                      const base =
+                        "relative flex items-center gap-3 px-3 rounded-md h-10 outline-none transition-colors";
+                      if (hasSubs) {
+                        const baseGroup = `${base} focus:ring-0`;
+                        if (isActive)
+                          return [
+                            baseGroup,
                             "bg-gradient-to-r from-[#ff512f]/20 via-[#ff6740]/20 to-[#ff9966]/20",
                             "text-[#ff6740] dark:text-[#ff9966]",
                             "border border-[#ff6740]/40",
-                          ].join(" ")
-                        : [
-                            baseLeaf,
-                            "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
-                            "text-zinc-700 dark:text-zinc-200",
                           ].join(" ");
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    if (item.subItems?.length) e.preventDefault();
-                  }}
-                  onClick={(e) => {
-                    if (item.subItems?.length) {
-                      e.preventDefault();
-                      const isOpenGroup = openMenu === item.path && isOpen;
-                      if (!isOpen) {
-                        onClose?.();
-                        setTimeout(
-                          () => setOpenMenu(isOpenGroup ? null : item.path),
-                          0
-                        );
+                        return [
+                          baseGroup,
+                          "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
+                          "text-zinc-700 dark:text-zinc-200",
+                        ].join(" ");
                       } else {
-                        setOpenMenu(isOpenGroup ? null : item.path);
+                        const baseLeaf = `${base} focus-visible:ring-2 focus-visible:ring-[#ff6740]/45`;
+                        return isActive
+                          ? [
+                              baseLeaf,
+                              "bg-gradient-to-r from-[#ff512f]/20 via-[#ff6740]/20 to-[#ff9966]/20",
+                              "text-[#ff6740] dark:text-[#ff9966]",
+                              "border border-[#ff6740]/40",
+                            ].join(" ")
+                          : [
+                              baseLeaf,
+                              "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20",
+                              "text-zinc-700 dark:text-zinc-200",
+                            ].join(" ");
                       }
-                    }
-                  }}
-                >
-                  {/* Rail gradient khi hover */}
-                  {!(hasSubs
-                    ? pathname === item.path || hasActiveChild
-                    : pathname === item.path) && (
-                    <span className="absolute left-0 inset-y-0 w-[3px] rounded-r-full bg-gradient-to-b from-[#ff512f] via-[#ff6740] to-[#ff9966] opacity-0 group-hover:opacity-70 transition" />
-                  )}
-
-                  {renderIcon(item.label)}
-
-                  <AnimatePresence initial={false} mode="wait">
-                    {isOpen ? (
-                      <motion.span
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="show"
-                        exit="exit"
-                        className="text-[14px] leading-none font-semibold tracking-wide select-none"
-                      >
-                        {item.label}
-                      </motion.span>
-                    ) : null}
-                  </AnimatePresence>
-
-                  {hasSubs && isOpen && (
-                    <div className="ml-auto h-5 w-5 grid place-items-center rounded-md">
-                      {caret(open)}
-                    </div>
-                  )}
-                </NavLink>
-
-                {!isOpen && (
-                  <div className="pointer-events-none absolute left-[56px] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition">
-                    <div className="px-2 py-1 rounded-md text-xs bg-zinc-900 text-white shadow-lg border border-zinc-800 whitespace-nowrap">
-                      {item.label}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Sub items */}
-              <AnimatePresence initial={false}>
-                {hasSubs && open && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: "easeInOut" }}
-                    className="mt-1 pl-[30px] space-y-1"
-                  >
-                    {item.subItems!.map((sub, sIdx) => (
-                      <NavLink
-                        key={`${idx}-${sIdx}`}
-                        end
-                        to={sub.path}
-                        className={({ isActive }) =>
-                          [
-                            "relative flex items-center gap-2 px-3 rounded-md text-[13px] h-9 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6740]/40",
-                            isActive
-                              ? "bg-gradient-to-r from-[#ff512f]/15 via-[#ff6740]/15 to-[#ff9966]/15 text-[#ff6740] dark:text-[#ff9966] border border-[#ff6740]/40"
-                              : "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 text-zinc-700 dark:text-zinc-300",
-                          ].join(" ")
+                    }}
+                    onMouseDown={(e) => {
+                      if (item.subItems?.length) e.preventDefault();
+                    }}
+                    onClick={(e) => {
+                      if (item.subItems?.length) {
+                        e.preventDefault();
+                        const isOpenGroup = openMenu === item.path && isOpen;
+                        if (!isOpen) {
+                          onClose?.();
+                          setTimeout(
+                            () => setOpenMenu(isOpenGroup ? null : item.path),
+                            0
+                          );
+                        } else {
+                          setOpenMenu(isOpenGroup ? null : item.path);
                         }
-                      >
-                        <span className="leading-none before:mr-2 before:text-zinc-400 dark:before:text-zinc-500">
-                          {sub.label}
-                        </span>
-                      </NavLink>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
-      </nav>
+                      }
+                    }}
+                  >
+                    {!(hasSubs
+                      ? pathname === item.path || hasActiveChild
+                      : pathname === item.path) && (
+                      <span className="absolute left-0 inset-y-0 w-[3px] rounded-r-full bg-gradient-to-b from-[#ff512f] via-[#ff6740] to-[#ff9966] opacity-0 group-hover:opacity-70 transition" />
+                    )}
 
-      {/* Footer */}
-      <div className="p-3 mt-auto">
-        {isOpen ? (
-          <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-            © {new Date().getFullYear()} InkWave
-          </div>
-        ) : (
-          <div className="h-2" />
-        )}
-      </div>
-    </motion.aside>
+                    {renderIcon(item.label)}
+
+                    <AnimatePresence initial={false} mode="wait">
+                      {isOpen ? (
+                        <motion.span
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="show"
+                          exit="exit"
+                          className="text-[14px] leading-none font-semibold tracking-wide select-none"
+                        >
+                          {item.label}
+                        </motion.span>
+                      ) : null}
+                    </AnimatePresence>
+
+                    {hasSubs && isOpen && (
+                      <div className="ml-auto h-5 w-5 grid place-items-center rounded-md">
+                        {caret(open)}
+                      </div>
+                    )}
+                  </NavLink>
+
+                  {!isOpen && (
+                    <div className="pointer-events-none absolute left-[56px] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition">
+                      <div className="px-2 py-1 rounded-md text-xs bg-zinc-900 text-white shadow-lg border border-zinc-800 whitespace-nowrap">
+                        {item.label}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {item.subItems?.length && open && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: "easeInOut" }}
+                      className="mt-1 pl-[30px] space-y-1"
+                    >
+                      {item.subItems!.map((sub, sIdx) => (
+                        <NavLink
+                          key={`${idx}-${sIdx}`}
+                          end
+                          to={sub.path}
+                          className={({ isActive }) =>
+                            [
+                              "relative flex items-center gap-2 px-3 rounded-md text-[13px] h-9 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6740]/40",
+                              isActive
+                                ? "bg-gradient-to-r from-[#ff512f]/15 via-[#ff6740]/15 to-[#ff9966]/15 text-[#ff6740] dark:text-[#ff9966] border border-[#ff6740]/40"
+                                : "hover:bg-[#ff6740]/10 dark:hover:bg-[#ff6740]/20 text-zinc-700 dark:text-zinc-300",
+                            ].join(" ")
+                          }
+                        >
+                          <span className="leading-none before:mr-2 before:text-zinc-400 dark:before:text-zinc-500">
+                            {sub.label}
+                          </span>
+                        </NavLink>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 mt-auto">
+          {isOpen ? (
+            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              © {new Date().getFullYear()} InkWave
+            </div>
+          ) : (
+            <div className="h-2" />
+          )}
+        </div>
+      </motion.aside>
+    </>
   );
 };
