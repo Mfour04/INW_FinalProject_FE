@@ -4,21 +4,37 @@ import { formatTicksToRelativeTime } from "../../utils/date_format";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { useAuth } from "../../hooks/useAuth";
-import type { ChapterByNovel } from "../../api/Chapters/chapter.type";
+import type {
+  BuyChapterRequest,
+  ChapterByNovel,
+} from "../../api/Chapters/chapter.type";
+import type { NovelChaptersResponse } from "../../api/Novels/novel.type";
+import { useMutation } from "@tanstack/react-query";
+import { BuyChapter } from "../../api/Chapters/chapter.api";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import type { User } from "../../entity/user";
 
 interface Props {
+  novel: NovelChaptersResponse;
+  user: User;
   open: boolean;
   onClose: () => void;
   chapters: ChapterByNovel[];
   novelId: string;
   novelSlug: string;
+  refetchNovelData: () => void;
+  refetchUser: () => void;
 }
 
 export const ChapterListModal = ({
+  novel,
+  user,
   open,
   onClose,
   chapters,
   novelSlug,
+  refetchNovelData,
+  refetchUser,
 }: Props) => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -27,7 +43,15 @@ export const ChapterListModal = ({
 
   const [q, setQ] = useState("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [isBuyChapter, setIsBuyChapter] = useState<boolean>(false);
+  const [chapterPrice, setChapterPrice] = useState<number>(0);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
   const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  const acceptedChapters = [
+    ...novel.purchasedChapterIds,
+    ...novel.freeChapters,
+  ];
 
   const handleClose = () => {
     onClose();
@@ -35,15 +59,30 @@ export const ChapterListModal = ({
     setSortDir("asc");
   };
 
+  const BuyChapterMutation = useMutation({
+    mutationFn: ({
+      chapterId,
+      request,
+    }: {
+      chapterId: string;
+      request: BuyChapterRequest;
+    }) => BuyChapter(chapterId, request),
+    onSuccess: (res) => {
+      toast?.onOpen(res.data.message);
+      refetchNovelData();
+      refetchUser();
+    },
+  });
+
   useEffect(() => {
-    if (!open) return;
+    if (!open || isBuyChapter) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && handleClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, isBuyChapter]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || isBuyChapter) return;
     const onDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!dialogRef.current) return;
@@ -51,7 +90,7 @@ export const ChapterListModal = ({
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+  }, [open, isBuyChapter]);
 
   const data = useMemo(() => {
     const base = (chapters ?? []).filter((c) => !c.is_draft);
@@ -72,16 +111,46 @@ export const ChapterListModal = ({
 
   if (!open) return null;
 
-  const handleClickChapter = (chapterId: string, isPaid: boolean) => {
+  const handleClickChapter = (
+    chapterId: string,
+    isPaid: boolean,
+    chapterPrice: number
+  ) => {
     if (!chapterId) return;
-    if (isPaid) {
+    setSelectedChapterId(chapterId);
+    setChapterPrice(chapterPrice);
+    if (
+      isPaid &&
+      !acceptedChapters.includes(chapterId) &&
+      !novel?.isAccessFull
+    ) {
       !auth?.user
         ? toast?.onOpen("Bạn cần đăng nhập để đọc chương bị khóa")
-        : toast?.onOpen("Bạn không sở hữu chương này!");
+        : setIsBuyChapter(true);
       return;
     }
     navigate(`/novels/${novelSlug}/${chapterId}`);
     handleClose();
+  };
+
+  const confirmBuy = () => {
+    if ((user?.coin ?? 0) < chapterPrice) {
+      toast?.onOpen("Bạn không có đủ xu để mua chương này");
+      return;
+    }
+
+    if (selectedChapterId)
+      BuyChapterMutation.mutate({
+        chapterId: selectedChapterId,
+        request: { coinCost: chapterPrice },
+      });
+    setIsBuyChapter(false);
+  };
+
+  const handleCancel = () => {
+    setIsBuyChapter(false);
+    setChapterPrice(0);
+    setSelectedChapterId("");
   };
 
   return (
@@ -134,7 +203,9 @@ export const ChapterListModal = ({
                 "
               />
               <button
-                onClick={() => setSortDir((s) => (s === "asc" ? "desc" : "asc"))}
+                onClick={() =>
+                  setSortDir((s) => (s === "asc" ? "desc" : "asc"))
+                }
                 className="
                   h-[35px] rounded-md px-3.5 text-[13px] font-medium transition
                   bg-gray-100 ring-1 ring-gray-300 hover:bg-gray-200
@@ -163,7 +234,9 @@ export const ChapterListModal = ({
                   return (
                     <li key={chapter.id} className="py-1">
                       <button
-                        onClick={() => handleClickChapter(chapter.id, isPaid)}
+                        onClick={() =>
+                          handleClickChapter(chapter.id, isPaid, chapter.price)
+                        }
                         className={[
                           "group relative w-full text-left mx-1 px-4 py-3 rounded-xl transition overflow-hidden",
                           isReading
@@ -218,14 +291,16 @@ export const ChapterListModal = ({
                             </div>
                           </div>
 
-                          {isPaid ? (
+                          {isPaid && !acceptedChapters.includes(chapter.id) ? (
                             <span className="flex items-center gap-2">
                               {price > 0 && (
-                                <span className="
+                                <span
+                                  className="
                                   rounded-full px-2 py-[3px] leading-none text-[11px]
                                   border bg-amber-50 text-amber-700 border-amber-200
                                   dark:border-amber-300/40 dark:bg-amber-300/12 dark:text-amber-200
-                                ">
+                                "
+                                >
                                   {price.toLocaleString?.("vi-VN") ?? price} xu
                                 </span>
                               )}
@@ -259,6 +334,15 @@ export const ChapterListModal = ({
           <div className="border-t border-gray-200 px-5 py-4 dark:border-white/10"></div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isBuyChapter}
+        title={`Hiện tại bạn đang có ${user?.coin} xu`}
+        message={`Chương truyện này có giá ${chapterPrice} xu. Bạn có muốn mua không?`}
+        onConfirm={confirmBuy}
+        confirmText="Mua"
+        onCancel={handleCancel}
+      />
     </div>
   );
 };
