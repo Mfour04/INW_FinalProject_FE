@@ -50,15 +50,10 @@ export const FavouriteTypeModal = ({
             );
           })}
         </div>
-        <div className="flex justify-between gap-2">
-          <button
-            onClick={onClose}
-            className="bg-none cursor-pointer text-gray-300 hover:text-white py-2 rounded"
-          >
-            Để sau nha
-          </button>
+        <div className="flex justify-end gap-2">
           <Button
             onClick={() => onConfirm(selectedTypes)}
+            disabled={selectedTypes.length === 0}
             isLoading={isLoading}
             className="bg-[#ff6740] h-9 hover:bg-orange-600 text-white px-4 py-2 rounded border-none"
           >
