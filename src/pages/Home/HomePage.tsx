@@ -33,6 +33,7 @@ import HorizontalRail from "./discovery/HorizontalRail";
 import { Metric } from "./components/ListRow/Metric";
 import type { Novel } from "../../entity/novel";
 import { DESIGN_TOKENS } from "../../components/ui/tokens";
+import { GetCurrentUserInfo } from "../../api/User/user-settings.api";
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
@@ -48,17 +49,22 @@ export const HomePage = () => {
   const visibleCount = useMemo(() => {
     if (bp.x4k) return 6;
     if (bp.x2k) return 5;
-    if (bp.xl)  return 5;
-    if (bp.lg)  return 4;
-    if (bp.md)  return 3; // tablet
-    if (bp.sm)  return 2; // mobile M/L
-    return 1;             // mobile S
+    if (bp.xl) return 5;
+    if (bp.lg) return 4;
+    if (bp.md) return 3; // tablet
+    if (bp.sm) return 2; // mobile M/L
+    return 1; // mobile S
   }, [bp]);
 
   const { data: tagData } = useQuery({
     queryKey: ["home-tags"],
     queryFn: () => getTags().then((res) => res.data.data),
     staleTime: 5 * 60_000,
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ["user-homepage"],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
   });
 
   const { data: recommend } = useQuery({
@@ -143,21 +149,25 @@ export const HomePage = () => {
   };
 
   useEffect(() => {
+    console.log(user);
     if (
-      auth?.user &&
-      Array.isArray(auth.user.favouriteType) &&
-      auth.user.favouriteType.length === 0
+      user &&
+      Array.isArray(user.favouriteType) &&
+      user.favouriteType.length === 0
     ) {
       setShowModal(true);
     }
-  }, [auth]);
+  }, [user]);
 
-const trending = ((trendingData as Novel[]) ?? []).filter(n => n.isPublic);
-const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : undefined;
+  const trending = ((trendingData as Novel[]) ?? []).filter((n) => n.isPublic);
+  const hero =
+    trending.length > 0 ? trending[nNovelsIndex % trending.length] : undefined;
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-white text-white dark:bg-[#0f0f11]">
-      <div className={`${DESIGN_TOKENS.container} ${DESIGN_TOKENS.sectionPad} ${DESIGN_TOKENS.sectionY}`}>
+      <div
+        className={`${DESIGN_TOKENS.container} ${DESIGN_TOKENS.sectionPad} ${DESIGN_TOKENS.sectionY}`}
+      >
         {hero ? (
           <Hero
             title="Truyện Vừa Ra Mắt"
@@ -171,7 +181,7 @@ const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : un
           />
         ) : null}
 
-                <div className="mt-10 grid min-w-0 grid-cols-1 gap-7 sm:gap-8 lg:gap-10 md:grid-cols-12">
+        <div className="mt-10 grid min-w-0 grid-cols-1 gap-7 sm:gap-8 lg:gap-10 md:grid-cols-12">
           <div className="min-w-0 md:col-span-6">
             <VerticalColumn
               title="Đọc nhiều nhất"
@@ -180,7 +190,9 @@ const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : un
               onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
               leftMeta={(n) => (
                 <Metric
-                  icon={<Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                  icon={
+                    <Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                  }
                   value={n.totalViews}
                 />
               )}
@@ -215,7 +227,9 @@ const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : un
               )}
               rightMeta={(n) => (
                 <Metric
-                  icon={<PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                  icon={
+                    <PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                  }
                   value={n.ratingCount}
                 />
               )}
@@ -225,7 +239,9 @@ const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : un
           <div className="min-w-0 md:col-span-12">
             <HorizontalRail
               title="Xu hướng mới"
-              icon={<TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white" />}
+              icon={
+                <TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white" />
+              }
               items={trending}
               onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
               onSeeMore={() => navigate("/novels")}
