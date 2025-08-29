@@ -364,7 +364,7 @@ const ReportList = () => {
                 </div>
               </div>
 
-              <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+              <div className="mb-6 flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
                 <div className="flex-1">
                   <ReportSearchBar onSearch={handleSearch} />
                 </div>

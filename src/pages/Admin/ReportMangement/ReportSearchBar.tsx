@@ -20,7 +20,7 @@ const ReportSearchBar = ({ onSearch }: ReportSearchBarProps) => {
   };
 
   return (
-    <div className="relative w-full sm:w-72 max-w-full text-sm">
+    <div className="relative w-full sm:w-full max-w-full text-sm">
       <div className="relative group">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
           <Search className="w-4.5 h-4.5 text-zinc-400 group-focus-within:text-zinc-500 transition-colors" />

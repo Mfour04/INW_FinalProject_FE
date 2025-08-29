@@ -178,7 +178,7 @@ const RequestList = () => {
     <div className="flex flex-col flex-1 px-4 md:px-6 pt-4 pb-2 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4 mb-2">
         <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Quản lý yêu cầu rút tiền</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Danh sách báo cáo</h1>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -204,7 +204,7 @@ const RequestList = () => {
         </div>
 
         <div className="rounded-2xl overflow-hidden bg-white/80 ring-1 ring-zinc-200 dark:bg-zinc-900/60 dark:ring-white/10">
-          <div className="grid grid-cols-[27.5%_15%_17.5%_15%_25%] text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 border-b border-zinc-200 dark:border-white/10">
+          <div className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 border-b border-zinc-200 dark:border-white/10">
             <div className="pl-4 h-10 flex items-center">Người yêu cầu</div>
             <div className="pl-4 h-10 flex items-center">Số tiền</div>
             <div className="pl-4 h-10 flex items-center">Ngày tạo</div>
@@ -224,7 +224,7 @@ const RequestList = () => {
                 const canAct = r.status === PaymentStatus.Pending;
                 const vnd = toVNDExact(r.amount);
                 return (
-                  <div key={r.id} className="grid grid-cols-[27.5%_15%_17.5%_15%_25%] py-3 text-sm">
+                  <div key={r.id} className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] py-3 text-sm">
                     <div className="pl-4 flex items-center gap-2">
                       <UserRound className="w-5 h-5" />
                       <div className="truncate">
