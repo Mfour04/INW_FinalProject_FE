@@ -1,38 +1,21 @@
-import { useMemo, useState, useCallback } from "react";
-import {
-  Mail,
-  Lock,
-  User,
-  Eye,
-  EyeOff,
-  ChevronLeft,
-  X,
-  Check,
-} from "lucide-react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { Mail, Lock, User, Eye, EyeOff, ChevronLeft, X, Check } from "lucide-react";
+import { createPortal } from "react-dom";
 import LoginLogo from "../../../assets/img/icon_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
 import Button from "../../ButtonComponent";
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { useMutation } from "@tanstack/react-query";
 import { ForgotPassword, Login, Register } from "../../../api/Auth/auth.api";
-import type {
-  ForgotPasswordParams,
-  LoginParams,
-  RegisterParams,
-} from "../../../api/Auth/auth.type";
-import {
-  validatePassword,
-  type PasswordValidationResult,
-} from "../../../utils/validation";
+import type { ForgotPasswordParams, LoginParams, RegisterParams } from "../../../api/Auth/auth.type";
+import { validatePassword, type PasswordValidationResult } from "../../../utils/validation";
 import { useAuth } from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { TextField } from "./TextField";
 import { Input } from "./Input";
 import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
 
-const BASE_URL = "http://localhost:5173";
-const SERVER_URL =
-  "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
+const SERVER_URL = "https://inkwave-a5aqekhgdmhdducc.southeastasia-01.azurewebsites.net";
 
 const AUTH_ACTIONS = {
   LOGIN: "login",
@@ -42,71 +25,65 @@ const AUTH_ACTIONS = {
 type AuthAction = (typeof AUTH_ACTIONS)[keyof typeof AUTH_ACTIONS];
 
 const initialLoginForm: LoginParams = { username: "", password: "" };
-const initialRegisterForm: RegisterParams = {
-  username: "",
-  email: "",
-  password: "",
-};
-
+const initialRegisterForm: RegisterParams = { username: "", email: "", password: "" };
 const initialForgotForm: ForgotPasswordParams = { email: "" };
+
+const inputRef = useRef<HTMLInputElement>(null);
 
 type Props = { onClose: () => void };
 
-export default function AuthSplitModal({ onClose }: Props) {
+export default function AuthModal({ onClose }: Props) {
   const toast = useToast();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
 
   const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
-  const [registerForm, setRegisterForm] =
-    useState<RegisterParams>(initialRegisterForm);
-  const [forgotPasswordForm, setForgotPasswordForm] =
-    useState<ForgotPasswordParams>(initialForgotForm);
+  const [registerForm, setRegisterForm] = useState<RegisterParams>(initialRegisterForm);
+  const [forgotPasswordForm, setForgotPasswordForm] = useState<ForgotPasswordParams>(initialForgotForm);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerMessage, setRegisterMessage] = useState("");
   const [showPwd1, setShowPwd1] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
 
-  const handleLoginUsernameChange = useCallback((v: string) => {
-    setLoginForm((p) => ({ ...p, username: v }));
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => firstFieldRef.current?.focus(), 30);
+    return () => clearTimeout(t);
+  }, [action]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, []);
 
-  const handleLoginPasswordChange = useCallback((v: string) => {
-    setLoginForm((p) => ({ ...p, password: v }));
-  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
-  const handleRegisterUsernameChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, username: v }));
-  }, []);
+  const handleLoginUsernameChange = useCallback((v: string) => setLoginForm(p => ({ ...p, username: v })), []);
+  const handleLoginPasswordChange = useCallback((v: string) => setLoginForm(p => ({ ...p, password: v })), []);
+  const handleRegisterUsernameChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, username: v })), []);
+  const handleRegisterEmailChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, email: v })), []);
+  const handleRegisterPasswordChange = useCallback((v: string) => setRegisterForm(p => ({ ...p, password: v })), []);
+  const handleConfirmPasswordChange = useCallback((v: string) => setConfirmPassword(v), []);
+  const handleForgotPasswordChange = useCallback((v: string) => setForgotPasswordForm({ email: v }), []);
 
-  const handleRegisterEmailChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, email: v }));
-  }, []);
-
-  const handleRegisterPasswordChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, password: v }));
-  }, []);
-
-  const handleConfirmPasswordChange = useCallback((v: string) => {
-    setConfirmPassword(v);
-  }, []);
-
-  const handleForgotPasswordChange = useCallback((v: string) => {
-    setForgotPasswordForm({ email: v });
-  }, []);
-
-  const toggleShowPwd1 = useCallback(() => setShowPwd1((s) => !s), []);
-  const toggleShowPwd2 = useCallback(() => setShowPwd2((s) => !s), []);
+  const toggleShowPwd1 = useCallback(() => setShowPwd1(s => !s), []);
+  const toggleShowPwd2 = useCallback(() => setShowPwd2(s => !s), []);
 
   const validationPassword: PasswordValidationResult = useMemo(
     () => validatePassword(registerForm.password),
     [registerForm.password]
   );
-
   const isRegisterError = useMemo(
-    () =>
-      registerForm.password !== confirmPassword && confirmPassword.length > 0,
+    () => registerForm.password !== confirmPassword && confirmPassword.length > 0,
     [registerForm.password, confirmPassword]
   );
 
@@ -124,8 +101,7 @@ export default function AuthSplitModal({ onClose }: Props) {
 
   const { mutate: registerMutate, isPending: isRegisterPending } = useMutation({
     mutationFn: (body: RegisterParams) => Register(body),
-    onError: (res: any) =>
-      setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
+    onError: (res: any) => setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
     onSuccess: () => {
       toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
       setAction(AUTH_ACTIONS.LOGIN);
@@ -148,12 +124,7 @@ export default function AuthSplitModal({ onClose }: Props) {
   const handleRegister = useCallback(() => {
     if (!validationPassword.isValid || isRegisterError) return;
     registerMutate(registerForm);
-  }, [
-    validationPassword.isValid,
-    isRegisterError,
-    registerForm,
-    registerMutate,
-  ]);
+  }, [validationPassword.isValid, isRegisterError, registerForm, registerMutate]);
 
   const handleForgot = useCallback(() => {
     if (!forgotPasswordForm.email.trim()) {
@@ -170,11 +141,12 @@ export default function AuthSplitModal({ onClose }: Props) {
           <>
             <Input>
               <TextField
-                icon={<User size={18} />}
-                placeholder="Tên đăng nhập / Email"
-                value={loginForm.username}
-                onChange={handleLoginUsernameChange}
-                autoComplete="username"
+                 ref={inputRef}
+                  icon={<User size={18} />}
+                  placeholder="Tên đăng nhập / Email"
+                  value={loginForm.username}
+                  onChange={handleLoginUsernameChange}
+                  autoComplete="username"
               />
             </Input>
             <Input>
@@ -209,11 +181,7 @@ export default function AuthSplitModal({ onClose }: Props) {
                     "[&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100",
                   ].join(" ")}
                 >
-                  <Check
-                    size={12}
-                    strokeWidth={3}
-                    className="text-white dark:text-black transition-opacity"
-                  />
+                  <Check size={12} strokeWidth={3} className="text-white dark:text-black transition-opacity" />
                 </span>
                 Ghi nhớ tôi
               </label>
@@ -229,17 +197,14 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Button
               isLoading={isLoginPending}
               onClick={handleLogin}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Đăng nhập
             </Button>
 
             <p className="text-xs text-center text-zinc-600 dark:text-zinc-300">
               Chưa có tài khoản?{" "}
-              <button
-                onClick={() => setAction(AUTH_ACTIONS.REGISTER)}
-                className="text-[#ff6740] font-bold hover:underline"
-              >
+              <button onClick={() => setAction(AUTH_ACTIONS.REGISTER)} className="text-[#ff6740] font-bold hover:underline">
                 Đăng ký ngay
               </button>
             </p>
@@ -251,6 +216,7 @@ export default function AuthSplitModal({ onClose }: Props) {
           <>
             <Input>
               <TextField
+                ref={firstFieldRef}
                 icon={<User size={18} />}
                 placeholder="Tên đăng nhập"
                 value={registerForm.username}
@@ -287,16 +253,12 @@ export default function AuthSplitModal({ onClose }: Props) {
                 }
               />
             </Input>
-            <Input
-              error={
-                isRegisterError ? "Mật khẩu nhập lại không khớp" : undefined
-              }
-            >
+            <Input error={isRegisterError ? "Mật khẩu nhập lại không khớp" : undefined}>
               <TextField
                 icon={<Lock size={18} />}
                 placeholder="Nhập lại mật khẩu"
                 value={confirmPassword}
-                onChange={handleConfirmPasswordChange}
+                onChange={setConfirmPassword}
                 autoComplete="new-password"
                 type={showPwd2 ? "text" : "password"}
                 rightIcon={
@@ -318,26 +280,19 @@ export default function AuthSplitModal({ onClose }: Props) {
                 ))}
               </ul>
             )}
-            {registerMessage && (
-              <p className="text-sm text-red-600 dark:text-red-400 -mt-0.5">
-                {registerMessage}
-              </p>
-            )}
+            {registerMessage && <p className="text-sm text-red-600 dark:text-red-400 -mt-0.5">{registerMessage}</p>}
 
             <Button
               isLoading={isRegisterPending}
               onClick={handleRegister}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Tạo tài khoản
             </Button>
 
             <p className="text-xs text-center text-zinc-600 dark:text-zinc-300">
               Đã có tài khoản?{" "}
-              <button
-                onClick={() => setAction(AUTH_ACTIONS.LOGIN)}
-                className="text-[#ff6740] font-bold hover:underline"
-              >
+              <button onClick={() => setAction(AUTH_ACTIONS.LOGIN)} className="text-[#ff6740] font-bold hover:underline">
                 Đăng nhập
               </button>
             </p>
@@ -356,6 +311,7 @@ export default function AuthSplitModal({ onClose }: Props) {
 
             <Input>
               <TextField
+                ref={firstFieldRef}
                 icon={<Mail size={18} />}
                 placeholder="Email"
                 value={forgotPasswordForm.email}
@@ -367,7 +323,7 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Button
               onClick={handleForgot}
               isLoading={ForgotPasswordMutation.isPending}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Gửi hướng dẫn đặt lại
             </Button>
@@ -395,26 +351,27 @@ export default function AuthSplitModal({ onClose }: Props) {
     handleRegisterUsernameChange,
     handleRegisterEmailChange,
     handleRegisterPasswordChange,
-    handleConfirmPasswordChange,
     handleForgotPasswordChange,
     toggleShowPwd1,
     toggleShowPwd2,
     handleLogin,
     handleRegister,
     handleForgot,
-    Input,
-    TextField,
   ]);
 
-  return (
-    <div className="fixed inset-0 z-[100]">
+  return createPortal(
+    <div className="fixed inset-0 z-[2147483000]">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
       <div
+        role="dialog"
+        aria-modal="true"
         className={[
-          "relative z-[101] min-h-screen grid lg:grid-cols-2",
-          "bg-[#f7f8fa] text-zinc-900",
-          "dark:bg-[#0a0f16] dark:text-white",
+          "relative z-[1] min-h-screen grid lg:grid-cols-2",
+          "bg-white dark:bg-[#0a0f16]",
+          "overflow-y-auto overscroll-contain",
         ].join(" ")}
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
       >
         <div className="relative hidden lg:block">
           <div
@@ -440,74 +397,65 @@ export default function AuthSplitModal({ onClose }: Props) {
           <div className="relative h-full flex flex-col justify-center p-12">
             {action === AUTH_ACTIONS.REGISTER ? (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">
-                  Tham gia InkWave ngay
-                </h1>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
-                  Đồng bộ tủ truyện & gợi ý cá nhân hóa
-                </p>
+                <h1 className="text-3xl font-semibold leading-tight">Tham gia InkWave ngay</h1>
+                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">Đồng bộ tủ truyện & gợi ý cá nhân hóa</p>
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">
-                  Gõ cửa thế giới truyện
-                </h1>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
-                  Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích
-                </p>
+                <h1 className="text-3xl font-semibold leading-tight">Gõ cửa thế giới truyện</h1>
+                <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">Khám phá – Lưu trữ – Đồng hành cùng tác giả yêu thích</p>
               </>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-4 sm:p-6">
           <div
             className={[
-              "relative w-full max-w-[380px] rounded-2xl px-6 py-4",
-              "bg-white/95 shadow-2xl supports-[backdrop-filter]:backdrop-blur",
-              "dark:bg-white/8 dark:border dark:border-white/10 dark:shadow-[0_12px_44px_-14px_rgba(0,0,0,0.55)] dark:backdrop-blur-xl",
+              "relative w-full max-w-[420px] rounded-none sm:rounded-2xl px-5 sm:px-6 py-4 sm:py-5",
+              "bg-white shadow-2xl dark:bg-[#0f1319]",
+              "sm:bg-white/95 sm:supports-[backdrop-filter]:backdrop-blur sm:dark:bg-white/8 sm:dark:border sm:dark:border-white/10 sm:dark:shadow-[0_12px_44px_-14px_rgba(0,0,0,0.55)] sm:dark:backdrop-blur-xl",
             ].join(" ")}
           >
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10"
+              className="absolute top-2 sm:top-3 right-2 sm:right-3 h-9 w-9 grid place-items-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10"
+              aria-label="Đóng"
             >
               <X size={18} />
             </button>
 
-            <div className="h-[40px] w-full flex items-center justify-center mb-3">
+            <div className="h-[36px] sm:h-[40px] w-full flex items-center justify-center mb-2 sm:mb-3">
               <img
                 src={LoginLogo}
                 alt="InkWave"
-                className="max-w-[140px] h-[40px] object-contain"
+                className="h-[28px] sm:h-[40px] object-contain"
+                style={{ maxWidth: 160 }}
               />
             </div>
 
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-semibold">
-                {action === AUTH_ACTIONS.REGISTER
-                  ? "Tạo tài khoản"
-                  : "Chào mừng trở lại"}
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+              <h2 className="text-[15px] sm:text-base font-semibold">
+                {action === AUTH_ACTIONS.REGISTER ? "Tạo tài khoản" : "Chào mừng trở lại"}
               </h2>
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 -mt-1 mb-3">
+            <p className="text-[12.5px] sm:text-sm text-zinc-600 dark:text-zinc-400 -mt-0.5 mb-3 sm:mb-4">
               {action === AUTH_ACTIONS.REGISTER
                 ? "Mất 1 phút để bạn bắt đầu hành trình đọc mới."
                 : "Đăng nhập để đồng bộ tủ truyện & tiến trình đọc."}
             </p>
 
+            {/* Google button */}
             {action === AUTH_ACTIONS.REGISTER ? (
               <button
                 className={[
-                  "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
+                  "w-full h-11 sm:h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",
                   "dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:border-white/20",
                 ].join(" ")}
               >
                 <img src={GoogleLogin} alt="Google" className="w-4 h-4" />
-                <span className="text-sm font-bold">
-                  Tạo tài khoản với Google
-                </span>
+                <span className="text-sm font-bold">Tạo tài khoản với Google</span>
               </button>
             ) : (
               <button
@@ -522,7 +470,7 @@ export default function AuthSplitModal({ onClose }: Props) {
                     `&prompt=consent`;
                 }}
                 className={[
-                  "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
+                  "w-full h-11 sm:h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",
                   "dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:border-white/20",
                 ].join(" ")}
@@ -532,18 +480,17 @@ export default function AuthSplitModal({ onClose }: Props) {
               </button>
             )}
 
-            <div className="my-3 flex items-center gap-3">
+            <div className="my-3 sm:my-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                hoặc
-              </span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">hoặc</span>
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
             </div>
 
-            <div className="space-y-2.5">{content}</div>
+            <div className="space-y-2 sm:space-y-2.5">{content}</div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

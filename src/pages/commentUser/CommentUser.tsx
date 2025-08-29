@@ -239,13 +239,13 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
 
   return (
     <section className="mt-10">
-      <div className="rounded-2xl bg-[#0f1012]/90 ring-1 ring-white/12 backdrop-blur-md overflow-hidden">
-        <header className="px-5 md:px-6 py-4 bg-[#0b0c10]/95">
-          <h3 className="text-[15px] md:text-[16px] font-semibold tracking-wide uppercase text-white/90">Bình luận</h3>
-          <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+      <div className="rounded-2xl bg-white/90 ring-1 ring-zinc-200 backdrop-blur-md overflow-hidden dark:bg-[#0f1012]/90 dark:ring-white/10">
+        <header className="px-5 md:px-6 py-4 bg-zinc-50/95 dark:bg-[#0b0c10]/95">
+          <h3 className="text-[15px] md:text-[16px] font-semibold tracking-wide uppercase text-zinc-900 dark:text-white/90">Bình luận</h3>
+          <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-zinc-300/60 to-transparent dark:via-white/12" />
         </header>
         <div className="px-5 md:px-6 py-5">
-          <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/12 p-4">
+          <div className="rounded-xl bg-zinc-50 ring-1 ring-zinc-200 p-4 dark:bg-white/[0.02] dark:ring-white/10">
             <Composer
               value={composerValue}
               onChange={setComposerValue}
@@ -257,7 +257,7 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           </div>
           <div className="mt-6 space-y-6">
             {topLevel.length === 0 ? (
-              <div className="py-10 text-center text-white/70">Chưa có bình luận nào.</div>
+              <div className="py-10 text-center text-zinc-600 dark:text-white/70">Chưa có bình luận nào.</div>
             ) : (
               topLevel.map((parent) => {
                 const replies = enrichedComments.filter((r) => r.parentId === parent.id);
