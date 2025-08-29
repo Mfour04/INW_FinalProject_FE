@@ -31,7 +31,7 @@ import { Contact } from "../pages/Info/Contact";
 import { NovelRead } from "../pages/novelRead/NovelRead";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
-import AuthCallback from "../components/common/Header/AuthCallBack";
+import { AuthCallback } from "../components/common/Header/AuthCallBack";
 
 export const Router = () => {
   return (
