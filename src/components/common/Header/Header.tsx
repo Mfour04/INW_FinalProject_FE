@@ -32,6 +32,7 @@ import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
 import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
 import { DESIGN_TOKENS } from "../../ui/tokens";
+import { getTags } from "../../../api/Tags/tag.api";
 
 /* ---------- Utils ---------- */
 function useSmallScreen(query = "(max-width: 639.5px)") {
@@ -89,10 +90,18 @@ function PortalLayer<T extends HTMLElement>({
     const spaceAbove = r.top - 8;
     const spaceBelow = vh - r.bottom - 8;
 
-    if (placement === "above" && ch + offset > spaceAbove && spaceBelow >= spaceAbove) {
+    if (
+      placement === "above" &&
+      ch + offset > spaceAbove &&
+      spaceBelow >= spaceAbove
+    ) {
       finalPlacement = "below";
     }
-    if (placement === "below" && ch + offset > spaceBelow && spaceAbove > spaceBelow) {
+    if (
+      placement === "below" &&
+      ch + offset > spaceBelow &&
+      spaceAbove > spaceBelow
+    ) {
       finalPlacement = "above";
     }
 
@@ -153,13 +162,46 @@ type HeaderProps = {
   isAdminRoute?: boolean;
 };
 
-const sortOptions = [
-  { label: "Ngày ra mắt ↑", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Ngày ra mắt ↓", value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Lượt xem ↑", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Lượt xem ↓", value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}` },
-  { label: "Đánh giá ↑", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}` },
-  { label: "Đánh giá ↓", value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}` },
+export type TagSelectProps = {
+  value: string;
+  label: string;
+};
+
+export const sortOptions = [
+  {
+    label: "Ngày ra mắt ↑",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Ngày ra mắt ↓",
+    value: `${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Lượt xem ↑",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Lượt xem ↓",
+    value: `${SORT_BY_FIELDS.TOTAL_VIEWS}:${SORT_DIRECTIONS.DESC}`,
+  },
+  {
+    label: "Đánh giá ↑",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.ASC}`,
+  },
+  {
+    label: "Đánh giá ↓",
+    value: `${SORT_BY_FIELDS.RATING_AVG}:${SORT_DIRECTIONS.DESC}`,
+  },
+];
+
+const TAG_OPTIONS: TagSelectProps[] = [
+  { value: "romance", label: "Ngôn tình" },
+  { value: "action", label: "Hành động" },
+  { value: "fantasy", label: "Phiêu lưu" },
+  { value: "comedy", label: "Hài hước" },
+  { value: "school", label: "Học đường" },
+  { value: "isekai", label: "Chuyển sinh" },
+  { value: "drama", label: "Drama" },
 ];
 
 export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
@@ -169,10 +211,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   const isSmall = useSmallScreen();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<string>("");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedSort] = useState(`${SORT_BY_FIELDS.CREATED_AT}:${SORT_DIRECTIONS.ASC}`);
-  const [selectedTag] = useState("");
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
   const avatarBtnRef = useRef<HTMLButtonElement>(null);
@@ -185,20 +227,37 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   });
 
   const NotificationMutation = useMutation({
-    mutationFn: async (request: ReadNotificationReq) => ReadNotification(request),
+    mutationFn: async (request: ReadNotificationReq) =>
+      ReadNotification(request),
     onSuccess: () => notificationsRefetch(),
   });
 
+  const { data: tags } = useQuery({
+    queryKey: ["tags-options"],
+    queryFn: () => getTags().then((res) => res.data),
+  });
+
+  const selectTagOptions: TagSelectProps[] = (tags?.data ?? [])
+    .map((tag) => {
+      const match = TAG_OPTIONS.find((option) => option.label === tag.name);
+      return match ? { value: tag.tagId, label: match.label } : null;
+    })
+    .filter((x): x is TagSelectProps => x !== null);
+
   const handleSearchNovels = useCallback(() => {
     const trimmed = searchTerm.trim();
-    if (!trimmed) return;
-    const params = new URLSearchParams({
-      query: trimmed,
-      ...(selectedSort && { selectedSort }),
-      ...(selectedTag && { tag: selectedTag }),
-    });
+
+    const params = new URLSearchParams();
+    if (trimmed) params.set("query", trimmed);
+
+    if (sortBy) params.set("sortBy", sortBy);
+
+    if (tagFilter && tagFilter.length > 0) {
+      tagFilter.forEach((tag) => params.append("tag", tag));
+    }
+
     navigate(`/novels?${params.toString()}`);
-  }, [searchTerm, selectedSort, selectedTag, navigate]);
+  }, [searchTerm, sortBy, tagFilter, navigate]);
 
   const handleClickNotification = async (id: string) => {
     await NotificationMutation.mutateAsync({ notificationIds: [id] });
@@ -242,8 +301,19 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                   aria-label="Mở sidebar"
                   title="Mở sidebar"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 sm:h-6 sm:w-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   </svg>
                 </button>
               )}
@@ -251,16 +321,24 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
 
             <div className="min-w-0 flex-1">
               <SearchBar
-                size={isSmall ? "compact" : "normal"}  // << nhỏ lại ở mobile
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
                 onSubmit={handleSearchNovels}
                 sortOptions={sortOptions}
-                searchIcon={<Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-white" />}
-                clearIcon={<X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-white" />}
-                filterIcon={<ListFilter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-white" />}
-                initialSort=""
-                initialTags={[]}
+                tagFilterOptions={selectTagOptions}
+                searchIcon={
+                  <Search className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                clearIcon={
+                  <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                filterIcon={
+                  <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                initialSort={sortBy}
+                setSort={setSortBy}
+                initialTags={tagFilter}
+                setTags={setTagFilter}
               />
             </div>
 
@@ -279,7 +357,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 >
                   <Bell className="h-5 w-5 text-black dark:text-white" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]" aria-hidden />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]"
+                      aria-hidden
+                    />
                   )}
                 </button>
 
@@ -330,7 +411,9 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
             <div className={`${DESIGN_TOKENS.container} px-4`}>
               <div
                 className="flex items-center justify-around py-2"
-                style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}
+                style={{
+                  paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+                }}
               >
                 <div className="scale-[0.92]">
                   <DarkModeToggler />
@@ -346,7 +429,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 >
                   <Bell className="h-5 w-5 text-black dark:text-white" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]" aria-hidden />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#000]"
+                      aria-hidden
+                    />
                   )}
                 </button>
               </div>

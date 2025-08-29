@@ -1,8 +1,7 @@
 // src/components/common/FollowButton.tsx
 import React from "react";
 import { UserPlus, UserCheck, Loader2 } from "lucide-react";
-// TODO: sửa path nếu hook của bạn ở nơi khác
-import { useFollow } from "../../../pages/UserProfile";
+import { useFollow } from "../../../pages/userProfile";
 
 type Size = "sm" | "md" | "lg";
 
@@ -29,9 +28,27 @@ const SIZE_MAP: Record<
   Size,
   { h: string; px: string; text: string; gap: string; icon: string }
 > = {
-  sm: { h: "h-7", px: "px-2.5", text: "text-[12px]", gap: "gap-1.5", icon: "h-3.5 w-3.5" },
-  md: { h: "h-8", px: "px-3", text: "text-[13px]", gap: "gap-2", icon: "h-4 w-4" },
-  lg: { h: "h-9", px: "px-3.5", text: "text-[14px]", gap: "gap-2.5", icon: "h-4 w-4" },
+  sm: {
+    h: "h-7",
+    px: "px-2.5",
+    text: "text-[12px]",
+    gap: "gap-1.5",
+    icon: "h-3.5 w-3.5",
+  },
+  md: {
+    h: "h-8",
+    px: "px-3",
+    text: "text-[13px]",
+    gap: "gap-2",
+    icon: "h-4 w-4",
+  },
+  lg: {
+    h: "h-9",
+    px: "px-3.5",
+    text: "text-[14px]",
+    gap: "gap-2.5",
+    icon: "h-4 w-4",
+  },
 };
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
@@ -64,7 +81,11 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     <UserPlus className={t.icon} aria-hidden />
   );
 
-  const text = isFollowing ? L.following : isFollowedBy ? L.followBack : L.follow;
+  const text = isFollowing
+    ? L.following
+    : isFollowedBy
+    ? L.followBack
+    : L.follow;
 
   // Minimal pill: khi chưa follow => brand gradient; khi đã follow => neutral subtle
   const classes = cn(
