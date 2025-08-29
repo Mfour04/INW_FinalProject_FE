@@ -8,7 +8,6 @@ import { getTags } from "../../api/Tags/tag.api";
 import { UpdateUser } from "../../api/User/user.api";
 import { urlToFile } from "../../utils/img";
 import { useToast } from "../../context/ToastContext/toast-context";
-import { TOKENS } from "./ui/tokens";
 import { Hero } from "./components/Hero";
 import { RecommendCarousel } from "./sections/RecommendCarousel";
 import {
@@ -16,6 +15,7 @@ import {
   SORT_BY_FIELDS,
   SORT_DIRECTIONS,
 } from "./hooks/useSortedNovels";
+import { useBreakpoint } from "./hooks/useBreakpoint";
 import type { TagType as Tag } from "./types";
 
 // === Lucide icons (thay thế toàn bộ MUI & svg cũ) ===
@@ -32,16 +32,28 @@ import VerticalColumn from "./discovery/VerticalColumn";
 import HorizontalRail from "./discovery/HorizontalRail";
 import { Metric } from "./components/ListRow/Metric";
 import type { Novel } from "../../entity/novel";
+import { DESIGN_TOKENS } from "../../components/ui/tokens";
 
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const visibleCount = 5;
 
   const navigate = useNavigate();
   const { auth } = useAuth();
   const toast = useToast();
+  const bp = useBreakpoint();
+
+  // visibleCount responsive cho RecommendCarousel
+  const visibleCount = useMemo(() => {
+    if (bp.x4k) return 6;
+    if (bp.x2k) return 5;
+    if (bp.xl)  return 5;
+    if (bp.lg)  return 4;
+    if (bp.md)  return 3; // tablet
+    if (bp.sm)  return 2; // mobile M/L
+    return 1;             // mobile S
+  }, [bp]);
 
   const { data: tagData } = useQuery({
     queryKey: ["home-tags"],
@@ -76,7 +88,7 @@ export const HomePage = () => {
     SORT_BY_FIELDS.CREATED_AT,
     SORT_DIRECTIONS.DESC,
     0,
-    15
+    10
   );
   const { data: mostViewed } = useSortedNovels(
     SORT_BY_FIELDS.TOTAL_VIEWS,
@@ -140,94 +152,94 @@ export const HomePage = () => {
     }
   }, [auth]);
 
-  const trending = ((trendingData as Novel[]) ?? []).filter(
-    (novel) => novel.isPublic
-  );
-  const hero = trending[nNovelsIndex];
+const trending = ((trendingData as Novel[]) ?? []).filter(n => n.isPublic);
+const hero = trending.length > 0 ? trending[nNovelsIndex % trending.length] : undefined;
 
   return (
-    <div className="min-h-screen w-full bg-white text-white dark:bg-[#0f0f11]">
-      <div className={`mx-auto ${TOKENS.container} px-6 lg:px-10 py-10`}>
-        <Hero
-          title="Truyện Vừa Ra Mắt"
-          hero={hero}
-          index={nNovelsIndex}
-          onPrev={handlePrevNovels}
-          onNext={handleNextNovels}
-          onRead={() => {
-            navigate(`/novels/${hero.slug}`);
-          }}
-        />
-
-        <div className="mt-10 grid gap-7 md:grid-cols-2">
-          <VerticalColumn
-            title="Đọc nhiều nhất"
-            icon={<BookOpen className="h-5 w-5 text-white" />}
-            items={(mostViewed as Novel[]) ?? []}
-            onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            leftMeta={(n) => (
-              <Metric
-                icon={
-                  <Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
-                }
-                value={n.totalViews}
-              />
-            )}
-            rightMeta={(n) => (
-              <Metric
-                icon={
-                  <Bookmark className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
-                }
-                value={n.ratingCount}
-              />
-            )}
+    <div className="min-h-screen w-full overflow-x-hidden bg-white text-white dark:bg-[#0f0f11]">
+      <div className={`${DESIGN_TOKENS.container} ${DESIGN_TOKENS.sectionPad} ${DESIGN_TOKENS.sectionY}`}>
+        {hero ? (
+          <Hero
+            title="Truyện Vừa Ra Mắt"
+            hero={hero}
+            index={nNovelsIndex}
+            onPrev={handlePrevNovels}
+            onNext={handleNextNovels}
+            onRead={() => {
+              if (hero?.slug) navigate(`/novels/${hero.slug}`);
+            }}
           />
+        ) : null}
 
-          <VerticalColumn
-            title="Đánh giá cao"
-            icon={<Star className="h-5 w-5 text-white" fill="currentColor" />}
-            items={(topRated as Novel[]) ?? []}
-            onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            leftMeta={(n) => (
-              <Metric
-                icon={
-                  <Star
-                    className="h-4 w-4 shrink-0 text-yellow-400"
-                    fill="currentColor"
-                    stroke="none"
-                  />
-                }
-                value={n.ratingAvg}
-              />
-            )}
-            rightMeta={(n) => (
-              <Metric
-                icon={
-                  <PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
-                }
-                value={n.ratingCount}
-              />
-            )}
-          />
+                <div className="mt-10 grid min-w-0 grid-cols-1 gap-7 sm:gap-8 lg:gap-10 md:grid-cols-12">
+          <div className="min-w-0 md:col-span-6">
+            <VerticalColumn
+              title="Đọc nhiều nhất"
+              icon={<BookOpen className="h-5 w-5 text-white" />}
+              items={(mostViewed as Novel[]) ?? []}
+              onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
+              leftMeta={(n) => (
+                <Metric
+                  icon={<Eye className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                  value={n.totalViews}
+                />
+              )}
+              rightMeta={(n) => (
+                <Metric
+                  icon={
+                    <Bookmark className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />
+                  }
+                  value={n.ratingCount}
+                />
+              )}
+            />
+          </div>
 
-          <HorizontalRail
-            title="Xu hướng mới"
-            icon={
-              <TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white" />
-            }
-            items={trending}
-            onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-            onSeeMore={() => navigate("/novels")}
-          />
+          <div className="min-w-0 md:col-span-6">
+            <VerticalColumn
+              title="Đánh giá cao"
+              icon={<Star className="h-5 w-5 text-white" fill="currentColor" />}
+              items={(topRated as Novel[]) ?? []}
+              onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
+              leftMeta={(n) => (
+                <Metric
+                  icon={
+                    <Star
+                      className="h-4 w-4 shrink-0 text-yellow-400"
+                      fill="currentColor"
+                      stroke="none"
+                    />
+                  }
+                  value={n.ratingAvg}
+                />
+              )}
+              rightMeta={(n) => (
+                <Metric
+                  icon={<PencilLine className="h-4 w-4 shrink-0 text-gray-600 dark:text-white/50" />}
+                  value={n.ratingCount}
+                />
+              )}
+            />
+          </div>
+
+          <div className="min-w-0 md:col-span-12">
+            <HorizontalRail
+              title="Xu hướng mới"
+              icon={<TrendingUp className="h-4 w-4 shrink-0 text-black dark:text-white" />}
+              items={trending}
+              onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
+              onSeeMore={() => navigate("/novels")}
+            />
+          </div>
         </div>
 
         {recommend?.novels?.length ? (
-          <div className="mt-10">
+          <div className="mt-10 overflow-hidden sm:overflow-visible">
             <RecommendCarousel
               title="InkWave Đề cử"
               novels={recommend.novels as Novel[]}
               currentIndex={currentIndex}
-              visibleCount={5}
+              visibleCount={visibleCount}
               onPrev={() => handleSlide("left")}
               onNext={() => handleSlide("right")}
               onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}

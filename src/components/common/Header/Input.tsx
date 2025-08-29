@@ -15,7 +15,7 @@ export const Input = ({ children, error }: Props) => (
       {children}
     </div>
     {error ? (
-      <p className="ml-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+      <p className="ml-2 text-sm sm:text-[13px] text-red-600 dark:text-red-400">{error}</p>
     ) : null}
   </div>
 );

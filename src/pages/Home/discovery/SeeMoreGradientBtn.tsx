@@ -2,10 +2,7 @@ import { BRAND } from "../constant";
 
 export type SeeMoreGradientBtnProps = { label: string; onClick: () => void };
 
-export const SeeMoreGradientBtn = ({
-  label,
-  onClick,
-}: SeeMoreGradientBtnProps) => (
+export const SeeMoreGradientBtn = ({ label, onClick }: SeeMoreGradientBtnProps) => (
   <button
     type="button"
     onClick={onClick}
@@ -19,12 +16,7 @@ export const SeeMoreGradientBtn = ({
   >
     {label}
     <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden>
-      <path
-        d="M7 5l6 5-6 5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
+      <path d="M7 5l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="2" />
     </svg>
   </button>
 );

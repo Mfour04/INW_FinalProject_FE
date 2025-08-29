@@ -1,4 +1,4 @@
-// NotificationDropdownGrouped.tsx
+// NotificationDropdown.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GetUserNotificationRes } from "../../../api/Notification/noti.type";
 import { formatTicksToRelativeTime } from "../../../utils/date_format";
@@ -22,6 +22,11 @@ interface Props {
   notifications?: GetUserNotificationRes[];
   onItemClick?: (id: string) => void;
   onClose?: () => void;
+
+  /** thêm mới: khi true thì KHÔNG dùng absolute top-full/bottom-full */
+  floating?: boolean;
+  /** thêm mới: hướng bung khi không floating qua Portal  */
+  anchorPlacement?: "below" | "above";
 }
 
 function normalizeToMs(t: number) {
@@ -52,24 +57,30 @@ function groupKey(ts: number) {
 function getTypeMeta(type?: number) {
   switch (type) {
     case 0:
+    case 7:
+    case 14:
+    case 15:
       return {
         Icon: ShieldAlert,
         light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
         dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
       };
     case 1:
+    case 8:
       return {
         Icon: MessageSquare,
         light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
         dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
       };
     case 2:
+    case 9:
       return {
         Icon: CornerDownRight,
         light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
         dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
       };
     case 3:
+    case 10:
       return {
         Icon: Heart,
         light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
@@ -82,47 +93,13 @@ function getTypeMeta(type?: number) {
         dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
       };
     case 5:
-      return {
-        Icon: Lock,
-        light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100",
-        dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0",
-      };
-    case 6:
-      return {
-        Icon: Unlock,
-        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
-        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
-      };
-    case 7:
-      return {
-        Icon: ShieldAlert,
-        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
-        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
-      };
-    case 8:
-      return {
-        Icon: MessageSquare,
-        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
-        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
-      };
-    case 9:
-      return {
-        Icon: CornerDownRight,
-        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
-        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
-      };
-    case 10:
-      return {
-        Icon: Heart,
-        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
-        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
-      };
     case 11:
       return {
         Icon: Lock,
         light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100",
         dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0",
       };
+    case 6:
     case 12:
       return {
         Icon: Unlock,
@@ -134,18 +111,6 @@ function getTypeMeta(type?: number) {
         Icon: FilePlus,
         light: "text-indigo-600 bg-indigo-50 ring-1 ring-indigo-100",
         dark: "dark:text-indigo-400 dark:bg-indigo-400/10 dark:ring-0",
-      };
-    case 14:
-      return {
-        Icon: ShieldAlert,
-        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
-        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
-      };
-    case 15:
-      return {
-        Icon: ShieldAlert,
-        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
-        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
       };
     case 16:
       return {
@@ -173,6 +138,8 @@ export const NotificationDropdown = ({
   notifications,
   onItemClick,
   onClose,
+  floating = false,
+  anchorPlacement = "below",
 }: Props) => {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(5);
@@ -181,6 +148,7 @@ export const NotificationDropdown = ({
   useEffect(() => {
     setVisibleCount(5);
   }, [showUnreadOnly, notifications]);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose?.();
@@ -188,6 +156,7 @@ export const NotificationDropdown = ({
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, onClose]);
+
   useEffect(() => {
     function handleKeydown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose?.();
@@ -220,22 +189,29 @@ export const NotificationDropdown = ({
   const hasMore = list.length > visibleCount;
   if (!open) return null;
 
+  const positionClass = floating
+    ? "" // Portal đã định vị; không tự absolute ở đây
+    : anchorPlacement === "below"
+    ? "absolute top-full right-0 mt-1"
+    : "absolute bottom-full right-0 mb-1";
+
   return (
     <div
       ref={ref}
       className={[
-        "absolute top-full right-0 mt-1 w-[22rem] z-50 rounded-xl overflow-hidden",
+        positionClass, 
+        "z-50 w-[22rem] max-w-[min(22rem,calc(100vw-16px))] rounded-xl overflow-hidden",
         "bg-white text-slate-900 border border-slate-200 shadow-lg",
         "dark:bg-[#18191A] dark:text-white dark:border-white/10",
       ].join(" ")}
+      style={{ maxHeight: "min(65vh, 480px)" }}
       role="dialog"
       aria-label="Thông báo"
     >
       <div
         className={[
           "px-3 py-2 flex items-center justify-between",
-          "border-b border-slate-200",
-          "dark:border-white/10",
+          "border-b border-slate-200 dark:border-white/10",
         ].join(" ")}
       >
         <div className="flex items-center gap-2">
@@ -254,7 +230,8 @@ export const NotificationDropdown = ({
         </button>
       </div>
 
-      <div className="max-h-96 overflow-y-auto scrollbar-strong">
+      {/* Giới hạn chiều cao theo viewport để tránh bị chôn xuống dưới */}
+      <div className="max-h-[65vh] sm:max-h-96 overflow-y-auto scrollbar-strong">
         {grouped.length === 0 ? (
           <div className="py-8 px-4 text-center text-sm text-slate-500 dark:text-white/70">
             Không có thông báo
@@ -275,8 +252,7 @@ export const NotificationDropdown = ({
                         onClick={() => onItemClick?.(noti.notificationId)}
                         className={[
                           "w-full text-left px-3 py-2 flex items-start gap-3 transition",
-                          "hover:bg-slate-50",
-                          "dark:hover:bg-white/5",
+                          "hover:bg-slate-50 dark:hover:bg-white/5",
                         ].join(" ")}
                       >
                         <div
@@ -319,8 +295,7 @@ export const NotificationDropdown = ({
           <div
             className={[
               "px-3 py-2 text-center",
-              "border-t border-slate-200",
-              "dark:border-white/10",
+              "border-t border-slate-200 dark:border-white/10",
             ].join(" ")}
           >
             <button

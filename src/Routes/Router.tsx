@@ -28,7 +28,7 @@ import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
-import { NovelRead } from "../pages/novelRead/NovelRead";
+import { NovelRead } from "../pages/NovelRead/NovelRead";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { AuthCallback } from "../components/common/Header/AuthCallBack";

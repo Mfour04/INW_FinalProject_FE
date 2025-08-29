@@ -9,7 +9,7 @@ export type VerticalItemProps = {
 };
 
 const base =
-  "group relative w-full rounded-2xl outline-none text-left overflow-hidden transition px-3 py-2.5 flex items-start gap-3";
+  "group relative w-full rounded-2xl outline-none text-left overflow-hidden transition px-3 py-2.5 flex items-start gap-3 min-w-0";
 
 const styles = {
   container: [
@@ -36,7 +36,7 @@ const styles = {
     "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity self-center",
   ].join(" "),
   title:
-    "mt-1 truncate text-[14px] font-semibold leading-tight text-gray-900 dark:text-white",
+    "mt-1 truncate text-[14px] font-semibold leading-tight text-gray-900 dark:text-white min-w-0",
   meta: "mt-3 flex items-center gap-2 text-[12px] text-left text-gray-700 dark:text-gray-400",
 };
 
@@ -54,13 +54,15 @@ export const VerticalItem = ({
             src={n.novelImage}
             alt={n.title}
             className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="h-full w-full animate-pulse" />
         )}
       </div>
 
-      <div className="min-w-0 flex-1 flex flex-col justify-center">
+      <div className="min-w-0 flex-1">
         <div className={styles.title}>{n.title}</div>
         <div className={styles.meta}>
           {leftMeta}

@@ -43,18 +43,15 @@ export const WritingRoom = () => {
   const filtered = useMemo(() => {
     let list = [...novels];
 
-    // search
     const q = query.trim().toLowerCase();
     if (q) list = list.filter((n) => n.title.toLowerCase().includes(q));
 
-    // status filter
     if (status !== "all") {
       list = list.filter((n) =>
         status === "finished" ? n.status === 0 : n.status !== 0
       );
     }
 
-    // sort
     list.sort((a, b) => {
       switch (sortBy) {
         case "views":
@@ -95,10 +92,13 @@ export const WritingRoom = () => {
   const goChapters = (novelId: string) => navigate(`${novelId}`);
 
   return (
-    <div className="min-h-screen px-4 md:px-6 py-4 bg-white text-zinc-900 dark:bg-[#0a0b0e] dark:text-white">
+    <div
+      className="min-h-screen px-3 sm:px-4 md:px-6 py-4 bg-white text-zinc-900 dark:bg-[#0a0b0e] dark:text-white
+                 pb-24 sm:pb-8"
+      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 6rem)" }} // chừa chỗ cho bottom bar trên mobile
+    >
       {/* Background overlay (light/dark) */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        {/* Light overlay */}
         <div
           className="absolute inset-0 opacity-60 dark:opacity-0 transition-opacity"
           style={{
@@ -106,7 +106,6 @@ export const WritingRoom = () => {
               "radial-gradient(900px 500px at 85% -10%, rgba(255,103,64,0.10), transparent 60%), radial-gradient(800px 500px at -10% 20%, rgba(120,170,255,0.10), transparent 60%)",
           }}
         />
-        {/* Dark overlay */}
         <div
           className="absolute inset-0 opacity-0 dark:opacity-50 transition-opacity"
           style={{
@@ -117,22 +116,24 @@ export const WritingRoom = () => {
       </div>
 
       {/* Top bar */}
-      <header className="max-w-screen-2xl mx-auto px-4 pt-8 pb-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[22px] md:text-[26px] font-bold tracking-tight">
+      <header className="max-w-screen-2xl mx-auto px-2 sm:px-4 pt-4 sm:pt-8 pb-3 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-[18px] sm:text-[22px] md:text-[26px] font-bold tracking-tight truncate">
               Phòng sáng tác
             </h1>
-            <p className="mt-1 text-zinc-600 dark:text-white/70 text-[13.5px]">
+            <p className="mt-0.5 sm:mt-1 text-zinc-600 dark:text-white/70 text-[13px] sm:text-[13.5px]">
               Hôm nay viết gì?
             </p>
           </div>
 
+          {/* Mobile: full width, Desktop: tự nhiên */}
           <button
             onClick={goCreate}
-            className="inline-flex items-center gap-2 h-10 rounded-xl px-4 text-sm font-semibold text-white shadow-sm shadow-black/10
+            className="inline-flex items-center justify-center gap-2 h-10 rounded-xl px-4 text-sm font-semibold text-white shadow-sm shadow-black/10
                        bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]
-                       hover:brightness-110 active:brightness-95 transition"
+                       hover:brightness-110 active:brightness-95 transition
+                       w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Tạo truyện mới
@@ -140,8 +141,8 @@ export const WritingRoom = () => {
         </div>
       </header>
 
-      <section className="max-w-screen-2xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <section className="max-w-screen-2xl mx-auto px-2 sm:px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="lg:col-span-2">
             <ControlsBar
               query={query}
@@ -152,14 +153,17 @@ export const WritingRoom = () => {
               setSortBy={setSortBy}
             />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <StatsMini label="Truyện" value={stats.total} />
+
+         <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <StatsMini size="compact" label="Truyện" value={stats.total} />
             <StatsMini
+              size="compact"
               label="Lượt xem"
               value={stats.views}
               icon={<Eye className="h-4 w-4" />}
             />
             <StatsMini
+              size="compact"
               label="Theo dõi"
               value={stats.followers}
               icon={<Users className="h-4 w-4" />}
@@ -168,37 +172,33 @@ export const WritingRoom = () => {
         </div>
       </section>
 
-      <main className="max-w-screen-2xl mx-auto px-4 py-8">
+      <main className="max-w-screen-2xl mx-auto px-2 sm:px-4 pt-6 sm:pt-8">
         {!isLoading && filtered.length === 0 && (
           <div
             className={[
-              "rounded-2xl p-8 text-center",
-              // light
+              "rounded-2xl p-6 sm:p-8 text-center",
               "bg-white ring-1 ring-zinc-200 shadow-sm",
-              // dark
               "dark:bg-white/[0.02] dark:ring-1 dark:ring-white/10 dark:shadow-none dark:backdrop-blur-md",
             ].join(" ")}
           >
-            <BookOpenCheck className="h-10 w-10 mx-auto text-zinc-400 dark:text-white/60" />
-            <p className="mt-3 text-[15px] text-zinc-700 dark:text-white/80">
+            <BookOpenCheck className="h-9 w-9 sm:h-10 sm:w-10 mx-auto text-zinc-400 dark:text-white/60" />
+            <p className="mt-3 text-[14px] sm:text-[15px] text-zinc-700 dark:text-white/80">
               Không tìm thấy truyện phù hợp.
             </p>
-            <p className="text-[13px] text-zinc-500 dark:text-white/50">
+            <p className="text-[12.5px] sm:text-[13px] text-zinc-500 dark:text-white/50">
               Hãy thử từ khóa khác, thay đổi bộ lọc hoặc tạo truyện mới.
             </p>
           </div>
         )}
 
         {isLoading && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className={[
-                  "h-[130px] rounded-2xl animate-pulse",
-                  // light
+                  "h-[110px] sm:h-[130px] rounded-2xl animate-pulse",
                   "bg-zinc-100 ring-1 ring-zinc-200",
-                  // dark
                   "dark:bg-white/[0.03] dark:ring-1 dark:ring-white/10",
                 ].join(" ")}
               />
@@ -207,7 +207,7 @@ export const WritingRoom = () => {
         )}
 
         {!isLoading && filtered.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {filtered.map((n) => (
               <NovelRowCard
                 key={n.novelId}
@@ -219,6 +219,9 @@ export const WritingRoom = () => {
             ))}
           </div>
         )}
+
+        {/* Pager phía dưới vẫn giữ khoảng trống để không bị bar dưới đè */}
+        <div className="mt-8 mb-4 sm:mb-0" />
       </main>
 
       <ConfirmModal
