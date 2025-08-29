@@ -70,13 +70,13 @@ const AdminHome = () => {
       x: {
         ticks: { color: darkMode ? "#ffffff" : "#000000" },
         grid: {
-          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color: darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
         },
       },
       y: {
         ticks: { color: darkMode ? "#ffffff" : "#000000" },
         grid: {
-          color: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color: darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
         },
         beginAtZero: true,
       },
@@ -93,16 +93,6 @@ const AdminHome = () => {
     queryFn: () => GetHomeDashboard().then((res) => res.data),
   });
 
-  // Fetch reports data
-  // const {
-  //   data: reportsData,
-  //   isLoading: isLoadingReports,
-  //   error: reportsError,
-  // } = useQuery({
-  //   queryKey: ["Reports"],
-  //   queryFn: () => GetReports(0, 100).then((res) => res.data),
-  // });
-
   // Fetch pending withdrawal requests data
   const {
     data: requestsData,
@@ -118,12 +108,6 @@ const AdminHome = () => {
       }).then((res) => res.data),
   });
 
-  // Count total and pending reports and requests
-  // const totalReports = reportsData?.data?.length || 0;
-  // const pendingReports =
-  //   reportsData?.data?.filter(
-  //     (report) => report.status === ReportStatus.InProgress
-  //   ).length || 0;
   const totalRequests = requestsData?.data?.length || 0;
   const pendingRequests =
     requestsData?.data?.filter(
@@ -134,7 +118,7 @@ const AdminHome = () => {
   const today = new Date();
   const todayWeekday = getVietnameseWeekday(today);
   const newNovelsToday =
-    dashboardData?.data.newNovelsPerDay.find(
+    dashboardData?.data?.newNovelsPerDay?.find(
       (item: { weekday: string }) => item.weekday === todayWeekday
     )?.count || 0;
 
@@ -195,149 +179,127 @@ const AdminHome = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-8 bg-gray-100 dark:bg-[#0f0f11] min-h-screen text-gray-900 dark:text-white"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="p-6 lg:p-8 min-h-screen bg-[linear-gradient(180deg,#fafafa,transparent)] dark:bg-[linear-gradient(180deg,#0b0f14,transparent)] text-gray-900 dark:text-white"
     >
-      <h1 className="text-3xl font-bold mb-8">Tổng quan Admin</h1>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Link to="/admin/users" className="block">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <h2 className="text-xl font-semibold mb-2">Người dùng</h2>
-            <p className="text-3xl font-bold text-[#ff4d4f]">
-              {isLoadingDashboard
-                ? "Loading..."
-                : dashboardData?.data.totalUsers ?? 0}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Mới hôm nay:{" "}
-              {isLoadingDashboard
-                ? "Loading..."
-                : dashboardData?.data.newUsersToday ?? 0}
-            </p>
-          </motion.div>
-        </Link>
-        <Link to="/admin/novels" className="block">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <h2 className="text-xl font-semibold mb-2">Tiểu thuyết</h2>
-            <p className="text-3xl font-bold text-[#ff4d4f]">
-              {isLoadingDashboard
-                ? "Loading..."
-                : dashboardData?.data.totalNovels ?? 0}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Mới hôm nay:{" "}
-              {isLoadingDashboard ? "Loading..." : newNovelsToday ?? 0}
-            </p>
-          </motion.div>
-        </Link>
-        <Link to="/admin/reports" className="block">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <h2 className="text-xl font-semibold mb-2">Báo cáo</h2>
-            {/* <p className="text-3xl font-bold text-[#ff4d4f]">
-              {isLoadingReports
-                ? "Loading..."
-                : reportsError
-                ? "Error"
-                : `${totalReports}`}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Chưa xử lý:{" "}
-              {isLoadingReports ? "Loading..." : pendingReports ?? 0}
-            </p> */}
-          </motion.div>
-        </Link>
-        <Link to="/admin/wallets" className="block">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <h2 className="text-xl font-semibold mb-2">Yêu cầu</h2>
-            <p className="text-3xl font-bold text-[#ff4d4f]">
-              {isLoadingRequests
-                ? "Loading..."
-                : requestsError
-                ? "Error"
-                : `${totalRequests}`}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Chưa xử lý:{" "}
-              {isLoadingRequests ? "Loading..." : pendingRequests ?? 0}
-            </p>
-          </motion.div>
-        </Link>
-      </div>
-
-      {/* Charts */}
-      <div className="space-y-8">
-        <div className="bg-white dark:bg-[#1a1a1c] p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4">
-            Người dùng mới (Tuần hiện tại)
-          </h2>
-          <div className="h-[350px]">
-            {isLoadingDashboard ? (
-              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-            ) : (
-              <Line
-                ref={chartRefs.line}
-                data={userChartData}
-                options={chartOptions}
-              />
-            )}
-          </div>
+      {/* Page header */}
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
+            Tổng quan Admin
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+            Theo dõi nhanh người dùng, tiểu thuyết và yêu cầu thanh toán.
+          </p>
         </div>
-        <div className="bg-white dark:bg-[#1a1a1c] p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4">
-            Tiểu thuyết mới (Tuần hiện tại)
-          </h2>
-          <div className="h-[350px]">
-            {isLoadingDashboard ? (
-              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-            ) : (
-              <Bar
-                ref={chartRefs.bar}
-                data={novelChartData}
-                options={chartOptions}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* System Overview */}
-      <div className="mt-8 bg-white dark:bg-[#1a1a1c] p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-semibold mb-4">Tổng quan hệ thống</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Chào mừng bạn đến với bảng điều khiển Admin! Đây là nơi bạn có thể
-          theo dõi và quản lý các hoạt động chính của hệ thống, bao gồm người
-          dùng, tiểu thuyết, báo cáo và yêu cầu rút tiền. Sử dụng các thẻ thống
-          kê và biểu đồ để nắm bắt nhanh tình hình hoạt động.
-        </p>
-        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+        <div className="flex gap-2">
           <Link
             to="/admin/users"
-            className="px-4 py-2 bg-[#ff4d4f] text-white rounded-lg hover:bg-[#e03c3f] transition-colors"
+            className="rounded-xl px-3.5 py-2 text-sm font-semibold border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-white/10 backdrop-blur hover:bg-white dark:hover:bg-white/15 transition"
           >
             Quản lý người dùng
           </Link>
           <Link
             to="/admin/novels"
-            className="px-4 py-2 bg-[#ff4d4f] text-white rounded-lg hover:bg-[#e03c3f] transition-colors"
+            className="rounded-xl px-3.5 py-2 text-sm font-semibold text-white bg-[#ff4d4f] hover:bg-[#e03c3f] shadow-sm transition"
           >
             Quản lý tiểu thuyết
           </Link>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        {/* Users */}
+        <Link to="/admin/users" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
+            <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.18),transparent_70%)]" />
+            <div className="p-5 relative">
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">Người dùng</div>
+              <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
+                {isLoadingDashboard ? "…" : dashboardData?.data.totalUsers ?? 0}
+              </div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Mới hôm nay:{" "}
+                {isLoadingDashboard ? "…" : dashboardData?.data.newUsersToday ?? 0}
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Novels */}
+        <Link to="/admin/novels" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
+            <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.14),transparent_70%)]" />
+            <div className="p-5 relative">
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">Tiểu thuyết</div>
+              <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
+                {isLoadingDashboard ? "…" : dashboardData?.data.totalNovels ?? 0}
+              </div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Mới hôm nay: {isLoadingDashboard ? "…" : newNovelsToday ?? 0}
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Reports (placeholder UI only, logic giữ nguyên phần bạn đã comment) */}
+        <Link to="/admin/reports" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
+            <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.10),transparent_70%)]" />
+            <div className="p-5 relative">
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">Báo cáo</div>
+              <div className="mt-1 h-8 w-24 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+              <div className="mt-1 h-4 w-32 rounded bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+            </div>
+          </div>
+        </Link>
+
+        {/* Requests */}
+        <Link to="/admin/wallets" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm group-hover:shadow-md transition-shadow">
+            <div className="absolute inset-x-0 -top-10 h-24 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,77,79,0.12),transparent_70%)]" />
+            <div className="p-5 relative">
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">Yêu cầu</div>
+              <div className="mt-1 text-2xl font-bold text-[#ff4d4f]">
+                {isLoadingRequests ? "…" : requestsError ? "Error" : `${totalRequests}`}
+              </div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Chưa xử lý: {isLoadingRequests ? "…" : pendingRequests ?? 0}
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Charts */}
+      <div className="space-y-6 lg:space-y-8">
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm">
+          <div className="px-5 pt-5">
+            <h2 className="text-lg font-semibold">Người dùng mới (Tuần hiện tại)</h2>
+          </div>
+          <div className="h-[320px] sm:h-[360px] p-5">
+            {isLoadingDashboard ? (
+              <div className="h-full rounded-xl bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+            ) : (
+              <Line ref={chartRefs.line} data={userChartData} options={chartOptions} />
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-[#0f131a]/80 backdrop-blur shadow-sm">
+          <div className="px-5 pt-5">
+            <h2 className="text-lg font-semibold">Tiểu thuyết mới (Tuần hiện tại)</h2>
+          </div>
+          <div className="h-[320px] sm:h-[360px] p-5">
+            {isLoadingDashboard ? (
+              <div className="h-full rounded-xl bg-zinc-200/70 dark:bg-white/10 animate-pulse" />
+            ) : (
+              <Bar ref={chartRefs.bar} data={novelChartData} options={chartOptions} />
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
