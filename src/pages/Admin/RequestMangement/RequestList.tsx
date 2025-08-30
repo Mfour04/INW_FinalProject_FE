@@ -6,13 +6,19 @@ import RequestFilterButtons from "./RequestFilterButton";
 import Pagination from "../AdminModal/Pagination";
 import ConfirmDialog from "../AdminModal/ConfirmDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GetPendingWithdrawRequests, UpdateWithdrawRequestStatus } from "../../../api/Admin/Request/request.api";
+import {
+  GetPendingWithdrawRequests,
+  UpdateWithdrawRequestStatus,
+} from "../../../api/Admin/Request/request.api";
 import { GetUserById } from "../../../api/Admin/User/user.api";
-import { PaymentStatus, type WithdrawRequest } from "../../../api/Admin/Request/request.type";
+import {
+  PaymentStatus,
+  type WithdrawRequest,
+} from "../../../api/Admin/Request/request.type";
 import { Search, UserRound, Banknote } from "lucide-react";
 import RequestDetailDrawer from "./RequestDetailDrawer";
 
-const itemsPerPage = 10;
+const itemsPerPage = 100;
 
 const coinPriceTable = [
   { amount: 65, price: 50000 },
@@ -68,8 +74,11 @@ const RequestList = () => {
   const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<PaymentStatus | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<PaymentStatus | "All">(
+    "All"
+  );
   const [currentPage, setCurrentPage] = useState(1);
+  const [usersMap, setUsersMap] = useState<Record<string, UserMini>>({});
 
   const [dialog, setDialog] = useState<{
     isOpen: boolean;
@@ -80,7 +89,11 @@ const RequestList = () => {
 
   const [detailFor, setDetailFor] = useState<WithdrawRequest | null>(null);
 
-  const { data: requestsData, isLoading, error } = useQuery({
+  const {
+    data: requestsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["PendingWithdrawRequests", currentPage],
     queryFn: () =>
       GetPendingWithdrawRequests({
@@ -90,8 +103,6 @@ const RequestList = () => {
       }).then((res) => res.data),
   });
 
-  // usersMap chứa displayName + username
-  const [usersMap, setUsersMap] = useState<Record<string, UserMini>>({});
   useEffect(() => {
     if (!requestsData?.data || isLoading) return;
     const load = async () => {
@@ -99,7 +110,9 @@ const RequestList = () => {
         new Set(
           (requestsData?.data as WithdrawRequest[])
             .map((r) => r.requesterId)
-            .filter((id): id is string => typeof id === "string" && id.trim() !== "")
+            .filter(
+              (id): id is string => typeof id === "string" && id.trim() !== ""
+            )
         )
       );
       const map: Record<string, UserMini> = {};
@@ -128,7 +141,10 @@ const RequestList = () => {
       requestId: string;
       isApproved: boolean;
       message: string;
-    }) => UpdateWithdrawRequestStatus(requestId, { isApproved, message }).then((r) => r.data),
+    }) =>
+      UpdateWithdrawRequestStatus(requestId, { isApproved, message }).then(
+        (r) => r.data
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["PendingWithdrawRequests"] });
       setDialog({ isOpen: false, type: null, title: "", requestId: null });
@@ -146,15 +162,22 @@ const RequestList = () => {
     return list.filter((r) => {
       const nameMatch =
         r.bankInfo?.bankAccountName?.toLowerCase().includes(q) ||
-        (r.requesterId ? usersMap[r.requesterId]?.displayName?.toLowerCase().includes(q) : false) ||
-        (r.requesterId ? usersMap[r.requesterId]?.username?.toLowerCase().includes(q) : false);
+        (r.requesterId
+          ? usersMap[r.requesterId]?.displayName?.toLowerCase().includes(q)
+          : false) ||
+        (r.requesterId
+          ? usersMap[r.requesterId]?.username?.toLowerCase().includes(q)
+          : false);
       const statusOk = statusFilter === "All" || r.status === statusFilter;
       return (q.length === 0 || !!nameMatch) && statusOk;
     });
   }, [requestsData, searchTerm, statusFilter, usersMap]);
 
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
-  const pageItems = filteredList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const pageItems = filteredList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const filters = [
     { label: "Tất cả", value: "All" as const },
@@ -165,20 +188,38 @@ const RequestList = () => {
 
   const openApprove = (id: string) => {
     const r = requestsData?.data.find((x: WithdrawRequest) => x.id === id);
-    const name = r?.requesterId && usersMap[r.requesterId] ? usersMap[r.requesterId].displayName : "Người dùng";
-    setDialog({ isOpen: true, type: "approve", title: `Duyệt yêu cầu của ${name}?`, requestId: id });
+    const name =
+      r?.requesterId && usersMap[r.requesterId]
+        ? usersMap[r.requesterId].displayName
+        : "Người dùng";
+    setDialog({
+      isOpen: true,
+      type: "approve",
+      title: `Duyệt yêu cầu của ${name}?`,
+      requestId: id,
+    });
   };
   const openReject = (id: string) => {
     const r = requestsData?.data.find((x: WithdrawRequest) => x.id === id);
-    const name = r?.requesterId && usersMap[r.requesterId] ? usersMap[r.requesterId].displayName : "Người dùng";
-    setDialog({ isOpen: true, type: "reject", title: `Từ chối yêu cầu của ${name}?`, requestId: id });
+    const name =
+      r?.requesterId && usersMap[r.requesterId]
+        ? usersMap[r.requesterId].displayName
+        : "Người dùng";
+    setDialog({
+      isOpen: true,
+      type: "reject",
+      title: `Từ chối yêu cầu của ${name}?`,
+      requestId: id,
+    });
   };
 
   return (
     <div className="flex flex-col flex-1 px-4 md:px-6 pt-4 pb-2 bg-white text-gray-900 dark:bg-[#0b0d11] dark:text-white">
       <div className="max-w-[95rem] mx-auto w-full px-4 mb-2">
         <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Quản lý yêu cầu rút tiền</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Danh sách báo cáo
+          </h1>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -204,7 +245,7 @@ const RequestList = () => {
         </div>
 
         <div className="rounded-2xl overflow-hidden bg-white/80 ring-1 ring-zinc-200 dark:bg-zinc-900/60 dark:ring-white/10">
-          <div className="grid grid-cols-[27.5%_15%_17.5%_15%_25%] text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 border-b border-zinc-200 dark:border-white/10">
+          <div className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 border-b border-zinc-200 dark:border-white/10">
             <div className="pl-4 h-10 flex items-center">Người yêu cầu</div>
             <div className="pl-4 h-10 flex items-center">Số tiền</div>
             <div className="pl-4 h-10 flex items-center">Ngày tạo</div>
@@ -216,7 +257,9 @@ const RequestList = () => {
             {isLoading ? (
               <div className="py-10 text-center">Đang tải...</div>
             ) : error ? (
-              <div className="py-10 text-center text-red-500">Lỗi tải dữ liệu</div>
+              <div className="py-10 text-center text-red-500">
+                Lỗi tải dữ liệu
+              </div>
             ) : pageItems.length === 0 ? (
               <div className="py-10 text-center">Không có yêu cầu</div>
             ) : (
@@ -224,13 +267,20 @@ const RequestList = () => {
                 const canAct = r.status === PaymentStatus.Pending;
                 const vnd = toVNDExact(r.amount);
                 return (
-                  <div key={r.id} className="grid grid-cols-[27.5%_15%_17.5%_15%_25%] py-3 text-sm">
+                  <div
+                    key={r.id}
+                    className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] py-3 text-sm"
+                  >
                     <div className="pl-4 flex items-center gap-2">
                       <UserRound className="w-5 h-5" />
                       <div className="truncate">
-                        <div className="font-semibold">{usersMap[r.requesterId]?.displayName || "—"}</div>
+                        <div className="font-semibold">
+                          {usersMap[r.requesterId]?.displayName || "—"}
+                        </div>
                         <div className="text-xs text-zinc-500 truncate">
-                          {usersMap[r.requesterId]?.username ? `@${usersMap[r.requesterId]?.username}` : "—"}
+                          {usersMap[r.requesterId]?.username
+                            ? `@${usersMap[r.requesterId]?.username}`
+                            : "—"}
                         </div>
                       </div>
                     </div>
@@ -238,7 +288,9 @@ const RequestList = () => {
                     <div className="pl-4 flex items-center gap-2">
                       <Banknote className="w-4 h-4" />
                       <span className="font-medium">
-                        {vnd !== null ? `${vnd.toLocaleString("vi-VN")} VND` : "—"}
+                        {vnd !== null
+                          ? `${vnd.toLocaleString("vi-VN")} VND`
+                          : "—"}
                       </span>
                     </div>
 
@@ -256,7 +308,9 @@ const RequestList = () => {
                           onClick={() => openApprove(r.id)}
                           className={[
                             "px-3 py-1 rounded-md text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition",
-                            canAct ? "" : "invisible pointer-events-none select-none",
+                            canAct
+                              ? ""
+                              : "invisible pointer-events-none select-none",
                           ].join(" ")}
                           aria-hidden={!canAct}
                           tabIndex={canAct ? 0 : -1}
@@ -267,7 +321,9 @@ const RequestList = () => {
                           onClick={() => openReject(r.id)}
                           className={[
                             "px-3 py-1 rounded-md text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition",
-                            canAct ? "" : "invisible pointer-events-none select-none",
+                            canAct
+                              ? ""
+                              : "invisible pointer-events-none select-none",
                           ].join(" ")}
                           aria-hidden={!canAct}
                           tabIndex={canAct ? 0 : -1}
@@ -289,26 +345,43 @@ const RequestList = () => {
           </div>
 
           <div className="px-4 py-3 flex justify-center">
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
 
         <ConfirmDialog
           isOpen={dialog.isOpen}
-          onClose={() => setDialog({ isOpen: false, type: null, title: "", requestId: null })}
+          onClose={() =>
+            setDialog({ isOpen: false, type: null, title: "", requestId: null })
+          }
           onConfirm={(extra) =>
             updateStatusMutation.mutate({
               requestId: dialog.requestId!,
               isApproved: dialog.type === "approve",
-              message: dialog.type === "approve" ? (extra?.note || "Duyệt yêu cầu") : (extra?.note || "Từ chối yêu cầu"),
+              message:
+                dialog.type === "approve"
+                  ? extra?.note || "Duyệt yêu cầu"
+                  : extra?.note || "Từ chối yêu cầu",
             })
           }
           title={dialog.title}
           subtitle="Hành động này sẽ cập nhật trạng thái yêu cầu rút tiền."
-          variant={dialog.type === "approve" ? "success" : dialog.type === "reject" ? "danger" : "neutral"}
+          variant={
+            dialog.type === "approve"
+              ? "success"
+              : dialog.type === "reject"
+              ? "danger"
+              : "neutral"
+          }
           showNote={dialog.type === "reject"}
           loading={updateStatusMutation.isPending}
-          confirmLabel={dialog.type === "reject" ? "Xác nhận từ chối" : "Xác nhận duyệt"}
+          confirmLabel={
+            dialog.type === "reject" ? "Xác nhận từ chối" : "Xác nhận duyệt"
+          }
         />
 
         <AnimatePresence>
@@ -341,7 +414,9 @@ const statusChip = (r: WithdrawRequest) => {
       : "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20";
 
   return (
-    <span className={`w-28 inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${cls}`}>
+    <span
+      className={`w-28 inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${cls}`}
+    >
       {text}
     </span>
   );

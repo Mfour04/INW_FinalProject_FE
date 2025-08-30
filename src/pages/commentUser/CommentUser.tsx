@@ -1,8 +1,10 @@
 import { useContext, useMemo, useRef, useState, useCallback } from "react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
-import type { Comment } from "./types.ts";
 import { AuthContext } from "../../context/AuthContext/AuthProvider.tsx";
-import { formatVietnamTimeFromTicks, getCurrentTicks } from "../../utils/date_format.ts";
+import {
+  formatVietnamTimeFromTicks,
+  getCurrentTicks,
+} from "../../utils/date_format.ts";
 import defaultAvatar from "../../assets/img/default_avt.png";
 import { Composer } from "../../components/ui/Composer.tsx";
 import { ReplyThread } from "../../components/ui/ReplyThread.tsx";
@@ -10,7 +12,19 @@ import { useComments } from "./hooks/useComments.ts";
 import { useCreateComment } from "./hooks/useCreateComment.ts";
 import { useUpdateComment } from "./hooks/useUpdateComment.ts";
 import { useDeleteComment } from "./hooks/useDeleteComment.ts";
-import { LikeComment, UnlikeComment, GetRepliesByComment } from "../../api/Comment/comment.api.ts";
+import {
+  LikeComment,
+  UnlikeComment,
+  GetRepliesByComment,
+} from "../../api/Comment/comment.api.ts";
+import {
+  REPORT_REASON_CODE,
+  ReportCommentModal,
+  type ReportPayload,
+} from "../../components/ReportModal/ReportModal.tsx";
+import type { ReportRequest } from "../../api/Report/report.type.ts";
+import { useReport } from "../../hooks/useReport.tsx";
+import type { Comment } from "./types.ts";
 
 type Props = { novelId: string; chapterId: string };
 
@@ -27,8 +41,12 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
   const [reportCommentId, setReportCommentId] = useState<string | null>(null);
   const [reportPreview, setReportPreview] = useState<string>("");
 
+  const report = useReport();
+
   const { data: rawComments } = useComments(chapterId, novelId);
-  const commentIds = Array.isArray(rawComments) ? rawComments.map((c: any) => c.id).filter(Boolean) : [];
+  const commentIds = Array.isArray(rawComments)
+    ? rawComments.map((c: any) => c.id).filter(Boolean)
+    : [];
 
   const bindingNovelId =
     Array.isArray(rawComments) && rawComments.length > 0
@@ -39,7 +57,11 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     queries: commentIds.map((commentId) => ({
       queryKey: ["replies", commentId],
       queryFn: async () => {
-        const res = await GetRepliesByComment(commentId, { page: 0, limit: 50, sortBy: "created_at:desc" });
+        const res = await GetRepliesByComment(commentId, {
+          page: 0,
+          limit: 50,
+          sortBy: "created_at:desc",
+        });
         return res.data.data;
       },
       enabled: !!commentId,
@@ -60,16 +82,21 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     avatarUrl: auth?.user?.avatarUrl || null,
   };
 
-  const [likedComments, setLikedComments] = useState<Record<string, boolean>>(() => {
-    const map: Record<string, boolean> = {};
-    Object.keys(localStorage).forEach((k) => {
-      if (k.startsWith("liked_")) map[k.replace("liked_", "")] = true;
-    });
-    return map;
-  });
+  const [likedComments, setLikedComments] = useState<Record<string, boolean>>(
+    () => {
+      const map: Record<string, boolean> = {};
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith("liked_")) map[k.replace("liked_", "")] = true;
+      });
+      return map;
+    }
+  );
 
   const [editedComments, setEditedComments] = useState<
-    Record<string, { content?: string; timestamp?: string; likes?: number; replies?: number }>
+    Record<
+      string,
+      { content?: string; timestamp?: string; likes?: number; replies?: number }
+    >
   >({});
 
   const handleSubmitReport = (payload: ReportPayload) => {
@@ -93,7 +120,8 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       const updatedTicks = Number(c.updatedAt) || 0;
       const localTicks = Number(localStorage.getItem(`updatedAt_${c.id}`)) || 0;
       const latest = Math.max(createdTicks, updatedTicks, localTicks);
-      const timestamp = latest > 0 ? formatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
+      const timestamp =
+        latest > 0 ? formatVietnamTimeFromTicks(latest) : "Không rõ thời gian";
       const author = c.author;
       const name = author?.displayName || author?.username || "Ẩn danh";
       const user = author?.username ? `@${author.username}` : "@user";
@@ -133,7 +161,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     [serverComments, editedComments]
   );
 
-  const topLevel = useMemo(() => enrichedComments.filter((c) => !c.parentId && c.id), [enrichedComments]);
+  const topLevel = useMemo(
+    () => enrichedComments.filter((c) => !c.parentId && c.id),
+    [enrichedComments]
+  );
 
   const handlePost = useCallback(
     (content: string) => {
@@ -144,11 +175,18 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
         {
           onSuccess: (res: any) => {
             setComposerValue("");
-            if (res?.data?.success === false && res?.data?.message?.includes("Duplicate")) {
-              alert("Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác.");
+            if (
+              res?.data?.success === false &&
+              res?.data?.message?.includes("Duplicate")
+            ) {
+              alert(
+                "Bạn đã comment nội dung này rồi. Vui lòng đợi 5 phút hoặc comment nội dung khác."
+              );
               return;
             }
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
           },
         }
       );
@@ -162,7 +200,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       if (open) {
         setReplyValues((v) => ({ ...v, [id]: "" }));
         setTimeout(() => {
-          inputRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+          inputRefs.current[id]?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
           inputRefs.current[id]?.focus();
         }, 0);
       }
@@ -180,7 +221,9 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
         { content, novelId, chapterId, parentCommentId: parentId },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
             queryClient.invalidateQueries({ queryKey: ["replies", parentId] });
             setReplyValues((v) => ({ ...v, [parentId]: "" }));
           },
@@ -195,7 +238,8 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
       if (!auth?.user) return;
       const hasLiked = likedComments[commentId];
       const original = enrichedComments.find((c) => c.id === commentId);
-      const currentLikes = editedComments[commentId]?.likes ?? original?.likes ?? 0;
+      const currentLikes =
+        editedComments[commentId]?.likes ?? original?.likes ?? 0;
       if (hasLiked) {
         const res = await UnlikeComment(commentId, currentUser.id);
         if (res.data.success) {
@@ -203,7 +247,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           setLikedComments((m) => ({ ...m, [commentId]: false }));
           localStorage.removeItem(`liked_${commentId}`);
           localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+          setEditedComments((m) => ({
+            ...m,
+            [commentId]: { ...(m[commentId] || {}), likes: next },
+          }));
         }
       } else {
         const res = await LikeComment(commentId, currentUser.id, 1);
@@ -212,11 +259,20 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           setLikedComments((m) => ({ ...m, [commentId]: true }));
           localStorage.setItem(`liked_${commentId}`, "true");
           localStorage.setItem(`likes_${commentId}`, String(next));
-          setEditedComments((m) => ({ ...m, [commentId]: { ...(m[commentId] || {}), likes: next } }));
+          setEditedComments((m) => ({
+            ...m,
+            [commentId]: { ...(m[commentId] || {}), likes: next },
+          }));
         }
       }
     },
-    [auth?.user, currentUser.id, editedComments, enrichedComments, likedComments]
+    [
+      auth?.user,
+      currentUser.id,
+      editedComments,
+      enrichedComments,
+      likedComments,
+    ]
   );
 
   const saveEdit = useCallback(
@@ -227,9 +283,14 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           onSuccess: () => {
             const ticks = getCurrentTicks();
             const ts = formatVietnamTimeFromTicks(ticks);
-            setEditedComments((m) => ({ ...m, [id]: { ...(m[id] || {}), content, timestamp: ts } }));
+            setEditedComments((m) => ({
+              ...m,
+              [id]: { ...(m[id] || {}), content, timestamp: ts },
+            }));
             localStorage.setItem(`updatedAt_${id}`, String(ticks));
-            queryClient.invalidateQueries({ queryKey: ["comments", chapterId, novelId] });
+            queryClient.invalidateQueries({
+              queryKey: ["comments", chapterId, novelId],
+            });
           },
         }
       );
@@ -237,36 +298,64 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
     [chapterId, novelId, updateComment, queryClient]
   );
 
+  const onReportClick = (comment: Comment) => {
+    setReportCommentId(comment.id);
+    setReportPreview(comment.content);
+    setOpenReport(true);
+  };
+
   return (
     <section className="mt-10">
-      <div className="rounded-2xl bg-[#0f1012]/90 ring-1 ring-white/12 backdrop-blur-md overflow-hidden">
-        <header className="px-5 md:px-6 py-4 bg-[#0b0c10]/95">
-          <h3 className="text-[15px] md:text-[16px] font-semibold tracking-wide uppercase text-white/90">Bình luận</h3>
-          <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+      <div className="rounded-2xl bg-white/90 ring-1 ring-zinc-200 backdrop-blur-md overflow-hidden dark:bg-[#0f1012]/90 dark:ring-white/10">
+        <header className="px-5 md:px-6 py-4 bg-zinc-50/95 dark:bg-[#0b0c10]/95">
+          <h3 className="text-[15px] md:text-[16px] font-semibold tracking-wide uppercase text-zinc-900 dark:text-white/90">
+            Bình luận
+          </h3>
+          <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-zinc-300/60 to-transparent dark:via-white/12" />
         </header>
         <div className="px-5 md:px-6 py-5">
-          <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/12 p-4">
+          <div className="rounded-xl bg-zinc-50 ring-1 ring-zinc-200 p-4 dark:bg-white/[0.02] dark:ring-white/10">
             <Composer
               value={composerValue}
               onChange={setComposerValue}
               onSubmit={handlePost}
               disabled={!auth?.user}
-              currentUser={auth?.user ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl } : null}
+              currentUser={
+                auth?.user
+                  ? {
+                      name: currentUser.name,
+                      user: currentUser.user,
+                      avatarUrl: currentUser.avatarUrl,
+                    }
+                  : null
+              }
               loginCta={() => alert("Đăng nhập để bình luận")}
             />
           </div>
           <div className="mt-6 space-y-6">
             {topLevel.length === 0 ? (
-              <div className="py-10 text-center text-white/70">Chưa có bình luận nào.</div>
+              <div className="py-10 text-center text-zinc-600 dark:text-white/70">
+                Chưa có bình luận nào.
+              </div>
             ) : (
               topLevel.map((parent) => {
-                const replies = enrichedComments.filter((r) => r.parentId === parent.id);
+                const replies = enrichedComments.filter(
+                  (r) => r.parentId === parent.id
+                );
                 return (
                   <ReplyThread
                     key={parent.id}
                     parent={parent}
                     replies={replies}
-                    currentUser={auth?.user ? { name: currentUser.name, user: currentUser.user, avatarUrl: currentUser.avatarUrl } : null}
+                    currentUser={
+                      auth?.user
+                        ? {
+                            name: currentUser.name,
+                            user: currentUser.user,
+                            avatarUrl: currentUser.avatarUrl,
+                          }
+                        : null
+                    }
                     canInteract={!!auth?.user}
                     liked={likedComments}
                     edited={editedComments}
@@ -274,7 +363,10 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
                     onDelete={(id) => deleteComment(id)}
                     replyOpen={!!replyInputs[parent.id]}
                     replyValue={replyValues[parent.id] ?? ""}
-                    setReplyValue={(v) => setReplyValues((s) => ({ ...s, [parent.id]: v }))}
+                    setReplyValue={(v) =>
+                      setReplyValues((s) => ({ ...s, [parent.id]: v }))
+                    }
+                    onReport={onReportClick}
                     onSubmitReply={submitReply}
                     setInputRef={(el) => (inputRefs.current[parent.id] = el)}
                     onToggleReply={() => toggleReplyFor(parent.id)}
@@ -286,6 +378,13 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
           </div>
         </div>
       </div>
+      <ReportCommentModal
+        commentId={reportCommentId!}
+        isOpen={openReport}
+        onClose={() => setOpenReport(false)}
+        onSubmit={handleSubmitReport}
+        commentPreview={reportPreview}
+      />
     </section>
   );
 };

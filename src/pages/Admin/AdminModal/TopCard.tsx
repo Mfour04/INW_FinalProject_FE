@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TopCardProps<T> {
   title: string;
@@ -17,61 +17,82 @@ const TopCard = <T extends Record<string, unknown>>({
   valueKey,
   valueFormatter,
 }: TopCardProps<T>) => {
+  const hasData = items && items.length > 0 && itemKey && imageKey && valueKey;
+
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="p-6 bg-white dark:bg-[#1a1a1c] rounded-lg shadow-md border-2 border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600"
+    <motion.section
+      whileHover={{ y: -1 }}
+      transition={{ duration: 0.18 }}
+      className="relative rounded-xl border border-zinc-200 dark:border-zinc-700 
+                 bg-white dark:bg-[#1a1a1c] shadow-sm p-4"
     >
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white uppercase mb-4">
+      {/* Header */}
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-700 dark:text-zinc-300">
         {title}
       </h2>
-      {items && itemKey && imageKey && valueKey ? (
-        items.map((item) => (
-          <div
-            key={String(item[itemKey])}
-            className="flex items-center gap-4 mb-3"
-          >
-            <img
-              src={String(item[imageKey])}
-              alt={String(item[itemKey])}
-              className={`w-12 h-12 rounded-${
-                itemKey === "NovelId" ? "md" : "full"
-              } border-2 border-gray-200 dark:border-gray-700`}
-            />
-            <div>
-              <p className="text-lg font-bold text-[#ff4d4f] truncate max-w-[150px]">
-                {String(item[itemKey])}
-              </p>
-              <p className="text-base text-gray-500 dark:text-gray-400">
-                {valueFormatter
-                  ? valueFormatter(Number(item[valueKey]))
-                  : String(item[valueKey])}
-              </p>
-            </div>
-          </div>
-        ))
+
+      {hasData ? (
+        <ul className="space-y-2">
+          <AnimatePresence initial={false}>
+            {items!.map((item, i) => {
+              const name = String(item[itemKey as keyof T] ?? "");
+              const img = String(item[imageKey as keyof T] ?? "");
+              const rawVal = Number(item[valueKey as keyof T] ?? 0);
+              const displayVal = valueFormatter ? valueFormatter(rawVal) : String(rawVal);
+
+              return (
+                <motion.li
+                  key={`${name}-${i}`}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.15, ease: "easeOut", delay: i * 0.04 }}
+                  className="flex items-center gap-3 rounded-md px-2 py-1.5 
+                             hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  {/* Rank */}
+                  <div className="w-6 text-center text-sm font-bold text-zinc-500 dark:text-zinc-400">
+                    {i + 1}
+                  </div>
+
+                  {/* Thumb */}
+                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600">
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img}
+                        alt={name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : null}
+                  </div>
+
+                  {/* Name */}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      {name}
+                    </div>
+                  </div>
+
+                  {/* Value */}
+                  <div
+                    className="text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-200"
+                    title={displayVal}
+                  >
+                    {displayVal}
+                  </div>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
+        </ul>
       ) : (
-        <div className="flex items-center gap-4">
-          <img
-            src={String(items?.[0]?.[imageKey ?? ""])}
-            alt={String(items?.[0]?.[itemKey ?? ""])}
-            className={`w-12 h-12 rounded-${
-              itemKey === "NovelId" ? "md" : "full"
-            } border-2 border-gray-200 dark:border-gray-700`}
-          />
-          <div>
-            <p className="text-lg font-bold text-[#ff4d4f] truncate max-w-[150px]">
-              {String(items?.[0]?.[itemKey ?? ""])}
-            </p>
-            <p className="text-base text-gray-500 dark:text-gray-400">
-              {valueFormatter
-                ? valueFormatter(Number(items?.[0]?.[valueKey ?? ""] ?? 0))
-                : String(items?.[0]?.[valueKey ?? ""])}
-            </p>
-          </div>
+        <div className="flex items-center justify-center py-8 text-sm text-zinc-500 dark:text-zinc-400">
+          Không có dữ liệu
         </div>
       )}
-    </motion.div>
+    </motion.section>
   );
 };
 

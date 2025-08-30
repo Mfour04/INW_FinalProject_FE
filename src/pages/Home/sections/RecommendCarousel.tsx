@@ -46,7 +46,11 @@ export const RecommendCarousel = ({
           <span
             className={`inline-flex h-2 w-2 rounded-full bg-gradient-to-r ${ORANGE_GRAD}`}
           />
-          <Typography variant="h4" size="large">
+          <Typography
+            variant="h4"
+            size="large"
+            className="dark:text-white text-black"
+          >
             {title}
           </Typography>
         </div>
@@ -54,14 +58,14 @@ export const RecommendCarousel = ({
           <button
             onClick={onPrev}
             aria-label="Previous"
-            className="rounded-full p-2 ring-1 ring-white/15 bg-white/5 hover:bg-white/10 transition"
+            className="rounded-full p-2 ring-1 ring-black dark:ring-white/15 bg-black dark:bg-white/5 hover:bg-white/10 transition"
           >
             ◀
           </button>
           <button
             onClick={onNext}
             aria-label="Next"
-            className="rounded-full p-2 ring-1 ring-white/15 bg-white/5 hover:bg-white/10 transition"
+            className="rounded-full p-2 ring-1 ring-black dark:ring-white/15 bg-black dark:bg-white/5 hover:bg-white/10 transition"
           >
             ▶
           </button>

@@ -150,7 +150,9 @@ export const UpsertChapter = () => {
         isPaid: chapter.isPaid,
         isPublic: chapter.isPublic,
         price: chapter.price,
-        scheduledAt: chapter.scheduledAt ? ticksToDate(chapter.scheduledAt) : null,
+        scheduledAt: chapter.scheduledAt
+          ? ticksToDate(chapter.scheduledAt)
+          : null,
       };
       setChapterForm(filled);
       setCurrentForm(filled);
@@ -433,6 +435,7 @@ export const UpsertChapter = () => {
         title="Xem lại trước khi đăng"
         message="Bạn có muốn đăng chương với các thiết lập hiện tại?"
         onCancel={() => setConfirmUpsertModal(false)}
+        confirmText="Xác nhận"
         onConfirm={handleConfirmUpsert}
       />
       <ModerationReviewModal

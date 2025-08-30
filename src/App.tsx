@@ -137,6 +137,7 @@ function App() {
         <div className="flex-1 overflow-y-auto scrollbar-strong scrollbar-neon">
           <Router />
         </div>
+        <div className="sm:hidden h-[calc(56px+8px+env(safe-area-inset-bottom))]" />
       </main>
     </div>
   );

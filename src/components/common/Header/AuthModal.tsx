@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import {
   Mail,
   Lock,
@@ -9,6 +9,7 @@ import {
   X,
   Check,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import LoginLogo from "../../../assets/img/icon_logo.png";
 import GoogleLogin from "../../../assets/img/SearchBar/google_login.png";
 import Button from "../../ButtonComponent";
@@ -47,12 +48,11 @@ const initialRegisterForm: RegisterParams = {
   email: "",
   password: "",
 };
-
 const initialForgotForm: ForgotPasswordParams = { email: "" };
 
 type Props = { onClose: () => void };
 
-export default function AuthSplitModal({ onClose }: Props) {
+export default function AuthModal({ onClose }: Props) {
   const toast = useToast();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
@@ -68,33 +68,57 @@ export default function AuthSplitModal({ onClose }: Props) {
   const [showPwd1, setShowPwd1] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
 
-  const handleLoginUsernameChange = useCallback((v: string) => {
-    setLoginForm((p) => ({ ...p, username: v }));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => firstFieldRef.current?.focus(), 30);
+    return () => clearTimeout(t);
+  }, [action]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, []);
 
-  const handleLoginPasswordChange = useCallback((v: string) => {
-    setLoginForm((p) => ({ ...p, password: v }));
-  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
-  const handleRegisterUsernameChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, username: v }));
-  }, []);
-
-  const handleRegisterEmailChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, email: v }));
-  }, []);
-
-  const handleRegisterPasswordChange = useCallback((v: string) => {
-    setRegisterForm((p) => ({ ...p, password: v }));
-  }, []);
-
-  const handleConfirmPasswordChange = useCallback((v: string) => {
-    setConfirmPassword(v);
-  }, []);
-
-  const handleForgotPasswordChange = useCallback((v: string) => {
-    setForgotPasswordForm({ email: v });
-  }, []);
+  const handleLoginUsernameChange = useCallback(
+    (v: string) => setLoginForm((p) => ({ ...p, username: v })),
+    []
+  );
+  const handleLoginPasswordChange = useCallback(
+    (v: string) => setLoginForm((p) => ({ ...p, password: v })),
+    []
+  );
+  const handleRegisterUsernameChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, username: v })),
+    []
+  );
+  const handleRegisterEmailChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, email: v })),
+    []
+  );
+  const handleRegisterPasswordChange = useCallback(
+    (v: string) => setRegisterForm((p) => ({ ...p, password: v })),
+    []
+  );
+  const handleConfirmPasswordChange = useCallback(
+    (v: string) => setConfirmPassword(v),
+    []
+  );
+  const handleForgotPasswordChange = useCallback(
+    (v: string) => setForgotPasswordForm({ email: v }),
+    []
+  );
 
   const toggleShowPwd1 = useCallback(() => setShowPwd1((s) => !s), []);
   const toggleShowPwd2 = useCallback(() => setShowPwd2((s) => !s), []);
@@ -103,7 +127,6 @@ export default function AuthSplitModal({ onClose }: Props) {
     () => validatePassword(registerForm.password),
     [registerForm.password]
   );
-
   const isRegisterError = useMemo(
     () =>
       registerForm.password !== confirmPassword && confirmPassword.length > 0,
@@ -170,6 +193,7 @@ export default function AuthSplitModal({ onClose }: Props) {
           <>
             <Input>
               <TextField
+                ref={inputRef}
                 icon={<User size={18} />}
                 placeholder="Tên đăng nhập / Email"
                 value={loginForm.username}
@@ -229,7 +253,7 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Button
               isLoading={isLoginPending}
               onClick={handleLogin}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Đăng nhập
             </Button>
@@ -251,6 +275,7 @@ export default function AuthSplitModal({ onClose }: Props) {
           <>
             <Input>
               <TextField
+                ref={firstFieldRef}
                 icon={<User size={18} />}
                 placeholder="Tên đăng nhập"
                 value={registerForm.username}
@@ -296,7 +321,7 @@ export default function AuthSplitModal({ onClose }: Props) {
                 icon={<Lock size={18} />}
                 placeholder="Nhập lại mật khẩu"
                 value={confirmPassword}
-                onChange={handleConfirmPasswordChange}
+                onChange={setConfirmPassword}
                 autoComplete="new-password"
                 type={showPwd2 ? "text" : "password"}
                 rightIcon={
@@ -327,7 +352,7 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Button
               isLoading={isRegisterPending}
               onClick={handleRegister}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Tạo tài khoản
             </Button>
@@ -356,6 +381,7 @@ export default function AuthSplitModal({ onClose }: Props) {
 
             <Input>
               <TextField
+                ref={firstFieldRef}
                 icon={<Mail size={18} />}
                 placeholder="Email"
                 value={forgotPasswordForm.email}
@@ -367,7 +393,7 @@ export default function AuthSplitModal({ onClose }: Props) {
             <Button
               onClick={handleForgot}
               isLoading={ForgotPasswordMutation.isPending}
-              className="w-full h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
+              className="w-full h-11 sm:h-10 rounded-xl text-sm font-semibold border-0 bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] text-white hover:opacity-95"
             >
               Gửi hướng dẫn đặt lại
             </Button>
@@ -395,26 +421,27 @@ export default function AuthSplitModal({ onClose }: Props) {
     handleRegisterUsernameChange,
     handleRegisterEmailChange,
     handleRegisterPasswordChange,
-    handleConfirmPasswordChange,
     handleForgotPasswordChange,
     toggleShowPwd1,
     toggleShowPwd2,
     handleLogin,
     handleRegister,
     handleForgot,
-    Input,
-    TextField,
   ]);
 
-  return (
-    <div className="fixed inset-0 z-[100]">
+  return createPortal(
+    <div className="fixed inset-0 z-[2147483000]">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
       <div
+        role="dialog"
+        aria-modal="true"
         className={[
-          "relative z-[101] min-h-screen grid lg:grid-cols-2",
-          "bg-[#f7f8fa] text-zinc-900",
-          "dark:bg-[#0a0f16] dark:text-white",
+          "relative z-[1] min-h-screen grid lg:grid-cols-2",
+          "bg-white dark:bg-[#0a0f16]",
+          "overflow-y-auto overscroll-contain",
         ].join(" ")}
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
       >
         <div className="relative hidden lg:block">
           <div
@@ -460,46 +487,49 @@ export default function AuthSplitModal({ onClose }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-4 sm:p-6">
           <div
             className={[
-              "relative w-full max-w-[380px] rounded-2xl px-6 py-4",
-              "bg-white/95 shadow-2xl supports-[backdrop-filter]:backdrop-blur",
-              "dark:bg-white/8 dark:border dark:border-white/10 dark:shadow-[0_12px_44px_-14px_rgba(0,0,0,0.55)] dark:backdrop-blur-xl",
+              "relative w-full max-w-[420px] rounded-none sm:rounded-2xl px-5 sm:px-6 py-4 sm:py-5",
+              "bg-white shadow-2xl dark:bg-[#0f1319]",
+              "sm:bg-white/95 sm:supports-[backdrop-filter]:backdrop-blur sm:dark:bg-white/8 sm:dark:border sm:dark:border-white/10 sm:dark:shadow-[0_12px_44px_-14px_rgba(0,0,0,0.55)] sm:dark:backdrop-blur-xl",
             ].join(" ")}
           >
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10"
+              className="absolute top-2 sm:top-3 right-2 sm:right-3 h-9 w-9 grid place-items-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10"
+              aria-label="Đóng"
             >
               <X size={18} />
             </button>
 
-            <div className="h-[40px] w-full flex items-center justify-center mb-3">
+            <div className="h-[36px] sm:h-[40px] w-full flex items-center justify-center mb-2 sm:mb-3">
               <img
                 src={LoginLogo}
                 alt="InkWave"
-                className="max-w-[140px] h-[40px] object-contain"
+                className="h-[28px] sm:h-[40px] object-contain"
+                style={{ maxWidth: 160 }}
               />
             </div>
 
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-semibold">
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+              <h2 className="text-[15px] sm:text-base font-semibold">
                 {action === AUTH_ACTIONS.REGISTER
                   ? "Tạo tài khoản"
                   : "Chào mừng trở lại"}
               </h2>
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 -mt-1 mb-3">
+            <p className="text-[12.5px] sm:text-sm text-zinc-600 dark:text-zinc-400 -mt-0.5 mb-3 sm:mb-4">
               {action === AUTH_ACTIONS.REGISTER
                 ? "Mất 1 phút để bạn bắt đầu hành trình đọc mới."
                 : "Đăng nhập để đồng bộ tủ truyện & tiến trình đọc."}
             </p>
 
+            {/* Google button */}
             {action === AUTH_ACTIONS.REGISTER ? (
               <button
                 className={[
-                  "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
+                  "w-full h-11 sm:h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",
                   "dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:border-white/20",
                 ].join(" ")}
@@ -522,7 +552,7 @@ export default function AuthSplitModal({ onClose }: Props) {
                     `&prompt=consent`;
                 }}
                 className={[
-                  "w-full h-10 rounded-xl transition flex items-center justify-center gap-2",
+                  "w-full h-11 sm:h-10 rounded-xl transition flex items-center justify-center gap-2",
                   "bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200",
                   "dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:border-white/20",
                 ].join(" ")}
@@ -532,7 +562,7 @@ export default function AuthSplitModal({ onClose }: Props) {
               </button>
             )}
 
-            <div className="my-3 flex items-center gap-3">
+            <div className="my-3 sm:my-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
               <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 hoặc
@@ -540,10 +570,11 @@ export default function AuthSplitModal({ onClose }: Props) {
               <span className="h-px flex-1 bg-zinc-200 dark:bg-white/10" />
             </div>
 
-            <div className="space-y-2.5">{content}</div>
+            <div className="space-y-2 sm:space-y-2.5">{content}</div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
