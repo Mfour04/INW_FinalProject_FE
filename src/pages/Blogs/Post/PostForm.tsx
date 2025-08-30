@@ -53,6 +53,60 @@ const PostForm = ({
   resetFileInput,
 }: PostFormProps) => {
   const { auth } = React.useContext(AuthContext);
+
+  if (!auth?.user) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-white/10 flex items-center justify-center">
+            <span className="text-zinc-500 dark:text-white/50 text-sm">👤</span>
+          </div>
+        </div>
+
+        <div className="px-4">
+          <div className="h-px w-full bg-zinc-200 dark:bg-white/10" />
+        </div>
+
+        <div className="px-4 pt-4 pb-2">
+          <div className="w-full bg-transparent text-[15px] leading-6 text-zinc-400 dark:text-white/35 cursor-not-allowed">
+            Đăng nhập để viết bài!
+          </div>
+        </div>
+
+        <div className="px-4">
+          <div className="h-px w-full bg-zinc-200 dark:bg-white/10" />
+        </div>
+
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled
+              className="h-9 px-3 inline-flex items-center gap-2 rounded-xl ring-1 bg-zinc-100 ring-zinc-200 text-zinc-400 dark:bg-white/[0.03] dark:ring-white/10 dark:text-white/35 cursor-not-allowed opacity-50"
+            >
+              <ImagePlus className="h-4 w-4" />
+              <span className="text-xs hidden sm:inline">Ảnh</span>
+            </button>
+            <button
+              type="button"
+              disabled
+              className="h-9 w-9 inline-flex items-center justify-center rounded-xl ring-1 bg-zinc-100 ring-zinc-200 text-zinc-400 dark:bg-white/[0.03] dark:ring-white/10 dark:text-white/35 cursor-not-allowed opacity-50"
+            >
+              <Smile className="h-4 w-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            disabled
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-xl bg-zinc-100 text-zinc-400 dark:bg-white/[0.03] dark:text-white/35 cursor-not-allowed opacity-50"
+          >
+            <SendHorizontal className="h-4 w-4" />
+            <span className="text-sm">Đăng</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
   const [dragOver, setDragOver] = React.useState(false);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const [focused, setFocused] = React.useState(false);

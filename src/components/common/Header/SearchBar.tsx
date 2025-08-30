@@ -219,8 +219,8 @@ function ModernSelect({
                     active
                       ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
                       : focused
-                      ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/6",
+                        ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/6",
                   ].join(" ")}
                 >
                   <span className="truncate">{opt.label}</span>
@@ -428,11 +428,6 @@ export const SearchBar = ({
                       showUsername={true}
                       className="cursor-pointer"
                     />
-                    {user.bio && (
-                      <p className="text-xs text-gray-500 truncate mt-1 ml-12">
-                        {user.bio}
-                      </p>
-                    )}
                   </div>
                   <div className="flex-shrink-0">
                     <FollowButton targetUserId={user.id} size="sm" />
