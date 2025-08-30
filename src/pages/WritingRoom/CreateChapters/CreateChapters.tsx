@@ -249,7 +249,9 @@ export const CreateChapters = () => {
                 ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
                 : "—"}
             </span>
-            <span className="hidden sm:inline text-zinc-400 dark:text-white/40">•</span>
+            <span className="hidden sm:inline text-zinc-400 dark:text-white/40">
+              •
+            </span>
             <span className="text-[11px] sm:text-[12px] text-zinc-500 dark:text-gray-400">
               {lastChapter?.updateAt
                 ? formatTicksToRelativeTime(lastChapter.updateAt)
@@ -287,7 +289,7 @@ export const CreateChapters = () => {
                       `/novels/writing-room/${novelId}/upsert-chapter/${chapter.chapterId}`
                     );
                   } else {
-                    navigate(`/novels/${novelId}/${chapter.chapterId}`);
+                    navigate(`/novels/${novel?.slug}/${chapter.chapterId}`);
                   }
                 };
                 const onEditClick = (e: React.MouseEvent) => {

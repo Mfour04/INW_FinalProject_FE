@@ -84,7 +84,7 @@ export const AsidePanel = ({
                   fill="currentColor"
                 />
                 <span className="tabular-nums dark:text-white">
-                  {novelData?.novelInfo.ratingAvg ?? 0}
+                  {novelData?.novelInfo?.ratingAvg ?? 0}
                 </span>
               </div>
             </div>
@@ -92,7 +92,7 @@ export const AsidePanel = ({
               <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
                 <BookmarkIcon className="w-[13px] h-[13px]" />
                 <span className="tabular-nums">
-                  {novelData?.novelInfo.totalViews ?? 0}
+                  {novelData?.novelInfo?.totalViews ?? 0}
                 </span>
               </div>
             </div>
@@ -100,7 +100,7 @@ export const AsidePanel = ({
               <div className="h-full inline-flex items-center justify-center gap-1 text-[10.5px] dark:text-white leading-none">
                 <MessageSquare className="w-[13px] h-[13px]" />
                 <span className="tabular-nums">
-                  {novelData?.novelInfo.commentCount ?? 0}
+                  {novelData?.novelInfo?.commentCount ?? 0}
                 </span>
               </div>
             </div>

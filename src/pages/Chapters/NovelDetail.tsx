@@ -85,7 +85,7 @@ export const NovelDetail = () => {
   ];
   const novelInfo = novelData?.novelInfo;
 
-  const isAuthor = auth?.user.userId === novelData?.novelInfo.authorId;
+  const isAuthor = auth?.user?.userId === novelData?.novelInfo?.authorId;
 
   const {
     data: novelFollowers,
@@ -93,12 +93,12 @@ export const NovelDetail = () => {
     isLoading: isFollowersLoading,
     isFetching: isFollowersFetching,
   } = useQuery({
-    queryKey: ["novelFollower", novelData?.novelInfo.novelId],
+    queryKey: ["novelFollower", novelData?.novelInfo?.novelId],
     queryFn: () =>
-      GetNovelFollowers({ novelId: novelData?.novelInfo.novelId! }).then(
+      GetNovelFollowers({ novelId: novelData?.novelInfo?.novelId! }).then(
         (res) => res.data.data
       ),
-    enabled: !!novelId && !!novelData?.novelInfo.novelId,
+    enabled: !!novelId && !!novelData?.novelInfo?.novelId,
   });
 
   const follower = Array.isArray(novelFollowers?.followers)
