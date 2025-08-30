@@ -175,7 +175,7 @@ export const Blogs = () => {
 
   const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
   const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
-  const refetch = tab === "following" ? () => {} : refetchAll;
+  const refetch = tab === "following" ? () => { } : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -377,15 +377,21 @@ export const Blogs = () => {
           >
             {(["all", "following"] as Tabs[]).map((t) => {
               const active = tab === t;
+              const isFollowingTab = t === "following";
+              const isDisabled = isFollowingTab && !auth?.user;
+
               return (
                 <button
                   key={t}
                   onClick={() => handleTabChange(t)}
+                  disabled={isDisabled}
                   className={[
                     "h-9 px-6 rounded-lg text-sm transition-all",
                     active
                       ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow"
-                      : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
+                      : isDisabled
+                        ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
+                        : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
                   ].join(" ")}
                 >
                   {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
@@ -473,8 +479,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,
@@ -555,8 +561,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,
@@ -602,18 +608,20 @@ export const Blogs = () => {
             </div>
           </div>
 
-          <div className="xl:col-span-1">
-            <ConfirmModal
-              isOpen={!!confirmDeleteId}
-              title="Xóa bài viết"
-              message="Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác."
-              onConfirm={handleDelete}
-              onCancel={() => setConfirmDeleteId(null)}
-            />
-            <Card className="p-4 sm:p-5">
-              <ProfileSidebar />
-            </Card>
-          </div>
+          {auth?.user && (
+            <div className="xl:col-span-1">
+              <ConfirmModal
+                isOpen={!!confirmDeleteId}
+                title="Xóa bài viết"
+                message="Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác."
+                onConfirm={handleDelete}
+                onCancel={() => setConfirmDeleteId(null)}
+              />
+              <Card className="p-4 sm:p-5">
+                <ProfileSidebar />
+              </Card>
+            </div>
+          )}
         </div>
       </div>
 

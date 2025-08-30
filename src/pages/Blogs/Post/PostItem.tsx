@@ -154,68 +154,77 @@ const PostItem = ({
         </div>
 
         <div className="relative">
-          <button
-            onClick={() =>
-              setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
-            }
-            className="h-8 w-8 grid place-items-center rounded-lg ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700
-                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
-          >
-            <MoreVertical size={18} />
-          </button>
-
-          <AnimatePresence>
-            {menuOpenPostId === post.id && (
-              <motion.div
-                ref={menuRef}
-                initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden bg-white text-zinc-900 ring-1 ring-zinc-200 shadow-xl z-10
-                           dark:bg-[#111214] dark:text-white dark:ring-white/10 dark:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.6)]"
-              >
-                {isOwnPost ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setEditingPostId(post.id);
-                        setEditContent(content);
-                        setMenuOpenPostId(null);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
-                    >
-                      <Edit3 size={16} />
-                      Cập nhật
-                    </button>
-                    <button
-                      onClick={() => {
-                        onRequestDelete("post", post.id);
-                        setMenuOpenPostId(null);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
-                    >
-                      <Trash2 size={16} />
-                      Xóa bài viết
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setReportPostId(post.id);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
-                    >
-                      <Flag size={16} />
-                      Báo cáo bài viết
-                    </button>
-                  </>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {auth?.user ? (
+            <button
+              onClick={() =>
+                setMenuOpenPostId(menuOpenPostId === post.id ? null : post.id)
+              }
+              className="h-8 w-8 grid place-items-center rounded-lg ring-1 ring-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700
+                         dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+            >
+              <MoreVertical size={18} />
+            </button>
+          ) : (
+            <button
+              disabled
+              className="h-8 w-8 grid place-items-center rounded-lg ring-1 ring-zinc-200 bg-zinc-100 text-zinc-400 dark:bg-white/[0.03] dark:ring-white/10 dark:text-white/35 cursor-not-allowed opacity-50"
+            >
+              <MoreVertical size={18} />
+            </button>
+          )}
         </div>
+
+        <AnimatePresence>
+          {menuOpenPostId === post.id && (
+            <motion.div
+              ref={menuRef}
+              initial={{ opacity: 0, y: -6, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden bg-white text-zinc-900 ring-1 ring-zinc-200 shadow-xl z-10
+                           dark:bg-[#111214] dark:text-white dark:ring-white/10 dark:shadow-[0_12px_36px_-12px_rgba(0,0,0,0.6)]"
+            >
+              {isOwnPost ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditingPostId(post.id);
+                      setEditContent(content);
+                      setMenuOpenPostId(null);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
+                  >
+                    <Edit3 size={16} />
+                    Cập nhật
+                  </button>
+                  <button
+                    onClick={() => {
+                      onRequestDelete("post", post.id);
+                      setMenuOpenPostId(null);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
+                  >
+                    <Trash2 size={16} />
+                    Xóa bài viết
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setReportPostId(post.id);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-white/[0.06] flex items-center gap-2"
+                  >
+                    <Flag size={16} />
+                    Báo cáo bài viết
+                  </button>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* BODY */}
@@ -260,37 +269,60 @@ const PostItem = ({
       <div className="mt-3 px-4 pb-4">
         <div className="h-px w-full bg-zinc-200 dark:bg-white/[0.06]" />
         <div className="mt-3 flex items-center gap-4">
-          <button
-            onClick={() => {
-              onToggleLike?.(post.id);
-              setLikeCount((c) => (isLiked ? Math.max(0, c - 1) : c + 1));
-            }}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
-                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
-          >
-            <Heart
-              size={18}
-              className={isLiked ? "fill-red-500 text-red-500" : "text-current"}
-            />
-            <span
-              className={`text-sm ${
-                isLiked ? "text-red-600 dark:text-red-400" : ""
-              }`}
-            >
-              {likeCount}
-            </span>
-          </button>
+          {auth?.user ? (
+            <>
+              <button
+                onClick={() => {
+                  onToggleLike?.(post.id);
+                  setLikeCount((c) => (isLiked ? Math.max(0, c - 1) : c + 1));
+                }}
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                           dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+              >
+                <Heart
+                  size={18}
+                  className={isLiked ? "fill-red-500 text-red-500" : "text-current"}
+                />
+                <span
+                  className={`text-sm ${isLiked ? "text-red-600 dark:text-red-400" : ""}`}
+                >
+                  {likeCount}
+                </span>
+              </button>
 
-          <button
-            onClick={() => {
-              setShowCommentPopup((v) => !v);
-            }}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
-                       dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
-          >
-            <MessageCircle size={18} />
-            <span className="text-sm">{post.comments ?? 0}</span>
-          </button>
+              <button
+                onClick={() => {
+                  setShowCommentPopup((v) => !v);
+                }}
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                           dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+              >
+                <MessageCircle size={18} />
+                <span className="text-sm">{post.comments ?? 0}</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                disabled
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-100 ring-zinc-200 text-zinc-400 dark:bg-white/[0.03] dark:ring-white/10 dark:text-white/35 cursor-not-allowed opacity-50"
+              >
+                <Heart size={18} />
+                <span className="text-sm">{likeCount}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowCommentPopup((v) => !v);
+                }}
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                           dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+              >
+                <MessageCircle size={18} />
+                <span className="text-sm">{post.comments ?? 0}</span>
+              </button>
+            </>
+          )}
         </div>
 
         {showCommentPopup && (
