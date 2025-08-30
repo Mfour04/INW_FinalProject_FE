@@ -4,6 +4,7 @@ import {
   X as XIcon,
   ChevronDown,
   Search as SearchIcon,
+  SlidersHorizontal as FilterIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchUsers } from "../../../api/User/user-search.api";
@@ -220,7 +221,7 @@ function ModernSelect({
                       ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
                       : focused
                         ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/6",
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg:white/6",
                   ].join(" ")}
                 >
                   <span className="truncate">{opt.label}</span>
@@ -282,7 +283,7 @@ export const SearchBar = ({
       setSort(selectedSort || "");
       setTempTags(selectedTags || []);
     }
-  }, [showDropdown, selectedSort, selectedTags]);
+  }, [showDropdown, selectedSort, selectedTags, setSort]);
 
   useOnClickOutside(
     [dropdownRef as any, containerRef as any],
@@ -315,7 +316,7 @@ export const SearchBar = ({
 
   useEffect(() => {
     setTags(tempTags);
-  }, [tempTags]);
+  }, [tempTags, setTags]);
 
   const H = size === "compact" ? "h-10" : "h-12";
   const BTN = size === "compact" ? "h-9 w-9" : "h-10 w-10";
@@ -326,6 +327,7 @@ export const SearchBar = ({
 
   return (
     <div className="relative w-full max-w-[760px]" ref={containerRef}>
+      {/* Search shell */}
       <div
         className={[
           `relative bg-white/90 dark:bg-[#232023]/90 ${H} rounded-2xl backdrop-blur-md ring-1 ring-gray-200 dark:ring-white/10`,
@@ -393,7 +395,7 @@ export const SearchBar = ({
             {typeof filterIcon === "string" ? (
               <img src={filterIcon} alt="" className="w-5 h-5 opacity-85" />
             ) : (
-              filterIcon ?? <SearchIcon className="w-5 h-5 opacity-85" />
+              filterIcon ?? <FilterIcon className="w-5 h-5 opacity-85" />
             )}
             {activeFilterCount > 0 && (
               <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-[#ff6f45] text-white text-[10px] leading-5 text-center ring-1 ring-white/20">
@@ -404,19 +406,30 @@ export const SearchBar = ({
         </div>
       </div>
 
+      {/* User search results popup (now theme-aware) */}
       {showUserResults && (
-        <div className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-2xl border border-zinc-800 bg-[#1c1c1f] shadow-xl z-[9999] max-h-96 overflow-y-auto">
+        <div
+          className={[
+            "absolute top-[calc(100%+8px)] left-0 right-0 z-[9999] max-h-96 overflow-y-auto rounded-2xl",
+            "border border-gray-200 bg-white shadow-[0_24px_64px_-24px_rgba(0,0,0,.18)]",
+            "dark:border-white/10 dark:bg-[#101114]/95 dark:shadow-[0_36px_96px_-28px_rgba(0,0,0,.8)] backdrop-blur-xl",
+          ].join(" ")}
+          role="dialog"
+          aria-label="Kết quả người dùng"
+        >
           {isSearchingUsers ? (
             <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto" />
-              <p className="text-gray-400 mt-2 text-sm">Đang tìm kiếm...</p>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#ff6f45] mx-auto" />
+              <p className="text-gray-500 dark:text-zinc-400 mt-2 text-sm">
+                Đang tìm kiếm...
+              </p>
             </div>
           ) : users.length > 0 ? (
             <div className="p-2">
               {users.map((user: UserSearchResult) => (
                 <div
                   key={user.id}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zinc-800/40 transition-colors"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-white/6"
                 >
                   <div className="flex-1">
                     <ClickableUserInfo
@@ -437,20 +450,25 @@ export const SearchBar = ({
             </div>
           ) : searchTerm.length >= 2 && hasValidData ? (
             <div className="p-4 text-center">
-              <p className="text-gray-400 text-sm">Không tìm thấy kết quả</p>
+              <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                Không tìm thấy kết quả
+              </p>
             </div>
           ) : null}
         </div>
       )}
 
+      {/* Filters popup (already theme-aware, just minor polish) */}
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 top-[calc(100%+10px)] rounded-3xl bg-white ring-1 ring-gray-200 shadow-[0_40px_120px_-30px_rgba(0,0,0,.2)] dark:bg-[#0f1115]/95 dark:ring-white/10 dark:shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)] backdrop-blur-2xl z-50 p-5 text-gray-800 dark:text-white"
+          className="absolute right-0 top[calc(100%+10px)] mt-2 rounded-3xl bg-white ring-1 ring-gray-200 shadow-[0_40px_120px_-30px_rgba(0,0,0,.2)] dark:bg-[#0f1115]/95 dark:ring-white/10 dark:shadow-[0_40px_120px_-30px_rgba(0,0,0,.8)] backdrop-blur-2xl z-50 p-5 text-gray-800 dark:text-white"
           style={{
             width: popupWidth || undefined,
             minWidth: Math.min(320, popupWidth || 320),
           }}
+          role="dialog"
+          aria-label="Bộ lọc tìm kiếm"
         >
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
