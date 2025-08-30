@@ -45,7 +45,11 @@ export const HomePage = () => {
   const toast = useToast();
   const bp = useBreakpoint();
 
-  // visibleCount responsive cho RecommendCarousel
+  const { data: user } = useQuery({
+    queryKey: ["user-homepage"],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+  });
+
   const visibleCount = useMemo(() => {
     if (bp.x4k) return 6;
     if (bp.x2k) return 5;
@@ -60,11 +64,6 @@ export const HomePage = () => {
     queryKey: ["home-tags"],
     queryFn: () => getTags().then((res) => res.data.data),
     staleTime: 5 * 60_000,
-  });
-
-  const { data: user } = useQuery({
-    queryKey: ["user-homepage"],
-    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
   });
 
   const { data: recommend } = useQuery({

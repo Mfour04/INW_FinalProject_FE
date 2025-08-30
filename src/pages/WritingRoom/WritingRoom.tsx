@@ -154,7 +154,7 @@ export const WritingRoom = () => {
             />
           </div>
 
-         <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <StatsMini size="compact" label="Truyện" value={stats.total} />
             <StatsMini
               size="compact"
