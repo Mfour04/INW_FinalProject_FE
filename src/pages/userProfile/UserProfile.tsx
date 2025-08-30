@@ -499,16 +499,16 @@ export const UserProfile = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {!isOwnProfile && (
+              {!isOwnProfile && auth?.user && (
                 <FollowButton
                   targetUserId={targetUserId}
                   enabled={!!targetUserId}
                   size="lg"
-                  // variant="contained"
+                // variant="contained"
                 />
               )}
 
-              {!isOwnProfile && (
+              {!isOwnProfile && auth?.user && (
                 <>
                   <div
                     ref={menuBtnRef}
@@ -606,10 +606,10 @@ export const UserProfile = () => {
               {tab === "posts"
                 ? "Bài đăng"
                 : tab === "followers"
-                ? "Người theo dõi"
-                : tab === "following"
-                ? "Đang theo dõi"
-                : "Thành tựu"}
+                  ? "Người theo dõi"
+                  : tab === "following"
+                    ? "Đang theo dõi"
+                    : "Thành tựu"}
             </button>
           ))}
         </div>
