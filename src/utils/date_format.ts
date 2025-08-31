@@ -65,6 +65,18 @@ export const ticksToDate = (ticks: number | null | undefined): Date | null => {
   return new Date((ticks - epochTicks) / ticksPerMillisecond);
 };
 
+export const ticksToVNISOString = (ticks: number) => {
+  const epochTicks = 621355968000000000;
+  const ticksPerMillisecond = 10000;
+
+  const msSinceUnixEpoch = (ticks - epochTicks) / ticksPerMillisecond;
+  const date = new Date(msSinceUnixEpoch);
+
+  date.setHours(date.getHours() + 7);
+
+  return date.toISOString().slice(0, 19).replace("T", " ");
+};
+
 // HH:mm dd/MM/yyyy
 export const formatVietnamTimeFromTicks = (ticks: number): string => {
   const epochTicks = 621355968000000000;
