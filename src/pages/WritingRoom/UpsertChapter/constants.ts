@@ -3,7 +3,7 @@ export const TEXT = {
   PUBLISH: "Xuất bản",
 
   TITLE_LABEL: "Tiêu đề",
-  TITLE_PLACEHOLDER: "Nhập tên truyện",
+  TITLE_PLACEHOLDER: "Nhập tiêu đề chương truyện",
   TITLE_REQUIRED_SYMBOL: "*",
 
   CONTENT_LABEL: "Nội dung",

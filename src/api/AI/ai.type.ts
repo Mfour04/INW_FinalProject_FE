@@ -11,6 +11,7 @@ export type ModerationAIRequest = {
 
 export type PlagiarismAIRequest = {
   content: string;
+  novelId: string;
 };
 
 export type ModerationAIResponse = {
@@ -27,9 +28,14 @@ export type PlagiarismAIResponse = {
 export type Matches = {
   chapterId: string;
   chapterTitle: string;
+  classification: string;
+  contentWordOverlap: number;
+  literalWeightedRate: number;
   novelId: string;
   novelSlug: string;
   novelTitle: string;
+  phrase5MatchCount: number;
+  semanticCoverage: number;
   similarity: number;
   matches: Chunk[];
 };
