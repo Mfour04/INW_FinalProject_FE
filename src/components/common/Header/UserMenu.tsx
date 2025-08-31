@@ -49,6 +49,7 @@ const UserMenu = ({ onClose }: Props) => {
   };
   const handleLogoutClick = () => {
     logout();
+    navigate("/");
     onClose();
     toast?.onOpen("Đăng xuất thành công!");
   };

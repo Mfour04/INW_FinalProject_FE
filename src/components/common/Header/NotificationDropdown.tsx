@@ -20,12 +20,10 @@ import {
 interface Props {
   open: boolean;
   notifications?: GetUserNotificationRes[];
+  readAll: () => void;
   onItemClick?: (id: string) => void;
   onClose?: () => void;
-
-  /** thêm mới: khi true thì KHÔNG dùng absolute top-full/bottom-full */
   floating?: boolean;
-  /** thêm mới: hướng bung khi không floating qua Portal  */
   anchorPlacement?: "below" | "above";
 }
 
@@ -135,6 +133,7 @@ function getTypeMeta(type?: number) {
 
 export const NotificationDropdown = ({
   open,
+  readAll,
   notifications,
   onItemClick,
   onClose,
@@ -190,7 +189,7 @@ export const NotificationDropdown = ({
   if (!open) return null;
 
   const positionClass = floating
-    ? "" // Portal đã định vị; không tự absolute ở đây
+    ? ""
     : anchorPlacement === "below"
     ? "absolute top-full right-0 mt-1"
     : "absolute bottom-full right-0 mb-1";
@@ -199,7 +198,7 @@ export const NotificationDropdown = ({
     <div
       ref={ref}
       className={[
-        positionClass, 
+        positionClass,
         "z-50 w-[22rem] max-w-[min(22rem,calc(100vw-16px))] rounded-xl overflow-hidden",
         "bg-white text-slate-900 border border-slate-200 shadow-lg",
         "dark:bg-[#18191A] dark:text-white dark:border-white/10",
@@ -219,6 +218,16 @@ export const NotificationDropdown = ({
           <span className="text-sm font-semibold">Thông báo</span>
         </div>
         <button
+          onClick={readAll}
+          className={[
+            "text-xs px-2 py-1 rounded-md transition",
+            "bg-slate-100 text-slate-700 hover:bg-slate-200",
+            "dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10",
+          ].join(" ")}
+        >
+          Đánh dấu tất cả là đã đọc
+        </button>
+        <button
           onClick={() => setShowUnreadOnly((v) => !v)}
           className={[
             "text-xs px-2 py-1 rounded-md transition",
@@ -230,7 +239,6 @@ export const NotificationDropdown = ({
         </button>
       </div>
 
-      {/* Giới hạn chiều cao theo viewport để tránh bị chôn xuống dưới */}
       <div className="max-h-[65vh] sm:max-h-96 overflow-y-auto scrollbar-strong">
         {grouped.length === 0 ? (
           <div className="py-8 px-4 text-center text-sm text-slate-500 dark:text-white/70">

@@ -574,7 +574,11 @@ export const NovelRead = () => {
 
         {novelId && chapterId && (
           <div className="mt-6">
-            <CommentUser novelId={novelId} chapterId={chapterId} />
+            <CommentUser
+              novelId={novelId}
+              chapterId={chapterId}
+              allowComment={data?.chapter.allowComment!}
+            />
           </div>
         )}
 

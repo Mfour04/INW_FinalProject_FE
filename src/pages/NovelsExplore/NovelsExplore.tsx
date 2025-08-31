@@ -62,20 +62,22 @@ export const NovelsExplore = ({}: Props) => {
           [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]
         "
       >
-        {novels.map((n) => (
-          <div key={n.novelId} className="h-full">
-            <NCard
-              title={n.title}
-              slug={n.slug}
-              image={n.novelImage}
-              rating={Number(n.ratingAvg ?? 0)}
-              bookmarks={n.followers ?? 0}
-              views={n.totalViews ?? 0}
-              status={n.status}
-              onClick={() => navigate(`/novels/${n.slug}`)}
-            />
-          </div>
-        ))}
+        {novels
+          .filter((novel) => !novel.isLock && novel.isPublic)
+          .map((n) => (
+            <div key={n.novelId} className="h-full">
+              <NCard
+                title={n.title}
+                slug={n.slug}
+                image={n.novelImage}
+                rating={Number(n.ratingAvg ?? 0)}
+                bookmarks={n.followers ?? 0}
+                views={n.totalViews ?? 0}
+                status={n.status}
+                onClick={() => navigate(`/novels/${n.slug}`)}
+              />
+            </div>
+          ))}
         {isFetching &&
           Array.from({ length: 6 }).map((_, i) => (
             <div key={`s-${i}`} className="h-full">
@@ -244,21 +246,23 @@ export const NovelsExplore = ({}: Props) => {
           <div className="mb-10">{gridView}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-10">
-            {novels.map((n) => (
-              <NListItem
-                key={n.novelId}
-                title={n.title}
-                slug={n.slug}
-                author={n.authorName || "Tên Tác Giả"}
-                image={n.novelImage}
-                rating={Number(n.ratingAvg ?? 0)}
-                bookmarks={n.followers ?? 0}
-                views={n.totalViews ?? 0}
-                status={n.status}
-                tags={Array.isArray(n.tags) ? n.tags.slice(0, 8) : []}
-                onClick={() => navigate(`/novels/${n.slug}`)}
-              />
-            ))}
+            {novels
+              .filter((novel) => !novel.isLock && novel.isPublic)
+              .map((n) => (
+                <NListItem
+                  key={n.novelId}
+                  title={n.title}
+                  slug={n.slug}
+                  author={n.authorName || "Tên Tác Giả"}
+                  image={n.novelImage}
+                  rating={Number(n.ratingAvg ?? 0)}
+                  bookmarks={n.followers ?? 0}
+                  views={n.totalViews ?? 0}
+                  status={n.status}
+                  tags={Array.isArray(n.tags) ? n.tags.slice(0, 8) : []}
+                  onClick={() => navigate(`/novels/${n.slug}`)}
+                />
+              ))}
             {isFetching &&
               Array.from({ length: 2 }).map((_, i) => (
                 <SkeletonCard key={`ls-${i}`} />

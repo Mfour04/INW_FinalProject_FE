@@ -22,16 +22,16 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
-import { UserProfile } from "../pages/UserProfile/UserProfile";
-import { TestUserProfile } from "../pages/UserProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
 import { Contact } from "../pages/Info/Contact";
-import { NovelRead } from "../pages/NovelRead/NovelRead";
+import { NovelRead } from "../pages/novelRead/NovelRead";
+import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { AuthCallback } from "../components/common/Header/AuthCallBack";
+import { TestUserProfile, UserProfile } from "../pages/userProfile";
 
 export const Router = () => {
   return (
@@ -63,6 +63,7 @@ export const Router = () => {
             element={<UpsertChapter />}
           />
         </Route>
+        <Route path="analytics" element={<AuthorAnalytics />} />
       </Route>
       <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
         <Route index element={<AdminHome />} />
