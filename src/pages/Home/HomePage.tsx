@@ -9,7 +9,7 @@ import { UpdateUser } from "../../api/User/user.api";
 import { urlToFile } from "../../utils/img";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { Hero } from "./components/Hero";
-import { RecommendCarousel } from "./sections/RecommendCarousel";
+// import { RecommendCarousel } from "./sections/RecommendCarousel";
 import {
   useSortedNovels,
   SORT_BY_FIELDS,
@@ -26,6 +26,7 @@ import {
   Eye,
   Bookmark,
   PencilLine,
+  Lightbulb
 } from "lucide-react";
 
 import VerticalColumn from "./discovery/VerticalColumn";
@@ -245,21 +246,24 @@ export const HomePage = () => {
               onSeeMore={() => navigate("/novels")}
             />
           </div>
-        </div>
 
-        {recommend?.novels?.length ? (
-          <div className="mt-10 overflow-hidden sm:overflow-visible">
-            <RecommendCarousel
+          {recommend?.novels?.length ? (
+          <div className="min-w-0 md:col-span-12">
+            <HorizontalRail
               title="InkWave Đề cử"
-              novels={recommend.novels as Novel[]}
-              currentIndex={currentIndex}
-              visibleCount={visibleCount}
-              onPrev={() => handleSlide("left")}
-              onNext={() => handleSlide("right")}
+              icon={
+                <Lightbulb className="h-4 w-4 shrink-0 text-black dark:text-white" />
+              }
+              items={recommend.novels as Novel[]}
               onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
+              onSeeMore={() => navigate("/novels/recommended")}
+              // Bạn có thể chỉnh riêng tham số cho block này:
+              // scrollStep={400}
+              // cardWidth={176}
             />
           </div>
         ) : null}
+        </div>
       </div>
 
       {showModal && (
