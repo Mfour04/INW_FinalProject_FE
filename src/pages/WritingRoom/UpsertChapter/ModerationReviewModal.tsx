@@ -134,8 +134,8 @@ export const ModerationReviewModal = ({
                 {data.sensitive.length ? (
                   data.sensitive.map((s, i) => {
                     const percent = Math.round(s.score * 100);
-                    const severe = s.score >= BLOCK_LIMIT;
-                    const warn = s.score >= 0.4 && s.score < BLOCK_LIMIT;
+                    const severe = s.score >= 0.8;
+                    const warn = s.score >= 0.4 && s.score < 0.8;
 
                     const barClass = severe
                       ? "bg-red-500"

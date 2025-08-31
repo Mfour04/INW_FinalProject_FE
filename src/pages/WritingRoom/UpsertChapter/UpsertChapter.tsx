@@ -172,12 +172,8 @@ export const UpsertChapter = () => {
         category: categoryMap[item.category] || item.category,
         score: Number(item.score),
       }));
-      if (mapped.length > 0) {
-        setModerationData({ flagged: true, sensitive: mapped });
-        setOpenModerationModal(true);
-      } else {
-        setStep((s) => Math.min(3, s + 1));
-      }
+      setModerationData({ flagged: true, sensitive: mapped });
+      setOpenModerationModal(true);
     },
   });
 
