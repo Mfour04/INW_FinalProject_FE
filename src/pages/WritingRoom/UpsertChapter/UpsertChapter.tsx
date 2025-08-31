@@ -181,6 +181,11 @@ export const UpsertChapter = () => {
     },
   });
 
+  const onModalModerationContinue = () => {
+    setOpenModerationModal(false);
+    setStep((s) => Math.min(3, s + 1));
+  };
+
   const handleNextStep = () => setStep((s) => Math.min(3, s + 1));
   const handlePrevStep = () => setStep((s) => Math.max(1, s - 1));
   const handleUpsertButtonClick = () => setConfirmUpsertModal(true);
@@ -206,6 +211,7 @@ export const UpsertChapter = () => {
       case 2:
         return (
           <Content
+            novelId={novelId!}
             chapterForm={chapterForm}
             setChapterForm={setChapterForm}
             setIsCheck={setIsPlagiarismCheck}
@@ -248,7 +254,6 @@ export const UpsertChapter = () => {
   }, [data, chapterId]);
 
   useEffect(() => {
-    // true = đã lưu (không thay đổi), false = có thay đổi nháp
     setIsDraftChange(isSameChapter(chapterForm, currentForm));
   }, [chapterForm, currentForm]);
 
@@ -256,7 +261,6 @@ export const UpsertChapter = () => {
     chapterFormRef.current = chapterForm;
   }, [chapterForm]);
 
-  // Auto-save mẫu (đã comment sẵn)
   // useEffect(() => {
   //   const id = setInterval(() => {
   //     const cf = chapterFormRef.current;
@@ -444,7 +448,7 @@ export const UpsertChapter = () => {
           setOpenModerationModal(false);
           setModerationData(null);
         }}
-        onContinue={() => setStep((s) => Math.min(3, s + 1))}
+        onContinue={onModalModerationContinue}
         data={moderationData}
       />
     </div>

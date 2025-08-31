@@ -7,7 +7,7 @@ type Props = {
   data: ModerationAIResponse | null;
 };
 
-const BLOCK_LIMIT = 0.8;
+const BLOCK_LIMIT = 0.5;
 
 export const ModerationReviewModal = ({
   open,
@@ -22,24 +22,30 @@ export const ModerationReviewModal = ({
   const overallBadge = () => {
     if (blocked)
       return (
-        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+        <span
+          className="px-2 py-0.5 text-[11px] rounded-full ring-1
           bg-red-100 text-red-700 ring-red-200
-          dark:bg-red-500/15 dark:text-red-200 dark:ring-red-400/40">
+          dark:bg-red-500/15 dark:text-red-200 dark:ring-red-400/40"
+        >
           Bị chặn
         </span>
       );
     if (data.flagged)
       return (
-        <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+        <span
+          className="px-2 py-0.5 text-[11px] rounded-full ring-1
           bg-amber-100 text-amber-700 ring-amber-200
-          dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-400/40">
+          dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-400/40"
+        >
           Cảnh báo
         </span>
       );
     return (
-      <span className="px-2 py-0.5 text-[11px] rounded-full ring-1
+      <span
+        className="px-2 py-0.5 text-[11px] rounded-full ring-1
         bg-emerald-100 text-emerald-700 ring-emerald-200
-        dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/40">
+        dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/40"
+      >
         An toàn
       </span>
     );
@@ -48,7 +54,10 @@ export const ModerationReviewModal = ({
   return (
     <div className="fixed inset-0 z-[100]">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 dark:bg-black/60"
+        onClick={onClose}
+      />
 
       {/* Dialog wrapper */}
       <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -88,7 +97,7 @@ export const ModerationReviewModal = ({
                 bg-red-50 text-red-700 ring-1 ring-red-200
                 dark:bg-red-500/10 dark:text-red-200 dark:ring-red-400/30"
             >
-              Có hạng mục vi phạm ≥ 80%. Bạn cần điều chỉnh nội dung để có thể
+              Có hạng mục vi phạm ≥ 50%. Bạn cần điều chỉnh nội dung để có thể
               tiếp tục.
             </div>
           )}
@@ -140,7 +149,11 @@ export const ModerationReviewModal = ({
                       ? "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-400/40"
                       : "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/40";
 
-                    const label = severe ? "Nghiêm trọng" : warn ? "Cảnh báo" : "An toàn";
+                    const label = severe
+                      ? "Nghiêm trọng"
+                      : warn
+                      ? "Cảnh báo"
+                      : "An toàn";
 
                     return (
                       <tr
@@ -151,7 +164,8 @@ export const ModerationReviewModal = ({
                         <td className="px-4 py-3">{s.category}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-36 h-2 rounded-full overflow-hidden
+                            <div
+                              className="w-36 h-2 rounded-full overflow-hidden
                               bg-zinc-200
                               dark:bg-white/10"
                             >
@@ -207,8 +221,17 @@ export const ModerationReviewModal = ({
               ].join(" ")}
             >
               Tiếp tục
-              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden="true">
-                <path d="M7 5l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="2" />
+              <svg
+                viewBox="0 0 20 20"
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              >
+                <path
+                  d="M7 5l6 5-6 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
               </svg>
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { PencilLine, BookOpenCheck, Trash2, Star } from "lucide-react";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
 import type { Novel } from "../../../entity/novel";
@@ -23,7 +23,7 @@ export const NovelRowCard = ({
     return () => m.removeEventListener("change", update);
   }, []);
 
-  const isCompleted = novel.status === 0;
+  const isCompleted = novel.status === 1;
   const isPublic = novel.isPublic;
   const statusLabel = isCompleted ? "Hoàn thành" : "Đang diễn ra";
   const publicLabel = isPublic ? "Công khai" : "Chỉ mình tôi";
@@ -101,8 +101,14 @@ export const NovelRowCard = ({
 
           <div className="mt-3 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-[11.5px] sm:text-[12.5px]">
             <Meta label="Cập nhật" value={updatedAt} />
-            <Meta label="Lượt xem" value={(novel.totalViews ?? 0).toLocaleString()} />
-            <Meta label="Theo dõi" value={(novel.followers ?? 0).toLocaleString()} />
+            <Meta
+              label="Lượt xem"
+              value={(novel.totalViews ?? 0).toLocaleString()}
+            />
+            <Meta
+              label="Theo dõi"
+              value={(novel.followers ?? 0).toLocaleString()}
+            />
             <div className="min-w-0 flex items-center gap-2">
               <StarRating rating={rating} />
               <div className="leading-tight">
@@ -174,7 +180,9 @@ const Pill = ({
 const Meta = ({ label, value }: { label: string; value: string }) => (
   <div className="min-w-0">
     <p className="text-zinc-500 dark:text-white/55">{label}</p>
-    <p className="mt-0.5 font-medium truncate text-zinc-900 dark:text-white">{value}</p>
+    <p className="mt-0.5 font-medium truncate text-zinc-900 dark:text-white">
+      {value}
+    </p>
   </div>
 );
 
@@ -221,13 +229,27 @@ const StarRating = ({ rating }: { rating: number }) => {
     <div className="relative inline-flex items-center">
       <div className="flex gap-0.5 text-zinc-300 dark:text-white/25">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={`bg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
+          <Star
+            key={`bg-${i}`}
+            className="h-4 w-4"
+            stroke="currentColor"
+            fill="currentColor"
+          />
         ))}
       </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${percent}%` }} aria-hidden>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ width: `${percent}%` }}
+        aria-hidden
+      >
         <div className="flex gap-0.5 text-yellow-400">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={`fg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
+            <Star
+              key={`fg-${i}`}
+              className="h-4 w-4"
+              stroke="currentColor"
+              fill="currentColor"
+            />
           ))}
         </div>
       </div>
