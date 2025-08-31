@@ -25,15 +25,19 @@ export const ControlsBar = ({
       className={[
         "relative rounded-2xl overflow-hidden p-3 backdrop-blur-md",
         "ring-1 ring-zinc-200 bg-white shadow-sm",
-        "dark:ring-white/10 dark:bg-white/[0.02] dark:shadow-[0_20px_60px_-25px_rgba(0,0,0,0.6)]",
+        "dark:ring-white/10 dark:bg-[#0f1115]/80 dark:shadow-[0_20px_60px_-25px_rgba(0,0,0,0.7)]",
       ].join(" ")}
-      style={{
-        background:
-          "radial-gradient(900px 600px at 0% -20%, rgba(255,103,64,0.00), transparent 45%), linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,1))",
-      }}
     >
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
-        {/* search */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none dark:hidden"
+        style={{
+          background:
+            "radial-gradient(900px 600px at 0% -20%, rgba(255,103,64,0.06), transparent 45%)",
+        }}
+      />
+
+      <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
         <div>
           <div
             className={[
@@ -65,7 +69,6 @@ export const ControlsBar = ({
           </div>
         </div>
 
-        {/* status */}
         <MenuSelect<StatusFilter>
           value={status}
           onChange={setStatus}
@@ -78,7 +81,6 @@ export const ControlsBar = ({
           width={150}
         />
 
-        {/* sort */}
         <MenuSelect<SortKey>
           value={sortBy}
           onChange={setSortBy}
