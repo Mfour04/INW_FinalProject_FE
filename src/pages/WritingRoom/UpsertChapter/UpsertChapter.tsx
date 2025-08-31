@@ -172,7 +172,7 @@ export const UpsertChapter = () => {
         category: categoryMap[item.category] || item.category,
         score: Number(item.score),
       }));
-      setModerationData({ flagged: true, sensitive: mapped });
+      setModerationData({ flagged: resp.data.data.flagged, sensitive: mapped });
       setOpenModerationModal(true);
     },
   });
