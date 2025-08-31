@@ -22,8 +22,6 @@ import ReportList from "../pages/Admin/ReportMangement/ReportList";
 import NovelList from "../pages/Admin/NovelManagement/NovelList";
 import TransactionList from "../pages/Admin/TransactionMangement/TransactionList";
 import { ReadingProcess } from "../pages/Following/ReadingProcess/ReadingProcess";
-import { UserProfile } from "../pages/UserProfile/UserProfile";
-import { TestUserProfile } from "../pages/UserProfile/TestUserProfile";
 import { AboutUs } from "../pages/Info/AboutUs/AboutUs";
 import { Rules } from "../pages/Info/Rules/Rules";
 import { Terms } from "../pages/Info/Terms/Terms";
@@ -33,6 +31,7 @@ import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { AuthCallback } from "../components/common/Header/AuthCallBack";
+import { TestUserProfile, UserProfile } from "../pages/userProfile";
 
 export const Router = () => {
   return (
