@@ -30,7 +30,10 @@ import { useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
-import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
+import type {
+  GetUserNotificationRes,
+  ReadNotificationReq,
+} from "../../../api/Notification/noti.type";
 import { DESIGN_TOKENS } from "../../ui/tokens";
 import { getTags } from "../../../api/Tags/tag.api";
 
@@ -313,8 +316,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     }
   }, [searchTerm, sortBy, tagFilter, navigate]);
 
-  const handleClickNotification = async (id: string) => {
-    await NotificationMutation.mutateAsync({ notificationIds: [id] });
+  const handleClickNotification = async (noti: GetUserNotificationRes) => {
+    await NotificationMutation.mutateAsync({
+      notificationIds: [noti.notificationId],
+    });
+    if (noti.novelSlug) navigate(`/novels/${noti.novelSlug}`);
+    if (noti.forumPostId) navigate(`/blogs/${noti.forumPostId}`);
   };
 
   const handleClickReadAll = async () => {

@@ -25,7 +25,7 @@ interface Props {
   open: boolean;
   notifications?: GetUserNotificationRes[];
   readAll: () => void;
-  onItemClick?: (id: string) => void;
+  onItemClick?: (noti: GetUserNotificationRes) => void;
   onClose?: () => void;
   floating?: boolean;
   anchorPlacement?: "below" | "above";
@@ -359,7 +359,6 @@ export const NotificationDropdown = ({
         </div>
       </div>
 
-      {/* List (thêm padding-bottom để không bị footer che) */}
       <div className="max-h-[65vh] sm:max-h-[400px] overflow-y-auto scrollbar-strong pb-14">
         {grouped.length === 0 ? (
           <div className="py-8 px-4 text-center text-sm text-slate-500 dark:text-white/70">
@@ -378,7 +377,7 @@ export const NotificationDropdown = ({
                   return (
                     <li key={noti.notificationId}>
                       <button
-                        onClick={() => onItemClick?.(noti.notificationId)}
+                        onClick={() => onItemClick?.(noti)}
                         className={[
                           "w-full text-left px-3 py-2 flex items-start gap-3 transition",
                           "hover:bg-slate-50 dark:hover:bg-white/5",

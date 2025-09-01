@@ -97,7 +97,7 @@ export const Composer = ({
     );
   }
 
-  if (!allowComment) {
+  if (allowComment === false) {
     return (
       <div className="text-center py-4">
         <button className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-sm shadow-black/10 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]">
