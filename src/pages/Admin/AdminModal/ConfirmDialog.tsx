@@ -127,7 +127,7 @@ const ConfirmDialog = ({
   const onKeyDownDialog = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       if (openSelect) { setOpenSelect(false); return; }
-      onClose();
+      if (!loading) onClose();
     }
     if (e.key === "Enter" && !openSelect) {
       e.preventDefault();
@@ -196,7 +196,7 @@ const ConfirmDialog = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] backdrop-blur-sm"
+            className="fixed inset-0 z-[1000] backdrop-blur-sm bg-black/40"
           />
           <motion.div
             role="dialog"
@@ -344,10 +344,21 @@ const ConfirmDialog = ({
               )}
 
               <div className={footerClass}>
-                <BaseBtn onClick={onClose} loading={loading} className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white">
+                <BaseBtn
+                  onClick={onClose}
+                  loading={false}               
+                  disabled={loading}             
+                  className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white"
+                >
                   {cancelLabel ?? "Hủy"}
                 </BaseBtn>
-                <BaseBtn ref={confirmRef} onClick={handleConfirm} loading={loading} className={t.cta}>
+
+                <BaseBtn
+                  ref={confirmRef}
+                  onClick={handleConfirm}
+                  loading={loading}               
+                  className={t.cta}
+                >
                   {confirmLabel ?? (variant === "danger" ? "Xác nhận" : variant === "success" ? "Duyệt" : "Đồng ý")}
                 </BaseBtn>
               </div>

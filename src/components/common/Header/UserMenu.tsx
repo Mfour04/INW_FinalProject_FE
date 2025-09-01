@@ -51,7 +51,7 @@ const UserMenu = ({ onClose }: Props) => {
     logout();
     navigate("/");
     onClose();
-    toast?.onOpen("Đăng xuất thành công!");
+    toast?.onOpen({ message: "Đăng xuất thành công!", variant: "success"});
   };
 
   const avatarSrc = getAvatarUrl(data?.avatarUrl) || DefaultAvatar;
