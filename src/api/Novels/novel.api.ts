@@ -32,7 +32,7 @@ interface GetRecommendNovelsParams {
 }
 
 export const GetNovels = (params?: GetNovelsParams) =>
-  http.http.get<NovelsApiResponse>("Novels", { params });
+  http.privateHttp.get<NovelsApiResponse>("Novels", { params });
 
 export const CreateNovels = (request: FormData) =>
   http.multipartHttp.post<NovelsApiResponse>("Novels/created", request);

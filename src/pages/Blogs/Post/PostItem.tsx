@@ -9,6 +9,7 @@ import {
   Flag,
   Heart,
   MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 
 import { BlogCommentUser } from "../Comment/BlogCommentUser";
@@ -300,6 +301,19 @@ const PostItem = ({
                 <MessageCircle size={18} />
                 <span className="text-sm">{post.comments ?? 0}</span>
               </button>
+
+              <button
+                onClick={() => {
+                  localStorage.setItem('currentBlogPost', JSON.stringify(post));
+                  navigate(`/blog/${post.id}`);
+                }}
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                           dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+                title="Xem chi tiết"
+              >
+                <ExternalLink size={18} />
+                <span className="text-sm">Chi tiết</span>
+              </button>
             </>
           ) : (
             <>
@@ -320,6 +334,19 @@ const PostItem = ({
               >
                 <MessageCircle size={18} />
                 <span className="text-sm">{post.comments ?? 0}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  localStorage.setItem('currentBlogPost', JSON.stringify(post));
+                  navigate(`/blog/${post.id}`);
+                }}
+                className="inline-flex items-center gap-2 h-9 px-3 rounded-xl ring-1 bg-zinc-50 hover:bg-zinc-100 ring-zinc-200 text-zinc-900
+                           dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
+                title="Xem chi tiết"
+              >
+                <ExternalLink size={18} />
+                <span className="text-sm">Chi tiết</span>
               </button>
             </>
           )}

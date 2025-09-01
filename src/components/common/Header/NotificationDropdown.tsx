@@ -25,7 +25,7 @@ interface Props {
   open: boolean;
   notifications?: GetUserNotificationRes[];
   readAll: () => void;
-  onItemClick?: (id: string) => void;
+  onItemClick?: (noti: GetUserNotificationRes) => void;
   onClose?: () => void;
   floating?: boolean;
   anchorPlacement?: "below" | "above";
@@ -56,69 +56,188 @@ function groupKey(ts: number) {
   }).format(d);
 }
 
-/* --- Giữ nguyên mapping bạn đã dán ở trên --- */
 function getTypeMeta(type?: number) {
   switch (type) {
     case 0:
-      return { Icon: ShieldAlert, light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100", dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0" };
+      return {
+        Icon: ShieldAlert,
+        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
+        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
+      };
     case 1:
-      return { Icon: MessageSquare, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: MessageSquare,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 2:
-      return { Icon: CornerDownRight, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: CornerDownRight,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 3:
-      return { Icon: Heart, light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100", dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0" };
+      return {
+        Icon: Heart,
+        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
+        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
+      };
     case 4:
-      return { Icon: BookmarkPlus, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: BookmarkPlus,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 5:
-      return { Icon: Lock, light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100", dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0" };
+      return {
+        Icon: Lock,
+        light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100",
+        dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0",
+      };
     case 6:
-      return { Icon: Unlock, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: Unlock,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 7:
-      return { Icon: ShieldAlert, light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100", dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0" };
+      return {
+        Icon: ShieldAlert,
+        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
+        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
+      };
     case 8:
-      return { Icon: MessageSquare, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: MessageSquare,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 9:
-      return { Icon: CornerDownRight, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: CornerDownRight,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 10:
-      return { Icon: Heart, light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100", dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0" };
+      return {
+        Icon: Heart,
+        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
+        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
+      };
     case 11:
-      return { Icon: Lock, light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100", dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0" };
+      return {
+        Icon: Lock,
+        light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100",
+        dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0",
+      };
     case 12:
-      return { Icon: Unlock, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: Unlock,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 13:
-      return { Icon: FilePlus, light: "text-indigo-600 bg-indigo-50 ring-1 ring-indigo-100", dark: "dark:text-indigo-400 dark:bg-indigo-400/10 dark:ring-0" };
+      return {
+        Icon: FilePlus,
+        light: "text-indigo-600 bg-indigo-50 ring-1 ring-indigo-100",
+        dark: "dark:text-indigo-400 dark:bg-indigo-400/10 dark:ring-0",
+      };
     case 14:
-      return { Icon: Heart, light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100", dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0" };
+      return {
+        Icon: Heart,
+        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
+        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
+      };
     case 15:
-      return { Icon: ShieldAlert, light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100", dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0" };
+      return {
+        Icon: ShieldAlert,
+        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
+        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
+      };
     case 16:
-      return { Icon: ShieldAlert, light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100", dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0" };
+      return {
+        Icon: ShieldAlert,
+        light: "text-amber-600 bg-amber-50 ring-1 ring-amber-100",
+        dark: "dark:text-amber-400 dark:bg-amber-400/10 dark:ring-0",
+      };
     case 17:
-      return { Icon: UserX, light: "text-red-600 bg-red-50 ring-1 ring-red-100", dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0" };
+      return {
+        Icon: UserX,
+        light: "text-red-600 bg-red-50 ring-1 ring-red-100",
+        dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0",
+      };
     case 18:
-      return { Icon: UserCheck, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: UserCheck,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 19:
-      return { Icon: FileWarning, light: "text-orange-600 bg-orange-50 ring-1 ring-orange-100", dark: "dark:text-orange-400 dark:bg-orange-400/10 dark:ring-0" };
+      return {
+        Icon: FileWarning,
+        light: "text-orange-600 bg-orange-50 ring-1 ring-orange-100",
+        dark: "dark:text-orange-400 dark:bg-orange-400/10 dark:ring-0",
+      };
     case 20:
-      return { Icon: Users, light: "text-indigo-600 bg-indigo-50 ring-1 ring-indigo-100", dark: "dark:text-indigo-400 dark:bg-indigo-400/10 dark:ring-0" };
+      return {
+        Icon: Users,
+        light: "text-indigo-600 bg-indigo-50 ring-1 ring-indigo-100",
+        dark: "dark:text-indigo-400 dark:bg-indigo-400/10 dark:ring-0",
+      };
     case 21:
-      return { Icon: MessageSquare, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: MessageSquare,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 22:
-      return { Icon: CornerDownRight, light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100", dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0" };
+      return {
+        Icon: CornerDownRight,
+        light: "text-sky-600 bg-sky-50 ring-1 ring-sky-100",
+        dark: "dark:text-sky-400 dark:bg-sky-400/10 dark:ring-0",
+      };
     case 23:
-      return { Icon: Heart, light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100", dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0" };
+      return {
+        Icon: Heart,
+        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
+        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
+      };
     case 24:
-      return { Icon: Heart, light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100", dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0" };
+      return {
+        Icon: Heart,
+        light: "text-rose-600 bg-rose-50 ring-1 ring-rose-100",
+        dark: "dark:text-rose-400 dark:bg-rose-400/10 dark:ring-0",
+      };
     case 25:
-      return { Icon: CircleDollarSign, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: CircleDollarSign,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 26:
-      return { Icon: X, light: "text-red-600 bg-red-50 ring-1 ring-red-100", dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0" };
+      return {
+        Icon: X,
+        light: "text-red-600 bg-red-50 ring-1 ring-red-100",
+        dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0",
+      };
     case 27:
-      return { Icon: UserCheck, light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100", dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0" };
+      return {
+        Icon: UserCheck,
+        light: "text-emerald-600 bg-emerald-50 ring-1 ring-emerald-100",
+        dark: "dark:text-emerald-400 dark:bg-emerald-400/10 dark:ring-0",
+      };
     case 28:
-      return { Icon: UserX, light: "text-red-600 bg-red-50 ring-1 ring-red-100", dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0" };
+      return {
+        Icon: UserX,
+        light: "text-red-600 bg-red-50 ring-1 ring-red-100",
+        dark: "dark:text-red-400 dark:bg-red-400/10 dark:ring-0",
+      };
     default:
-      return { Icon: Info, light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100", dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0" };
+      return {
+        Icon: Info,
+        light: "text-slate-600 bg-slate-50 ring-1 ring-slate-100",
+        dark: "dark:text-slate-300 dark:bg-slate-400/10 dark:ring-0",
+      };
   }
 }
 
@@ -240,7 +359,6 @@ export const NotificationDropdown = ({
         </div>
       </div>
 
-      {/* List (thêm padding-bottom để không bị footer che) */}
       <div className="max-h-[65vh] sm:max-h-[400px] overflow-y-auto scrollbar-strong pb-14">
         {grouped.length === 0 ? (
           <div className="py-8 px-4 text-center text-sm text-slate-500 dark:text-white/70">
@@ -259,7 +377,7 @@ export const NotificationDropdown = ({
                   return (
                     <li key={noti.notificationId}>
                       <button
-                        onClick={() => onItemClick?.(noti.notificationId)}
+                        onClick={() => onItemClick?.(noti)}
                         className={[
                           "w-full text-left px-3 py-2 flex items-start gap-3 transition",
                           "hover:bg-slate-50 dark:hover:bg-white/5",

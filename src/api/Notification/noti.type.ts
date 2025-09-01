@@ -6,8 +6,12 @@ export type GetUserNotificationRes = {
   type: number;
   message: string;
   isRead: boolean;
+  novelSlug?: string;
+  novelId?: string;
+  forumPostId?: string;
   createAt: number;
   updateAt: number;
+  avatarUrl: string;
 };
 
 export type ReadNotificationReq = {

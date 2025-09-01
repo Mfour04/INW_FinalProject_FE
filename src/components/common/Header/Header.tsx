@@ -30,15 +30,17 @@ import { useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
-import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
+import type {
+  GetUserNotificationRes,
+  ReadNotificationReq,
+} from "../../../api/Notification/noti.type";
 import { DESIGN_TOKENS } from "../../ui/tokens";
 import { getTags } from "../../../api/Tags/tag.api";
 
-/* ---------- Utils ---------- */
-// Khởi tạo đúng ngay từ frame đầu tiên để tránh "nhấp nháy desktop" trên mobile.
 function useSmallScreen(query = "(max-width: 639.5px)") {
   const get = () => {
-    if (typeof window === "undefined" || !("matchMedia" in window)) return false;
+    if (typeof window === "undefined" || !("matchMedia" in window))
+      return false;
     return window.matchMedia(query).matches;
   };
   const [isSmall, setIsSmall] = useState<boolean>(get);
@@ -52,7 +54,6 @@ function useSmallScreen(query = "(max-width: 639.5px)") {
       m.addEventListener("change", update);
       return () => m.removeEventListener("change", update);
     }
-    // Fallback cho Safari cũ
     m.addListener(update);
     return () => m.removeListener(update);
   }, [query]);
@@ -60,7 +61,6 @@ function useSmallScreen(query = "(max-width: 639.5px)") {
   return isSmall;
 }
 
-/* ---------- Portal for anchored dropdowns ---------- */
 function PortalLayer<T extends HTMLElement>({
   anchorRef,
   open,
@@ -88,11 +88,9 @@ function PortalLayer<T extends HTMLElement>({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Lưu ý: offsetWidth/offsetHeight chỉ đúng sau khi layout xong
     const cw = child.offsetWidth || 0;
     const ch = child.offsetHeight || 0;
 
-    // Căn phải theo mép anchor để tránh tràn
     let right = Math.round(vw - r.right);
     const maxRight = Math.max(8, vw - cw - 8);
     right = Math.min(Math.max(8, right), maxRight);
@@ -101,10 +99,18 @@ function PortalLayer<T extends HTMLElement>({
     const spaceAbove = r.top - 8;
     const spaceBelow = vh - r.bottom - 8;
 
-    if (placement === "above" && ch + offset > spaceAbove && spaceBelow >= spaceAbove) {
+    if (
+      placement === "above" &&
+      ch + offset > spaceAbove &&
+      spaceBelow >= spaceAbove
+    ) {
       finalPlacement = "below";
     }
-    if (placement === "below" && ch + offset > spaceBelow && spaceAbove > spaceBelow) {
+    if (
+      placement === "below" &&
+      ch + offset > spaceBelow &&
+      spaceAbove > spaceBelow
+    ) {
       finalPlacement = "above";
     }
 
@@ -123,13 +129,10 @@ function PortalLayer<T extends HTMLElement>({
     });
   }, [anchorRef, placement, offset]);
 
-  // Reflow lần đầu ngay khi mở
   useLayoutEffect(() => {
     if (!open) return;
-    // rAF 1: sau khi mount child
     rafId.current = requestAnimationFrame(() => {
       compute();
-      // rAF 2: thêm 1 nhịp để ảnh/icon nội bộ có cơ hội layout
       rafId.current = requestAnimationFrame(() => compute());
     });
     return () => {
@@ -138,7 +141,6 @@ function PortalLayer<T extends HTMLElement>({
     };
   }, [open, compute]);
 
-  // Lắng nghe resize/scroll của window
   useEffect(() => {
     if (!open) return;
     const onReflow = () => compute();
@@ -150,7 +152,6 @@ function PortalLayer<T extends HTMLElement>({
     };
   }, [open, compute]);
 
-  // Quan sát thay đổi kích thước của anchor & dropdown (ảnh/đoạn text làm đổi kích thước)
   useEffect(() => {
     if (!open) return;
     const anchor = anchorRef.current;
@@ -163,15 +164,10 @@ function PortalLayer<T extends HTMLElement>({
       resizeObs.current.observe(child);
     }
 
-    // fonts load xong có thể thay đổi kích thước
-    // (document.fonts chưa support trên iOS rất cũ, có thể bỏ qua)
-    // @ts-ignore
     if (document?.fonts?.ready) {
-      // @ts-ignore
       document.fonts.ready.then(() => compute()).catch(() => {});
     }
 
-    // Ảnh bên trong dropdown (nếu có) load xong -> đo lại
     const imgs = child.querySelectorAll("img");
     const handlers: Array<() => void> = [];
     imgs.forEach((img) => {
@@ -211,7 +207,6 @@ function PortalLayer<T extends HTMLElement>({
   );
 }
 
-/* ---------- Header ---------- */
 type HeaderProps = {
   onToggleSidebar: () => void;
   isSidebarOpen?: boolean;
@@ -286,7 +281,8 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     .map((noti) => noti.notificationId);
 
   const NotificationMutation = useMutation({
-    mutationFn: async (request: ReadNotificationReq) => ReadNotification(request),
+    mutationFn: async (request: ReadNotificationReq) =>
+      ReadNotification(request),
     onSuccess: () => notificationsRefetch(),
   });
 
@@ -320,8 +316,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     }
   }, [searchTerm, sortBy, tagFilter, navigate]);
 
-  const handleClickNotification = async (id: string) => {
-    await NotificationMutation.mutateAsync({ notificationIds: [id] });
+  const handleClickNotification = async (noti: GetUserNotificationRes) => {
+    await NotificationMutation.mutateAsync({
+      notificationIds: [noti.notificationId],
+    });
+    if (noti.novelSlug) navigate(`/novels/${noti.novelSlug}`);
+    if (noti.forumPostId) navigate(`/blogs/${noti.forumPostId}`);
   };
 
   const handleClickReadAll = async () => {
@@ -346,7 +346,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     [userNotifications]
   );
 
-  // Khi đổi breakpoint, đóng dropdowns để tránh anchor cũ bị unmount
   useEffect(() => {
     setIsNotificationOpen(false);
     setIsUserMenuOpen(false);
@@ -411,9 +410,15 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 onSubmit={handleSearchNovels}
                 sortOptions={sortOptions}
                 tagFilterOptions={selectTagOptions}
-                searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
-                clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
-                filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
+                searchIcon={
+                  <Search className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                clearIcon={
+                  <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
+                filterIcon={
+                  <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
+                }
                 initialSort={sortBy}
                 setSort={setSortBy}
                 initialTags={tagFilter}
@@ -463,7 +468,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
               </div>
             )}
 
-            {/* Mobile: avatar trên top */}
             {isSmall && (
               <div className="flex shrink-0 items-center">
                 <button
@@ -486,7 +490,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Bottom sticky (mobile) */}
       {isSmall && (
         <div className="fixed inset-x-0 bottom-0 z-50">
           <div className="mx-auto w-full bg-white/85 dark:bg-[#0b0c0f]/85 backdrop-blur-md border-t border-zinc-200 dark:border-white/10">
@@ -526,7 +529,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </div>
       )}
 
-      {/* Dropdowns (anchored) */}
       <PortalLayer
         anchorRef={notifBtnRef}
         open={isNotificationOpen}
@@ -554,7 +556,9 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </PortalLayer>
       )}
 
-      {!auth?.user && isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
+      {!auth?.user && isAuthOpen && (
+        <AuthModal onClose={() => setIsAuthOpen(false)} />
+      )}
     </>
   );
 };

@@ -11,6 +11,7 @@ import { NovelDetail } from "../pages/Chapters/NovelDetail";
 import { UpsertNovels } from "../pages/WritingRoom/UpsertNovels/UpsertNovels";
 import { UpsertChapter } from "../pages/WritingRoom/UpsertChapter/UpsertChapter";
 import { Blogs } from "../pages/Blogs/Blogs";
+import BlogDetail from "../pages/Blogs/BlogDetail";
 import { Deposite } from "../pages/Deposite/Deposite";
 import { TransactionHistory } from "../pages/TransactionHistory/TransactionHistory";
 import { NovelLib } from "../pages/Following/NovelLib/NovelLib";
@@ -31,7 +32,7 @@ import AuthorAnalytics from "../pages/AuthorAnalystics/AuthorAnalytics";
 import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage";
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { AuthCallback } from "../components/common/Header/AuthCallBack";
-import { TestUserProfile, UserProfile } from "../pages/userProfile";
+import { UserProfile } from "../pages/userProfile";
 
 export const Router = () => {
   return (
@@ -80,7 +81,8 @@ export const Router = () => {
         <Route path=":username" element={<UserProfile />} />
       </Route>
       <Route path="/blogs" element={<Blogs />} />
-      <Route path="/test-profile" element={<TestUserProfile />} />
+      <Route path="/blog/:postId" element={<BlogDetail />} />
+
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/about" element={<AboutUs />} />
       <Route path="/contact" element={<Contact />} />

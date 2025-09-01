@@ -30,4 +30,10 @@ export interface CreateBlogPostResponse {
     success: boolean;
     message: string;
     data: BlogPost;
+}
+
+export interface SingleBlogPostResponse {
+    success: boolean;
+    message: string;
+    data: BlogPost;
 } 
