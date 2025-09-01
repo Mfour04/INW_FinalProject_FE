@@ -35,15 +35,28 @@ import { DESIGN_TOKENS } from "../../ui/tokens";
 import { getTags } from "../../../api/Tags/tag.api";
 
 /* ---------- Utils ---------- */
+// Khởi tạo đúng ngay từ frame đầu tiên để tránh "nhấp nháy desktop" trên mobile.
 function useSmallScreen(query = "(max-width: 639.5px)") {
-  const [isSmall, setIsSmall] = useState(false);
+  const get = () => {
+    if (typeof window === "undefined" || !("matchMedia" in window)) return false;
+    return window.matchMedia(query).matches;
+  };
+  const [isSmall, setIsSmall] = useState<boolean>(get);
+
   useEffect(() => {
+    if (typeof window === "undefined" || !("matchMedia" in window)) return;
     const m = window.matchMedia(query);
     const update = () => setIsSmall(m.matches);
-    update();
-    m.addEventListener("change", update);
-    return () => m.removeEventListener("change", update);
+
+    if (m.addEventListener) {
+      m.addEventListener("change", update);
+      return () => m.removeEventListener("change", update);
+    }
+    // Fallback cho Safari cũ
+    m.addListener(update);
+    return () => m.removeListener(update);
   }, [query]);
+
   return isSmall;
 }
 
@@ -63,6 +76,8 @@ function PortalLayer<T extends HTMLElement>({
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const childRef = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number | null>(null);
+  const resizeObs = useRef<ResizeObserver | null>(null);
 
   const compute = useCallback(() => {
     const anchor = anchorRef.current;
@@ -73,9 +88,11 @@ function PortalLayer<T extends HTMLElement>({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
+    // Lưu ý: offsetWidth/offsetHeight chỉ đúng sau khi layout xong
     const cw = child.offsetWidth || 0;
     const ch = child.offsetHeight || 0;
 
+    // Căn phải theo mép anchor để tránh tràn
     let right = Math.round(vw - r.right);
     const maxRight = Math.max(8, vw - cw - 8);
     right = Math.min(Math.max(8, right), maxRight);
@@ -84,18 +101,12 @@ function PortalLayer<T extends HTMLElement>({
     const spaceAbove = r.top - 8;
     const spaceBelow = vh - r.bottom - 8;
 
-    if (
-      placement === "above" &&
-      ch + offset > spaceAbove &&
-      spaceBelow >= spaceAbove
-    )
+    if (placement === "above" && ch + offset > spaceAbove && spaceBelow >= spaceAbove) {
       finalPlacement = "below";
-    if (
-      placement === "below" &&
-      ch + offset > spaceBelow &&
-      spaceAbove > spaceBelow
-    )
+    }
+    if (placement === "below" && ch + offset > spaceBelow && spaceAbove > spaceBelow) {
       finalPlacement = "above";
+    }
 
     const top = Math.round(finalPlacement === "above" ? r.top : r.bottom);
 
@@ -112,11 +123,22 @@ function PortalLayer<T extends HTMLElement>({
     });
   }, [anchorRef, placement, offset]);
 
+  // Reflow lần đầu ngay khi mở
   useLayoutEffect(() => {
     if (!open) return;
-    requestAnimationFrame(compute);
+    // rAF 1: sau khi mount child
+    rafId.current = requestAnimationFrame(() => {
+      compute();
+      // rAF 2: thêm 1 nhịp để ảnh/icon nội bộ có cơ hội layout
+      rafId.current = requestAnimationFrame(() => compute());
+    });
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    };
   }, [open, compute]);
 
+  // Lắng nghe resize/scroll của window
   useEffect(() => {
     if (!open) return;
     const onReflow = () => compute();
@@ -127,6 +149,48 @@ function PortalLayer<T extends HTMLElement>({
       window.removeEventListener("scroll", onReflow);
     };
   }, [open, compute]);
+
+  // Quan sát thay đổi kích thước của anchor & dropdown (ảnh/đoạn text làm đổi kích thước)
+  useEffect(() => {
+    if (!open) return;
+    const anchor = anchorRef.current;
+    const child = childRef.current;
+    if (!anchor || !child) return;
+
+    if ("ResizeObserver" in window) {
+      resizeObs.current = new ResizeObserver(() => compute());
+      resizeObs.current.observe(anchor);
+      resizeObs.current.observe(child);
+    }
+
+    // fonts load xong có thể thay đổi kích thước
+    // (document.fonts chưa support trên iOS rất cũ, có thể bỏ qua)
+    // @ts-ignore
+    if (document?.fonts?.ready) {
+      // @ts-ignore
+      document.fonts.ready.then(() => compute()).catch(() => {});
+    }
+
+    // Ảnh bên trong dropdown (nếu có) load xong -> đo lại
+    const imgs = child.querySelectorAll("img");
+    const handlers: Array<() => void> = [];
+    imgs.forEach((img) => {
+      const onload = () => compute();
+      const onerror = () => compute();
+      img.addEventListener("load", onload);
+      img.addEventListener("error", onerror);
+      handlers.push(() => {
+        img.removeEventListener("load", onload);
+        img.removeEventListener("error", onerror);
+      });
+    });
+
+    return () => {
+      handlers.forEach((h) => h());
+      resizeObs.current?.disconnect();
+      resizeObs.current = null;
+    };
+  }, [open, compute, anchorRef]);
 
   if (!open) return null;
 
@@ -222,8 +286,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     .map((noti) => noti.notificationId);
 
   const NotificationMutation = useMutation({
-    mutationFn: async (request: ReadNotificationReq) =>
-      ReadNotification(request),
+    mutationFn: async (request: ReadNotificationReq) => ReadNotification(request),
     onSuccess: () => notificationsRefetch(),
   });
 
@@ -283,6 +346,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     [userNotifications]
   );
 
+  // Khi đổi breakpoint, đóng dropdowns để tránh anchor cũ bị unmount
   useEffect(() => {
     setIsNotificationOpen(false);
     setIsUserMenuOpen(false);
@@ -347,15 +411,9 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
                 onSubmit={handleSearchNovels}
                 sortOptions={sortOptions}
                 tagFilterOptions={selectTagOptions}
-                searchIcon={
-                  <Search className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
-                clearIcon={
-                  <X className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
-                filterIcon={
-                  <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
+                searchIcon={<Search className="h-5 w-5 text-gray-600 dark:text-white" />}
+                clearIcon={<X className="h-5 w-5 text-gray-600 dark:text-white" />}
+                filterIcon={<ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />}
                 initialSort={sortBy}
                 setSort={setSortBy}
                 initialTags={tagFilter}
@@ -496,10 +554,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </PortalLayer>
       )}
 
-      {/* Auth modal: KHÔNG dùng PortalLayer, render thẳng ra body */}
-      {!auth?.user && isAuthOpen && (
-        <AuthModal onClose={() => setIsAuthOpen(false)} />
-      )}
+      {!auth?.user && isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
     </>
   );
 };

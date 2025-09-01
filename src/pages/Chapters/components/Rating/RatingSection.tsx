@@ -117,7 +117,7 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
 
   const handleSendReview = () => {
     if (ratingRequest.score === 0) {
-      toast?.onOpen("Bạn cần phải đánh giá trước!");
+      toast?.onOpen("Vui lòng chọn số sao trước khi gửi đánh giá!");
       return;
     }
     const content = (ratingRequest.content ?? "").slice(0, MAX_LEN);
@@ -226,6 +226,10 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
     return base.filter((r) => Number(r.score) === filterStar);
   }, [loadedReviews, filterStar]);
 
+  const meDisplayName =
+    auth?.user?.displayName ?? auth?.user?.userName ?? "Bạn";
+  const meUsername = auth?.user?.userName ? `@${auth.user.userName}` : "";
+
   return (
     <section
       className="
@@ -314,6 +318,10 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
         </div>
       </div>
 
+      <div className="px-4 pb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-start">
+        <Segmented value={filterStar} onChange={setFilterStar} />
+      </div>
+
       <Hairline />
 
       <div className="p-4">
@@ -327,43 +335,48 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
           "
         >
           <div className="p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex flex-col items-center md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <img
                   className="h-8 w-8 rounded-full object-cover bg-white"
                   src={getAvatarUrl(auth?.user?.avatarUrl)}
                   alt="avatar"
                 />
-                <div>
-                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white">
-                    {auth?.user?.userName ?? "Bạn"}
-                  </div>
-                  <div className="mt-0.5 text-yellow-400 flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <StarIcon
-                        key={star}
-                        className={`w-4 h-4 cursor-pointer transition-all ${
-                          (hoverRating || ratingRequest.score) >= star
-                            ? "text-yellow-400 fill-yellow-400 scale-110"
-                            : "text-gray-300 fill-gray-300"
-                        }`}
-                        fill="currentColor"
-                        onClick={() =>
-                          !isAuthor &&
-                          setRatingRequest((prev) => ({
-                            ...prev,
-                            score: star,
-                          }))
-                        }
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                      />
-                    ))}
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-[14px] text-zinc-900 dark:text-white">
+                    {meDisplayName}
+                  </span>
+                  {meUsername && (
+                    <span className="text-xs text-zinc-500 dark:text-white/45">
+                      {meUsername}
+                    </span>
+                  )}
                 </div>
               </div>
-
-              <Segmented value={filterStar} onChange={setFilterStar} />
+              <div className="w-full md:w-auto">
+                <div className="mt-0.5 text-yellow-400 flex justify-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <StarIcon
+                      key={star}
+                      className={`w-6 h-6 cursor-pointer transition-transform ${
+                        (hoverRating || ratingRequest.score) >= star
+                          ? "text-yellow-400 fill-yellow-400 scale-110"
+                          : "text-gray-300 fill-gray-300"
+                      }`}
+                      fill="currentColor"
+                      onClick={() =>
+                        !isAuthor &&
+                        setRatingRequest((prev) => ({
+                          ...prev,
+                          score: star,
+                        }))
+                      }
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="mt-3">
