@@ -22,7 +22,6 @@ const UserMenu = ({ onClose }: Props) => {
     enabled: !!auth?.accessToken,
   });
 
-  // Click outside
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -51,7 +50,7 @@ const UserMenu = ({ onClose }: Props) => {
     logout();
     navigate("/");
     onClose();
-    toast?.onOpen({ message: "Đăng xuất thành công!", variant: "success"});
+    toast?.onOpen({ message: "Đăng xuất thành công!", variant: "success" });
   };
 
   const avatarSrc = getAvatarUrl(data?.avatarUrl) || DefaultAvatar;
@@ -64,13 +63,10 @@ const UserMenu = ({ onClose }: Props) => {
       aria-label="User menu"
       className={[
         "w-[230px] mt-1 rounded-xl overflow-hidden",
-        // light
         "bg-white text-slate-900 border border-slate-200 shadow-md",
-        // dark
         "dark:bg-[#0f0f11] dark:text-white dark:border-white/10",
       ].join(" ")}
     >
-      {/* Header: avatar nhỏ + tên */}
       <div className="px-3 py-2 flex items-center gap-2 border-b border-slate-200 dark:border-white/10">
         <img
           src={avatarSrc}
@@ -88,7 +84,6 @@ const UserMenu = ({ onClose }: Props) => {
         </div>
       </div>
 
-      {/* Balance row (siêu gọn) */}
       <div className="px-3 pt-2 pb-1 flex items-center gap-2">
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium
@@ -112,7 +107,6 @@ const UserMenu = ({ onClose }: Props) => {
         </button>
       </div>
 
-      {/* Actions: 3 dòng gọn */}
       <nav className="py-1">
         <Link
           to="/profile"

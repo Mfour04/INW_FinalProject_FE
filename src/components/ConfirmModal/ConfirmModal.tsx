@@ -15,11 +15,8 @@ export interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   tone?: Tone;
-  /** Tuỳ chọn icon header (ghi đè icon theo tone). */
   icon?: React.ReactNode;
-  /** Ẩn/hiện nút đóng (X) */
   showClose?: boolean;
-  /** Cho phép click nền để đóng (mặc định true) */
   dismissOnOverlay?: boolean;
 }
 
@@ -38,7 +35,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Khóa scroll khi mở modal
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -57,7 +53,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         };
       case "purchase":
         return {
-          // dùng brand/coin cho mua
           iconWrap: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
           confirmBtn: "bg-amber-600 hover:bg-amber-700 text-white",
           defaultIcon: <Coins className="w-5 h-5" />,
@@ -76,8 +71,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         };
       default:
         return {
-          iconWrap: "bg-zinc-200 text-zinc-700 dark:bg-white/10 dark:text-white",
-          confirmBtn: "bg-zinc-900 hover:bg-black text-white dark:bg-white/20 dark:hover:bg-white/30",
+          iconWrap:
+            "bg-zinc-200 text-zinc-700 dark:bg-white/10 dark:text-white",
+          confirmBtn:
+            "bg-zinc-900 hover:bg-black text-white dark:bg-white/20 dark:hover:bg-white/30",
           defaultIcon: <Info className="w-5 h-5" />,
         };
     }
@@ -109,13 +106,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             "dark:bg-[#111318] dark:text-white dark:ring-white/10",
           ].join(" ")}
         >
-          {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3.5">
             <div className="flex items-center gap-3">
-              <div className={["p-2 rounded-full", toneStyles.iconWrap].join(" ")}>
+              <div
+                className={["p-2 rounded-full", toneStyles.iconWrap].join(" ")}
+              >
                 {icon ?? toneStyles.defaultIcon}
               </div>
-              <h2 id="confirm-title" className="text-base sm:text-lg font-semibold">
+              <h2
+                id="confirm-title"
+                className="text-base sm:text-lg font-semibold"
+              >
                 {title}
               </h2>
             </div>
@@ -130,7 +131,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             )}
           </div>
 
-          {/* Message */}
           <div className="mb-5">
             {typeof message === "string" ? (
               <p
@@ -144,7 +144,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-2">
             <button
               onClick={onCancel}
@@ -158,7 +157,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             </button>
             <button
               onClick={onConfirm}
-              className={["h-9 px-4 rounded-lg text-sm font-semibold", toneStyles.confirmBtn].join(" ")}
+              className={[
+                "h-9 px-4 rounded-lg text-sm font-semibold",
+                toneStyles.confirmBtn,
+              ].join(" ")}
             >
               {confirmText}
             </button>
