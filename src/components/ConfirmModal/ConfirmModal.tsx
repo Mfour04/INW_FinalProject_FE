@@ -2,9 +2,9 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Coins, Info, CheckCircle2 } from "lucide-react";
 
-type Tone = "default" | "danger";
+type Tone = "default" | "danger" | "purchase" | "info" | "success";
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -15,21 +15,26 @@ export interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   tone?: Tone;
+  icon?: React.ReactNode;
+  showClose?: boolean;
+  dismissOnOverlay?: boolean;
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
-  title = "Xoá bình luận",
-  message = "Hành động này không thể hoàn tác. Bạn có chắc muốn xoá bình luận này?",
+  title = "Xác nhận",
+  message = "Bạn có chắc muốn thực hiện hành động này?",
   onConfirm,
   onCancel,
-  confirmText = "Xoá",
+  confirmText = "Xác nhận",
   cancelText = "Hủy",
-  tone = "danger",
+  tone = "default",
+  icon,
+  showClose = true,
+  dismissOnOverlay = true,
 }) => {
   if (!isOpen) return null;
 
-  // Khóa scroll khi mở modal
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -37,6 +42,43 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       document.body.style.overflow = prev;
     };
   }, []);
+
+  const toneStyles = (() => {
+    switch (tone) {
+      case "danger":
+        return {
+          iconWrap: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+          confirmBtn: "bg-rose-600 hover:bg-rose-700 text-white",
+          defaultIcon: <AlertTriangle className="w-5 h-5" />,
+        };
+      case "purchase":
+        return {
+          iconWrap: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+          confirmBtn: "bg-amber-600 hover:bg-amber-700 text-white",
+          defaultIcon: <Coins className="w-5 h-5" />,
+        };
+      case "info":
+        return {
+          iconWrap: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+          confirmBtn: "bg-blue-600 hover:bg-blue-700 text-white",
+          defaultIcon: <Info className="w-5 h-5" />,
+        };
+      case "success":
+        return {
+          iconWrap: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+          confirmBtn: "bg-emerald-600 hover:bg-emerald-700 text-white",
+          defaultIcon: <CheckCircle2 className="w-5 h-5" />,
+        };
+      default:
+        return {
+          iconWrap:
+            "bg-zinc-200 text-zinc-700 dark:bg-white/10 dark:text-white",
+          confirmBtn:
+            "bg-zinc-900 hover:bg-black text-white dark:bg-white/20 dark:hover:bg-white/30",
+          defaultIcon: <Info className="w-5 h-5" />,
+        };
+    }
+  })();
 
   const overlay = (
     <AnimatePresence>
@@ -46,7 +88,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
+        onClick={dismissOnOverlay ? onCancel : undefined}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 6 }}
@@ -60,39 +102,35 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           aria-describedby="confirm-desc"
           className={[
             "w-[420px] max-w-[92vw] rounded-2xl shadow-2xl ring-1 p-5",
-            // Light mode
             "bg-white text-zinc-900 ring-black/10",
-            // Dark mode
             "dark:bg-[#111318] dark:text-white dark:ring-white/10",
           ].join(" ")}
         >
-          {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3.5">
             <div className="flex items-center gap-3">
               <div
-                className={[
-                  "p-2 rounded-full",
-                  tone === "danger"
-                    ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-                    : "bg-blue-500/15 text-blue-600 dark:text-blue-400",
-                ].join(" ")}
+                className={["p-2 rounded-full", toneStyles.iconWrap].join(" ")}
               >
-                <AlertTriangle className="w-5 h-5" />
+                {icon ?? toneStyles.defaultIcon}
               </div>
-              <h2 id="confirm-title" className="text-base sm:text-lg font-semibold">
+              <h2
+                id="confirm-title"
+                className="text-base sm:text-lg font-semibold"
+              >
                 {title}
               </h2>
             </div>
-            <button
-              onClick={onCancel}
-              className="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-white/10"
-              aria-label="Đóng"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {showClose && (
+              <button
+                onClick={onCancel}
+                className="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-white/10"
+                aria-label="Đóng"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Message */}
           <div className="mb-5">
             {typeof message === "string" ? (
               <p
@@ -106,7 +144,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-2">
             <button
               onClick={onCancel}
@@ -121,10 +158,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <button
               onClick={onConfirm}
               className={[
-                "h-9 px-4 rounded-lg text-sm font-semibold text-white",
-                tone === "danger"
-                  ? "bg-rose-600 hover:bg-rose-700"
-                  : "bg-blue-600 hover:bg-blue-700",
+                "h-9 px-4 rounded-lg text-sm font-semibold",
+                toneStyles.confirmBtn,
               ].join(" ")}
             >
               {confirmText}
@@ -135,7 +170,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     </AnimatePresence>
   );
 
-  // Render qua Portal để overlay luôn phủ toàn màn hình
   return createPortal(overlay, document.body);
 };
 

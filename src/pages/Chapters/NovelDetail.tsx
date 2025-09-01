@@ -347,16 +347,20 @@ export const NovelDetail = () => {
 
       <ConfirmModal
         isOpen={isBuyModalOpen}
+        tone="purchase"
         title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
-        message={`Chương truyện này có giá ${chapterPrice} coin. Bạn có muốn mua không?`}
+        message={`Chương này có giá ${chapterPrice} coin. Bạn có muốn mua không?`}
+        confirmText="Mua"
         onConfirm={confirmBuy}
         onCancel={() => setIsBuyModalOpen(false)}
       />
 
       <ConfirmModal
         isOpen={isBuyNovelOpen}
+        tone="purchase"
         title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
         message={`Tiểu thuyết này có giá ${novelInfo?.price} coin. Bạn có muốn mua không?`}
+        confirmText="Mua"
         onConfirm={confirmBuyNovel}
         onCancel={() => setIsBuyNovelOpen(false)}
       />

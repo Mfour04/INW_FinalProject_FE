@@ -34,20 +34,30 @@ import type { ReadNotificationReq } from "../../../api/Notification/noti.type";
 import { DESIGN_TOKENS } from "../../ui/tokens";
 import { getTags } from "../../../api/Tags/tag.api";
 
-/* ---------- Utils ---------- */
 function useSmallScreen(query = "(max-width: 639.5px)") {
-  const [isSmall, setIsSmall] = useState(false);
+  const get = () => {
+    if (typeof window === "undefined" || !("matchMedia" in window))
+      return false;
+    return window.matchMedia(query).matches;
+  };
+  const [isSmall, setIsSmall] = useState<boolean>(get);
+
   useEffect(() => {
+    if (typeof window === "undefined" || !("matchMedia" in window)) return;
     const m = window.matchMedia(query);
     const update = () => setIsSmall(m.matches);
-    update();
-    m.addEventListener("change", update);
-    return () => m.removeEventListener("change", update);
+
+    if (m.addEventListener) {
+      m.addEventListener("change", update);
+      return () => m.removeEventListener("change", update);
+    }
+    m.addListener(update);
+    return () => m.removeListener(update);
   }, [query]);
+
   return isSmall;
 }
 
-/* ---------- Portal for anchored dropdowns ---------- */
 function PortalLayer<T extends HTMLElement>({
   anchorRef,
   open,
@@ -63,6 +73,8 @@ function PortalLayer<T extends HTMLElement>({
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const childRef = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number | null>(null);
+  const resizeObs = useRef<ResizeObserver | null>(null);
 
   const compute = useCallback(() => {
     const anchor = anchorRef.current;
@@ -88,14 +100,16 @@ function PortalLayer<T extends HTMLElement>({
       placement === "above" &&
       ch + offset > spaceAbove &&
       spaceBelow >= spaceAbove
-    )
+    ) {
       finalPlacement = "below";
+    }
     if (
       placement === "below" &&
       ch + offset > spaceBelow &&
       spaceAbove > spaceBelow
-    )
+    ) {
       finalPlacement = "above";
+    }
 
     const top = Math.round(finalPlacement === "above" ? r.top : r.bottom);
 
@@ -114,7 +128,14 @@ function PortalLayer<T extends HTMLElement>({
 
   useLayoutEffect(() => {
     if (!open) return;
-    requestAnimationFrame(compute);
+    rafId.current = requestAnimationFrame(() => {
+      compute();
+      rafId.current = requestAnimationFrame(() => compute());
+    });
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    };
   }, [open, compute]);
 
   useEffect(() => {
@@ -127,6 +148,42 @@ function PortalLayer<T extends HTMLElement>({
       window.removeEventListener("scroll", onReflow);
     };
   }, [open, compute]);
+
+  useEffect(() => {
+    if (!open) return;
+    const anchor = anchorRef.current;
+    const child = childRef.current;
+    if (!anchor || !child) return;
+
+    if ("ResizeObserver" in window) {
+      resizeObs.current = new ResizeObserver(() => compute());
+      resizeObs.current.observe(anchor);
+      resizeObs.current.observe(child);
+    }
+
+    if (document?.fonts?.ready) {
+      document.fonts.ready.then(() => compute()).catch(() => {});
+    }
+
+    const imgs = child.querySelectorAll("img");
+    const handlers: Array<() => void> = [];
+    imgs.forEach((img) => {
+      const onload = () => compute();
+      const onerror = () => compute();
+      img.addEventListener("load", onload);
+      img.addEventListener("error", onerror);
+      handlers.push(() => {
+        img.removeEventListener("load", onload);
+        img.removeEventListener("error", onerror);
+      });
+    });
+
+    return () => {
+      handlers.forEach((h) => h());
+      resizeObs.current?.disconnect();
+      resizeObs.current = null;
+    };
+  }, [open, compute, anchorRef]);
 
   if (!open) return null;
 
@@ -147,7 +204,6 @@ function PortalLayer<T extends HTMLElement>({
   );
 }
 
-/* ---------- Header ---------- */
 type HeaderProps = {
   onToggleSidebar: () => void;
   isSidebarOpen?: boolean;
@@ -405,7 +461,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
               </div>
             )}
 
-            {/* Mobile: avatar trên top */}
             {isSmall && (
               <div className="flex shrink-0 items-center">
                 <button
@@ -428,7 +483,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Bottom sticky (mobile) */}
       {isSmall && (
         <div className="fixed inset-x-0 bottom-0 z-50">
           <div className="mx-auto w-full bg-white/85 dark:bg-[#0b0c0f]/85 backdrop-blur-md border-t border-zinc-200 dark:border-white/10">
@@ -468,7 +522,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </div>
       )}
 
-      {/* Dropdowns (anchored) */}
       <PortalLayer
         anchorRef={notifBtnRef}
         open={isNotificationOpen}
@@ -496,7 +549,6 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         </PortalLayer>
       )}
 
-      {/* Auth modal: KHÔNG dùng PortalLayer, render thẳng ra body */}
       {!auth?.user && isAuthOpen && (
         <AuthModal onClose={() => setIsAuthOpen(false)} />
       )}

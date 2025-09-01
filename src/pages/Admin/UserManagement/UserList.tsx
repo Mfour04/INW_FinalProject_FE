@@ -189,7 +189,7 @@ const UserList = () => {
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
     onError: (error: any) => {
-      toast?.onOpen(error?.message || "Cập nhật trạng thái khóa thất bại");
+      toast?.onOpen({ message: error?.message || "Cập nhật trạng thái khóa thất bại", variant: "error"});
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
   });
