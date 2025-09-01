@@ -85,7 +85,7 @@ const ReportList = () => {
       setDialog({ open: false, reportId: null, action: null });
     },
     onError: () => {
-      toast?.onOpen("Cập nhật trạng thái thất bại! Vui lòng thử lại.");
+      toast?.onOpen({ message: "Cập nhật trạng thái thất bại! Vui lòng thử lại.", variant: "error"});
       setDialog({ open: false, reportId: null, action: null });
     },
   });

@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { AnimatePresence, motion, type Transition } from "framer-motion";
-import { ShieldAlert, CheckCircle2, AlertTriangle, X, Loader2, Clock, ChevronDown, Check, FileText } from "lucide-react";
+import {
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  X,
+  Loader2,
+  Clock,
+  ChevronDown,
+  Check,
+  FileText,
+} from "lucide-react";
 
 export type Variant = "neutral" | "success" | "danger";
 
@@ -16,10 +26,12 @@ export interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
-  type?: string; // "novel" => ẩn body, nối sát header-footer, bỏ border
+  type?: string;
 }
 
-type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean };
+type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  loading?: boolean;
+};
 const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
   ({ loading, children, className = "", ...rest }, ref) => (
     <button
@@ -42,17 +54,39 @@ const BaseBtn = forwardRef<HTMLButtonElement, BtnProps>(
 );
 BaseBtn.displayName = "BaseBtn";
 
-const spring: Transition = { type: "spring", stiffness: 420, damping: 36, mass: 0.65 };
-const DURATIONS = ["12 tiếng", "1 ngày", "3 ngày", "7 ngày", "15 ngày", "30 ngày", "Vĩnh viễn"] as const;
+const spring: Transition = {
+  type: "spring",
+  stiffness: 420,
+  damping: 36,
+  mass: 0.65,
+};
+const DURATIONS = [
+  "12 tiếng",
+  "1 ngày",
+  "3 ngày",
+  "7 ngày",
+  "15 ngày",
+  "30 ngày",
+  "Vĩnh viễn",
+] as const;
 
 const tone = (v: Variant) => {
   switch (v) {
     case "success":
-      return { icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" />, cta: "bg-emerald-600 hover:bg-emerald-500 text-white" };
+      return {
+        icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" />,
+        cta: "bg-emerald-600 hover:bg-emerald-500 text-white",
+      };
     case "danger":
-      return { icon: <ShieldAlert className="w-6 h-6 text-rose-500" />, cta: "bg-rose-600 hover:bg-rose-500 text-white" };
+      return {
+        icon: <ShieldAlert className="w-6 h-6 text-rose-500" />,
+        cta: "bg-rose-600 hover:bg-rose-500 text-white",
+      };
     default:
-      return { icon: <AlertTriangle className="w-6 h-6 text-[#ff6740]" />, cta: "bg-[#ff6740] hover:bg-[#e14b2e] text-white" };
+      return {
+        icon: <AlertTriangle className="w-6 h-6 text-[#ff6740]" />,
+        cta: "bg-[#ff6740] hover:bg-[#e14b2e] text-white",
+      };
   }
 };
 
@@ -82,7 +116,14 @@ const ConfirmDialog = ({
   const selectBtnRef = useRef<HTMLButtonElement>(null);
   const selectListRef = useRef<HTMLDivElement>(null);
 
-  const currentIdx = useMemo(() => Math.max(0, DURATIONS.findIndex((d) => d === duration)), [duration]);
+  const currentIdx = useMemo(
+    () =>
+      Math.max(
+        0,
+        DURATIONS.findIndex((d) => d === duration)
+      ),
+    [duration]
+  );
   const isNovel = type === "novel";
 
   useEffect(() => {
@@ -92,7 +133,10 @@ const ConfirmDialog = ({
   useEffect(() => {
     if (!openSelect) return;
     const onDoc = (e: MouseEvent) => {
-      if (!selectBtnRef.current?.contains(e.target as Node) && !selectListRef.current?.contains(e.target as Node)) {
+      if (
+        !selectBtnRef.current?.contains(e.target as Node) &&
+        !selectListRef.current?.contains(e.target as Node)
+      ) {
         setOpenSelect(false);
       }
     };
@@ -106,14 +150,18 @@ const ConfirmDialog = ({
       if (e.key !== "Tab") return;
       const root = dialogRef.current;
       if (!root) return;
-      const focusables = root.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const focusables = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
       if (focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       if (e.shiftKey && document.activeElement === first) {
-        (last as HTMLElement).focus(); e.preventDefault();
+        (last as HTMLElement).focus();
+        e.preventDefault();
       } else if (!e.shiftKey && document.activeElement === last) {
-        (first as HTMLElement).focus(); e.preventDefault();
+        (first as HTMLElement).focus();
+        e.preventDefault();
       }
     };
     document.addEventListener("keydown", handleKey);
@@ -126,8 +174,11 @@ const ConfirmDialog = ({
 
   const onKeyDownDialog = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
-      if (openSelect) { setOpenSelect(false); return; }
-      onClose();
+      if (openSelect) {
+        setOpenSelect(false);
+        return;
+      }
+      if (!loading) onClose();
     }
     if (e.key === "Enter" && !openSelect) {
       e.preventDefault();
@@ -145,13 +196,20 @@ const ConfirmDialog = ({
       return;
     }
     if (e.key === "Escape") {
-      e.preventDefault(); setOpenSelect(false); selectBtnRef.current?.focus(); return;
+      e.preventDefault();
+      setOpenSelect(false);
+      selectBtnRef.current?.focus();
+      return;
     }
     if (e.key === "ArrowDown") {
-      e.preventDefault(); setActiveIndex((i) => (i + 1) % DURATIONS.length); return;
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % DURATIONS.length);
+      return;
     }
     if (e.key === "ArrowUp") {
-      e.preventDefault(); setActiveIndex((i) => (i - 1 + DURATIONS.length) % DURATIONS.length); return;
+      e.preventDefault();
+      setActiveIndex((i) => (i - 1 + DURATIONS.length) % DURATIONS.length);
+      return;
     }
     if (e.key === "Enter") {
       e.preventDefault();
@@ -175,7 +233,6 @@ const ConfirmDialog = ({
     });
   };
 
-  // Header/Footer classes — khi isNovel: bỏ border và loại bỏ khoảng trống giữa 2 phần
   const headerClass = isNovel
     ? "flex items-center gap-3 p-5 border-b border-zinc-200 dark:border-white/10"
     : "flex items-center gap-3 px-5 pt-5 pb-0";
@@ -184,7 +241,10 @@ const ConfirmDialog = ({
     ? "flex justify-end gap-2 px-5 py-4 border-t border-zinc-200 dark:border-white/10"
     : "flex justify-end gap-2 px-5 pt-0 pb-4";
 
-  const ariaDescribedBy = !isNovel && (subtitle || showDuration || showNote) ? "cd-subtitle" : undefined;
+  const ariaDescribedBy =
+    !isNovel && (subtitle || showDuration || showNote)
+      ? "cd-subtitle"
+      : undefined;
 
   return (
     <AnimatePresence>
@@ -196,7 +256,7 @@ const ConfirmDialog = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] backdrop-blur-sm"
+            className="fixed inset-0 z-[1000] backdrop-blur-sm bg-black/40"
           />
           <motion.div
             role="dialog"
@@ -219,11 +279,19 @@ const ConfirmDialog = ({
                   {t.icon}
                 </div>
                 <div className="min-w-0">
-                  <h3 id="cd-title" className="text-md font-semibold text-zinc-900 dark:text-white">
+                  <h3
+                    id="cd-title"
+                    className="text-md font-semibold text-zinc-900 dark:text-white"
+                  >
                     {title}
                   </h3>
                   {!isNovel && subtitle && (
-                    <p id="cd-subtitle" className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
+                    <p
+                      id="cd-subtitle"
+                      className="mt-1 text-sm text-zinc-600 dark:text-zinc-400"
+                    >
+                      {subtitle}
+                    </p>
                   )}
                 </div>
                 <button
@@ -240,7 +308,9 @@ const ConfirmDialog = ({
                 <div className="p-5 space-y-4">
                   {showDuration && (
                     <div>
-                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">Thời hạn khóa</label>
+                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
+                        Thời hạn khóa
+                      </label>
                       <div className="relative" onKeyDown={onKeyDownSelect}>
                         <button
                           ref={selectBtnRef}
@@ -286,7 +356,9 @@ const ConfirmDialog = ({
                               <div className="max-h-56 overflow-auto overscroll-contain">
                                 {DURATIONS.map((opt, idx) => {
                                   const selected = opt === duration;
-                                  const active = idx === activeIndex || (activeIndex === -1 && selected);
+                                  const active =
+                                    idx === activeIndex ||
+                                    (activeIndex === -1 && selected);
                                   return (
                                     <button
                                       key={opt}
@@ -297,12 +369,18 @@ const ConfirmDialog = ({
                                       onClick={() => commitSelect(idx)}
                                       className={[
                                         "w-full text-left px-3 py-2.5 text-sm flex items-center gap-2",
-                                        active ? "bg-zinc-100/80 dark:bg-white/10" : "bg-transparent",
-                                        selected ? "font-semibold text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-200",
+                                        active
+                                          ? "bg-zinc-100/80 dark:bg-white/10"
+                                          : "bg-transparent",
+                                        selected
+                                          ? "font-semibold text-zinc-900 dark:text-white"
+                                          : "text-zinc-700 dark:text-zinc-200",
                                       ].join(" ")}
                                     >
                                       <span className="inline-flex items-center justify-center w-5">
-                                        {selected ? <Check className="w-4 h-4" /> : null}
+                                        {selected ? (
+                                          <Check className="w-4 h-4" />
+                                        ) : null}
                                       </span>
                                       <span className="truncate">{opt}</span>
                                     </button>
@@ -318,7 +396,9 @@ const ConfirmDialog = ({
 
                   {showNote && (
                     <div>
-                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">Ghi chú / Lý do</label>
+                      <label className="block text-sm font-medium mb-1.5 text-zinc-700 dark:text-zinc-200">
+                        Ghi chú / Lý do
+                      </label>
                       <div className="relative">
                         <FileText className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
                         <textarea
@@ -336,7 +416,9 @@ const ConfirmDialog = ({
                             "focus:outline-none focus:ring-2 focus:ring-[#ff6740]/40",
                           ].join(" ")}
                         />
-                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">{note.length}/500</div>
+                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 text-right">
+                          {note.length}/500
+                        </div>
                       </div>
                     </div>
                   )}
@@ -344,11 +426,27 @@ const ConfirmDialog = ({
               )}
 
               <div className={footerClass}>
-                <BaseBtn onClick={onClose} loading={loading} className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white">
+                <BaseBtn
+                  onClick={onClose}
+                  loading={false}
+                  disabled={loading}
+                  className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white"
+                >
                   {cancelLabel ?? "Hủy"}
                 </BaseBtn>
-                <BaseBtn ref={confirmRef} onClick={handleConfirm} loading={loading} className={t.cta}>
-                  {confirmLabel ?? (variant === "danger" ? "Xác nhận" : variant === "success" ? "Duyệt" : "Đồng ý")}
+
+                <BaseBtn
+                  ref={confirmRef}
+                  onClick={handleConfirm}
+                  loading={loading}
+                  className={t.cta}
+                >
+                  {confirmLabel ??
+                    (variant === "danger"
+                      ? "Xác nhận"
+                      : variant === "success"
+                      ? "Duyệt"
+                      : "Đồng ý")}
                 </BaseBtn>
               </div>
             </div>
