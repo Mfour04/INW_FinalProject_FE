@@ -117,7 +117,7 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
 
   const handleSendReview = () => {
     if (ratingRequest.score === 0) {
-      toast?.onOpen("Vui lòng chọn số sao trước khi gửi đánh giá!");
+      toast?.onOpen({ message: "Vui lòng chọn số sao trước khi gửi!", variant: "error"});
       return;
     }
     const content = (ratingRequest.content ?? "").slice(0, MAX_LEN);
