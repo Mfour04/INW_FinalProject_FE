@@ -9,8 +9,14 @@ import { GetReportById } from "../../../api/Admin/Report/report.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GetNovelById } from "../../../api/Novels/novel.api";
 import { GetChapter } from "../../../api/Chapters/chapter.api";
-import { DeleteForumPost, GetForumPostById } from "../../../api/Admin/Forum/forum.api";
-import { DeleteForumComment, GetForumCommentById } from "../../../api/Admin/ForumComment/forumComment.api";
+import {
+  DeleteForumPost,
+  GetForumPostById,
+} from "../../../api/Admin/Forum/forum.api";
+import {
+  DeleteForumComment,
+  GetForumCommentById,
+} from "../../../api/Admin/ForumComment/forumComment.api";
 import { GetUserById } from "../../../api/Admin/User/user.api";
 import { useNavigate } from "react-router-dom";
 import { ConfirmModal } from "../../../components/ConfirmModal/ConfirmModal";
@@ -25,6 +31,10 @@ import {
   FileText,
   ShieldAlert,
 } from "lucide-react";
+import {
+  DeleteComment,
+  GetCommentById,
+} from "../../../api/Admin/Comment/comment.api";
 
 interface ReportDetailPopupProps {
   isOpen: boolean;
@@ -44,13 +54,14 @@ const Chip = ({
       "bg-zinc-100 text-zinc-800 ring-1 ring-zinc-300 dark:bg-white/10 dark:text-zinc-100 dark:ring-white/10",
     success:
       "bg-emerald-100 text-emerald-900 ring-1 ring-emerald-300/60 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-300/20",
-    warn:
-      "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-300/20",
+    warn: "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-300/20",
     danger:
       "bg-rose-100 text-rose-900 ring-1 ring-rose-300/60 dark:bg-rose-400/10 dark:text-rose-200 dark:ring-rose-300/20",
   } as const;
   return (
-    <span className={`inline-flex items-center h-7 px-2.5 rounded-xl text-xs font-semibold ${map[tone]}`}>
+    <span
+      className={`inline-flex items-center h-7 px-2.5 rounded-xl text-xs font-semibold ${map[tone]}`}
+    >
       {children}
     </span>
   );
@@ -87,8 +98,12 @@ const Section = ({
 }) => (
   <div className="rounded-2xl ring-1 ring-zinc-200 bg-white/90 backdrop-blur p-4 dark:ring-white/10 dark:bg-white/[0.04]">
     <div className="flex items-center gap-2 mb-3">
-      {icon ? <span className="text-zinc-600 dark:text-zinc-300">{icon}</span> : null}
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
+      {icon ? (
+        <span className="text-zinc-600 dark:text-zinc-300">{icon}</span>
+      ) : null}
+      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        {title}
+      </h3>
     </div>
     <div className="space-y-2.5">{children}</div>
   </div>
@@ -118,48 +133,121 @@ const ReportDetailPopup = ({
     id: string;
   } | null>(null);
 
-  const { data: reportData, isLoading: isReportLoading, error: reportError } = useQuery({
+  const {
+    data: reportData,
+    isLoading: isReportLoading,
+    error: reportError,
+  } = useQuery({
     queryKey: ["Report", reportId],
-    queryFn: () => (reportId ? GetReportById(reportId).then((res) => res.data) : Promise.reject("No report ID")),
+    queryFn: () =>
+      reportId
+        ? GetReportById(reportId).then((res) => res.data)
+        : Promise.reject("No report ID"),
     enabled: isOpen && !!reportId,
   });
   const report: Report | undefined = reportData?.data;
 
-  const { data: userData, isLoading: isUserLoading, error: userError } = useQuery({
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    error: userError,
+  } = useQuery({
     queryKey: ["User", report?.reporter.id],
-    queryFn: () => (report?.reporter.id ? GetUserById(report.reporter.id).then((res) => res.data) : Promise.reject("No user ID")),
+    queryFn: () =>
+      report?.reporter.id
+        ? GetUserById(report.reporter.id).then((res) => res.data)
+        : Promise.reject("No user ID"),
     enabled: isOpen && !!report?.reporter.id,
   });
 
-  const { data: memberData, isLoading: isMemberLoading, error: memberError } = useQuery({
+  const {
+    data: memberData,
+    isLoading: isMemberLoading,
+    error: memberError,
+  } = useQuery({
     queryKey: ["Member", report?.targetUserId],
-    queryFn: () => (report?.targetUserId ? GetUserById(report.targetUserId).then((res) => res.data) : Promise.reject("No member ID")),
+    queryFn: () =>
+      report?.targetUserId
+        ? GetUserById(report.targetUserId).then((res) => res.data)
+        : Promise.reject("No member ID"),
     enabled: isOpen && !!report?.targetUserId,
   });
 
-  const { data: novelData, isLoading: isNovelLoading, error: novelError } = useQuery({
+  const {
+    data: novelData,
+    isLoading: isNovelLoading,
+    error: novelError,
+  } = useQuery({
     queryKey: ["Novel", report?.novelId],
-    queryFn: () => (report?.novelId ? GetNovelById(report.novelId).then((res) => res.data) : Promise.reject("No novel ID")),
+    queryFn: () =>
+      report?.novelId
+        ? GetNovelById(report.novelId).then((res) => res.data)
+        : Promise.reject("No novel ID"),
     enabled: isOpen && !!report?.novelId && report?.scope === 0,
   });
 
-  const { data: chapterData, isLoading: isChapterLoading, error: chapterError } = useQuery({
+  const {
+    data: chapterData,
+    isLoading: isChapterLoading,
+    error: chapterError,
+  } = useQuery({
     queryKey: ["Chapter", report?.chapterId],
-    queryFn: () => (report?.chapterId ? GetChapter(report.chapterId).then((res) => res.data) : Promise.reject("No chapter ID")),
+    queryFn: () =>
+      report?.chapterId
+        ? GetChapter(report.chapterId).then((res) => res.data)
+        : Promise.reject("No chapter ID"),
     enabled: isOpen && !!report?.chapterId && report?.scope === 1,
   });
 
-  const { data: postsData, isLoading: isForumPostLoading, error: forumPostsError } = useQuery({
-    queryKey: ["ForumPost", report?.forumPostId],
-    queryFn: () => (report?.forumPostId ? GetForumPostById(report.forumPostId).then((res) => res.data) : Promise.reject("No post ID")),
-    enabled: isOpen && !!report?.forumPostId && report?.scope === 3,
+  const {
+    data: commentData,
+    isLoading: isCommentLoading,
+    error: commentError,
+  } = useQuery({
+    queryKey: ["Comment", report?.commentId],
+    queryFn: () =>
+      report?.commentId
+        ? GetCommentById(report.commentId).then((res) => res.data)
+        : Promise.reject("No comment ID"),
+    enabled:
+      isOpen &&
+      !!report?.commentId &&
+      report?.scope === 2 &&
+      !report?.isTargetDisappear,
   });
 
-  const { data: forumCommentsData, isLoading: isForumPostCommentLoading, error: forumPostCommentsError } = useQuery({
+  const {
+    data: postsData,
+    isLoading: isForumPostLoading,
+    error: forumPostsError,
+  } = useQuery({
+    queryKey: ["ForumPost", report?.forumPostId],
+    queryFn: () =>
+      report?.forumPostId
+        ? GetForumPostById(report.forumPostId).then((res) => res.data)
+        : Promise.reject("No post ID"),
+    enabled:
+      isOpen &&
+      !!report?.forumPostId &&
+      report?.scope === 3 &&
+      !report?.isTargetDisappear,
+  });
+
+  const {
+    data: forumCommentsData,
+    isLoading: isForumPostCommentLoading,
+    error: forumPostCommentsError,
+  } = useQuery({
     queryKey: ["ForumPostComment", report?.forumCommentId],
     queryFn: () =>
-      report?.forumCommentId ? GetForumCommentById(report.forumCommentId).then((res) => res.data) : Promise.reject("No comment ID"),
-    enabled: isOpen && !!report?.forumCommentId && report?.scope === 4,
+      report?.forumCommentId
+        ? GetForumCommentById(report.forumCommentId).then((res) => res.data)
+        : Promise.reject("No comment ID"),
+    enabled:
+      isOpen &&
+      !!report?.forumCommentId &&
+      report?.scope === 4 &&
+      !report?.isTargetDisappear,
   });
 
   const deleteMutation = useMutation({
@@ -168,17 +256,25 @@ const ReportDetailPopup = ({
       let deleteResult;
       switch (deleteTarget.type) {
         case "comment":
-          throw new Error("Chưa hỗ trợ xóa comment tại popup này");
+          deleteResult = await DeleteComment(deleteTarget.id).then(
+            (res) => res.data
+          );
+          break;
         case "forumPost":
-          deleteResult = await DeleteForumPost(deleteTarget.id).then((res) => res.data);
+          deleteResult = await DeleteForumPost(deleteTarget.id).then(
+            (res) => res.data
+          );
           break;
         case "forumComment":
-          deleteResult = await DeleteForumComment(deleteTarget.id).then((res) => res.data);
+          deleteResult = await DeleteForumComment(deleteTarget.id).then(
+            (res) => res.data
+          );
           break;
         default:
           throw new Error("Invalid delete type");
       }
-      if (!deleteResult.success) throw new Error(deleteResult.message || "Delete failed");
+      if (!deleteResult.success)
+        throw new Error(deleteResult.message || "Delete failed");
       return deleteResult;
     },
     onSuccess: () => {
@@ -259,7 +355,9 @@ const ReportDetailPopup = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
-                  <h2 className="text-base md:text-lg font-semibold">Chi tiết báo cáo</h2>
+                  <h2 className="text-base md:text-lg font-semibold">
+                    Chi tiết báo cáo
+                  </h2>
                 </div>
               </div>
               <button
@@ -279,12 +377,20 @@ const ReportDetailPopup = ({
                   <Skeleton rows={6} />
                 </Section>
               ) : reportError || !report ? (
-                <Section title="Không thể tải báo cáo" icon={<ShieldAlert className="w-4 h-4 text-rose-500" />}>
-                  <p className="text-sm text-rose-600 dark:text-rose-300">Đã xảy ra lỗi khi tải dữ liệu.</p>
+                <Section
+                  title="Không thể tải báo cáo"
+                  icon={<ShieldAlert className="w-4 h-4 text-rose-500" />}
+                >
+                  <p className="text-sm text-rose-600 dark:text-rose-300">
+                    Đã xảy ra lỗi khi tải dữ liệu.
+                  </p>
                 </Section>
               ) : (
                 <>
-                  <Section title="Thông tin báo cáo" icon={<Info className="w-4 h-4" />}>
+                  <Section
+                    title="Thông tin báo cáo"
+                    icon={<Info className="w-4 h-4" />}
+                  >
                     <Row
                       icon={<UserRound className="w-4 h-4" />}
                       label="Người báo cáo"
@@ -293,7 +399,9 @@ const ReportDetailPopup = ({
                           ? "Đang tải…"
                           : userError || !userData
                           ? "Không rõ"
-                          : `${userData.userName} (${userData.displayName ?? "—"})`
+                          : `${userData.userName} (${
+                              userData.displayName ?? "—"
+                            })`
                       }
                     />
                     <Row
@@ -304,7 +412,9 @@ const ReportDetailPopup = ({
                     <Row
                       icon={<MessageSquare className="w-4 h-4" />}
                       label="Lý do"
-                      value={ReportReasonLabel[report.reason] || "Không có lý do"}
+                      value={
+                        ReportReasonLabel[report.reason] || "Không có lý do"
+                      }
                     />
                     <Row
                       icon={<FileText className="w-4 h-4" />}
@@ -329,20 +439,39 @@ const ReportDetailPopup = ({
                     <Row
                       icon={<CalendarClock className="w-4 h-4" />}
                       label="Ngày xử lý"
-                      value={report.moderatedAt ? formatVietnamTimeFromTicks(report.moderatedAt) : "Chưa xử lý"}
+                      value={
+                        report.moderatedAt
+                          ? formatVietnamTimeFromTicks(report.moderatedAt)
+                          : "Chưa xử lý"
+                      }
                     />
                   </Section>
 
-                  <Section title="Thông tin đối tượng" icon={<Tag className="w-4 h-4" />}>
-                    {report.scope === 5 ? (
+                  <Section
+                    title="Thông tin đối tượng"
+                    icon={<Tag className="w-4 h-4" />}
+                  >
+                    {report.isTargetDisappear ? (
+                      <p className="text-sm text-rose-600 dark:text-rose-300">
+                        Đối tượng đã bị xóa
+                      </p>
+                    ) : report.scope === 5 ? (
                       isUserLoading || isMemberLoading ? (
                         <Skeleton rows={3} />
                       ) : memberError || !memberData ? (
-                        <p className="text-sm text-rose-600 dark:text-rose-300">Không thể lấy thông tin người dùng</p>
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể lấy thông tin người dùng
+                        </p>
                       ) : (
                         <>
-                          <Row label="Người bị báo cáo" value={`${memberData.userName} (${memberData.displayName})`} />
-                          <Row label="Email" value={memberData.email || "Không có"} />
+                          <Row
+                            label="Người bị báo cáo"
+                            value={`${memberData.userName} (${memberData.displayName})`}
+                          />
+                          <Row
+                            label="Email"
+                            value={memberData.email || "Không có"}
+                          />
                           <Row label="Vai trò" value={memberData.role} />
                         </>
                       )
@@ -350,17 +479,30 @@ const ReportDetailPopup = ({
                       isNovelLoading ? (
                         <Skeleton rows={3} />
                       ) : novelError || !novelData?.data ? (
-                        <p className="text-sm text-rose-600 dark:text-rose-300">Không thể lấy tiểu thuyết</p>
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể lấy tiểu thuyết
+                        </p>
                       ) : (
                         <>
-                          <Row label="Tiêu đề" value={novelData.data.novelInfo.title} />
+                          <Row
+                            label="Tiêu đề"
+                            value={novelData.data.novelInfo.title}
+                          />
                           <Row
                             label="Giá"
-                            value={novelData.data.novelInfo.price === 0 ? "Miễn phí" : `${novelData.data.novelInfo.price} xu`}
+                            value={
+                              novelData.data.novelInfo.price === 0
+                                ? "Miễn phí"
+                                : `${novelData.data.novelInfo.price} xu`
+                            }
                           />
                           <Row
                             label="Trạng thái"
-                            value={novelData.data.novelInfo.status === 1 ? "Hoàn thành" : "Đang tiến hành"}
+                            value={
+                              novelData.data.novelInfo.status === 1
+                                ? "Hoàn thành"
+                                : "Đang tiến hành"
+                            }
                           />
                         </>
                       )
@@ -368,26 +510,84 @@ const ReportDetailPopup = ({
                       isChapterLoading ? (
                         <Skeleton rows={2} />
                       ) : chapterError || !chapterData?.data ? (
-                        <p className="text-sm text-rose-600 dark:text-rose-300">Không thể lấy chương</p>
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể lấy chương
+                        </p>
                       ) : (
                         <>
-                          <Row label="Tiêu đề" value={chapterData.data.chapter.title} />
-                          <Row label="Giá" value={`${chapterData.data.chapter.price || 0} xu`} />
+                          <Row
+                            label="Tiêu đề"
+                            value={chapterData.data.chapter.title}
+                          />
+                          <Row
+                            label="Giá"
+                            value={`${chapterData.data.chapter.price || 0} xu`}
+                          />
+                        </>
+                      )
+                    ) : report.scope === 2 ? (
+                      isCommentLoading ? (
+                        <Skeleton rows={2} />
+                      ) : commentError || !commentData?.data ? (
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể tải bình luận:{" "}
+                          {commentError?.message || "Dữ liệu không hợp lệ"}
+                        </p>
+                      ) : (
+                        <>
+                          <Row
+                            label="Nội dung"
+                            value={
+                              commentData.data.content || "Không có nội dung"
+                            }
+                          />
+                          <Row
+                            label="Người bình luận"
+                            value={
+                              commentData.data.author?.username || "Không rõ"
+                            }
+                          />
+                          <div className="pt-1">
+                            <button
+                              onClick={() =>
+                                setDeleteTarget({
+                                  type: "comment",
+                                  id: commentData.data.id,
+                                })
+                              }
+                              className="inline-flex items-center gap-2 h-9 px-3 rounded-xl text-sm font-medium bg-rose-600/90 hover:bg-rose-600 text-white"
+                            >
+                              Xóa bình luận
+                            </button>
+                          </div>
                         </>
                       )
                     ) : report.scope === 3 ? (
                       isForumPostLoading ? (
                         <Skeleton rows={3} />
                       ) : forumPostsError || !postsData?.data ? (
-                        <p className="text-sm text-rose-600 dark:text-rose-300">Không thể tải bài viết</p>
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể tải bài viết
+                        </p>
                       ) : (
                         <>
                           <Row label="Tiêu đề" value={postsData.data.title} />
-                          <Row label="Nội dung" value={postsData.data.content} />
-                          <Row label="Người đăng" value={postsData.data.author.username} />
+                          <Row
+                            label="Nội dung"
+                            value={postsData.data.content}
+                          />
+                          <Row
+                            label="Người đăng"
+                            value={postsData.data.author.username}
+                          />
                           <div className="pt-1">
                             <button
-                              onClick={() => setDeleteTarget({ type: "forumPost", id: postsData.data.id })}
+                              onClick={() =>
+                                setDeleteTarget({
+                                  type: "forumPost",
+                                  id: postsData.data.id,
+                                })
+                              }
                               className="inline-flex items-center gap-2 h-9 px-3 rounded-xl text-sm font-medium bg-rose-600/90 hover:bg-rose-600 text-white"
                             >
                               Xóa bài viết
@@ -399,14 +599,27 @@ const ReportDetailPopup = ({
                       isForumPostCommentLoading ? (
                         <Skeleton rows={2} />
                       ) : forumPostCommentsError || !forumCommentsData?.data ? (
-                        <p className="text-sm text-rose-600 dark:text-rose-300">Không thể tải bình luận</p>
+                        <p className="text-sm text-rose-600 dark:text-rose-300">
+                          Không thể tải bình luận
+                        </p>
                       ) : (
                         <>
-                          <Row label="Nội dung" value={forumCommentsData.data.content} />
-                          <Row label="Người bình luận" value={forumCommentsData.data.author.username} />
+                          <Row
+                            label="Nội dung"
+                            value={forumCommentsData.data.content}
+                          />
+                          <Row
+                            label="Người bình luận"
+                            value={forumCommentsData.data.author.username}
+                          />
                           <div className="pt-1">
                             <button
-                              onClick={() => setDeleteTarget({ type: "forumComment", id: forumCommentsData.data.id })}
+                              onClick={() =>
+                                setDeleteTarget({
+                                  type: "forumComment",
+                                  id: forumCommentsData.data.id,
+                                })
+                              }
                               className="inline-flex items-center gap-2 h-9 px-3 rounded-xl text-sm font-medium bg-rose-600/90 hover:bg-rose-600 text-white"
                             >
                               Xóa bình luận
@@ -415,31 +628,46 @@ const ReportDetailPopup = ({
                         </>
                       )
                     ) : (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-300">Chưa có thông tin</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                        Chưa có thông tin
+                      </p>
                     )}
                   </Section>
 
                   {report.moderator && (
-                    <Section title="Người xử lý" icon={<UserRound className="w-4 h-4" />}>
+                    <Section
+                      title="Người xử lý"
+                      icon={<UserRound className="w-4 h-4" />}
+                    >
                       <Row
                         label="Người xử lý"
                         value={`${report.moderator.username} (${report.moderator.displayName})`}
                       />
-                      <Row label="Thời điểm" value={formatVietnamTimeFromTicks(report.moderatedAt!)} />
-                      <Row label="Ghi chú" value={report.moderatorNote || "—"} />
+                      <Row
+                        label="Thời điểm"
+                        value={formatVietnamTimeFromTicks(report.moderatedAt!)}
+                      />
+                      <Row
+                        label="Ghi chú"
+                        value={report.moderatorNote || "—"}
+                      />
                     </Section>
                   )}
 
                   <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                    {(report.scope === 5 || report.scope === 0 || report.scope === 1) && !report.moderator && (
-                      <button
-                        onClick={handleNavigate}
-                        className="h-9 px-3 rounded-xl text-sm font-medium bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-                      >
-                        Chuyển đến trang quản lý
-                      </button>
-                    )}
-                    {!!deleteTarget && (
+                    {(report.scope === 5 ||
+                      report.scope === 0 ||
+                      report.scope === 1) &&
+                      !report.moderator &&
+                      !report.isTargetDisappear && (
+                        <button
+                          onClick={handleNavigate}
+                          className="h-9 px-3 rounded-xl text-sm font-medium bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+                        >
+                          Chuyển đến trang quản lý
+                        </button>
+                      )}
+                    {!!deleteTarget && !report.isTargetDisappear && (
                       <button
                         onClick={() => setIsConfirmOpen(true)}
                         className="h-9 px-3 rounded-xl text-sm font-medium bg-rose-600/90 hover:bg-rose-600 text-white"

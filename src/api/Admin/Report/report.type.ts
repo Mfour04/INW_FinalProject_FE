@@ -136,6 +136,7 @@ export type Report = {
   moderatedAt?: number;
   createdAt: number;
   updatedAt: number;
+  isTargetDisappear: boolean;
 
   // ==== Novel ====
   novelId?: string;
