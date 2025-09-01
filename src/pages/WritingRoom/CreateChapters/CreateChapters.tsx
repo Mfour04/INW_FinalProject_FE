@@ -417,9 +417,7 @@ export const CreateChapters = () => {
             <MiniPager
               totalPages={totalPages}
               currentPage={currentPage}
-              onChange={(p) => {
-                console.log("goto page", p);
-              }}
+              onChange={(p) => {}}
             />
           </div>
         </div>

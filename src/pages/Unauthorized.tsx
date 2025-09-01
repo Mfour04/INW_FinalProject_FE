@@ -1,12 +1,27 @@
+import { Lock } from "lucide-react";
+
 export const Unauthorized = () => {
   return (
-    <div className="flex justify-center items-center h-screen bg-[#1c1c1f] text-white px-4">
-      <div className="bg-[#2a2a2e] px-8 py-6 rounded-xl shadow-lg text-center max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-3">🔒 Truy cập bị từ chối</h2>
-        <p className="text-sm opacity-80">
-          Bạn không có đủ
-          <span className="font-medium text-[#ff6740]">quyền hạn</span> để truy
-          cập vào trang này.
+    <div
+      className="max-h-screen h-full grid place-items-center
+                text-zinc-900 dark:bg-[#0b0e13] dark:text-white px-4"
+    >
+      <div
+        className="w-full max-w-md rounded-2xl p-8 text-center shadow-lg
+                   bg-white ring-1 ring-zinc-200
+                   dark:bg-[#1b1d22] dark:ring-white/10"
+      >
+        <div
+          className="mx-auto mb-4 h-12 w-12 rounded-xl grid place-items-center
+                     bg-rose-100 text-rose-700 ring-1 ring-rose-200
+                     dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/20"
+        >
+          <Lock className="h-6 w-6" />
+        </div>
+
+        <h2 className="text-lg font-semibold mb-2">Truy cập bị từ chối</h2>
+        <p className="text-sm text-zinc-600 dark:text-white/70">
+          Bạn không có quyền để truy cập vào trang này.
         </p>
       </div>
     </div>

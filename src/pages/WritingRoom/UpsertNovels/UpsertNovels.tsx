@@ -79,16 +79,15 @@ export const UpsertNovels = () => {
       toast?.onOpen("Đã lưu vào kho của bạn");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen("Có lỗi khi tạo truyện"),
+    onError: () => toast?.onOpen({ message: "Có lỗi khi tạo truyện", variant: "error"}),
   });
-
   const updateNovelMutation = useMutation({
     mutationFn: (fd: FormData) => UpdateNovels(fd),
     onSuccess: () => {
       toast?.onOpen("Cập nhật thành công");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen("Có lỗi khi cập nhật"),
+    onError: () => toast?.onOpen({ message: "Có lỗi khi cập nhật", variant: "error"}),
   });
 
   const filteredTags = useMemo(() => {
@@ -152,9 +151,7 @@ export const UpsertNovels = () => {
         updateNovelMutation.mutate(fd);
       } else createNovelMutation.mutate(fd);
     else
-      toast?.onOpen(
-        "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!"
-      );
+      toast?.onOpen({ message:  "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!", variant: "warning"})
   };
 
   const handleCheckSlug = () => {

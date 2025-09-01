@@ -3,7 +3,8 @@ import type {
     BlogPost,
     CreateBlogPostRequest,
     BlogPostResponse,
-    CreateBlogPostResponse
+    CreateBlogPostResponse,
+    SingleBlogPostResponse
 } from "./blogs.type";
 
 export const GetBlogPosts = (params?: {
@@ -32,6 +33,9 @@ export const GetUserBlogPosts = (userId: string, params?: {
     http.http.get<BlogPostResponse>(`forums/posts`, {
         params,
     });
+
+export const GetBlogPostById = (postId: string) =>
+    http.http.get<SingleBlogPostResponse>(`forums/posts/${postId}`);
 
 
 

@@ -28,7 +28,7 @@ export const PostContent: React.FC<Props> = ({
   return (
     <div className={className}>
       <div
-        className="whitespace-pre-wrap break-words text-[17px] text-black/95 dark:text-white/95"
+        className="whitespace-pre-wrap break-words text-md text-black/95 dark:text-white/95"
         style={
           expanded
             ? {}

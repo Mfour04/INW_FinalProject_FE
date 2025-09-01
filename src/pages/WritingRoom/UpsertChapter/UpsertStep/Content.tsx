@@ -179,7 +179,6 @@ export const Content = ({
     mutationFn: (request: PlagiarismAIRequest) =>
       PlagiarismCheck(request).then((res) => res.data),
     onSuccess: (data: PlagiarismAIApiResponse) => {
-      console.log(data);
       if (data.data.matchCount > 0) {
         setIsCheck(false);
         setPlagiarismMatches(data.data.matches);
