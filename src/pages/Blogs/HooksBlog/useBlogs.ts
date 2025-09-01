@@ -3,6 +3,7 @@ import {
     GetBlogPosts,
     GetUserBlogPosts,
     GetFollowingBlogPosts,
+    GetBlogPostById,
     CreateBlogPost,
     LikeBlogPost,
     UnlikeBlogPost,
@@ -168,6 +169,34 @@ export const useUpdateBlogPost = () => {
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["user-blog-posts"] });
             queryClient.invalidateQueries({ queryKey: ["following-blog-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["blog-post"] });
         },
+    });
+};
+
+export const useBlogPostById = (postId: string) => {
+    return useQuery({
+        queryKey: ["blog-post", postId],
+        queryFn: async () => {
+            try {
+                const res = await GetBlogPostById(postId);
+                return res.data;
+            } catch (error: any) {
+                console.error("Error fetching blog post by ID:", error);
+                console.error("Error details:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
+                throw error;
+            }
+        },
+        enabled: !!postId,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        retry: 1,
     });
 };
