@@ -12,6 +12,25 @@ export interface Chapter {
   isPublic: boolean;
 }
 
+export interface GetChapter {
+  chapterId: string;
+  novelId: string;
+  title: string;
+  content: string;
+  chapterNumber: number;
+  isPaid: boolean;
+  price: number;
+  scheduledAt: Date | null;
+  isLock: boolean;
+  isDraft: boolean;
+  isPublic: boolean;
+  allowComment: boolean;
+  commentCount: number;
+  totalChapterViews: number;
+  createAt: number;
+  updateAt: number;
+}
+
 export type CreateChapterRequest = Omit<Chapter, "chapterNumber">;
 
 export interface UpdateChapterRequest {
@@ -61,7 +80,7 @@ export interface ChapterAdmin {
 export type ChapterCreatePayload = Omit<Chapter, "novelId">;
 
 export type ChapterResponse = {
-  chapter: Chapter;
+  chapter: GetChapter;
   nextChapterId: string;
   previousChapterId: string;
 };

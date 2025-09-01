@@ -26,9 +26,9 @@ import type { ReportRequest } from "../../api/Report/report.type.ts";
 import { useReport } from "../../hooks/useReport.tsx";
 import type { Comment } from "./types.ts";
 
-type Props = { novelId: string; chapterId: string };
+type Props = { novelId: string; chapterId: string; allowComment: boolean };
 
-export const CommentUser = ({ novelId, chapterId }: Props) => {
+export const CommentUser = ({ novelId, chapterId, allowComment }: Props) => {
   const { auth } = useContext(AuthContext);
   const queryClient = useQueryClient();
 
@@ -329,6 +329,7 @@ export const CommentUser = ({ novelId, chapterId }: Props) => {
                     }
                   : null
               }
+              allowComment={allowComment}
               loginCta={() => alert("Đăng nhập để bình luận")}
             />
           </div>

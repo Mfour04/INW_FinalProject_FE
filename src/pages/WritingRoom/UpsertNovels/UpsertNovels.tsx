@@ -25,7 +25,7 @@ const initialCreateNovelForms: CreateNovelRequest = {
   novelImage: null,
   novelBanner: null,
   tags: [],
-  status: 1,
+  status: 0,
   isPublic: false,
   isPaid: false,
   isLock: false,
@@ -291,10 +291,10 @@ export const UpsertNovels = () => {
                 "dark:bg-[#0e1117]/92 dark:ring-1 dark:ring-white/8 dark:backdrop-blur-sm dark:shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)]",
               ].join(" ")}
             >
-              {/* Tên truyện */}
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
-                  Tên truyện <span className="text-red-500 font-semibold">*</span>
+                  Tên truyện{" "}
+                  <span className="text-red-500 font-semibold">*</span>
                 </label>
                 <input
                   type="text"
@@ -426,7 +426,8 @@ export const UpsertNovels = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] mb-2 font-semibold">
-                    Bìa truyện <span className="text-red-500 font-semibold">*</span>
+                    Bìa truyện{" "}
+                    <span className="text-red-500 font-semibold">*</span>
                   </label>
                   <label
                     className={[
