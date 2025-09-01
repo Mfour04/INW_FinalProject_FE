@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import defaultAvatar from "../../assets/img/default_avt.png";
 import { Heart, MessageSquare, CornerDownRight, Smile } from "lucide-react";
 import { MoreButton } from "./actions/MoreButton";
@@ -55,6 +56,7 @@ export const ReplyThread = ({
   onSaveEdit,
   onReport,
 }: Props) => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(true);
   const [activeEditId, setActiveEditId] = useState<string | null>(null);
   const editRef = useRef<HTMLTextAreaElement | null>(null);
@@ -116,7 +118,10 @@ export const ReplyThread = ({
   }) => (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate(`/profile/${user.replace('@', '')}`)}
+        >
           <p className="truncate text-[14px] font-semibold text-zinc-900 dark:text-white">
             {name}
           </p>
@@ -281,7 +286,8 @@ export const ReplyThread = ({
       <div className="grid grid-cols-[40px_1fr] gap-3 items-start">
         <img
           src={parent.avatarUrl || defaultAvatar}
-          className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate(`/profile/${parent.user.replace('@', '')}`)}
         />
         <div className="min-w-0">
           <Header
@@ -291,7 +297,7 @@ export const ReplyThread = ({
             actions={
               canInteract ? (
                 parent.user === currentUser?.user ||
-                parent.name === currentUser?.name ? (
+                  parent.name === currentUser?.name ? (
                   <MoreUser
                     commentId={parent.id}
                     onDelete={onDelete}
@@ -354,7 +360,8 @@ export const ReplyThread = ({
               >
                 <img
                   src={r.avatarUrl || defaultAvatar}
-                  className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
+                  className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => navigate(`/profile/${r.user.replace('@', '')}`)}
                 />
                 <div className="min-w-0">
                   <Header
