@@ -217,6 +217,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     enabled: !!auth?.accessToken,
   });
 
+  const notReadNotificationIds = userNotifications
+    ?.filter((noti) => noti.isRead === false)
+    .map((noti) => noti.notificationId);
+
   const NotificationMutation = useMutation({
     mutationFn: async (request: ReadNotificationReq) =>
       ReadNotification(request),
@@ -255,7 +259,16 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
 
   const handleClickNotification = async (id: string) => {
     await NotificationMutation.mutateAsync({ notificationIds: [id] });
-    setIsNotificationOpen(false);
+  };
+
+  const handleClickReadAll = async () => {
+    if (notReadNotificationIds && notReadNotificationIds.length > 0) {
+      NotificationMutation.mutateAsync({
+        notificationIds: notReadNotificationIds,
+      });
+    } else {
+      toast?.onOpen("Bạn đã đọc hết tất cả!");
+    }
   };
 
   useEffect(() => {
@@ -270,14 +283,12 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
     [userNotifications]
   );
 
-  // Đổi breakpoint thì đóng tất cả popup
   useEffect(() => {
     setIsNotificationOpen(false);
     setIsUserMenuOpen(false);
     setIsAuthOpen(false);
   }, [isSmall]);
 
-  // Không cho 2 popup cùng lúc
   useEffect(() => {
     if (isNotificationOpen) {
       setIsUserMenuOpen(false);
@@ -290,8 +301,8 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
       setIsUserMenuOpen((v) => !v);
       setIsNotificationOpen(false);
     } else {
-      setIsAuthOpen(true); // mở auth modal full-screen
-      setIsNotificationOpen(false); // đóng dropdown khác
+      setIsAuthOpen(true);
+      setIsNotificationOpen(false);
       setIsUserMenuOpen(false);
     }
   };
@@ -359,7 +370,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
 
                 <button
                   ref={notifBtnRef}
-                  onClick={() => setIsNotificationOpen((prev) => !prev)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsNotificationOpen(!isNotificationOpen);
+                  }}
                   className="relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-zinc-800/10 dark:hover:bg-zinc-800/40"
                   aria-haspopup="menu"
                   aria-expanded={isNotificationOpen}
@@ -431,7 +445,10 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
 
                 <button
                   ref={notifBtnRef}
-                  onClick={() => setIsNotificationOpen((prev) => !prev)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsNotificationOpen(!isNotificationOpen);
+                  }}
                   className="relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-zinc-800/10 dark:hover:bg-zinc-800/40"
                   aria-haspopup="menu"
                   aria-expanded={isNotificationOpen}
@@ -461,6 +478,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         <NotificationDropdown
           open={isNotificationOpen}
           notifications={userNotifications}
+          readAll={handleClickReadAll}
           onClose={() => setIsNotificationOpen(false)}
           onItemClick={handleClickNotification}
           floating

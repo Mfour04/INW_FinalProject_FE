@@ -38,7 +38,6 @@ export const ChapterList = ({
 
   return (
     <div className="space-y-5">
-      {/* Header cập nhật gần nhất */}
       <div
         className="
           rounded-xl px-4 py-3 flex flex-wrap items-center gap-3

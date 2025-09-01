@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Rocket, FileClock, Coins, BadgeDollarSign, Info } from "lucide-react";
+import {
+  CalendarDays,
+  Rocket,
+  FileClock,
+  Coins,
+  BadgeDollarSign,
+  Info,
+} from "lucide-react";
 import type { ChapterForm } from "../UpsertChapter";
 
 type ScheduleAndPriceStepProps = {
@@ -9,12 +16,21 @@ type ScheduleAndPriceStepProps = {
 
 type PublishOption = "draft" | "now" | "scheduled";
 
-export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPriceStepProps) => {
+export const ScheduleAndPrice = ({
+  chapterForm,
+  setChapterForm,
+}: ScheduleAndPriceStepProps) => {
   const [publishOption, setPublishOption] = useState<PublishOption>(
-    chapterForm.isDraft ? "draft" : chapterForm.scheduledAt ? "scheduled" : "now"
+    chapterForm.isDraft
+      ? "draft"
+      : chapterForm.scheduledAt
+      ? "scheduled"
+      : "now"
   );
 
-  const initialDate = chapterForm.scheduledAt ? toDateInputValue(new Date(chapterForm.scheduledAt)) : "";
+  const initialDate = chapterForm.scheduledAt
+    ? toDateInputValue(new Date(chapterForm.scheduledAt))
+    : "";
   const [dateStr, setDateStr] = useState<string>(initialDate);
   const [isPaid, setIsPaid] = useState<boolean>(chapterForm.isPaid);
   const [price, setPrice] = useState<number>(chapterForm.price || 1);
@@ -24,14 +40,17 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
     return parseLocalDate(dateStr);
   }, [publishOption, dateStr]);
 
+  const checkPublish =
+    publishOption === "draft" || publishOption === "scheduled";
+
   useEffect(() => {
     setChapterForm((prev) => {
       const next: ChapterForm = {
         ...prev,
         isPaid,
         price: isPaid ? price : 0,
-        isDraft: publishOption === "draft",
-        isPublic: publishOption !== "draft",
+        isDraft: checkPublish,
+        isPublic: !checkPublish,
         scheduledAt: publishOption === "scheduled" ? publishDate : null,
       };
       if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
@@ -42,10 +61,13 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
   const minDate = toDateInputValue(new Date());
 
   const helperText = useMemo(() => {
-    if (publishOption === "draft") return "Lưu dưới dạng bản nháp (không công khai).";
+    if (publishOption === "draft")
+      return "Lưu dưới dạng bản nháp (không công khai).";
     if (publishOption === "now") return "Xuất bản ngay sau khi lưu.";
     if (publishOption === "scheduled") {
-      return publishDate ? `Xuất bản lúc 00:00 ngày ${formatHumanDate(publishDate)}.` : "Chọn ngày xuất bản.";
+      return publishDate
+        ? `Xuất bản lúc 00:00 ngày ${formatHumanDate(publishDate)}.`
+        : "Chọn ngày xuất bản.";
     }
     return "";
   }, [publishOption, publishDate]);
@@ -56,21 +78,40 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
         <span className="text-[16px] md:text-[17px] font-semibold leading-tight text-zinc-900 dark:text-white/95">
           Lịch xuất bản & Chi phí
         </span>
-        <p className="text-zinc-500 dark:text-white/60 text-[12.5px]">Thiết lập cách phát hành chương và giá coin nếu tính phí</p>
+        <p className="text-zinc-500 dark:text-white/60 text-[12.5px]">
+          Thiết lập cách phát hành chương và giá coin nếu tính phí
+        </p>
       </header>
 
       <div className="grid grid-cols-1 gap-5">
         {/* Cách xuất bản */}
         <div className="rounded-2xl ring-1 p-3 md:p-4 bg-white ring-zinc-200 dark:bg-white/[0.02] dark:ring-white/10">
-          <p className="text-sm font-medium mb-3 text-zinc-900 dark:text-white">Cách xuất bản</p>
+          <p className="text-sm font-medium mb-3 text-zinc-900 dark:text-white">
+            Cách xuất bản
+          </p>
 
           <SegmentedControl
             value={publishOption}
             onChange={setPublishOption}
             items={[
-              { value: "draft", label: "Bản nháp", icon: FileClock, desc: "Lưu lại, chưa công khai" },
-              { value: "now", label: "Xuất bản ngay", icon: Rocket, desc: "Công khai sau khi lưu" },
-              { value: "scheduled", label: "Hẹn ngày", icon: CalendarDays, desc: "Chọn ngày" },
+              {
+                value: "draft",
+                label: "Bản nháp",
+                icon: FileClock,
+                desc: "Lưu lại, chưa công khai",
+              },
+              {
+                value: "now",
+                label: "Xuất bản ngay",
+                icon: Rocket,
+                desc: "Công khai sau khi lưu",
+              },
+              {
+                value: "scheduled",
+                label: "Hẹn ngày",
+                icon: CalendarDays,
+                desc: "Chọn ngày",
+              },
             ]}
           />
 
@@ -79,7 +120,9 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
               <div className="inline-flex items-center gap-2 text-[12.5px] text-zinc-600 dark:text-white/70">
                 <Info className="h-4 w-4" />
                 <span>
-                  {publishDate ? `Xuất bản lúc 00:00 ngày ${formatHumanDate(publishDate)}` : "Chọn ngày xuất bản"}
+                  {publishDate
+                    ? `Xuất bản lúc 00:00 ngày ${formatHumanDate(publishDate)}`
+                    : "Chọn ngày xuất bản"}
                 </span>
               </div>
 
@@ -99,7 +142,9 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
 
         {/* Chi phí */}
         <div className="rounded-2xl ring-1 p-3 md:p-4 bg-white ring-zinc-200 dark:bg-white/[0.02] dark:ring-white/10">
-          <p className="text-sm font-medium mb-3 text-zinc-900 dark:text-white">Chi phí</p>
+          <p className="text-sm font-medium mb-3 text-zinc-900 dark:text-white">
+            Chi phí
+          </p>
 
           {/* Free / Paid pill */}
           <div className="inline-flex rounded-xl overflow-hidden ring-1 bg-zinc-100 ring-zinc-200 dark:bg-white/[0.04] dark:ring-white/10">
@@ -108,7 +153,9 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
               onClick={() => setIsPaid(false)}
               className={[
                 "px-4 h-9 text-sm font-medium transition",
-                !isPaid ? "bg-white text-zinc-900 dark:bg-white/[0.14] dark:text-white" : "text-zinc-700 hover:bg-zinc-200/60 dark:text-white/80 dark:hover:bg-white/[0.08]",
+                !isPaid
+                  ? "bg-white text-zinc-900 dark:bg-white/[0.14] dark:text-white"
+                  : "text-zinc-700 hover:bg-zinc-200/60 dark:text-white/80 dark:hover:bg-white/[0.08]",
               ].join(" ")}
             >
               Miễn phí
@@ -122,7 +169,9 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
               className={[
                 "px-4 h-9 text-sm font-medium transition border-l",
                 "border-zinc-200 dark:border-white/10",
-                isPaid ? "bg-white text-zinc-900 dark:bg-white/[0.14] dark:text-white" : "text-zinc-700 hover:bg-zinc-200/60 dark:text-white/80 dark:hover:bg-white/[0.08]",
+                isPaid
+                  ? "bg-white text-zinc-900 dark:bg-white/[0.14] dark:text-white"
+                  : "text-zinc-700 hover:bg-zinc-200/60 dark:text-white/80 dark:hover:bg-white/[0.08]",
               ].join(" ")}
             >
               Tính phí
@@ -146,14 +195,22 @@ export const ScheduleAndPrice = ({ chapterForm, setChapterForm }: ScheduleAndPri
           {/* Coin chips */}
           {isPaid && (
             <div className="mt-4">
-              <p className="text-[12.5px] text-zinc-600 dark:text-white/70 mb-2">Chọn mức giá (coin)</p>
+              <p className="text-[12.5px] text-zinc-600 dark:text-white/70 mb-2">
+                Chọn mức giá (coin)
+              </p>
               <div className="flex flex-wrap gap-2">
                 {[1, 2, 3, 4, 5].map((val) => (
-                  <CoinChip key={val} value={val} active={price === val} onClick={() => setPrice(val)} />
+                  <CoinChip
+                    key={val}
+                    value={val}
+                    active={price === val}
+                    onClick={() => setPrice(val)}
+                  />
                 ))}
               </div>
               <p className="mt-2 text-[12px] text-zinc-500 dark:text-white/55">
-                Gợi ý: 1–2 coin cho chương ngắn, 3–5 coin cho chương dài/chất lượng cao.
+                Gợi ý: 1–2 coin cho chương ngắn, 3–5 coin cho chương dài/chất
+                lượng cao.
               </p>
             </div>
           )}
@@ -181,7 +238,7 @@ function formatHumanDate(d: Date) {
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-const SegmentedControl = <T extends string,>({
+const SegmentedControl = <T extends string>({
   value,
   onChange,
   items,
@@ -220,7 +277,11 @@ const SegmentedControl = <T extends string,>({
               </span>
               <div>
                 <p className="text-[13px] font-semibold">{it.label}</p>
-                {it.desc && <p className="text-[12px] text-zinc-600 dark:text-white/60">{it.desc}</p>}
+                {it.desc && (
+                  <p className="text-[12px] text-zinc-600 dark:text-white/60">
+                    {it.desc}
+                  </p>
+                )}
               </div>
             </div>
           </button>
@@ -230,7 +291,15 @@ const SegmentedControl = <T extends string,>({
   );
 };
 
-const CoinChip = ({ value, active, onClick }: { value: number; active: boolean; onClick: () => void }) => {
+const CoinChip = ({
+  value,
+  active,
+  onClick,
+}: {
+  value: number;
+  active: boolean;
+  onClick: () => void;
+}) => {
   return (
     <button
       type="button"

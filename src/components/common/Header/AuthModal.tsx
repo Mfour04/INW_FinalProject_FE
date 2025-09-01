@@ -141,7 +141,6 @@ export default function AuthModal({ onClose }: Props) {
       toast?.onOpen("Bạn đã đăng nhập thành công!");
       onClose();
       if (user.role === "Admin") navigate("/admin");
-      else navigate("/");
     },
   });
 

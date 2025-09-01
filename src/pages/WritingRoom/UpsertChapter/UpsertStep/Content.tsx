@@ -9,7 +9,11 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { useMutation } from "@tanstack/react-query";
 import { RichTextEditor } from "../../../../components/RichTextEditorComponent/RichTextEditor";
 import type { ChapterForm } from "../UpsertChapter";
-import type { Matches, PlagiarismAIApiResponse, PlagiarismAIRequest } from "../../../../api/AI/ai.type";
+import type {
+  Matches,
+  PlagiarismAIApiResponse,
+  PlagiarismAIRequest,
+} from "../../../../api/AI/ai.type";
 import { PlagiarismCheck } from "../../../../api/AI/ai.api";
 import { stripHtmlTags } from "../../../../utils/regex";
 import { useToast } from "../../../../context/ToastContext/toast-context";
@@ -33,7 +37,10 @@ const Underline = Mark.create({
   parseHTML() {
     return [
       { tag: "u" },
-      { style: "text-decoration", getAttrs: (v) => (String(v).includes("underline") ? {} : false) },
+      {
+        style: "text-decoration",
+        getAttrs: (v) => (String(v).includes("underline") ? {} : false),
+      },
     ];
   },
   renderHTML({ HTMLAttributes }) {
@@ -57,7 +64,6 @@ const Underline = Mark.create({
   },
 });
 
-/* ====== placeholder ====== */
 const SimplePlaceholder = Extension.create({
   name: "simplePlaceholder",
   addOptions() {
@@ -75,7 +81,10 @@ const SimplePlaceholder = Extension.create({
           decorations: (state) => {
             const { doc } = state;
             const first = doc.firstChild;
-            const isEmpty = doc.childCount === 1 && first?.isTextblock && first.content.size === 0;
+            const isEmpty =
+              doc.childCount === 1 &&
+              first?.isTextblock &&
+              first.content.size === 0;
             if (!isEmpty) return DecorationSet.empty;
             const deco = Decoration.widget(
               1,
@@ -116,12 +125,18 @@ function useContainerWidth<T extends HTMLElement>() {
 }
 
 type ContentStepProps = {
+  novelId: string;
   chapterForm: ChapterForm;
   setChapterForm: (value: ChapterForm) => void;
   setIsCheck: (data: boolean) => void;
 };
 
-export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStepProps) => {
+export const Content = ({
+  novelId,
+  chapterForm,
+  setChapterForm,
+  setIsCheck,
+}: ContentStepProps) => {
   const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
   const [plagiarismMatches, setPlagiarismMatches] = useState<Matches[]>([]);
   const toast = useToast();
@@ -131,7 +146,9 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
       StarterKit,
       Underline,
       CharacterCount.configure({ limit: LIMIT }),
-      SimplePlaceholder.configure({ placeholder: "Hãy thử tài sáng tác của bạn tại đây…" }),
+      SimplePlaceholder.configure({
+        placeholder: "Hãy thử tài sáng tác của bạn tại đây…",
+      }),
     ],
     content: chapterForm.content || "<p></p>",
     onUpdate({ editor }) {
@@ -141,9 +158,7 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
       attributes: {
         class: [
           "relative min-h-[320px] w-full rounded-xl px-4 py-3 focus:outline-none",
-          // light
           "bg-white ring-1 ring-zinc-200 focus:ring-2 focus:ring-zinc-300 selection:bg-orange-200/50",
-          // dark
           "dark:bg-[#0e1014] dark:ring-white/10 dark:focus:ring-white/25 dark:selection:bg-orange-500/20",
           "text-zinc-900 dark:text-white",
         ].join(" "),
@@ -151,20 +166,28 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
     },
   });
 
-  const rawText = useMemo(() => stripHtmlTags(chapterForm.content || ""), [chapterForm.content]);
-  const charCount = (editor?.storage as any)?.characterCount?.characters?.() ?? rawText.length;
+  const rawText = useMemo(
+    () => stripHtmlTags(chapterForm.content || ""),
+    [chapterForm.content]
+  );
+  const charCount =
+    (editor?.storage as any)?.characterCount?.characters?.() ?? rawText.length;
   const progress = Math.min(100, (charCount / LIMIT) * 100);
   const nearLimit = LIMIT - charCount <= 150;
 
   const plagiarismMutation = useMutation({
-    mutationFn: (request: PlagiarismAIRequest) => PlagiarismCheck(request).then((res) => res.data),
+    mutationFn: (request: PlagiarismAIRequest) =>
+      PlagiarismCheck(request).then((res) => res.data),
     onSuccess: (data: PlagiarismAIApiResponse) => {
+      console.log(data);
       if (data.data.matchCount > 0) {
         setIsCheck(false);
         setPlagiarismMatches(data.data.matches);
         setShowPlagiarismModal(true);
       } else {
-        toast?.onOpen("Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!");
+        toast?.onOpen(
+          "Kiểm tra đạo văn hoàn thành, không có dấu hiệu đạo văn!"
+        );
         setIsCheck(true);
       }
     },
@@ -172,11 +195,14 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
 
   const handleCheckPlagiarism = () => {
     const raw = stripHtmlTags(chapterForm.content || "");
-    plagiarismMutation.mutate({ content: raw });
+    plagiarismMutation.mutate({ content: raw, novelId: novelId });
   };
 
   const { ref: sectionRef, width: sectionW } = useContainerWidth<HTMLElement>();
-  const barPx = useMemo(() => Math.max(100, Math.min(320, Math.round(sectionW * 0.2))), [sectionW]);
+  const barPx = useMemo(
+    () => Math.max(100, Math.min(320, Math.round(sectionW * 0.2))),
+    [sectionW]
+  );
 
   return (
     <section ref={sectionRef} className="rounded-2xl p-2 py-2 px-3">
@@ -189,7 +215,9 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
             <h1 className="text-[15px] md:text-[16px] font-semibold leading-tight text-zinc-900 dark:text-white/95">
               {chapterForm.title || "Chương mới"}
             </h1>
-            <p className="text-[12px] text-zinc-500 dark:text-white/55">Soạn thảo nội dung</p>
+            <p className="text-[12px] text-zinc-500 dark:text-white/55">
+              Soạn thảo nội dung
+            </p>
           </div>
         </div>
       </header>
@@ -206,7 +234,9 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
                 "flex-shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium text-white",
                 "ring-1 ring-orange-400/20 shadow-sm",
                 "bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_45%,#ff9966_100%)]",
-                plagiarismMutation.isPending ? "opacity-70 cursor-not-allowed" : "hover:brightness-110 active:brightness-95",
+                plagiarismMutation.isPending
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:brightness-110 active:brightness-95",
               ].join(" ")}
             >
               {plagiarismMutation.isPending ? (
@@ -256,7 +286,9 @@ export const Content = ({ chapterForm, setChapterForm, setIsCheck }: ContentStep
               <span className="font-mono" key={charCount}>
                 {charCount.toLocaleString()}/{LIMIT.toLocaleString()}
               </span>
-              <span className="ml-1 text-zinc-500 dark:text-white/60">ký tự</span>
+              <span className="ml-1 text-zinc-500 dark:text-white/60">
+                ký tự
+              </span>
             </span>
           </div>
         </div>

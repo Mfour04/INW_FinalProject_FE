@@ -23,7 +23,7 @@ export const NovelRowCard = ({
     return () => m.removeEventListener("change", update);
   }, []);
 
-  const isCompleted = novel.status === 0;
+  const isCompleted = novel.status === 1;
   const isPublic = novel.isPublic;
   const statusLabel = isCompleted ? "Hoàn thành" : "Đang diễn ra";
   const publicLabel = isPublic ? "Công khai" : "Chỉ mình tôi";
@@ -101,8 +101,14 @@ export const NovelRowCard = ({
 
           <div className="mt-3 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-[11.5px] sm:text-[12.5px]">
             <Meta label="Cập nhật" value={updatedAt} />
-            <Meta label="Lượt xem" value={(novel.totalViews ?? 0).toLocaleString()} />
-            <Meta label="Theo dõi" value={(novel.followers ?? 0).toLocaleString()} />
+            <Meta
+              label="Lượt xem"
+              value={(novel.totalViews ?? 0).toLocaleString()}
+            />
+            <Meta
+              label="Theo dõi"
+              value={(novel.followers ?? 0).toLocaleString()}
+            />
             <div className="min-w-0 flex items-center gap-2">
               <StarRating rating={rating} />
               <div className="leading-tight">
@@ -174,7 +180,9 @@ const Pill = ({
 const Meta = ({ label, value }: { label: string; value: string }) => (
   <div className="min-w-0">
     <p className="text-zinc-500 dark:text-white/55">{label}</p>
-    <p className="mt-0.5 font-medium truncate text-zinc-900 dark:text-white">{value}</p>
+    <p className="mt-0.5 font-medium truncate text-zinc-900 dark:text-white">
+      {value}
+    </p>
   </div>
 );
 

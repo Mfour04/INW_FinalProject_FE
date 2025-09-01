@@ -12,6 +12,7 @@ type Props = {
   onSubmit: (content: string) => void;
   disabled?: boolean;
   currentUser: UserLite | null;
+  allowComment?: boolean;
   loginCta?: () => void;
 };
 
@@ -24,6 +25,7 @@ export const Composer = ({
   disabled,
   currentUser,
   loginCta,
+  allowComment,
 }: Props) => {
   const [emojiOpen, setEmojiOpen] = useState(false);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
@@ -90,6 +92,16 @@ export const Composer = ({
           className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-sm shadow-black/10 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]"
         >
           Đăng nhập để bình luận
+        </button>
+      </div>
+    );
+  }
+
+  if (!allowComment) {
+    return (
+      <div className="text-center py-4">
+        <button className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-sm shadow-black/10 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]">
+          Tác giả đã khóa bình luận chương này
         </button>
       </div>
     );
