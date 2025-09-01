@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { PencilLine, BookOpenCheck, Trash2, Star } from "lucide-react";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
 import type { Novel } from "../../../entity/novel";
@@ -215,22 +215,26 @@ const ActionBtn = ({
   </button>
 );
 
-const StarRating = ({ rating }: { rating: number }) => {
-  const percent = Math.max(0, Math.min(100, (rating / 5) * 100));
+const StarIcon = ({ fillPercent }: { fillPercent: number }) => {
+  const p = Math.max(0, Math.min(100, fillPercent));
   return (
-    <div className="relative inline-flex items-center">
-      <div className="flex gap-0.5 text-zinc-300 dark:text-white/25">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={`bg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
-        ))}
-      </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${percent}%` }} aria-hidden>
-        <div className="flex gap-0.5 text-yellow-400">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={`fg-${i}`} className="h-4 w-4" stroke="currentColor" fill="currentColor" />
-          ))}
-        </div>
-      </div>
+    <span className="relative inline-block h-4 w-4">
+      <Star className="absolute inset-0 h-4 w-4 text-zinc-300 dark:text-white/25" stroke="currentColor" fill="currentColor" />
+      <span className="absolute inset-0 overflow-hidden" style={{ width: `${p}%` }} aria-hidden>
+        <Star className="h-4 w-4 text-yellow-400" stroke="currentColor" fill="currentColor" />
+      </span>
+    </span>
+  );
+};
+
+const StarRating = ({ rating }: { rating: number }) => {
+  const r = Math.max(0, Math.min(5, Number(rating) || 0));
+  return (
+    <div className="inline-flex items-center gap-0.5 align-middle">
+      {Array.from({ length: 5 }).map((_, i) => {
+        const fill = Math.max(0, Math.min(1, r - i)) * 100;
+        return <StarIcon key={i} fillPercent={fill} />;
+      })}
     </div>
   );
 };
