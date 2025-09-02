@@ -15,10 +15,7 @@ export type ReportReason =
   | "doxxing"
   | "offtopic"
   | "misinfo"
-  | "spoiler"
-  | "impersonation"          
-  | "inappropriate_username"
-  | "underage";            
+  | "spoiler";
 
 export const REPORT_REASON_CODE: Record<ReportReason, number> = {
   nudity: 0,
@@ -34,17 +31,14 @@ export const REPORT_REASON_CODE: Record<ReportReason, number> = {
   offtopic: 10,
   misinfo: 11,
   spoiler: 12,
-  impersonation: 13,          
-  inappropriate_username: 14, 
-  underage: 15,               
 };
 
 export type ReportPayload = {
+  userId?: string;
   novelId?: string;
   chapterId?: string;
   commentId?: string;
   postId?: string;
-  userId?: string;       
   reason: ReportReason;
   message?: string;
   reasonCode?: number;
@@ -132,26 +126,20 @@ const ReportModalBase = ({
       role="dialog"
       aria-modal="true"
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-black/60" />
+      <div className="absolute inset-0 bg-black/50" />
 
-      {/* Panel */}
       <div
         ref={panelRef}
-        className="relative w-full max-w-md rounded-xl bg-white text-zinc-900 shadow-xl ring-1 ring-black/10
-                   dark:bg-zinc-900 dark:text-zinc-100 dark:ring-white/10 p-4"
+        className="relative w-full max-w-md rounded-xl bg-white dark:bg-[#1a1a1a] shadow-xl ring-1 ring-black/10 dark:ring-white/10 p-4"
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start gap-2">
-            <span className="grid place-items-center rounded-md p-1.5 bg-orange-50 text-orange-600 ring-1 ring-orange-100
-                              dark:bg-orange-500/15 dark:text-orange-400 dark:ring-white/10">
-              <ShieldAlert className="w-5 h-5 shrink-0" />
-            </span>
+            <ShieldAlert className="w-5 h-5 mt-0.5 text-orange-500 shrink-0" />
             <div>
               <h3 className="text-[15px] font-semibold">{title}</h3>
               {subtitle ? (
-                <p className="text-xs text-gray-600 dark:text-white/60 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">
                   {subtitle}
                 </p>
               ) : null}
@@ -159,8 +147,7 @@ const ReportModalBase = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black/10
-                       dark:hover:bg-white/10 dark:focus:ring-white/20"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -175,14 +162,11 @@ const ReportModalBase = ({
               <button
                 key={r.id}
                 onClick={() => setReason(r.id)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition
-                            focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/20
-                            ${
-                              active
-                                ? "text-white bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a]"
-                                : "bg-gray-50 hover:bg-gray-100 text-zinc-900 ring-1 ring-gray-200 \
-                                   dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-100 dark:ring-white/10"
-                            }`}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${
+                  active
+                    ? "text-white bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a]"
+                    : "bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10"
+                }`}
                 aria-pressed={active}
               >
                 <span>{r.label}</span>
@@ -205,31 +189,25 @@ const ReportModalBase = ({
               ? "Vui lòng mô tả rõ vấn đề bạn gặp phải…"
               : "Thêm ngữ cảnh để admin xử lý nhanh hơn…"
           }
-          className="w-full rounded-lg border border-gray-300 bg-white text-sm p-2 mb-3 outline-none
-                     focus:ring-2 focus:ring-orange-500
-                     dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100"
+          className="w-full rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f0f0f] text-sm p-2 mb-3 outline-none focus:ring-2 focus:ring-orange-500"
         />
 
         {/* Actions */}
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-full text-sm ring-1 ring-gray-300 text-zinc-900 hover:bg-gray-100
-                       focus:outline-none focus:ring-2 focus:ring-black/10
-                       dark:ring-white/10 dark:text-zinc-100 dark:hover:bg-white/10 dark:focus:ring-white/20"
+            className="px-3 py-1.5 rounded-full text-sm ring-1 ring-gray-300 dark:ring-white/10 hover:bg-gray-100 dark:hover:bg-white/10"
           >
             Hủy
           </button>
           <button
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className={`px-3 py-1.5 rounded-full text-sm font-semibold text-white transition
-                        focus:outline-none focus:ring-2 focus:ring-orange-300 dark:focus:ring-orange-500
-                        ${
-                          canSubmit
-                            ? "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90"
-                            : "bg-gray-400 cursor-not-allowed dark:bg-white/20 dark:text-white/60"
-                        }`}
+            className={`px-3 py-1.5 rounded-full text-sm font-semibold text-white transition ${
+              canSubmit
+                ? "bg-gradient-to-r from-[#ff7a45] to-[#ff5e3a] hover:opacity-90"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             {isLoading || submitting ? "Đang gửi…" : "Gửi báo cáo"}
           </button>
@@ -239,10 +217,6 @@ const ReportModalBase = ({
     document.body
   );
 };
-
-/* ====================
- * Reason Lists by scope
- * ==================== */
 
 const NOVEL_REASONS: ReasonItem[] = [
   { id: "copyright", label: "Vi phạm bản quyền / đạo nhái tổng thể" },
@@ -254,56 +228,6 @@ const NOVEL_REASONS: ReasonItem[] = [
   { id: "scam", label: "Lừa đảo / thông tin sai lệch" },
   { id: "other", label: "Khác" },
 ];
-
-const CHAPTER_REASONS: ReasonItem[] = [
-  { id: "nudity", label: "Nội dung nhạy cảm quá mức ở chương" },
-  { id: "violence", label: "Bạo lực/ghê rợn ở chương" },
-  { id: "hate", label: "Thù hằn/quấy rối trong chương" },
-  { id: "spam", label: "Chèn link quảng cáo / spam trong chương" },
-  { id: "copyright", label: "Chương vi phạm bản quyền / sao chép" },
-  { id: "scam", label: "Lừa đảo / thông tin sai lệch trong chương" },
-  { id: "illegal", label: "Nội dung/hoạt động phi pháp trong chương" },
-  { id: "other", label: "Khác (mô tả rõ chương bị lỗi, dịch sai, hỏng ảnh…)" },
-];
-
-const COMMENT_REASONS: ReasonItem[] = [
-  { id: "harassment", label: "Quấy rối / công kích cá nhân" },
-  { id: "hate", label: "Ngôn từ thù hằn / phân biệt đối xử" },
-  { id: "spam", label: "Spam / quảng cáo" },
-  { id: "doxxing", label: "Tiết lộ thông tin cá nhân (doxxing)" },
-  { id: "spoiler", label: "Tiết lộ nội dung (spoiler) không cảnh báo" },
-  { id: "offtopic", label: "Lạc đề / phá rối thảo luận" },
-  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
-  { id: "other", label: "Khác" },
-];
-
-const POST_REASONS: ReasonItem[] = [
-  { id: "misinfo", label: "Thông tin sai lệch / gây hiểu lầm" },
-  { id: "scam", label: "Lừa đảo (link, bán hàng, phishing…)" },
-  { id: "spam", label: "Spam / quảng cáo" },
-  { id: "nudity", label: "Nội dung nhạy cảm không gắn cảnh báo" },
-  { id: "hate", label: "Ngôn từ thù hằn / kích động" },
-  { id: "violence", label: "Bạo lực / hình ảnh ghê rợn" },
-  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
-  { id: "copyright", label: "Vi phạm bản quyền (tài liệu/hình ảnh…)" },
-  { id: "offtopic", label: "Lạc đề / không phù hợp chuyên mục" },
-  { id: "other", label: "Khác" },
-];
-
-const USER_REASONS: ReasonItem[] = [
-  { id: "impersonation", label: "Giả mạo danh tính" },
-  { id: "inappropriate_username", label: "Tên người dùng không phù hợp" },
-  { id: "underage", label: "Người dùng dưới độ tuổi cho phép" },
-  { id: "harassment", label: "Quấy rối / công kích cá nhân" },
-  { id: "hate", label: "Ngôn từ thù hằn / phân biệt đối xử" },
-  { id: "spam", label: "Spam / quảng cáo" },
-  { id: "doxxing", label: "Tiết lộ thông tin cá nhân (doxxing)" },
-  { id: "other", label: "Khác" },
-];
-
-/* ==========================
- * Scoped Modals (reuse base)
- * ========================== */
 
 export type ReportNovelModalProps = {
   isOpen: boolean;
@@ -335,6 +259,17 @@ export const ReportNovelModal = ({
   />
 );
 
+const CHAPTER_REASONS: ReasonItem[] = [
+  { id: "nudity", label: "Nội dung nhạy cảm quá mức ở chương" },
+  { id: "violence", label: "Bạo lực/ghê rợn ở chương" },
+  { id: "hate", label: "Thù hằn/quấy rối trong chương" },
+  { id: "spam", label: "Chèn link quảng cáo / spam trong chương" },
+  { id: "copyright", label: "Chương vi phạm bản quyền / sao chép" },
+  { id: "scam", label: "Lừa đảo / thông tin sai lệch trong chương" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp trong chương" },
+  { id: "other", label: "Khác (mô tả rõ chương bị lỗi, dịch sai, hỏng ảnh…)" },
+];
+
 export type ReportChapterModalProps = {
   isOpen: boolean;
   novelId: string;
@@ -358,7 +293,9 @@ export const ReportChapterModal = ({
     isOpen={isOpen}
     title={`Báo cáo chương${chapterTitle ? ` “${chapterTitle}”` : ""}`}
     subtitle={
-      novelTitle ? `Thuộc truyện “${novelTitle}”.` : "Chỉ xử lý riêng chương này."
+      novelTitle
+        ? `Thuộc truyện “${novelTitle}”.`
+        : "Chỉ xử lý riêng chương này."
     }
     reasons={CHAPTER_REASONS}
     mustFillWhen={["other"]}
@@ -367,6 +304,17 @@ export const ReportChapterModal = ({
     payloadExtras={{ novelId, chapterId }}
   />
 );
+
+const COMMENT_REASONS: ReasonItem[] = [
+  { id: "harassment", label: "Quấy rối / công kích cá nhân" },
+  { id: "hate", label: "Ngôn từ thù hằn / phân biệt đối xử" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "doxxing", label: "Tiết lộ thông tin cá nhân (doxxing)" },
+  { id: "spoiler", label: "Tiết lộ nội dung (spoiler) không cảnh báo" },
+  { id: "offtopic", label: "Lạc đề / phá rối thảo luận" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
+  { id: "other", label: "Khác" },
+];
 
 export type ReportCommentModalProps = {
   isOpen: boolean;
@@ -401,6 +349,19 @@ export const ReportCommentModal = ({
   />
 );
 
+const POST_REASONS: ReasonItem[] = [
+  { id: "misinfo", label: "Thông tin sai lệch / gây hiểu lầm" },
+  { id: "scam", label: "Lừa đảo (link, bán hàng, phishing…)" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "nudity", label: "Nội dung nhạy cảm không gắn cảnh báo" },
+  { id: "hate", label: "Ngôn từ thù hằn / kích động" },
+  { id: "violence", label: "Bạo lực / hình ảnh ghê rợn" },
+  { id: "illegal", label: "Nội dung/hoạt động phi pháp" },
+  { id: "copyright", label: "Vi phạm bản quyền (tài liệu/hình ảnh…)" },
+  { id: "offtopic", label: "Lạc đề / không phù hợp chuyên mục" },
+  { id: "other", label: "Khác" },
+];
+
 export type ReportPostModalProps = {
   isOpen: boolean;
   postId: string;
@@ -424,7 +385,7 @@ export const ReportPostModal = ({
     subtitle={
       forumName
         ? `Thuộc chuyên mục ${forumName}.`
-        : "Áp dụng cho một bài viết trên forum."
+        : "Áp dụng cho một bài viết trên diễn đàn."
     }
     reasons={POST_REASONS}
     mustFillWhen={["other", "misinfo", "scam", "copyright"]}
@@ -434,11 +395,18 @@ export const ReportPostModal = ({
   />
 );
 
+const USER_REASONS: ReasonItem[] = [
+  { id: "scam", label: "Lừa đảo (link, bán hàng, phishing…)" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "hate", label: "Ngôn từ thù hằn / kích động" },
+  { id: "harassment", label: "Quấy rối / làm phiền" },
+  { id: "doxxing", label: "Tiết lộ thông tin cá nhân" },
+];
+
 export type ReportUserModalProps = {
   isOpen: boolean;
   userId: string;
   userName?: string;
-  isLoading?: boolean;
   onClose: () => void;
   onSubmit: (payload: ReportPayload) => Promise<void> | void;
 };
@@ -447,17 +415,17 @@ export const ReportUserModal = ({
   isOpen,
   userId,
   userName,
-  isLoading,
   onClose,
   onSubmit,
 }: ReportUserModalProps) => (
   <ReportModalBase
     isOpen={isOpen}
     title={`Báo cáo người dùng${userName ? ` “${userName}”` : ""}`}
-    subtitle="Áp dụng khi tài khoản có dấu hiệu vi phạm."
+    subtitle={
+      userName ? `Người dùng ${userName}.` : "Báo cáo người dùng vi phạm."
+    }
     reasons={USER_REASONS}
-    isLoading={isLoading}
-    mustFillWhen={["impersonation", "doxxing", "harassment", "underage", "other"]}
+    mustFillWhen={["other", "misinfo", "scam", "copyright"]}
     onClose={onClose}
     onSubmit={onSubmit}
     payloadExtras={{ userId }}

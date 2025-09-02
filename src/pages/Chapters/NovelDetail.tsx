@@ -38,6 +38,7 @@ import {
 } from "../../components/ReportModal/ReportModal";
 import type { ReportRequest } from "../../api/Report/report.type";
 import { useReport } from "../../hooks/useReport";
+import { GetCurrentUserInfo } from "../../api/User/user-settings.api";
 
 export const NovelDetail = () => {
   const [showFollowPopup, setShowFollowPopup] = useState(false);
@@ -77,6 +78,12 @@ export const NovelDetail = () => {
           : {}),
       }).then((res) => res.data.data),
     enabled: !!novelId,
+  });
+
+  const { data: user, refetch: refetchUser } = useQuery({
+    queryKey: ["user-noveldetails", auth?.accessToken],
+    queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+    enabled: !!auth?.accessToken,
   });
 
   const acceptedChapterIds = [
@@ -139,6 +146,7 @@ export const NovelDetail = () => {
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
       refetchNovelData();
+      refetchUser();
     },
   });
 
@@ -153,6 +161,7 @@ export const NovelDetail = () => {
     onSuccess: (res) => {
       toast?.onOpen(res.data.message);
       refetchNovelData();
+      refetchUser();
     },
   });
 
@@ -348,7 +357,7 @@ export const NovelDetail = () => {
       <ConfirmModal
         isOpen={isBuyModalOpen}
         tone="purchase"
-        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        title={`Hiện tại bạn đang có ${user?.coin} coin`}
         message={`Chương này có giá ${chapterPrice} coin. Bạn có muốn mua không?`}
         confirmText="Mua"
         onConfirm={confirmBuy}
@@ -358,7 +367,7 @@ export const NovelDetail = () => {
       <ConfirmModal
         isOpen={isBuyNovelOpen}
         tone="purchase"
-        title={`Hiện tại bạn đang có ${auth?.user.coin} coin`}
+        title={`Hiện tại bạn đang có ${user?.coin} coin`}
         message={`Tiểu thuyết này có giá ${novelInfo?.price} coin. Bạn có muốn mua không?`}
         confirmText="Mua"
         onConfirm={confirmBuyNovel}
