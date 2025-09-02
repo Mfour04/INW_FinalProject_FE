@@ -14,6 +14,7 @@ import {
   type Report,
   ReportReasonLabel,
   type UpdateActionRequest,
+  toNumber,
 } from "../../../api/Admin/Report/report.type";
 import {
   GetReports,
@@ -65,11 +66,14 @@ const ReportList = () => {
     error,
     isFetching,
   } = useQuery({
-    queryKey: ["Reports", currentPage],
+    queryKey: ["Reports", currentPage, statusFilter, typeFilter],
     queryFn: () =>
-      GetReports({ limit: itemsPerPage, page: currentPage - 1 }).then(
-        (res) => res.data.data
-      ),
+      GetReports({
+        limit: itemsPerPage,
+        page: currentPage - 1,
+        ...(statusFilter !== "All" ? { status: statusFilter } : undefined),
+        ...(typeFilter !== "All" ? { scope: typeFilter } : undefined),
+      }).then((res) => res.data.data),
   });
 
   const updateStatusMutation = useMutation({
@@ -85,7 +89,10 @@ const ReportList = () => {
       setDialog({ open: false, reportId: null, action: null });
     },
     onError: () => {
-      toast?.onOpen({ message: "Cập nhật trạng thái thất bại! Vui lòng thử lại.", variant: "error"});
+      toast?.onOpen({
+        message: "Cập nhật trạng thái thất bại! Vui lòng thử lại.",
+        variant: "error",
+      });
       setDialog({ open: false, reportId: null, action: null });
     },
   });
@@ -101,7 +108,7 @@ const ReportList = () => {
         report.commentAuthor?.displayName?.toLowerCase().includes(term) ||
         report.novelTitle?.toLowerCase().includes(term) ||
         report.forumPostAuthor?.displayName?.toLowerCase().includes(term) ||
-        report.targetUserId?.toLowerCase().includes(term);
+        report.targetUser?.displayName?.toLowerCase().includes(term);
 
       const matchesStatus =
         statusFilter === "All" || report.status === Number(statusFilter);
@@ -110,14 +117,7 @@ const ReportList = () => {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [
-    reportsData,
-    searchTerm,
-    statusFilter,
-    typeFilter,
-    currentPage,
-    reportsData,
-  ]);
+  }, [reportsData, searchTerm, statusFilter, typeFilter, currentPage]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -217,6 +217,12 @@ const ReportList = () => {
             return (
               <span className="line-clamp-1">
                 {report.forumPostAuthor?.displayName ?? "Bình luận diễn đàn"}
+              </span>
+            );
+          case 5:
+            return (
+              <span className="line-clamp-1">
+                {report.targetUser?.displayName ?? "Người dùng"}
               </span>
             );
           default:
