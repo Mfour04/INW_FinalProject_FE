@@ -58,14 +58,14 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
   const [rGran, setRGran] = useState<Granularity>("day");
 
   const [summaryParams, setSummaryParams] = useState<IncomeSummaryParams>({
-    startDate: "08/01/2025",
-    endDate: "08/31/2025",
+    startDate: "01/01/2000",
+    endDate: "12/31/2050",
     filter: "all",
   });
 
   const [chartParams, setChartParams] = useState<IncomeChartParams>({
-    startDate: "08/01/2025",
-    endDate: "08/31/2025",
+    startDate: "01/01/2000",
+    endDate: "12/31/2050",
     filter: "all",
   });
 
@@ -245,7 +245,9 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                       onChange={(e) => handleChangeFromDate(e)}
                     />
                   </div>
-                  <span className="text-zinc-400 dark:text-white/40 text-sm">-</span>
+                  <span className="text-zinc-400 dark:text-white/40 text-sm">
+                    -
+                  </span>
                   <div className="flex items-center gap-2 px-3 h-9 rounded-xl">
                     <SoftInput
                       type="date"
@@ -325,9 +327,11 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
             <Card className="p-0">
               <div className="px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-white/70">
-                  <span className="h-6 w-6 grid place-items-center rounded-md
+                  <span
+                    className="h-6 w-6 grid place-items-center rounded-md
                                    bg-zinc-100 ring-1 ring-zinc-200
-                                   dark:bg-white/5 dark:ring-white/10">
+                                   dark:bg-white/5 dark:ring-white/10"
+                  >
                     <Clock className="h-3.5 w-3.5" />
                   </span>
                   Nhật ký mua chương / trọn gói
@@ -345,7 +349,9 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                   grouped.map(({ day, items }) => (
                     <div key={day} className="px-4 py-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="text-sm font-medium text-zinc-900 dark:text-white">{day}</div>
+                        <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                          {day}
+                        </div>
                         <div className="text-xs text-zinc-500 dark:text-white/50">
                           · {items.length} lượt mua
                         </div>
@@ -358,10 +364,12 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-start gap-3 min-w-0">
-                                <div className="h-9 w-9 rounded-full
+                                <div
+                                  className="h-9 w-9 rounded-full
                                                 bg-zinc-100 ring-1 ring-zinc-200
                                                 dark:bg-white/10 dark:ring-white/15
-                                                grid place-items-center shrink-0">
+                                                grid place-items-center shrink-0"
+                                >
                                   <span className="text-sm font-semibold text-zinc-800 dark:text-white">
                                     {p.buyerName.split(" ").pop()?.[0] ?? "U"}
                                   </span>
@@ -382,7 +390,9 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                                             : "bg-amber-600/10 text-amber-700 ring-amber-600/30 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30"
                                         }`}
                                     >
-                                      {p.type === "BuyChapter" ? "Mua chương" : "Trọn gói"}
+                                      {p.type === "BuyChapter"
+                                        ? "Mua chương"
+                                        : "Trọn gói"}
                                     </span>
                                   </div>
                                   <div className="text-sm truncate">
@@ -395,7 +405,9 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                                       {p.chapterTitle ? (
                                         p.chapterTitle
                                       ) : (
-                                        <em className="text-zinc-600 not-italic dark:text-white/60">Trọn gói</em>
+                                        <em className="text-zinc-600 not-italic dark:text-white/60">
+                                          Trọn gói
+                                        </em>
                                       )}
                                     </span>
                                   </div>
@@ -454,8 +466,13 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                 </thead>
                 <tbody className="divide-y divide-zinc-200 dark:divide-white/10">
                   {TopNovels?.data.map((n) => (
-                    <tr key={n.novelId} className="hover:bg-zinc-50 dark:hover:bg-white/[0.04]">
-                      <td className="px-3 py-2 truncate text-zinc-900 dark:text-white">{n.title}</td>
+                    <tr
+                      key={n.novelId}
+                      className="hover:bg-zinc-50 dark:hover:bg-white/[0.04]"
+                    >
+                      <td className="px-3 py-2 truncate text-zinc-900 dark:text-white">
+                        {n.title}
+                      </td>
                       <td className="px-3 py-2 tabular-nums text-zinc-900 dark:text-white">
                         {n.totalCoins.toLocaleString()}
                       </td>
