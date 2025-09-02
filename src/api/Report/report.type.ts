@@ -6,5 +6,6 @@ export type ReportRequest = {
   commentId?: string;
   forumPostId?: string;
   forumCommentId?: string;
+  targetUserId?: string;
   message?: string;
 };

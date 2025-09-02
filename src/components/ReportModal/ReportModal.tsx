@@ -34,6 +34,7 @@ export const REPORT_REASON_CODE: Record<ReportReason, number> = {
 };
 
 export type ReportPayload = {
+  userId?: string;
   novelId?: string;
   chapterId?: string;
   commentId?: string;
@@ -384,12 +385,49 @@ export const ReportPostModal = ({
     subtitle={
       forumName
         ? `Thuộc chuyên mục ${forumName}.`
-        : "Áp dụng cho một bài viết trên forum."
+        : "Áp dụng cho một bài viết trên diễn đàn."
     }
     reasons={POST_REASONS}
     mustFillWhen={["other", "misinfo", "scam", "copyright"]}
     onClose={onClose}
     onSubmit={onSubmit}
     payloadExtras={{ postId }}
+  />
+);
+
+const USER_REASONS: ReasonItem[] = [
+  { id: "scam", label: "Lừa đảo (link, bán hàng, phishing…)" },
+  { id: "spam", label: "Spam / quảng cáo" },
+  { id: "hate", label: "Ngôn từ thù hằn / kích động" },
+  { id: "harassment", label: "Quấy rối / làm phiền" },
+  { id: "doxxing", label: "Tiết lộ thông tin cá nhân" },
+];
+
+export type ReportUserModalProps = {
+  isOpen: boolean;
+  userId: string;
+  userName?: string;
+  onClose: () => void;
+  onSubmit: (payload: ReportPayload) => Promise<void> | void;
+};
+
+export const ReportUserModal = ({
+  isOpen,
+  userId,
+  userName,
+  onClose,
+  onSubmit,
+}: ReportUserModalProps) => (
+  <ReportModalBase
+    isOpen={isOpen}
+    title={`Báo cáo người dùng${userName ? ` “${userName}”` : ""}`}
+    subtitle={
+      userName ? `Người dùng ${userName}.` : "Báo cáo người dùng vi phạm."
+    }
+    reasons={USER_REASONS}
+    mustFillWhen={["other", "misinfo", "scam", "copyright"]}
+    onClose={onClose}
+    onSubmit={onSubmit}
+    payloadExtras={{ userId }}
   />
 );
