@@ -1,4 +1,3 @@
-// ReportDetailPopup.tsx
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -170,7 +169,11 @@ const ReportDetailPopup = ({
       report?.targetUserId
         ? GetUserById(report.targetUserId).then((res) => res.data)
         : Promise.reject("No member ID"),
-    enabled: isOpen && !!report?.targetUserId,
+    enabled:
+      isOpen &&
+      !!report?.targetUserId &&
+      report?.scope === 5 &&
+      !report?.isTargetDisappear,
   });
 
   const {
@@ -183,7 +186,11 @@ const ReportDetailPopup = ({
       report?.novelId
         ? GetNovelById(report.novelId).then((res) => res.data)
         : Promise.reject("No novel ID"),
-    enabled: isOpen && !!report?.novelId && report?.scope === 0,
+    enabled:
+      isOpen &&
+      !!report?.novelId &&
+      report?.scope === 0 &&
+      !report?.isTargetDisappear,
   });
 
   const {
@@ -196,7 +203,11 @@ const ReportDetailPopup = ({
       report?.chapterId
         ? GetChapter(report.chapterId).then((res) => res.data)
         : Promise.reject("No chapter ID"),
-    enabled: isOpen && !!report?.chapterId && report?.scope === 1,
+    enabled:
+      isOpen &&
+      !!report?.chapterId &&
+      report?.scope === 1 &&
+      !report?.isTargetDisappear,
   });
 
   const {

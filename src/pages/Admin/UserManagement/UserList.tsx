@@ -173,9 +173,6 @@ const UserList = () => {
     [allUsersData]
   );
 
-  console.log("allUsersData:", allUsersData);
-  console.log("mappedUsers", mappedUsers);
-  console.log("mappedAllUsers", mappedAllUsers);
 
   // KPIs from analysis data (prioritize analysis if available, fallback to calculated)
   const kTotal = analysisData?.data?.totalUsers ?? mappedAllUsers.length;

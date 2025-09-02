@@ -1,4 +1,3 @@
-// ReportList.tsx
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ReportSearchBar from "./ReportSearchBar";
