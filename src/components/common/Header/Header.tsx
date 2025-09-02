@@ -321,7 +321,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
       notificationIds: [noti.notificationId],
     });
     if (noti.novelSlug) navigate(`/novels/${noti.novelSlug}`);
-    if (noti.forumPostId) navigate(`/blogs/${noti.forumPostId}`);
+    if (noti.forumPostId) navigate(`/blog/${noti.forumPostId}`);
   };
 
   const handleClickReadAll = async () => {
