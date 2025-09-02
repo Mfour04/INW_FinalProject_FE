@@ -9,14 +9,6 @@ interface FilterButtonsProps<T> {
   onFilter: (value: T) => void;
 }
 
-/**
- * UI:
- * - Segmented control bo tròn, nền trung tính (không màu cam).
- * - Nút đang chọn nổi bật (nền đậm, chữ trắng), còn lại chữ trung tính, hover có nền mờ.
- * - Có border ngăn cách nhẹ giữa các nút (không quá “khứa”).
- * - Hỗ trợ bàn phím (Enter/Space) & aria roles (tablist/tab).
- * - Tự cuộn ngang khi thiếu chỗ (mobile), scrollbar mảnh.
- */
 const ReportFilterButtons = <T extends string | number>({
   filters,
   activeFilter,
