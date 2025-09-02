@@ -262,7 +262,14 @@ export const NovelDetail = () => {
           onFollow={() => handleFollowNovel(novelData?.novelInfo.novelId!)}
           onToggleFollow={() => setShowFollowPopup((v) => !v)}
           onOpenBuyNovel={() => setIsBuyNovelOpen(true)}
-          onOpenReport={() => setReportOpen(true)}
+          onOpenReport={() => {
+            if (!auth?.user.isBanned) setReportOpen(true);
+            else
+              toast?.onOpen({
+                message: "Bạn đang bị hạn chế hành động",
+                variant: "warning",
+              });
+          }}
           onJumpToRating={jumpToRating}
           gradientBtn={gradientBtn}
           loadingFollow={
@@ -276,6 +283,7 @@ export const NovelDetail = () => {
             isFollowersFetching
           }
           followBtnRef={followBtnRef}
+          isBanned={auth?.user.isBanned}
         />
 
         <main className="space-y-5">

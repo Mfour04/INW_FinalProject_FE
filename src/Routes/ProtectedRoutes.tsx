@@ -9,6 +9,9 @@ interface MyComponentProps {
 export const ProtectedRoutes = ({ role: allowedRoles }: MyComponentProps) => {
   const { auth } = useAuth();
   const userRole = auth?.user?.role;
+  if (auth?.user?.isBanned) {
+    return <Navigate to="/banned" />;
+  }
 
   const isAllowed =
     userRole &&
