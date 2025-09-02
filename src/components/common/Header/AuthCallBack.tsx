@@ -16,18 +16,18 @@ export const AuthCallback = () => {
     onSuccess: (res) => {
       const tokenData = res?.data?.data;
       if (!tokenData) {
-        toast?.onOpen("Đăng nhập Google thất bại: không có token");
+        toast?.onOpen({ message: "Đăng nhập Google thất bại: không có token!", variant: "error" });
         return;
       }
 
       const { accessToken, refreshToken, user } = tokenData;
       setAuth({ accessToken, refreshToken, user });
-      toast?.onOpen("Đăng nhập Google thành công!");
+      toast?.onOpen({ message: "Đăng nhập Google thành công!", variant: "success" });
       if (user.role === "Admin") navigate("/admin");
       else navigate("/");
     },
     onError: () => {
-      toast?.onOpen("Đăng nhập Google thất bại");
+      toast?.onOpen({ message: "Đăng nhập Google thất bại!", variant: "error" });
     },
   });
 

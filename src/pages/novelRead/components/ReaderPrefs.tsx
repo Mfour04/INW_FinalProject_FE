@@ -87,7 +87,7 @@ export const ReaderPrefs = ({
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <div className="mb-1 text-gray-700 dark:text-white/80">Giãn dòng</div>
           <div className="flex items-center gap-2">
             <input
@@ -104,7 +104,7 @@ export const ReaderPrefs = ({
               {lineHeight.toFixed(2)}
             </span>
           </div>
-        </div>
+        </div> */}
 
         <div>
           <div className="mb-1 text-gray-700 dark:text-white/80">Độ rộng nội dung</div>

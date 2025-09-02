@@ -149,10 +149,10 @@ const RequestList = () => {
       queryClient.invalidateQueries({ queryKey: ["PendingWithdrawRequests"] });
       setDialog({ isOpen: false, type: null, title: "", requestId: null });
       setDetailFor(null);
-      toast?.onOpen("Cập nhật trạng thái thành công");
+      toast?.onOpen({ message: "Cập nhật trạng thái thành công!", variant: "success" });
     },
     onError: (e: any) => {
-      toast?.onOpen(e?.message ?? "Cập nhật trạng thái thất bại");
+      toast?.onOpen({ message: e?.message ?? "Cập nhật trạng thái thất bại!", variant: "error" });
     },
   });
 

@@ -138,7 +138,7 @@ export default function AuthModal({ onClose }: Props) {
     onSuccess: (data) => {
       const { accessToken, refreshToken, user } = data.data.token;
       setAuth({ accessToken, refreshToken, user });
-      toast?.onOpen("Bạn đã đăng nhập thành công!");
+      toast?.onOpen({ message: "Bạn đã đăng nhập thành công!", variant: "success" });
       onClose();
       if (user.role === "Admin") navigate("/admin");
     },
@@ -149,7 +149,7 @@ export default function AuthModal({ onClose }: Props) {
     onError: (res: any) =>
       setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
     onSuccess: () => {
-      toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
+      toast?.onOpen({ message: "Đăng ký thành công, kiểm tra email để xác thực!", variant: "success" });
       setAction(AUTH_ACTIONS.LOGIN);
     },
   });
@@ -157,7 +157,7 @@ export default function AuthModal({ onClose }: Props) {
   const ForgotPasswordMutation = useMutation({
     mutationFn: (params: ForgotPasswordParams) => ForgotPassword(params),
     onSuccess: () => {
-      toast?.onOpen("Yêu cầu thành công. Hãy kiểm tra email của bạn");
+      toast?.onOpen({ message: "Yêu cầu thành công. Hãy kiểm tra email của bạn!", variant: "success" });
       setAction(AUTH_ACTIONS.LOGIN);
     },
   });
@@ -179,7 +179,7 @@ export default function AuthModal({ onClose }: Props) {
 
   const handleForgot = useCallback(() => {
     if (!forgotPasswordForm.email.trim()) {
-      toast?.onOpen("Hãy nhập email để đặt lại mật khẩu");
+      toast?.onOpen({ message: "Hãy nhập email để đặt lại mật khẩu!", variant: "error" });
       return;
     }
     ForgotPasswordMutation.mutate(forgotPasswordForm);

@@ -186,17 +186,7 @@ export const AuthorViews = ({ mode, onChangeMode }: Props) => {
 
         {/* Main grid */}
         <section className="grid grid-cols-12 gap-6">
-          {/* Biểu đồ (mở nếu cần)
-          <div className="col-span-12 lg:col-span-8 space-y-6">
-            <Card className="p-4">
-              <div className="mb-1 text-sm text-zinc-600 dark:text-white/70">Biểu đồ lượt xem</div>
-              <ChartToolbar granularity={vGran} onGranularity={setVGran} />
-              <AreaChart series={seriesViews} yKey="views" />
-            </Card>
-          </div>
-          */}
-
-          <div className="col-span-12 lg:col-span-8 grid grid-cols-2 gap-6">
+          <div className="col-span-12 lg:col-span-12 grid grid-cols-2 gap-3">
             {/* Top theo view */}
             <Card className="p-0 overflow-hidden">
               <div className="px-3 py-3 text-sm text-zinc-600 dark:text-white/70 flex items-center gap-2">
