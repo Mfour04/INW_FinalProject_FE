@@ -10,6 +10,7 @@ interface ClickableUserInfoProps {
   size?: "small" | "medium" | "large";
   showUsername?: boolean;
   className?: string;
+  setShowResult?: () => void;
 }
 
 export const ClickableUserInfo: React.FC<ClickableUserInfoProps> = ({
@@ -20,6 +21,7 @@ export const ClickableUserInfo: React.FC<ClickableUserInfoProps> = ({
   size = "medium",
   showUsername = true,
   className = "",
+  setShowResult,
 }) => {
   const navigate = useNavigate();
 
@@ -45,6 +47,7 @@ export const ClickableUserInfo: React.FC<ClickableUserInfoProps> = ({
   const goProfile = () => {
     if (!targetSlug) return;
     try {
+      setShowResult?.();
       navigate(`/profile/${targetSlug}`);
     } catch {
       window.location.href = `/profile/${targetSlug}`;

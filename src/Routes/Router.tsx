@@ -33,6 +33,7 @@ import { ResetPasswordPage } from "../components/common/Header/ResetPasswordPage
 import { CreateChapters } from "../pages/WritingRoom/CreateChapters/CreateChapters";
 import { AuthCallback } from "../components/common/Header/AuthCallBack";
 import { UserProfile } from "../pages/userProfile";
+import { Banned } from "../pages/Banned";
 
 export const Router = () => {
   return (
@@ -64,7 +65,12 @@ export const Router = () => {
             element={<UpsertChapter />}
           />
         </Route>
-        <Route path="analytics" element={<AuthorAnalytics />} />
+        <Route
+          path="analytics"
+          element={<ProtectedRoutes role={[Roles.User]} />}
+        >
+          <Route index element={<AuthorAnalytics />} />
+        </Route>
       </Route>
       <Route path="/admin" element={<ProtectedRoutes role={Roles.Admin} />}>
         <Route index element={<AdminHome />} />
@@ -89,6 +95,7 @@ export const Router = () => {
       <Route path="/rules" element={<Rules />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/needlogin" element={<LoginNeeded />} />
+      <Route path="/banned" element={<Banned />} />
       <Route path="/setting" element={<Setting />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>

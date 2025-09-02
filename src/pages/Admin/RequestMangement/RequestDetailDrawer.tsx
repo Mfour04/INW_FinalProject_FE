@@ -127,7 +127,7 @@ const RequestDetailDrawer = ({ item, requesterName, requesterUsername, onClose }
           </div>
         </div>
 
-        <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 p-4 space-y-2">
+        <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 px-4 py-3 space-y-2">
           <div className="flex items-center gap-2">
             <Banknote className="w-4 h-4" />
             <span className="text-xs text-zinc-500 dark:text-zinc-400">Số coin:</span>
@@ -152,7 +152,7 @@ const RequestDetailDrawer = ({ item, requesterName, requesterUsername, onClose }
         </div>
 
         {item.bankInfo && (
-          <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 p-4 space-y-2">
+          <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 px-4 py-3 space-y-2">
             <div className="text-sm font-semibold">
               Ngân hàng: <span className="font-medium">{bankName}</span>
             </div>
@@ -168,8 +168,8 @@ const RequestDetailDrawer = ({ item, requesterName, requesterUsername, onClose }
         )}
 
        {shouldShowQR && (
-        <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 p-4">
-          <div className="text-sm font-semibold mb-3">Quét QR để thanh toán</div>
+        <div className="rounded-xl ring-1 ring-zinc-200 bg-white/80 dark:ring-white/10 dark:bg-zinc-900/60 px-4 py-3">
+          <div className="text-sm font-semibold mb-2">Quét QR để thanh toán</div>
           <div className="flex items-center justify-center min-h-[220px]">
             {qrLoading ? (
               <p className="text-zinc-500 dark:text-zinc-400">Đang tạo mã QR...</p>
@@ -179,7 +179,7 @@ const RequestDetailDrawer = ({ item, requesterName, requesterUsername, onClose }
               <img
                 src={qrDataUrl}
                 alt="QR Code"
-                className="w-[300px] h-[250px] object-contain" 
+                className="w-[300px] h-[225px] object-contain" 
               />
             ) : (
               <p className="text-zinc-500 dark:text-zinc-400">Chưa có dữ liệu QR.</p>

@@ -26,7 +26,7 @@ import {
   type PasswordValidationResult,
 } from "../../../utils/validation";
 import { useAuth } from "../../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { TextField } from "./TextField";
 import { Input } from "./Input";
 import { YOUR_GOOGLE_CLIENT_ID } from "../../../utils/google";
@@ -56,6 +56,7 @@ export default function AuthModal({ onClose }: Props) {
   const toast = useToast();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [action, setAction] = useState<AuthAction>(AUTH_ACTIONS.LOGIN);
   const [loginForm, setLoginForm] = useState<LoginParams>(initialLoginForm);
@@ -67,6 +68,7 @@ export default function AuthModal({ onClose }: Props) {
   const [registerMessage, setRegisterMessage] = useState("");
   const [showPwd1, setShowPwd1] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -111,10 +113,6 @@ export default function AuthModal({ onClose }: Props) {
     (v: string) => setRegisterForm((p) => ({ ...p, password: v })),
     []
   );
-  const handleConfirmPasswordChange = useCallback(
-    (v: string) => setConfirmPassword(v),
-    []
-  );
   const handleForgotPasswordChange = useCallback(
     (v: string) => setForgotPasswordForm({ email: v }),
     []
@@ -136,11 +134,25 @@ export default function AuthModal({ onClose }: Props) {
   const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: (body: LoginParams) => Login(body),
     onSuccess: (data) => {
-      const { accessToken, refreshToken, user } = data.data.token;
+      const { accessToken, refreshToken, user } = data.data.token ?? {};
+      if (!accessToken) {
+        setLoginError(data.data.message);
+        return;
+      } else setLoginError(null);
       setAuth({ accessToken, refreshToken, user });
-      toast?.onOpen("Bạn đã đăng nhập thành công!");
+      toast?.onOpen({
+        message: "Bạn đã đăng nhập thành công!",
+        variant: "success",
+      });
       onClose();
-      if (user.role === "Admin") navigate("/admin");
+      if (user.role === "Admin") {
+        navigate("/admin");
+      } else if (
+        location.pathname === "/needlogin" ||
+        location.pathname === "/unauthorized"
+      ) {
+        navigate("/");
+      }
     },
   });
 
@@ -149,7 +161,10 @@ export default function AuthModal({ onClose }: Props) {
     onError: (res: any) =>
       setRegisterMessage(res?.message ?? "Đăng ký thất bại"),
     onSuccess: () => {
-      toast?.onOpen("Đăng ký thành công, kiểm tra email để xác thực!");
+      toast?.onOpen({
+        message: "Đăng ký thành công, kiểm tra email để xác thực!",
+        variant: "success",
+      });
       setAction(AUTH_ACTIONS.LOGIN);
     },
   });
@@ -157,7 +172,10 @@ export default function AuthModal({ onClose }: Props) {
   const ForgotPasswordMutation = useMutation({
     mutationFn: (params: ForgotPasswordParams) => ForgotPassword(params),
     onSuccess: () => {
-      toast?.onOpen("Yêu cầu thành công. Hãy kiểm tra email của bạn");
+      toast?.onOpen({
+        message: "Yêu cầu thành công. Hãy kiểm tra email của bạn!",
+        variant: "success",
+      });
       setAction(AUTH_ACTIONS.LOGIN);
     },
   });
@@ -179,7 +197,10 @@ export default function AuthModal({ onClose }: Props) {
 
   const handleForgot = useCallback(() => {
     if (!forgotPasswordForm.email.trim()) {
-      toast?.onOpen("Hãy nhập email để đặt lại mật khẩu");
+      toast?.onOpen({
+        message: "Hãy nhập email để đặt lại mật khẩu!",
+        variant: "error",
+      });
       return;
     }
     ForgotPasswordMutation.mutate(forgotPasswordForm);
@@ -220,6 +241,9 @@ export default function AuthModal({ onClose }: Props) {
                 }
               />
             </Input>
+            {loginError && (
+              <p className="text-red-500 text-sm mt-1">{loginError}</p>
+            )}
 
             <div className="flex items-center justify-between text-xs">
               <label className="inline-flex items-center gap-2 cursor-pointer select-none text-zinc-600 dark:text-zinc-300">

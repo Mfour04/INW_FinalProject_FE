@@ -418,9 +418,9 @@ export const Withdraw = () => {
           loading={WithdrawMutation.isPending}
         />
 
-        {/* Các modal quản lý tài khoản ngân hàng */}
         <ConfirmModal
           isOpen={confirmDefault}
+          tone="warning"
           title="Đặt làm tài khoản mặc định"
           message="Bạn có muốn đặt tài khoản này làm mặc định không?"
           onCancel={() => setConfirmDefault(false)}
@@ -428,6 +428,7 @@ export const Withdraw = () => {
         />
         <ConfirmModal
           isOpen={deleteModal}
+          tone="danger"
           title="Xóa tài khoản"
           message="Xác nhận xóa tài khoản ngân hàng này?"
           onCancel={() => setDeleteModal(false)}

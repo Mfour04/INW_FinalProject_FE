@@ -1,4 +1,3 @@
-// ReportDataTable.tsx
 import React from "react";
 
 interface Column<T> {
