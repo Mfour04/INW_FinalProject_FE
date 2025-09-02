@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 
 export type ToastVariant = "info" | "success" | "warning" | "error";
 
-export type ToastInput =
+export type ToastInput = 
   | string
   | { message: string; variant?: ToastVariant; duration?: number };
 

@@ -95,7 +95,7 @@ export const ResetPasswordPage = () => {
   const ResetPasswordMutation = useMutation({
     mutationFn: (param: ResetPasswordParams) => ResetPassword(param),
     onSuccess: () => {
-      toast?.onOpen("Đổi mật khẩu thành công. Hãy thử đăng nhập");
+      toast?.onOpen({ message: "Đổi mật khẩu thành công. Hãy thử đăng nhập", variant: "success" });
     },
   });
 
@@ -118,7 +118,7 @@ export const ResetPasswordPage = () => {
 
   useEffect(() => {
     if (!token)
-      toast?.onOpen("Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn.");
+      toast?.onOpen({ message: "Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn.", variant: "warning" });
   }, [token]);
 
   return (

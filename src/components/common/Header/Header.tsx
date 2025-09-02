@@ -330,7 +330,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         notificationIds: notReadNotificationIds,
       });
     } else {
-      toast?.onOpen("Bạn đã đọc hết tất cả!");
+      toast?.onOpen({ message: "Bạn đã đọc hết tất cả!", variant: "success" });
     }
   };
 
