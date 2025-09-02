@@ -16,6 +16,7 @@ import {
 import { useToast } from "../../../context/ToastContext/toast-context";
 import { formatTicksToDateString } from "../../../utils/date_format";
 import { UserDetailModal } from "../AdminModal/UserDetailModal";
+import { GetAnalysis } from "../../../api/Admin/Analysis/analysis.api";
 
 interface SortConfig {
   key: keyof User;
@@ -107,6 +108,17 @@ const UserList = () => {
     queryFn: () => GetAllUsers().then((res) => res.data),
   });
 
+  // Analysis data
+  const {
+    data: analysisData,
+    isLoading: isLoadingAnalysis,
+    error: analysisError,
+    refetch: refetchAnalysis,
+  } = useQuery({
+    queryKey: ["analysis"],
+    queryFn: () => GetAnalysis().then((res) => res.data),
+  });
+
   const mappedUsers: User[] =
     userData?.data?.users?.map((u: any) => ({
       userId: u.userId,
@@ -127,6 +139,7 @@ const UserList = () => {
       lastLogin: u.lastLogin,
       favouriteType: u.favouriteType,
       readCount: u.readCount ?? 0,
+      followerCount: u.followerCount ?? 0,
       createdAt: formatTicksToDateString(Number(u.createAt)),
       updatedAt: formatTicksToDateString(Number(u.updateAt)),
     })) || [];
@@ -153,20 +166,28 @@ const UserList = () => {
         lastLogin: u.lastLogin,
         favouriteType: u.favouriteType,
         readCount: u.readCount ?? 0,
+        followerCount: u.followerCount ?? 0,
         createdAt: formatTicksToDateString(Number(u.createAt)),
         updatedAt: formatTicksToDateString(Number(u.updateAt)),
       })) || [],
     [allUsersData]
   );
 
-  // KPIs
-  const kTotal = mappedAllUsers.length;
-  const kVerified = mappedAllUsers.filter((u) => u.isVerified).length;
-  const kBanned = mappedAllUsers.filter((u) => u.isBanned).length;
-  const kReads = mappedAllUsers.reduce(
-    (s, u) => s + (Number(u.readCount) || 0),
-    0
-  );
+  console.log("allUsersData:", allUsersData);
+  console.log("mappedUsers", mappedUsers);
+  console.log("mappedAllUsers", mappedAllUsers);
+
+  // KPIs from analysis data (prioritize analysis if available, fallback to calculated)
+  const kTotal = analysisData?.data?.totalUsers ?? mappedAllUsers.length;
+  const kVerified =
+    analysisData?.data?.verifiedUsers ??
+    mappedAllUsers.filter((u) => u.isVerified).length;
+  const kBanned =
+    analysisData?.data?.lockedUsers ??
+    mappedAllUsers.filter((u) => u.isBanned).length;
+  const kReads =
+    analysisData?.data?.totalNovelViews ??
+    mappedAllUsers.reduce((s, u) => s + (Number(u.readCount) || 0), 0);
 
   // Ban/unban
   const updateBanUserMutation = useMutation({
@@ -185,11 +206,15 @@ const UserList = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis"] }); // Invalidate analysis after update
       toast?.onOpen(data.message);
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
     onError: (error: any) => {
-      toast?.onOpen({ message: error?.message || "Cập nhật trạng thái khóa thất bại", variant: "error"});
+      toast?.onOpen({
+        message: error?.message || "Cập nhật trạng thái khóa thất bại",
+        variant: "error",
+      });
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
   });
@@ -235,6 +260,11 @@ const UserList = () => {
     setIsDetail(true);
   };
 
+  const handleRefreshAll = () => {
+    refetchAll();
+    refetchAnalysis();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -255,7 +285,7 @@ const UserList = () => {
           </p>
         </div>
         <button
-          onClick={() => refetchAll()}
+          onClick={handleRefreshAll}
           className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-white/10 backdrop-blur hover:bg-white dark:hover:bg-white/15 transition"
           title="Làm mới thống kê"
         >
@@ -274,12 +304,28 @@ const UserList = () => {
       </div>
 
       {/* KPI row */}
-      <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Tổng người dùng" value={kTotal.toLocaleString()} />
-        <KpiCard label="Đã xác minh" value={kVerified.toLocaleString()} />
-        <KpiCard label="Đang bị khóa" value={kBanned.toLocaleString()} />
-        <KpiCard label="Tổng lượt đọc" value={kReads.toLocaleString()} />
-      </div>
+      {isLoadingAnalysis ? (
+        <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <KpiCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : analysisError ? (
+        <div className="mb-5">
+          <StateCard
+            tone="error"
+            title="Không thể tải thống kê phân tích"
+            desc="Sử dụng dữ liệu tính toán thay thế."
+          />
+        </div>
+      ) : (
+        <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Tổng người dùng" value={kTotal.toLocaleString()} />
+          <KpiCard label="Đã xác minh" value={kVerified.toLocaleString()} />
+          <KpiCard label="Đang bị khóa" value={kBanned.toLocaleString()} />
+          <KpiCard label="Tổng lượt đọc" value={kReads.toLocaleString()} />
+        </div>
+      )}
 
       {/* Top section */}
       <div className="mb-6">
@@ -326,7 +372,7 @@ const UserList = () => {
         <>
           <div className="relative pb-2">
             <DataTable
-              data={mappedUsers}
+              data={mappedAllUsers}
               sortConfig={sortConfig}
               onSort={handleSort}
               type="user"
@@ -373,6 +419,15 @@ function KpiCard({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-white/5 p-3 shadow-sm backdrop-blur">
       <div className="text-sm text-zinc-600 dark:text-zinc-300">{label}</div>
       <div className="mt-1 text-xl font-semibold tracking-tight">{value}</div>
+    </div>
+  );
+}
+
+function KpiCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white/90 dark:bg-white/5 p-3 shadow-sm backdrop-blur">
+      <div className="h-4 w-28 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse mb-1" />
+      <div className="h-6 w-20 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
     </div>
   );
 }

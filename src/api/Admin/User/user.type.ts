@@ -19,5 +19,6 @@ export interface User {
   readCount: number; // Thêm để tương thích với UserTopSection
   createdAt: string;
   updatedAt: string;
+  followerCount: number;
   [key: string]: unknown;
 }

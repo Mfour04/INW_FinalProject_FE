@@ -95,9 +95,9 @@ const DataTable = <T extends NovelAdmin | User>({
         ]
       : [
           {
-            key: "userName",
-            sortKey: "userName",
-            label: "Username",
+            key: "displayName",
+            sortKey: "displayName",
+            label: "Tên hiển thị",
             sortable: true,
           },
           { key: "role", label: "Vai trò", sortable: false },
@@ -257,20 +257,16 @@ const DataTable = <T extends NovelAdmin | User>({
                   const value: any = (item as any)[h.key];
 
                   /** ---------- USER CELLS ---------- */
-                  if (type === "user" && h.key === "userName") {
+                  if (type === "user" && h.key === "displayName") {
                     const u = item as User;
                     return (
                       <td
                         key={h.key}
                         className="px-3 py-2 truncate font-medium"
                       >
-                        <Link
-                          to={`/admin/users/${u.userId}`}
-                          className="text-[#ff5f3d] hover:underline decoration-1 underline-offset-2"
-                          title={String(value ?? "")}
-                        >
+                        <span className="text-[#ff5f3d] decoration-1 underline-offset-2">
                           {value}
-                        </Link>
+                        </span>
                       </td>
                     );
                   }

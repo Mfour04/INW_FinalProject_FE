@@ -57,7 +57,11 @@ function MetricCard<T extends Record<string, unknown>>({
                 initial="hidden"
                 animate="show"
                 exit="exit"
-                transition={{ delay: i * 0.05, duration: 0.16, ease: "easeOut" }}
+                transition={{
+                  delay: i * 0.05,
+                  duration: 0.16,
+                  ease: "easeOut",
+                }}
                 className="group flex items-center gap-3 rounded-xl border border-zinc-200/80 dark:border-white/10 p-2.5 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
               >
                 <div
@@ -73,11 +77,19 @@ function MetricCard<T extends Record<string, unknown>>({
                 </div>
 
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-zinc-800">
-                  {img && <img src={img} className="h-full w-full object-cover" loading="lazy" />}
+                  {img && (
+                    <img
+                      src={img}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[14px] font-medium">{titleText}</div>
+                  <div className="truncate text-[14px] font-medium">
+                    {titleText}
+                  </div>
                 </div>
 
                 <div className="inline-flex items-center gap-1 text-[13px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200 leading-none opacity-80 group-hover:opacity-100 transition-opacity">
@@ -94,25 +106,29 @@ function MetricCard<T extends Record<string, unknown>>({
 
 const NovelTopSection = <T extends Record<string, unknown>>({
   novels,
-  threeDaysAgo,
 }: NovelTopSectionProps<T>) => {
   const mostViewedNovels = useMemo(
-    () => [...novels].sort((a, b) => Number(b.TotalViews) - Number(a.TotalViews)).slice(0, 3),
+    () =>
+      [...novels]
+        .sort((a, b) => Number(b.TotalViews) - Number(a.TotalViews))
+        .slice(0, 3),
     [novels]
   );
 
   const topRatedNovels = useMemo(
-    () => [...novels].sort((a, b) => Number(b.RatingAvg) - Number(a.RatingAvg)).slice(0, 3),
+    () =>
+      [...novels]
+        .sort((a, b) => Number(b.RatingAvg) - Number(a.RatingAvg))
+        .slice(0, 3),
     [novels]
   );
 
   const viewFollowerTrend = useMemo(
     () =>
       [...novels]
-        .filter((novel) => Number(novel.UpdateAt) > threeDaysAgo)
         .sort((a, b) => Number(b.Followers) - Number(a.Followers))
         .slice(0, 3),
-    [novels, threeDaysAgo]
+    [novels]
   );
 
   return (
@@ -148,7 +164,7 @@ const NovelTopSection = <T extends Record<string, unknown>>({
       />
 
       <MetricCard<T>
-        title="Xu hướng follow"
+        title="Lượt theo dõi nhiều"
         icon={<UserPlus className="h-5 w-5" />}
         items={viewFollowerTrend}
         itemKey={"Title" as keyof T}
