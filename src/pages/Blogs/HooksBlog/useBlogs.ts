@@ -149,12 +149,13 @@ export const useUpdateBlogPost = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: { postId: string; content: string; images?: File[]; removedImageUrls?: string[] }) => {
+        mutationFn: async (data: { postId: string; content: string; images?: File[]; removedImageUrls?: string[]; existingImages?: string[] }) => {
             try {
                 const res = await UpdateBlogPost(data.postId, {
                     content: data.content,
                     images: data.images,
                     removedImageUrls: data.removedImageUrls,
+                    existingImages: data.existingImages,
                 });
                 return res.data;
             } catch (error: any) {

@@ -179,7 +179,7 @@ export const Blogs = () => {
 
   const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
   const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
-  const refetch = tab === "following" ? () => {} : refetchAll;
+  const refetch = tab === "following" ? () => { } : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -326,9 +326,9 @@ export const Blogs = () => {
   const handleRequestDelete = (_type: "post" | "comment", id: string) =>
     setConfirmDeleteId(id);
 
-  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[]) => {
+  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[], existingImages?: string[]) => {
     updateBlogPostMutation.mutate(
-      { postId, content, images: newImages, removedImageUrls },
+      { postId, content, images: newImages, removedImageUrls, existingImages },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();
@@ -424,8 +424,8 @@ export const Blogs = () => {
                     active
                       ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow"
                       : isDisabled
-                      ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
-                      : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
+                        ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
+                        : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
                   ].join(" ")}
                 >
                   {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
@@ -528,8 +528,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,
@@ -613,8 +613,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,

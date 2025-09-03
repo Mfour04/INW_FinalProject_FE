@@ -301,8 +301,10 @@ const PostEditForm: React.FC<Props> = ({
                         ].join(" ")}
                         title="Lưu (Ctrl/Cmd + Enter)"
                     >
-                        <Pencil className="h-4 w-4" />
-                        <span>Lưu</span>
+                        <div className="flex items-center gap-1">
+                            <Pencil className="h-4 w-4" />
+                            <span>Lưu</span>
+                        </div>
                     </Button>
                 </div>
             </div>

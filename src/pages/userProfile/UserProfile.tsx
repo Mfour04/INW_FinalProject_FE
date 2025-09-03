@@ -167,9 +167,9 @@ export const UserProfile = () => {
     backendData?.userId ||
     "";
 
-  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[]) => {
+  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[], existingImages?: string[]) => {
     updateBlogPostMutation.mutate(
-      { postId, content, images: newImages, removedImageUrls },
+      { postId, content, images: newImages, removedImageUrls, existingImages },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();

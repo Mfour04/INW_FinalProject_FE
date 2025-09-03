@@ -258,7 +258,7 @@ const PostItem = ({
                 onChange={setEditContent}
                 onCancel={() => setEditingPostId(null)}
                 onSave={(content, newImages, removedImageUrls) => {
-                  if (onUpdatePost) onUpdatePost(post.id, content, newImages, removedImageUrls);
+                  if (onUpdatePost) onUpdatePost(post.id, content, newImages, removedImageUrls, images);
                   setEditingPostId(null);
                   setRemovedImages([]); // Reset removed images after saving
                 }}

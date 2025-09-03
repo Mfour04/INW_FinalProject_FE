@@ -44,7 +44,6 @@ export const BlogDetail = () => {
     const { data: allPosts } = useBlogPosts();
     const cachedPost = allPosts?.find((p: any) => p.id === postId);
 
-    // Reset removedImages when editing starts - moved to top level
     useEffect(() => {
         if (editingPostId && editingPostId === postId) {
             setRemovedImages([]);
@@ -196,8 +195,9 @@ export const BlogDetail = () => {
     };
 
     const handleUpdatePost = (content: string, newImages?: File[], removedImageUrls?: string[]) => {
+        const existingImages = finalPost?.imgUrls || [];
         updateBlogPostMutation.mutate(
-            { postId: postId!, content, images: newImages, removedImageUrls },
+            { postId: postId!, content, images: newImages, removedImageUrls, existingImages },
             {
                 onSuccess: () => {
                     setEditingPostId(null);
@@ -247,7 +247,6 @@ export const BlogDetail = () => {
     };
 
     const handleReport = (comment: Comment) => {
-        // TODO: Implement comment reporting
         toast?.onOpen({ message: "Tính năng báo cáo comment đang được phát triển!", variant: "info" });
     };
 
@@ -318,7 +317,6 @@ export const BlogDetail = () => {
                 <div className="mb-6 flex items-center gap-4">
                     <button
                         onClick={() => {
-                            // Navigate back to blogs page and scroll to this specific post
                             navigate("/blogs", {
                                 state: {
                                     scrollToPost: postId,

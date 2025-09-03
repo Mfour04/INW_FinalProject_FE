@@ -43,7 +43,7 @@ export const CreateBlogPost = async (data: CreateBlogPostRequest & { images?: Fi
     const formData = new FormData();
 
     const content = data.content || "";
-    formData.append('Content', content); // Changed from 'content' to 'Content'
+    formData.append('Content', content);
 
     if (data.images && data.images.length > 0) {
         data.images.forEach((image) => {
@@ -77,19 +77,26 @@ export const UnlikeBlogPost = (postId: string) =>
 export const DeleteBlogPost = (postId: string) =>
     http.privateHttp.delete(`forums/posts/${postId}`);
 
-export const UpdateBlogPost = async (postId: string, data: { content: string; images?: File[]; removedImageUrls?: string[] }) => {
+export const UpdateBlogPost = async (postId: string, data: { content: string; images?: File[]; removedImageUrls?: string[]; existingImages?: string[] }) => {
     const formData = new FormData();
     formData.append('Content', data.content);
 
     if (data.images && data.images.length > 0) {
         data.images.forEach((image) => {
-            formData.append('Images', image);
+            formData.append('NewImages', image);
         });
     }
 
-    if (data.removedImageUrls && data.removedImageUrls.length > 0) {
-        const removedUrlsString = data.removedImageUrls.join(',');
-        formData.append('RemovedImageUrls', removedUrlsString);
+    if (data.existingImages && data.existingImages.length > 0) {
+        const keepUrls = data.existingImages.filter(url =>
+            !data.removedImageUrls || !data.removedImageUrls.includes(url)
+        );
+
+        if (keepUrls.length > 0) {
+            keepUrls.forEach(url => {
+                formData.append('KeepUrls', url);
+            });
+        }
     }
 
     const config = {
