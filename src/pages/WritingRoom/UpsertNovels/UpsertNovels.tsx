@@ -136,43 +136,53 @@ export const UpsertNovels = () => {
     return fd;
   };
 
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [completing, setCompleting] = useState(false);
+
   const handleSaveDraft = () => {
+    setSaving(true);
     const fd = toFormData({ isPublic: false });
-    if (isUpdate) updateNovelMutation.mutate(fd);
-    else createNovelMutation.mutate(fd);
+    const callback = () => setSaving(false);
+    if (isUpdate) updateNovelMutation.mutate(fd, { onSettled: callback });
+    else createNovelMutation.mutate(fd, { onSettled: callback });
   };
 
   const handlePublishNow = () => {
-    let fd = new FormData();
-    if (!novelData?.data.data.novelInfo.isPublic)
-      fd = toFormData({ isPublic: true });
-    else fd = toFormData({ isPublic: false });
-
+    setPublishing(true);
+    let fd = !novelData?.data.data.novelInfo.isPublic
+      ? toFormData({ isPublic: true })
+      : toFormData({ isPublic: false });
+    const callback = () => setPublishing(false);
     if (canPublic)
-      if (isUpdate) {
-        updateNovelMutation.mutate(fd);
-      } else createNovelMutation.mutate(fd);
-    else
+      if (isUpdate) updateNovelMutation.mutate(fd, { onSettled: callback });
+      else createNovelMutation.mutate(fd, { onSettled: callback });
+    else {
       toast?.onOpen({
         message:
           "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!",
         variant: "warning",
       });
+      setPublishing(false);
+    }
   };
 
   const handleComplete = () => {
-    let fd = new FormData();
-    if (novelData?.data.data.novelInfo.status === 0)
-      fd = toFormData({ status: 1 });
-    else fd = toFormData({ status: 0 });
-
-    if (canPublic) updateNovelMutation.mutate(fd);
-    else
+    setCompleting(true);
+    let fd =
+      novelData?.data.data.novelInfo.status === 0
+        ? toFormData({ status: 1 })
+        : toFormData({ status: 0 });
+    const callback = () => setCompleting(false);
+    if (canPublic) updateNovelMutation.mutate(fd, { onSettled: callback });
+    else {
       toast?.onOpen({
         message:
           "Bạn cần có ít nhất 1 chương truyện để hoàn thành tiểu thuyết này!",
         variant: "warning",
       });
+      setCompleting(false);
+    }
   };
 
   const handleCheckSlug = () => {
@@ -589,7 +599,9 @@ export const UpsertNovels = () => {
           <aside className="col-span-12 md:col-span-4">
             <div className="md:sticky md:top-4 max-h-[calc(100vh-2rem)] overflow-auto space-y-4">
               <ActionsBar
-                busy={busy}
+                saving={saving}
+                publishing={publishing}
+                completing={completing}
                 isUpdate={isUpdate}
                 isPublic={novelData?.data.data.novelInfo.isPublic ?? false}
                 isCompleted={novelData?.data.data.novelInfo.status === 0}

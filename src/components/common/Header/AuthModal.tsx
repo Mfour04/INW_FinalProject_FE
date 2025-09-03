@@ -490,7 +490,7 @@ export default function AuthModal({ onClose }: Props) {
           <div className="relative h-full flex flex-col justify-center p-12">
             {action === AUTH_ACTIONS.REGISTER ? (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">
+                <h1 className="text-3xl font-semibold leading-tight dark:text-white">
                   Tham gia InkWave ngay
                 </h1>
                 <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
@@ -499,7 +499,7 @@ export default function AuthModal({ onClose }: Props) {
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-semibold leading-tight">
+                <h1 className="text-3xl font-semibold leading-tight dark:text-white">
                   Gõ cửa thế giới truyện
                 </h1>
                 <p className="mt-2 text-zinc-600 dark:text-zinc-300 max-w-md text-sm">
@@ -536,7 +536,7 @@ export default function AuthModal({ onClose }: Props) {
             </div>
 
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-              <h2 className="text-[15px] sm:text-base font-semibold">
+              <h2 className="text-[15px] sm:text-base font-semibold dark:text-white">
                 {action === AUTH_ACTIONS.REGISTER
                   ? "Tạo tài khoản"
                   : "Chào mừng trở lại"}

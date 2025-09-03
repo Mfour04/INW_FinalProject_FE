@@ -336,11 +336,16 @@ export const Setting = () => {
   const handleFileSelect = (file: File, type: "avatar" | "cover") => {
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast?.onOpen("Vui lòng chọn file ảnh (JPG, PNG, GIF, etc.)");
-        return;
+        toast?.onOpen({
+          message: "Vui lòng chọn file ảnh (JPG, PNG, GIF,...)",
+          variant: "warning",
+        });
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast?.onOpen("File ảnh không được lớn hơn 5MB");
+        toast?.onOpen({
+          message: "File ảnh không được lớn hơn 5MB",
+          variant: "warning",
+        });
         return;
       }
       const allowedExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -363,7 +368,10 @@ export const Setting = () => {
         }
       };
       reader.onerror = () => {
-        toast?.onOpen(`Lỗi khi đọc file ${type}`);
+        toast?.onOpen({
+          message: `Lỗi khi đọc file ${type}`,
+          variant: "error",
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -440,7 +448,10 @@ export const Setting = () => {
     try {
       const finalDisplayName = displayName.trim() || originalData.displayName;
       if (!finalDisplayName) {
-        toast?.onOpen("Tên hiển thị không được để trống");
+        toast?.onOpen({
+          message: "Tên hiển thị không được để trống",
+          variant: "warning",
+        });
         setIsLoading(false);
         return;
       }
