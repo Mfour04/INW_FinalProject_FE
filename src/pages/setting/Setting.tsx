@@ -119,7 +119,7 @@ export const Setting = () => {
             coverUrl: parsed.coverUrl || "",
           });
         }
-      } catch {}
+      } catch { }
     }
   }, [userInfo?.data?.Data]);
 
@@ -262,62 +262,68 @@ export const Setting = () => {
     checkForChanges();
   }, []);
 
-  let backendData: any = null;
-  if (userInfo?.data?.Data) backendData = userInfo.data.Data;
-  else if (userInfo?.data?.data) backendData = userInfo.data.data;
-  else if (userInfo?.data) backendData = userInfo.data;
+  // userInfo.data is directly the User object from the API
+  const backendData = userInfo?.data;
 
   useEffect(() => {
-    let profileData = null;
-    if (userInfo?.data?.Data) profileData = userInfo.data.Data;
-    else if (userInfo?.data?.data) profileData = userInfo.data.data;
-    else if (userInfo?.data) profileData = userInfo.data;
+    const profileData = userInfo?.data;
 
     if (profileData) {
       const apiData = {
-        displayName: profileData.DisplayName || profileData.displayName || "",
-        bio: profileData.Bio || profileData.bio || "",
-        avatarUrl: profileData.AvatarUrl || profileData.avatarUrl || "",
-        coverUrl: profileData.CoverUrl || profileData.coverUrl || "",
+        displayName: profileData.displayName || "",
+        bio: profileData.bio || "",
+        avatarUrl: profileData.avatarUrl || "",
+        coverUrl: profileData.coverUrl || "",
       };
+
       setDisplayName(apiData.displayName);
-      setUsername(profileData.UserName || "");
+      setUsername(profileData.userName || "");
       setBio(apiData.bio);
       setOriginalData(apiData);
-      if (profileData.AvatarUrl) setAvatarPreview("");
-      if (profileData.CoverUrl) setCoverPreview("");
+      if (profileData.avatarUrl) setAvatarPreview("");
+      if (profileData.coverUrl) setCoverPreview("");
       try {
         const backupData = { ...apiData, timestamp: Date.now() };
         localStorage.setItem("userProfileBackup", JSON.stringify(backupData));
-      } catch {}
+      } catch { }
       setTimeout(() => checkForChanges(), 0);
+    } else {
+      if (auth?.user) {
+        const fallbackData = {
+          displayName: auth.user.displayName || "",
+          bio: auth.user.bio || "",
+          avatarUrl: auth.user.avatarUrl || "",
+          coverUrl: auth.user.coverUrl || "",
+        };
+        setDisplayName(fallbackData.displayName);
+        setBio(fallbackData.bio);
+        setOriginalData(fallbackData);
+      }
     }
-  }, [userInfo?.data?.Data]);
+  }, [userInfo?.data, auth?.user]);
 
   useEffect(() => {
-    let profileData = null;
-    if (userInfo?.data?.Data) profileData = userInfo.data.Data;
-    else if (userInfo?.data?.data) profileData = userInfo.data.data;
-    else if (userInfo?.data) profileData = userInfo.data;
+    // userInfo.data is directly the User object from the API
+    const profileData = userInfo?.data;
 
     if (profileData) {
       const updatedOriginalData = {
-        displayName: profileData.DisplayName || profileData.displayName || "",
-        bio: profileData.Bio || profileData.bio || "",
-        avatarUrl: profileData.AvatarUrl || profileData.avatarUrl || "",
-        coverUrl: profileData.CoverUrl || profileData.coverUrl || "",
+        displayName: profileData.displayName || "",
+        bio: profileData.bio || "",
+        avatarUrl: profileData.avatarUrl || "",
+        coverUrl: profileData.coverUrl || "",
       };
-      setDisplayName(profileData.DisplayName || "");
-      setBio(profileData.Bio || "");
+      setDisplayName(profileData.displayName || "");
+      setBio(profileData.bio || "");
       setOriginalData(updatedOriginalData);
 
       if (auth?.user && profileData) {
         const updatedUser = {
           ...auth.user,
-          displayName: profileData.DisplayName || auth.user.displayName,
-          bio: profileData.Bio || auth.user.bio,
-          avatarUrl: profileData.AvatarUrl || auth.user.avatarUrl,
-          coverUrl: profileData.CoverUrl || auth.user.coverUrl,
+          displayName: profileData.displayName || auth.user.displayName,
+          bio: profileData.bio || auth.user.bio,
+          avatarUrl: profileData.avatarUrl || auth.user.avatarUrl,
+          coverUrl: profileData.coverUrl || auth.user.coverUrl,
         };
         const updatedAuth = { ...auth, user: updatedUser };
         if (JSON.stringify(auth.user) !== JSON.stringify(updatedUser))
@@ -327,9 +333,9 @@ export const Setting = () => {
       try {
         const backupData = { ...updatedOriginalData, timestamp: Date.now() };
         localStorage.setItem("userProfileBackup", JSON.stringify(backupData));
-      } catch {}
+      } catch { }
     }
-  }, [userInfo?.data?.Data, auth?.user]);
+  }, [userInfo?.data, auth?.user]);
 
   const toast = useToast();
 
@@ -492,7 +498,7 @@ export const Setting = () => {
           try {
             await new Promise((r) => setTimeout(r, 1000));
             await refetchUserInfo();
-          } catch {}
+          } catch { }
         }
 
         queryClient.invalidateQueries({ queryKey: ["userSearch"] });
@@ -538,7 +544,7 @@ export const Setting = () => {
             timestamp: Date.now(),
           };
           localStorage.setItem("userProfileBackup", JSON.stringify(backupData));
-        } catch {}
+        } catch { }
       } else {
         const errorMessage =
           result.data?.message ||
@@ -589,23 +595,20 @@ export const Setting = () => {
   }
 
   const currentUser = auth?.user;
-  const createdAt = backendData?.CreatedAt || backendData?.createdAt;
+  const createdAt = backendData?.lastLogin;
   const joinDate = createdAt ? blogFormatVietnamTimeFromTicks(createdAt) : "";
 
   const computedUserName =
-    backendData?.UserName ||
     backendData?.userName ||
     currentUser?.userName ||
     "";
   const computedAvatarUrl =
     originalData.avatarUrl ||
-    backendData?.AvatarUrl ||
     backendData?.avatarUrl ||
     currentUser?.avatarUrl ||
     "";
   const computedCoverUrl =
     originalData.coverUrl ||
-    backendData?.CoverUrl ||
     backendData?.coverUrl ||
     "";
 

@@ -17,7 +17,7 @@ import { AuthContext } from "../../../context/AuthContext/AuthProvider";
 
 import { PostContent } from "./components/PostContent";
 import { PostImages } from "./components/PostImages";
-import PostInlineEditor from "./components/PostInlineEditor";
+import PostEditForm from "./components/PostEditForm";
 
 import type { Post, VisibleRootComments } from "../types";
 import type { Comment } from "../../CommentUser/types";
@@ -56,7 +56,7 @@ interface PostItemProps {
   onRequestDelete: (type: "post" | "comment", id: string) => void;
   onToggleLike?: (postId: string) => void;
   isLiked?: boolean;
-  onUpdatePost?: (postId: string, content: string) => void;
+  onUpdatePost?: (postId: string, content: string, newImages?: File[], removedImageUrls?: string[]) => void;
   updatedTimestamp?: string;
 }
 
@@ -83,6 +83,7 @@ const PostItem = ({
   const [showCommentPopup, setShowCommentPopup] = useState(false);
   const [editContent, setEditContent] = useState(post.content ?? "");
   const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
   const content = post.content ?? "";
 
   const handleReport = (comment: Comment) => {
@@ -90,6 +91,12 @@ const PostItem = ({
   };
 
   useEffect(() => setLikeCount(post.likes ?? 0), [post.likes]);
+
+  useEffect(() => {
+    if (editingPostId === post.id) {
+      setRemovedImages([]);
+    }
+  }, [editingPostId, post.id]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -104,14 +111,22 @@ const PostItem = ({
 
   const images: string[] = useMemo(() => {
     if (Array.isArray((post as any).imgUrls)) {
-      return (post as any).imgUrls.filter(Boolean);
+      const result = (post as any).imgUrls.filter(Boolean);
+      return result;
     }
     const raw = (post as any).images;
     if (Array.isArray(raw)) {
-      return raw
+      const result = raw
         .map((it: any) => (typeof it === "string" ? it : it?.url))
         .filter((u: any) => typeof u === "string" && u.length > 0);
+      return result;
     }
+
+    if (Array.isArray((post as any).img_urls)) {
+      const result = (post as any).img_urls.filter(Boolean);
+      return result;
+    }
+
     return [];
   }, [post]);
 
@@ -238,13 +253,22 @@ const PostItem = ({
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <PostInlineEditor
+              <PostEditForm
                 value={editContent}
                 onChange={setEditContent}
                 onCancel={() => setEditingPostId(null)}
-                onSave={() => {
-                  if (onUpdatePost) onUpdatePost(post.id, editContent.trim());
+                onSave={(content, newImages, removedImageUrls) => {
+                  if (onUpdatePost) onUpdatePost(post.id, content, newImages, removedImageUrls);
                   setEditingPostId(null);
+                  setRemovedImages([]); // Reset removed images after saving
+                }}
+                existingImages={images}
+                removedImages={removedImages}
+                onRemoveExistingImage={(imageUrl) => {
+                  setRemovedImages(prev => {
+                    const newRemovedImages = [...prev, imageUrl];
+                    return newRemovedImages;
+                  });
                 }}
               />
               {images.length > 0 && (

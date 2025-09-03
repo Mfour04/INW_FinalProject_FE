@@ -8,26 +8,29 @@ import { AuthContext } from "../../context/AuthContext/AuthProvider";
 import { BlogCommentUser } from "./Comment/BlogCommentUser";
 import { PostContent } from "./Post/components/PostContent";
 import { PostImages } from "./Post/components/PostImages";
-import PostInlineEditor from "./Post/components/PostInlineEditor";
+import PostEditForm from "./Post/components/PostEditForm";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { ReportPostModal } from "../../components/ReportModal/ReportModal";
 import { useReport } from "../../hooks/useReport";
 import { useUpdateBlogPost, useDeleteBlogPost, useBlogPostById, useBlogPosts } from "./HooksBlog";
 import { LikeBlogPost, UnlikeBlogPost } from "../../api/Blogs/blogs.api";
-import { blogFormatVietnamTimeFromTicks } from "../../utils/date_format";
+import { blogFormatVietnamTimeFromTicks, blogFormatVietnamTimeFromTicksForUpdate, blogGetCurrentTicks, blogDetailFormatTimeFromTicks, blogDetailGetCurrentTicks } from "../../utils/date_format";
 import type { Comment } from "../CommentUser/types";
 import type { ReportPayload } from "../../components/ReportModal/ReportModal";
 import type { ReportRequest } from "../../api/Report/report.type";
 import { REPORT_REASON_CODE } from "../../components/ReportModal/ReportModal";
+import { useToast } from "../../context/ToastContext/toast-context";
 
 export const BlogDetail = () => {
     const { postId } = useParams<{ postId: string }>();
     const navigate = useNavigate();
     const { auth } = useContext(AuthContext);
     const report = useReport();
+    const toast = useToast();
 
     const [editingPostId, setEditingPostId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState("");
+    const [removedImages, setRemovedImages] = useState<string[]>([]);
     const [likeCount, setLikeCount] = useState<number>(0);
     const [isLiked, setIsLiked] = useState<boolean>(false);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -40,6 +43,13 @@ export const BlogDetail = () => {
     const { data: post, isLoading, error } = useBlogPostById(postId!);
     const { data: allPosts } = useBlogPosts();
     const cachedPost = allPosts?.find((p: any) => p.id === postId);
+
+    // Reset removedImages when editing starts - moved to top level
+    useEffect(() => {
+        if (editingPostId && editingPostId === postId) {
+            setRemovedImages([]);
+        }
+    }, [editingPostId, postId]);
 
     const localStoragePost = (() => {
         try {
@@ -72,6 +82,7 @@ export const BlogDetail = () => {
                 likeCount: apiPost.likeCount || 0,
                 commentCount: apiPost.commentCount || 0,
                 createdAt: apiPost.createdAt,
+                updatedAt: apiPost.updatedAt || null,
                 imgUrls: apiPost.imgUrls || [],
                 isLiked: apiPost.isLiked || false
             };
@@ -85,6 +96,7 @@ export const BlogDetail = () => {
                 likeCount: rawPost.likeCount || 0,
                 commentCount: rawPost.commentCount || 0,
                 createdAt: rawPost.createdAt,
+                updatedAt: rawPost.updatedAt || null,
                 imgUrls: rawPost.imgUrls || [],
                 isLiked: rawPost.isLiked || false
             };
@@ -106,6 +118,7 @@ export const BlogDetail = () => {
                 likeCount: rawPost.likes || 0,
                 commentCount: rawPost.comments || 0,
                 createdAt: rawPost.createdAt || rawPost.timestamp,
+                updatedAt: rawPost.updatedAt || null,
                 imgUrls: rawPost.imgUrls || [],
                 isLiked: rawPost.isLiked !== undefined ? rawPost.isLiked : isLikedFromStorage
             };
@@ -123,6 +136,7 @@ export const BlogDetail = () => {
             likeCount: rawPost.likeCount || rawPost.likes || 0,
             commentCount: rawPost.commentCount || rawPost.comments || 0,
             createdAt: rawPost.createdAt || rawPost.timestamp || Date.now(),
+            updatedAt: rawPost.updatedAt || null,
             imgUrls: rawPost.imgUrls || [],
             isLiked: rawPost.isLiked || false
         };
@@ -181,12 +195,27 @@ export const BlogDetail = () => {
         }
     };
 
-    const handleUpdatePost = (content: string) => {
+    const handleUpdatePost = (content: string, newImages?: File[], removedImageUrls?: string[]) => {
         updateBlogPostMutation.mutate(
-            { postId: postId!, content },
+            { postId: postId!, content, images: newImages, removedImageUrls },
             {
                 onSuccess: () => {
                     setEditingPostId(null);
+                    const nowTicks = blogDetailGetCurrentTicks();
+                    const formatted = blogFormatVietnamTimeFromTicksForUpdate(nowTicks);
+                    localStorage.setItem(`blog_updated_${postId}`, formatted);
+
+                    queryClient.invalidateQueries({ queryKey: ["blog-post", postId] });
+                    queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+                    queryClient.invalidateQueries({ queryKey: ["blog-posts", "all"] });
+                    queryClient.invalidateQueries({ queryKey: ["blog-posts", "following"] });
+
+                    toast?.onOpen("Cập nhật bài viết thành công!");
+
+                    setRemovedImages([]);
+                },
+                onError: () => {
+                    toast?.onOpen({ message: "Có lỗi xảy ra khi cập nhật bài viết!", variant: "error" });
                 },
             }
         );
@@ -196,6 +225,9 @@ export const BlogDetail = () => {
         deleteBlogPostMutation.mutate(postId!, {
             onSuccess: () => {
                 navigate("/blogs");
+            },
+            onError: () => {
+                toast?.onOpen({ message: "Có lỗi xảy ra khi xóa bài viết!", variant: "error" });
             },
         });
     };
@@ -207,10 +239,16 @@ export const BlogDetail = () => {
             reason: REPORT_REASON_CODE[payload.reason],
             message: payload.message,
         };
-        report.mutate(reportRequest);
+        report.mutate(reportRequest, {
+            onError: () => {
+                toast?.onOpen({ message: "Có lỗi xảy ra khi gửi báo cáo!", variant: "error" });
+            },
+        });
     };
 
     const handleReport = (comment: Comment) => {
+        // TODO: Implement comment reporting
+        toast?.onOpen({ message: "Tính năng báo cáo comment đang được phát triển!", variant: "info" });
     };
 
     if (isLoading) {
@@ -255,6 +293,7 @@ export const BlogDetail = () => {
         likeCount: finalPost.likeCount || 0,
         commentCount: finalPost.commentCount || 0,
         createdAt: finalPost.createdAt || Date.now(),
+        updatedAt: finalPost.updatedAt || null,
         imgUrls: finalPost.imgUrls || [],
         isLiked: finalPost.isLiked || false
     };
@@ -278,7 +317,15 @@ export const BlogDetail = () => {
                 {/* Header */}
                 <div className="mb-6 flex items-center gap-4">
                     <button
-                        onClick={() => navigate("/blogs")}
+                        onClick={() => {
+                            // Navigate back to blogs page and scroll to this specific post
+                            navigate("/blogs", {
+                                state: {
+                                    scrollToPost: postId,
+                                    highlightPost: true
+                                }
+                            });
+                        }}
                         className="inline-flex items-center gap-2 h-10 px-4 rounded-xl ring-1 bg-white hover:bg-zinc-50 ring-zinc-200 text-zinc-900 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] dark:ring-white/10 dark:text-white transition"
                     >
                         <ArrowLeft size={18} />
@@ -314,7 +361,12 @@ export const BlogDetail = () => {
                                     </span>
                                 </div>
                                 <div className="mt-1 text-sm text-zinc-500 dark:text-white/45">
-                                    {safePost.createdAt ? blogFormatVietnamTimeFromTicks(safePost.createdAt) : "Không rõ thời gian"}
+                                    {safePost.updatedAt
+                                        ? blogDetailFormatTimeFromTicks(safePost.updatedAt)
+                                        : safePost.createdAt
+                                            ? blogDetailFormatTimeFromTicks(safePost.createdAt)
+                                            : "Không rõ thời gian"
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -389,11 +441,21 @@ export const BlogDetail = () => {
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
                                 >
-                                    <PostInlineEditor
+                                    <PostEditForm
                                         value={editContent}
                                         onChange={setEditContent}
                                         onCancel={() => setEditingPostId(null)}
-                                        onSave={() => handleUpdatePost(editContent.trim())}
+                                        onSave={(content, newImages, removedImageUrls) => {
+                                            handleUpdatePost(content, newImages, removedImageUrls);
+                                        }}
+                                        existingImages={safePost.imgUrls || []}
+                                        removedImages={removedImages}
+                                        onRemoveExistingImage={(imageUrl) => {
+                                            setRemovedImages(prev => {
+                                                const newRemovedImages = [...prev, imageUrl];
+                                                return newRemovedImages;
+                                            });
+                                        }}
                                     />
                                 </motion.div>
                             ) : (

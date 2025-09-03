@@ -153,9 +153,9 @@ export const UserProfile = () => {
     backendData?.userId ||
     "";
 
-  const handleUpdatePost = (postId: string, content: string) => {
+  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[]) => {
     updateBlogPostMutation.mutate(
-      { postId, content },
+      { postId, content, images: newImages, removedImageUrls },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();
@@ -578,10 +578,10 @@ export const UserProfile = () => {
               </span>{" "}
               Bài đăng
 
-              <span className="mx-1">•</span>
+              {/* <span className="mx-1">•</span>
               <span className="flex items-center gap-1 text-sm text-zinc-900 dark:text-white">
                 <Calendar className="w-3 h-3" /> Tham gia {joinDate}
-              </span>
+              </span> */}
             </div>
           </div>
         </div>
