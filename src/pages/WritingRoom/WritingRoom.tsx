@@ -35,7 +35,10 @@ export const WritingRoom = () => {
   const deleteNovelMutation = useMutation({
     mutationFn: (id: string) => DeleteNovel(id),
     onSuccess: () => {
-      toast?.onOpen("Xóa truyện thành công!");
+      toast?.onOpen({
+        message: "Xóa truyện thành công!",
+        variant: "success",
+      });
       queryClient.invalidateQueries({ queryKey: ["authorNovels"] });
     },
   });
