@@ -267,9 +267,7 @@ export const UpsertChapter = () => {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 dark:bg-[#0b0c10] dark:text-white">
-      {/* overlay light / dark */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        {/* light */}
         <div
           className="absolute inset-0 opacity-60 dark:opacity-0 transition-opacity"
           style={{
@@ -412,7 +410,18 @@ export const UpsertChapter = () => {
                         : "Kiểm duyệt"}
                     </PrimaryButton>
                   ) : (
-                    <PrimaryButton onClick={handleNextStep}>
+                    <PrimaryButton
+                      onClick={() => {
+                        if (chapterForm.title.length === 0) {
+                          toast?.onOpen({
+                            message: "Bạn cần nhập tiêu đề để có thể tiếp tục",
+                            variant: "warning",
+                          });
+                          return;
+                        }
+                        handleNextStep();
+                      }}
+                    >
                       Tiếp theo
                     </PrimaryButton>
                   )

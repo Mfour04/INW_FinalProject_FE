@@ -79,7 +79,8 @@ export const UpsertNovels = () => {
       toast?.onOpen("Đã lưu vào kho của bạn");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen({ message: "Có lỗi khi tạo truyện", variant: "error"}),
+    onError: () =>
+      toast?.onOpen({ message: "Có lỗi khi tạo truyện", variant: "error" }),
   });
   const updateNovelMutation = useMutation({
     mutationFn: (fd: FormData) => UpdateNovels(fd),
@@ -87,7 +88,8 @@ export const UpsertNovels = () => {
       toast?.onOpen("Cập nhật thành công");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen({ message: "Có lỗi khi cập nhật", variant: "error"}),
+    onError: () =>
+      toast?.onOpen({ message: "Có lỗi khi cập nhật", variant: "error" }),
   });
 
   const filteredTags = useMemo(() => {
@@ -134,29 +136,58 @@ export const UpsertNovels = () => {
     return fd;
   };
 
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [completing, setCompleting] = useState(false);
+
   const handleSaveDraft = () => {
+    setSaving(true);
     const fd = toFormData({ isPublic: false });
-    if (isUpdate) updateNovelMutation.mutate(fd);
-    else createNovelMutation.mutate(fd);
+    const callback = () => setSaving(false);
+    if (isUpdate) updateNovelMutation.mutate(fd, { onSettled: callback });
+    else createNovelMutation.mutate(fd, { onSettled: callback });
   };
 
   const handlePublishNow = () => {
-    let fd = new FormData();
-    if (!novelData?.data.data.novelInfo.isPublic)
-      fd = toFormData({ isPublic: true });
-    else fd = toFormData({ isPublic: false });
-
+    setPublishing(true);
+    let fd = !novelData?.data.data.novelInfo.isPublic
+      ? toFormData({ isPublic: true })
+      : toFormData({ isPublic: false });
+    const callback = () => setPublishing(false);
     if (canPublic)
-      if (isUpdate) {
-        updateNovelMutation.mutate(fd);
-      } else createNovelMutation.mutate(fd);
-    else
-      toast?.onOpen({ message:  "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!", variant: "warning"})
+      if (isUpdate) updateNovelMutation.mutate(fd, { onSettled: callback });
+      else createNovelMutation.mutate(fd, { onSettled: callback });
+    else {
+      toast?.onOpen({
+        message:
+          "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!",
+        variant: "warning",
+      });
+      setPublishing(false);
+    }
+  };
+
+  const handleComplete = () => {
+    setCompleting(true);
+    let fd =
+      novelData?.data.data.novelInfo.status === 0
+        ? toFormData({ status: 1 })
+        : toFormData({ status: 0 });
+    const callback = () => setCompleting(false);
+    if (canPublic) updateNovelMutation.mutate(fd, { onSettled: callback });
+    else {
+      toast?.onOpen({
+        message:
+          "Bạn cần có ít nhất 1 chương truyện để hoàn thành tiểu thuyết này!",
+        variant: "warning",
+      });
+      setCompleting(false);
+    }
   };
 
   const handleCheckSlug = () => {
     if (!isValidUrl(form.slug)) {
-      setUrlError("Slug chỉ gồm chữ thường, số và dấu gạch ngang.");
+      setUrlError("Url chỉ gồm chữ thường, số và dấu gạch ngang.");
       setUrlOk("");
       return;
     }
@@ -568,12 +599,16 @@ export const UpsertNovels = () => {
           <aside className="col-span-12 md:col-span-4">
             <div className="md:sticky md:top-4 max-h-[calc(100vh-2rem)] overflow-auto space-y-4">
               <ActionsBar
-                busy={busy}
+                saving={saving}
+                publishing={publishing}
+                completing={completing}
                 isUpdate={isUpdate}
                 isPublic={novelData?.data.data.novelInfo.isPublic ?? false}
+                isCompleted={novelData?.data.data.novelInfo.status === 0}
                 onCancel={() => navigate(-1)}
                 onSaveDraft={handleSaveDraft}
                 onPublish={handlePublishNow}
+                onCompleted={handleComplete}
               />
               <PreviewCard
                 title={previewTitle}

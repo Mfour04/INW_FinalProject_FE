@@ -70,7 +70,9 @@ export type NovelChaptersResponse = {
   freeChapters: string[];
   totalChapters: number;
   totalPages: number;
+  latestUpdatedChapter: Chapter;
   purchasedChapterIds: string[];
+  chaptersInCurrentPage: number;
 };
 
 type NovelSlugCheckingResponse = {

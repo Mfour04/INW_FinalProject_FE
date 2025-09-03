@@ -267,7 +267,10 @@ export const Blogs = () => {
   const handlePost = async () => {
     if (!content.trim() && selectedImages.length === 0) return;
     if (!auth?.user) {
-      toast?.onOpen("Vui lòng đăng nhập để đăng bài!");
+      toast?.onOpen({
+        message: "Vui lòng đăng nhập để đăng bài!",
+        variant: "error",
+      });
       return;
     }
     setIsPosting(true);
@@ -281,13 +284,19 @@ export const Blogs = () => {
           setContent("");
           setSelectedImages([]);
           resetFileInputRef.current?.();
-          toast?.onOpen("Đăng bài thành công!");
+          toast?.onOpen({
+            message: "Đăng bài thành công!",
+            variant: "success",
+          });
           setIsPosting(false);
 
           refetchAll();
         },
         onError: () => {
-          toast?.onOpen("Có lỗi xảy ra khi đăng bài!");
+          toast?.onOpen({
+            message: "Có lỗi xảy ra khi đăng bài!",
+            variant: "error",
+          });
           setIsPosting(false);
         },
       }
@@ -315,10 +324,17 @@ export const Blogs = () => {
     if (!confirmDeleteId) return;
     deleteBlogPostMutation.mutate(confirmDeleteId, {
       onSuccess: () => {
-        toast?.onOpen("Xóa bài viết thành công!");
+        toast?.onOpen({
+          message: "Xóa bài viết thành công!",
+          variant: "success",
+        });
         refetchAll();
       },
-      onError: () => toast?.onOpen("Có lỗi xảy ra khi xóa bài viết!"),
+      onError: () =>
+        toast?.onOpen({
+          message: "Có lỗi xảy ra khi xóa bài viết!",
+          variant: "error",
+        }),
     });
     setConfirmDeleteId(null);
   };
@@ -335,11 +351,18 @@ export const Blogs = () => {
           const formatted = blogFormatVietnamTimeFromTicksForUpdate(nowTicks);
           setUpdatedTimestamps((prev) => ({ ...prev, [postId]: formatted }));
           localStorage.setItem(`blog_updated_${postId}`, formatted);
-          toast?.onOpen("Cập nhật bài viết thành công!");
+           toast?.onOpen({
+             message: "Cập nhật bài viết thành công!",
+             variant: "success",
+           });
 
           refetchAll();
         },
-        onError: () => toast?.onOpen("Có lỗi xảy ra khi cập nhật bài viết!"),
+        onError: () =>
+          toast?.onOpen({
+            message: "Có lỗi xảy ra khi cập nhật bài viết!",
+            variant: "error",
+          }),
       }
     );
   };
@@ -358,7 +381,10 @@ export const Blogs = () => {
       }
       refetchAll();
     } catch {
-      toast?.onOpen("Có lỗi xảy ra khi thao tác yêu thích!");
+      toast?.onOpen({
+        message: "Có lỗi xảy ra khi thao tác yêu thích!",
+        variant: "error",
+      });
     }
   };
 

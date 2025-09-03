@@ -162,7 +162,7 @@ export const NovelsExplore = ({}: Props) => {
                   onClick={() => navigate(-1)}
                   className="h-8 w-8 sm:h-9 sm:w-9 grid place-items-center rounded-lg 
                               bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
-                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg:white/[0.12]"
+                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
                   title="Quay lại"
                   aria-label="Quay lại"
                 >
@@ -217,7 +217,7 @@ export const NovelsExplore = ({}: Props) => {
                   onClick={() => refetch()}
                   className="h-8 w-8 sm:h-9 sm:w-9 grid place-items-center rounded-lg
                               bg-gray-100 ring-1 ring-gray-200 hover:bg-gray-200 transition
-                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg:white/[0.12]"
+                              dark:bg-white/[0.06] dark:ring-white/10 dark:hover:bg-white/[0.12]"
                   title="Làm mới"
                   aria-label="Làm mới"
                 >
