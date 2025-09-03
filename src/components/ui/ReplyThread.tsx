@@ -59,19 +59,20 @@ export const ReplyThread = ({
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(true);
   const [activeEditId, setActiveEditId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState<string>("");
   const editRef = useRef<HTMLTextAreaElement | null>(null);
   const [emojiOpenId, setEmojiOpenId] = useState<string | null>(null);
   const emojiBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const startLocalEdit = (id: string, content: string) => {
     setActiveEditId(id);
-    setEmojiOpenId(null);
+    setEditContent(content ?? "");
+
     requestAnimationFrame(() => {
       const ta = editRef.current;
       if (!ta) return;
-      ta.value = content ?? "";
       ta.focus();
-      const pos = ta.value.length;
+      const pos = (content ?? "").length;
       ta.setSelectionRange(pos, pos);
     });
   };
@@ -79,27 +80,42 @@ export const ReplyThread = ({
   const cancelLocalEdit = () => {
     setActiveEditId(null);
     setEmojiOpenId(null);
+    setEditContent("");
   };
 
   const saveLocalEdit = (id: string) => {
-    const content = (editRef.current?.value || "").trim();
+    const content = editContent.trim();
     if (!content) return;
     onSaveEdit(id, content);
     setActiveEditId(null);
     setEmojiOpenId(null);
+    setEditContent("");
   };
 
   const insertEmojiAtCaret = (emoji: string) => {
     const ta = editRef.current;
     if (!ta) return;
-    const start = ta.selectionStart ?? ta.value.length;
-    const end = ta.selectionEnd ?? ta.value.length;
-    ta.setRangeText(emoji, start, end, "end");
-    if (ta.value.length > 300) {
-      ta.value = ta.value.slice(0, 300);
-      ta.setSelectionRange(300, 300);
+
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+
+    const newContent = editContent.substring(0, start) + emoji + editContent.substring(end);
+
+    // Giới hạn độ dài
+    if (newContent.length > 300) {
+      const truncated = newContent.slice(0, 300);
+      setEditContent(truncated);
+      requestAnimationFrame(() => {
+        ta.setSelectionRange(300, 300);
+        ta.focus();
+      });
+    } else {
+      setEditContent(newContent);
+      requestAnimationFrame(() => {
+        ta.setSelectionRange(start + emoji.length, start + emoji.length);
+        ta.focus();
+      });
     }
-    ta.focus();
   };
 
   const parentLikes = edited[parent.id]?.likes ?? parent.likes;
@@ -146,7 +162,8 @@ export const ReplyThread = ({
               ref={(el) => {
                 editRef.current = el;
               }}
-              defaultValue={content}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
               placeholder="Chỉnh sửa bình luận…"
               rows={3}
               maxLength={300}
@@ -158,12 +175,14 @@ export const ReplyThread = ({
                 "dark:bg-[#0b0e12] dark:ring-white/10 dark:focus:ring-[#8ecbff]/35",
               ].join(" ")}
             />
-            <div className="absolute bottom-2 left-2">
+            <div className="absolute bottom-2 left-2 z-10">
               <button
                 ref={emojiBtnRef}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setEmojiOpenId((v) => (v === id ? null : id))}
+                onClick={() => {
+                  setEmojiOpenId((v) => (v === id ? null : id));
+                }}
                 className={[
                   "inline-grid place-items-center h-7 w-7 rounded-md mb-2 transition",
                   "bg-zinc-50 ring-1 ring-zinc-200 hover:bg-zinc-100",
@@ -172,13 +191,21 @@ export const ReplyThread = ({
               >
                 <Smile className="w-4 h-4 text-zinc-700 dark:text-white" />
               </button>
+
               <EmojiPickerBox
                 open={emojiOpenId === id}
-                onPick={(emoji) => insertEmojiAtCaret(emoji)}
+                onPick={(emoji) => {
+                  insertEmojiAtCaret(emoji);
+                }}
                 anchorRef={emojiBtnRef}
                 align="left"
                 placement="top"
-                onRequestClose={() => setEmojiOpenId(null)}
+                onRequestClose={() => {
+                  setEmojiOpenId(null);
+                }}
+                width={320}
+                height={260}
+                closeOnPick={false}
               />
             </div>
           </div>

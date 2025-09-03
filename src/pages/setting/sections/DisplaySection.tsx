@@ -21,11 +21,11 @@ type Props = {
     type: "avatar" | "cover"
   ) => void;
   avatarInputRef:
-    | React.RefObject<HTMLInputElement>
-    | React.MutableRefObject<HTMLInputElement | null>;
+  | React.RefObject<HTMLInputElement>
+  | React.MutableRefObject<HTMLInputElement | null>;
   coverInputRef:
-    | React.RefObject<HTMLInputElement>
-    | React.MutableRefObject<HTMLInputElement | null>;
+  | React.RefObject<HTMLInputElement>
+  | React.MutableRefObject<HTMLInputElement | null>;
   onSave: () => void;
   hasChanges: boolean;
   isLoading: boolean;
@@ -87,8 +87,8 @@ export const DisplaySection = ({
           </h2>
           <p className="text-[13px] text-zinc-600 dark:text-zinc-400 mt-1">
             @{username || currentUserName || "username"}{" "}
-            <span className="mx-2">•</span> Tham gia{" "}
-            {joinDate || "Tháng 3/2025"}
+            {/* <span className="mx-2">•</span> Tham gia{" "}
+            {joinDate || "Tháng 3/2025"} */}
           </p>
           {bio && (
             <p className="text-[13.5px] sm:text-sm text-zinc-700 dark:text-zinc-300 mt-2 max-w-2xl leading-relaxed">
@@ -169,11 +169,10 @@ export const DisplaySection = ({
                 <div className="text-red-500 text-xs">{errors.bio}</div>
               )}
               <span
-                className={`text-xs ${
-                  bio && bio.length > 450
+                className={`text-xs ${bio && bio.length > 450
                     ? "text-orange-500"
                     : "text-zinc-500 dark:text-zinc-400"
-                }`}
+                  }`}
               >
                 {bio?.length || 0}/500
               </span>
