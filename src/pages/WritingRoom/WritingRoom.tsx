@@ -220,7 +220,6 @@ export const WritingRoom = () => {
           </div>
         )}
 
-        {/* Pager phía dưới vẫn giữ khoảng trống để không bị bar dưới đè */}
         <div className="mt-8 mb-4 sm:mb-0" />
       </main>
 

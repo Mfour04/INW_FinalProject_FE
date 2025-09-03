@@ -79,7 +79,8 @@ export const UpsertNovels = () => {
       toast?.onOpen("Đã lưu vào kho của bạn");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen({ message: "Có lỗi khi tạo truyện", variant: "error"}),
+    onError: () =>
+      toast?.onOpen({ message: "Có lỗi khi tạo truyện", variant: "error" }),
   });
   const updateNovelMutation = useMutation({
     mutationFn: (fd: FormData) => UpdateNovels(fd),
@@ -87,7 +88,8 @@ export const UpsertNovels = () => {
       toast?.onOpen("Cập nhật thành công");
       navigate("/novels/writing-room");
     },
-    onError: () => toast?.onOpen({ message: "Có lỗi khi cập nhật", variant: "error"}),
+    onError: () =>
+      toast?.onOpen({ message: "Có lỗi khi cập nhật", variant: "error" }),
   });
 
   const filteredTags = useMemo(() => {
@@ -151,12 +153,31 @@ export const UpsertNovels = () => {
         updateNovelMutation.mutate(fd);
       } else createNovelMutation.mutate(fd);
     else
-      toast?.onOpen({ message:  "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!", variant: "warning"})
+      toast?.onOpen({
+        message:
+          "Bạn cần có ít nhất 1 chương truyện để có thể công khai tiểu thuyết này!",
+        variant: "warning",
+      });
+  };
+
+  const handleComplete = () => {
+    let fd = new FormData();
+    if (novelData?.data.data.novelInfo.status === 0)
+      fd = toFormData({ status: 1 });
+    else fd = toFormData({ status: 0 });
+
+    if (canPublic) updateNovelMutation.mutate(fd);
+    else
+      toast?.onOpen({
+        message:
+          "Bạn cần có ít nhất 1 chương truyện để hoàn thành tiểu thuyết này!",
+        variant: "warning",
+      });
   };
 
   const handleCheckSlug = () => {
     if (!isValidUrl(form.slug)) {
-      setUrlError("Slug chỉ gồm chữ thường, số và dấu gạch ngang.");
+      setUrlError("Url chỉ gồm chữ thường, số và dấu gạch ngang.");
       setUrlOk("");
       return;
     }
@@ -571,9 +592,11 @@ export const UpsertNovels = () => {
                 busy={busy}
                 isUpdate={isUpdate}
                 isPublic={novelData?.data.data.novelInfo.isPublic ?? false}
+                isCompleted={novelData?.data.data.novelInfo.status === 0}
                 onCancel={() => navigate(-1)}
                 onSaveDraft={handleSaveDraft}
                 onPublish={handlePublishNow}
+                onCompleted={handleComplete}
               />
               <PreviewCard
                 title={previewTitle}

@@ -4,9 +4,11 @@ type ActionsBarProps = {
   busy?: boolean;
   isUpdate: boolean;
   isPublic: boolean;
+  isCompleted: boolean;
   onCancel: () => void;
   onSaveDraft: () => void;
   onPublish: () => void;
+  onCompleted: () => void;
 };
 
 export const ActionsBar = ({
@@ -16,6 +18,8 @@ export const ActionsBar = ({
   onPublish,
   isUpdate,
   isPublic,
+  isCompleted,
+  onCompleted,
 }: ActionsBarProps) => {
   return (
     <div className="rounded-lg bg-white/80 dark:bg-[#0e1117]/95 backdrop-blur-sm p-4">
@@ -54,7 +58,6 @@ export const ActionsBar = ({
           )}
         </button>
 
-        {/* Publish button */}
         {isUpdate && (
           <button
             onClick={onPublish}
@@ -74,6 +77,29 @@ export const ActionsBar = ({
               "Mình tôi"
             ) : (
               "Xuất bản"
+            )}
+          </button>
+        )}
+
+        {isUpdate && (
+          <button
+            onClick={onCompleted}
+            disabled={busy}
+            className="px-3 py-2 rounded-md text-[13px] font-semibold text-white 
+                       bg-gradient-to-r from-[#ff512f] via-[#ff6740] to-[#ff9966] 
+                       hover:brightness-110 shadow-[0_14px_34px_-14px_rgba(255,102,64,0.65)] 
+                       flex items-center justify-center gap-1.5
+                       disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {busy ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Đang xử lý…
+              </>
+            ) : isCompleted ? (
+              "Hoàn thành"
+            ) : (
+              "Tiếp tục"
             )}
           </button>
         )}
