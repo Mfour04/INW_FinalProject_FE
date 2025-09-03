@@ -61,6 +61,8 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
     startDate: "01/01/2000",
     endDate: "12/31/2050",
     filter: "all",
+    page: 0,
+    PageSize: 10,
   });
 
   const [chartParams, setChartParams] = useState<IncomeChartParams>({
@@ -144,7 +146,7 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
     }));
     setChartParams((prev) => ({
       ...prev,
-      startDate: e.target.value, // fixed: trước đây gán nhầm endDate
+      startDate: e.target.value,
     }));
   };
 
@@ -429,17 +431,6 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
                   ))
                 )}
               </div>
-              {summaryData?.hasMore && (
-                <div className="px-4 py-3 border-t border-zinc-200 dark:border-white/10 flex items-center justify-between">
-                  <div className="text-xs text-zinc-500 dark:text-white/60"></div>
-                  <button
-                    className="h-9 px-3 rounded-xl bg-zinc-100 ring-1 ring-zinc-200 text-sm hover:bg-zinc-200
-                               dark:bg-white/5 dark:ring-white/10 dark:text-white dark:hover:bg-white/10"
-                  >
-                    Xem thêm
-                  </button>
-                </div>
-              )}
             </Card>
           </div>
 

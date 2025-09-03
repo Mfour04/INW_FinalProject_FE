@@ -469,23 +469,13 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
                     className="p-4 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition"
                   >
                     <div className="flex items-start gap-2.5">
-                      <ClickableUserInfo
-                        username={rev.author?.userName || rev.author?.username}
-                        displayName={
-                          rev.author?.DisplayName ||
-                          rev.author?.displayName ||
-                          "Người dùng"
-                        }
-                        avatarUrl={
-                          rev.author?.avatarUrl ||
-                          rev.author?.avatar ||
-                          DefaultAvatar
-                        }
-                        size="small"
-                        showUsername={false}
-                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
+                          <img
+                            src={rev.author?.avatar}
+                            alt={rev.author?.displayName ?? "Người dùng"}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
                           <span className="text-[13px] font-semibold text-gray-900 dark:text-white">
                             {rev.author?.displayName ?? "Người dùng"}
                           </span>
