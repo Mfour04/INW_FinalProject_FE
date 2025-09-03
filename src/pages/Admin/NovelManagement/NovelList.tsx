@@ -18,9 +18,11 @@ import type {
 } from "../../../api/Chapters/chapter.type";
 import type { NovelAdmin } from "../../../api/Novels/novel.type";
 
+type SortKey = "created_at" | "total_views" | "rating_avg" | "followers";
+type SortDirection = "asc" | "desc";
 interface SortConfig {
-  key: keyof NovelAdmin;
-  direction: "asc" | "desc";
+  key: SortKey;
+  direction: SortDirection;
 }
 
 interface DialogState {
@@ -32,29 +34,6 @@ interface DialogState {
 
 const novelsPerPage = 10;
 
-const keyToApiField: Record<keyof NovelAdmin, string> = {
-  NovelId: "novelId",
-  Title: "title",
-  AuthorName: "authorName",
-  NovelImage: "novelImage",
-  Status: "status",
-  IsPublic: "isPublic",
-  IsLock: "isLock",
-  TotalViews: "totalViews",
-  Followers: "followers",
-  RatingAvg: "ratingAvg",
-  CreateAt: "createAt",
-  UpdateAt: "updateAt",
-  description: "description",
-  authorId: "authorId",
-  tags: "tags",
-  isPaid: "isPaid",
-  price: "price",
-  totalChapters: "totalChapters",
-  ratingCount: "ratingCount",
-  Slug: "slug",
-};
-
 const MemoizedNovelTopSection = memo(NovelTopSection);
 const MemoizedPagination = memo(Pagination);
 
@@ -63,8 +42,8 @@ const NovelList = () => {
   const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "CreateAt",
-    direction: "desc", // Default: newest first
+    key: "created_at",
+    direction: "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [dialog, setDialog] = useState<DialogState>({
@@ -77,7 +56,7 @@ const NovelList = () => {
   const [selectedNovelId, setSelectedNovelId] = useState<string | null>(null);
   const threeDaysAgo = Date.now() - 3 * 24 * 3600 * 1000;
 
-  const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
+  const sortBy = `${sortConfig.key}:${sortConfig.direction}`;
 
   const {
     data: novelData,
@@ -220,10 +199,10 @@ const NovelList = () => {
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
-      key: key as keyof NovelAdmin,
+      key: key as SortKey,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-    setCurrentPage(1); // Reset to first page on sort
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {

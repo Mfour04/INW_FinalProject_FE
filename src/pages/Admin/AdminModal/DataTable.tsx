@@ -66,15 +66,13 @@ const DataTable = <T extends NovelAdmin | User>({
       ? [
           {
             key: "Title",
-            sortKey: "Title",
             label: "Tên truyện",
-            sortable: true,
+            sortable: false,
           },
           {
             key: "AuthorName",
-            sortKey: "AuthorName",
             label: "Tác giả",
-            sortable: true,
+            sortable: false,
           },
           { key: "Status", label: "Trạng thái", sortable: false },
           {
@@ -86,21 +84,21 @@ const DataTable = <T extends NovelAdmin | User>({
           { key: "IsLock", label: "Khóa", sortable: false, center: true },
           {
             key: "TotalViews",
-            sortKey: "TotalViews",
+            sortKey: "total_views",
             label: "Lượt xem",
             sortable: true,
             center: true,
           },
           {
             key: "RatingAvg",
-            sortKey: "RatingAvg",
+            sortKey: "rating_avg",
             label: "Đánh giá",
             sortable: true,
             center: true,
           },
           {
             key: "CreateAt",
-            sortKey: "CreateAt",
+            sortKey: "created_at",
             label: "Ngày tạo",
             sortable: true,
           },
@@ -109,7 +107,7 @@ const DataTable = <T extends NovelAdmin | User>({
       : [
           {
             key: "displayName",
-            sortKey: "displayName",
+            sortKey: "displayname_normalized",
             label: "Tên hiển thị",
             sortable: true,
           },
@@ -123,14 +121,13 @@ const DataTable = <T extends NovelAdmin | User>({
           { key: "isBanned", label: "Khóa", sortable: false, center: true },
           {
             key: "bannedUntil",
-            sortKey: "bannedUntil",
             label: "Thời hạn",
-            sortable: true,
+            sortable: false,
             center: true,
           },
           {
             key: "createdAt",
-            sortKey: "createdAt",
+            sortKey: "created_at",
             label: "Ngày tạo",
             sortable: true,
           },

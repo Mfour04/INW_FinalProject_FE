@@ -164,14 +164,14 @@ const ReportDetailPopup = ({
     isLoading: isMemberLoading,
     error: memberError,
   } = useQuery({
-    queryKey: ["Member", report?.targetUserId],
+    queryKey: ["Member", report?.targetUser?.id],
     queryFn: () =>
-      report?.targetUserId
-        ? GetUserById(report.targetUserId).then((res) => res.data)
+      report?.targetUser?.id
+        ? GetUserById(report.targetUser.id).then((res) => res.data)
         : Promise.reject("No member ID"),
     enabled:
       isOpen &&
-      !!report?.targetUserId &&
+      !!report?.targetUser?.id &&
       report?.scope === 5 &&
       !report?.isTargetDisappear,
   });

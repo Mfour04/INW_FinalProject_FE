@@ -18,9 +18,11 @@ import { formatTicksToDateString } from "../../../utils/date_format";
 import { UserDetailModal } from "../AdminModal/UserDetailModal";
 import { GetAnalysis } from "../../../api/Admin/Analysis/analysis.api";
 
+type SortKey = "created_at" | "displayname_normalized" | "follower_count";
+type SortDirection = "asc" | "desc";
 interface SortConfig {
-  key: keyof User;
-  direction: "asc" | "desc";
+  key: SortKey;
+  direction: SortDirection;
 }
 interface DialogState {
   isOpen: boolean;
@@ -32,30 +34,6 @@ interface DialogState {
 
 const usersPerPage = 10;
 
-const keyToApiField: Record<keyof User, string> = {
-  userId: "userId",
-  userName: "userName",
-  displayName: "displayName",
-  email: "email",
-  avatarUrl: "avatarUrl",
-  coverUrl: "coverUrl",
-  bio: "bio",
-  role: "role",
-  isVerified: "isVerified",
-  isBanned: "isBanned",
-  bannedUntil: "bannedUntil",
-  coin: "coin",
-  blockCoin: "blockCoin",
-  novelFollowCount: "novelFollowCount",
-  badgeId: "badgeId",
-  lastLogin: "lastLogin",
-  favouriteType: "favouriteType",
-  readCount: "readCount",
-  followerCount: "followerCount",
-  createdAt: "createAt",
-  updatedAt: "updateAt",
-};
-
 const MemoizedUserTopSection = memo(UserTopSection);
 const MemoizedPagination = memo(Pagination);
 
@@ -66,7 +44,7 @@ const UserList = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "displayName",
+    key: "created_at",
     direction: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,7 +58,7 @@ const UserList = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetail, setIsDetail] = useState<boolean>(false);
 
-  const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
+  const sortBy = `${sortConfig.key}:${sortConfig.direction}`;
 
   const {
     data: userData,
@@ -210,12 +188,12 @@ const UserList = () => {
     },
   });
 
-  const handleSort = (key: string) => {
+  const handleSort = (key: SortKey) => {
     setSortConfig((prev) => ({
-      key: key as keyof User,
+      key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -397,9 +375,9 @@ const UserList = () => {
         <>
           <div className="relative pb-2">
             <DataTable
-              data={mappedUsers} // Use mappedUsers for paginated data
+              data={mappedUsers}
               sortConfig={sortConfig}
-              onSort={handleSort}
+              onSort={(key) => handleSort(key as SortKey)}
               type="user"
               onLockUnlockUser={handleLockUnlock}
               onDetailUser={handleClickUserDetail}
