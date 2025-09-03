@@ -7,7 +7,7 @@ import {
   Flag,
   Heart,
   MessageCircle,
-  Calendar
+  Calendar,
 } from "lucide-react";
 
 import avatarImage from "../../assets/img/default_avt.png";
@@ -22,7 +22,17 @@ import { useUserBlogPosts, useUpdateBlogPost } from "../Blogs/HooksBlog";
 import { useGetCurrentUserInfo } from "../setting/useUserSettings";
 import { GetUserProfile } from "../../api/User/user-search.api";
 import { FollowButton } from "../../components/common/FollowButton";
-import { GetFollowers, GetFollowing } from "../../api/UserFollow/user-follow.api";
+import {
+  GetFollowers,
+  GetFollowing,
+} from "../../api/UserFollow/user-follow.api";
+import {
+  REPORT_REASON_CODE,
+  ReportUserModal,
+  type ReportPayload,
+} from "../../components/ReportModal/ReportModal";
+import { useReport } from "../../hooks/useReport";
+import type { ReportRequest } from "../../api/Report/report.type";
 
 export const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -30,8 +40,8 @@ export const UserProfile = () => {
     "posts" | "followers" | "following" | "achievements"
   >("posts");
 
-  // simple dropdown (thay MUI Menu)
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [reportUser, setReportUser] = useState<boolean>(false);
   const menuBtnRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,6 +50,7 @@ export const UserProfile = () => {
   >({});
   const navigate = useNavigate();
   const { auth } = useAuth();
+  const report = useReport();
 
   const isOwnProfile = !username || username === auth?.user?.userName;
   const targetUsername = username || auth?.user?.userName;
@@ -55,7 +66,9 @@ export const UserProfile = () => {
   const isLoadingUser = isOwnProfile
     ? currentUserQuery.isLoading
     : otherUserQuery.isLoading;
-  const userError = isOwnProfile ? (currentUserQuery as any).error : (otherUserQuery as any).error;
+  const userError = isOwnProfile
+    ? (currentUserQuery as any).error
+    : (otherUserQuery as any).error;
 
   const userId =
     (userInfo as any)?.data?.id ||
@@ -63,7 +76,8 @@ export const UserProfile = () => {
     auth?.user?.userId ||
     "";
 
-  const { data: userPosts = [], isLoading: postsLoading } = useUserBlogPosts(userId);
+  const { data: userPosts = [], isLoading: postsLoading } =
+    useUserBlogPosts(userId);
   const updateBlogPostMutation = useUpdateBlogPost();
 
   useEffect(() => {
@@ -79,7 +93,6 @@ export const UserProfile = () => {
     setUpdatedTimestamps(savedTimestamps);
   }, []);
 
-  // close dropdown khi click ra ngoài
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node;
@@ -114,7 +127,8 @@ export const UserProfile = () => {
   let backendData: any = null;
   if ((userInfo as any)?.data) {
     if ((userInfo as any).data.id) backendData = (userInfo as any).data;
-    else if ((userInfo as any)?.data?.data) backendData = (userInfo as any).data.data;
+    else if ((userInfo as any)?.data?.data)
+      backendData = (userInfo as any).data.data;
   }
 
   const normalizedData = {
@@ -168,6 +182,16 @@ export const UserProfile = () => {
         },
       }
     );
+  };
+
+  const handleSubmitReport = (payload: ReportPayload) => {
+    const reportRequest: ReportRequest = {
+      scope: 5,
+      reason: REPORT_REASON_CODE[payload.reason],
+      targetUserId: payload.userId,
+      message: payload.message,
+    };
+    report.mutate(reportRequest);
   };
 
   if (isLoadingUser) {
@@ -277,7 +301,8 @@ export const UserProfile = () => {
                         alt="Avatar"
                         className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-white/10"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                          (e.target as HTMLImageElement).src =
+                            getAvatarUrl(null);
                         }}
                       />
                       <div>
@@ -370,7 +395,8 @@ export const UserProfile = () => {
                         alt={follower.displayName}
                         className="w-16 h-16 rounded-full mb-2 object-cover ring-2 ring-white/80 dark:ring-white/10"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                          (e.target as HTMLImageElement).src =
+                            getAvatarUrl(null);
                         }}
                       />
                       <p className="font-semibold text-zinc-900 dark:text-white text-sm text-center truncate w-full">
@@ -382,8 +408,13 @@ export const UserProfile = () => {
                       <button
                         className={gradBtn + " mt-2"}
                         onClick={() => {
-                          if (follower.userName) navigate(`/profile/${follower.userName}`);
-                          else console.error("Username is missing for follower user:", follower);
+                          if (follower.userName)
+                            navigate(`/profile/${follower.userName}`);
+                          else
+                            console.error(
+                              "Username is missing for follower user:",
+                              follower
+                            );
                         }}
                       >
                         Trang cá nhân
@@ -427,7 +458,8 @@ export const UserProfile = () => {
                         alt={following.displayName}
                         className="w-16 h-16 rounded-full mb-2 object-cover ring-2 ring-white/80 dark:ring-white/10"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = getAvatarUrl(null);
+                          (e.target as HTMLImageElement).src =
+                            getAvatarUrl(null);
                         }}
                       />
                       <p className="font-semibold text-zinc-900 dark:text-white text-sm text-center truncate w-full">
@@ -439,8 +471,13 @@ export const UserProfile = () => {
                       <button
                         className={gradBtn + " mt-2"}
                         onClick={() => {
-                          if (following.userName) navigate(`/profile/${following.userName}`);
-                          else console.error("Username is missing for following user:", following);
+                          if (following.userName)
+                            navigate(`/profile/${following.userName}`);
+                          else
+                            console.error(
+                              "Username is missing for following user:",
+                              following
+                            );
                         }}
                       >
                         Trang cá nhân
@@ -495,7 +532,9 @@ export const UserProfile = () => {
               <h1 className="text-3xl font-bold leading-tight">
                 {currentDisplayName}
               </h1>
-              <p className="text-zinc-500 dark:text-gray-400">@{currentUserName}</p>
+              <p className="text-zinc-500 dark:text-gray-400">
+                @{currentUserName}
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -504,7 +543,7 @@ export const UserProfile = () => {
                   targetUserId={targetUserId}
                   enabled={!!targetUserId}
                   size="lg"
-                // variant="contained"
+                  // variant="contained"
                 />
               )}
 
@@ -531,7 +570,7 @@ export const UserProfile = () => {
                     >
                       <button
                         onClick={() => {
-                          alert("Báo cáo người dùng");
+                          setReportUser(true);
                           setMenuOpen(false);
                         }}
                         className="w-full text-left px-3 py-2.5 text-sm hover:bg-zinc-100 dark:hover:bg-white/10 flex items-center gap-2"
@@ -577,7 +616,6 @@ export const UserProfile = () => {
                 {userPosts.length}
               </span>{" "}
               Bài đăng
-
               <span className="mx-1">•</span>
               <span className="flex items-center gap-1 text-sm text-zinc-900 dark:text-white">
                 <Calendar className="w-3 h-3" /> Tham gia {joinDate}
@@ -590,32 +628,39 @@ export const UserProfile = () => {
       {/* Tabs */}
       <div className="flex justify-center mt-8 border-b border-zinc-200 dark:border-white/10">
         <div className="flex gap-10 text-[15px]">
-          {(
-            ["posts", "followers", "following", "achievements"] as const
-          ).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={[
-                "pb-3 transition",
-                activeTab === tab
-                  ? "border-b-2 border-[#ff6740] text-[#ff8967] font-semibold"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-gray-400 dark:hover:text-white",
-              ].join(" ")}
-            >
-              {tab === "posts"
-                ? "Bài đăng"
-                : tab === "followers"
+          {(["posts", "followers", "following", "achievements"] as const).map(
+            (tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={[
+                  "pb-3 transition",
+                  activeTab === tab
+                    ? "border-b-2 border-[#ff6740] text-[#ff8967] font-semibold"
+                    : "text-zinc-500 hover:text-zinc-900 dark:text-gray-400 dark:hover:text-white",
+                ].join(" ")}
+              >
+                {tab === "posts"
+                  ? "Bài đăng"
+                  : tab === "followers"
                   ? "Người theo dõi"
                   : tab === "following"
-                    ? "Đang theo dõi"
-                    : "Thành tựu"}
-            </button>
-          ))}
+                  ? "Đang theo dõi"
+                  : "Thành tựu"}
+              </button>
+            )
+          )}
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-6">{renderTabContent()}</div>
+      <ReportUserModal
+        isOpen={reportUser}
+        onClose={() => setReportUser(false)}
+        onSubmit={handleSubmitReport}
+        userId={userId}
+        userName={(userInfo as any).data.data.displayName}
+      />
     </div>
   );
 };

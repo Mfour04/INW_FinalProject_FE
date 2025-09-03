@@ -55,7 +55,6 @@ const keyToApiField: Record<keyof NovelAdmin, string> = {
   Slug: "slug",
 };
 
-// Memoize components
 const MemoizedNovelTopSection = memo(NovelTopSection);
 const MemoizedPagination = memo(Pagination);
 
@@ -64,8 +63,8 @@ const NovelList = () => {
   const { darkMode } = useDarkMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "Title",
-    direction: "asc",
+    key: "CreateAt",
+    direction: "desc", // Default: newest first
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [dialog, setDialog] = useState<DialogState>({
@@ -80,7 +79,6 @@ const NovelList = () => {
 
   const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
 
-  // Fetch novels for DataTable (paginated)
   const {
     data: novelData,
     isLoading: isLoadingNovels,
@@ -96,7 +94,6 @@ const NovelList = () => {
       }).then((res) => res.data),
   });
 
-  // Fetch all novels for NovelTopSection (no pagination)
   const {
     data: allNovelsData,
     isLoading: isLoadingAllNovels,
@@ -112,7 +109,6 @@ const NovelList = () => {
       }).then((res) => res.data),
   });
 
-  // Map API novel data to NovelAdmin interface for DataTable
   const mappedNovels: NovelAdmin[] =
     novelData?.data?.novels?.map((novel) => ({
       NovelId: novel.novelId,
@@ -142,7 +138,6 @@ const NovelList = () => {
       Slug: novel.slug,
     })) || [];
 
-  // Memoize mappedAllNovels to avoid recalculation
   const mappedAllNovels: NovelAdmin[] = useMemo(
     () =>
       allNovelsData?.data?.novels?.map((novel) => ({
@@ -175,7 +170,6 @@ const NovelList = () => {
     [allNovelsData]
   );
 
-  // Fetch chapters for selected novel
   const {
     data: chapterData,
     isLoading: isLoadingChapters,
@@ -189,7 +183,6 @@ const NovelList = () => {
     enabled: !!selectedNovelId && isChapterPopupOpen,
   });
 
-  // Mutation for lock/unlock
   const updateNovelLockMutation = useMutation({
     mutationFn: ({
       novelId,
@@ -230,6 +223,7 @@ const NovelList = () => {
       key: key as keyof NovelAdmin,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
+    setCurrentPage(1); // Reset to first page on sort
   };
 
   const handlePageChange = (page: number) => {
@@ -259,6 +253,48 @@ const NovelList = () => {
     setIsChapterPopupOpen(true);
   };
 
+  const SkeletonTable = () => (
+    <div className="space-y-3">
+      {[...Array(novelsPerPage)].map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-[22%_16%_10%_8%_8%_10%_10%_10%_16%] h-12 animate-pulse"
+        >
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+          </div>
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3 mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 w-4 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 w-4 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3 mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3 mx-auto"></div>
+          </div>
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-2/3"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="inline-flex gap-2">
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-16"></div>
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-16"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -270,7 +306,6 @@ const NovelList = () => {
     >
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Quản lý truyện</h1>
-        {/* <DarkModeToggler /> */}
       </div>
       {isLoadingAllNovels ? (
         <p
@@ -298,36 +333,8 @@ const NovelList = () => {
             <SearchBar searchTerm={searchTerm} onSearch={setSearchTerm} />
           </div>
           {isLoadingNovels ? (
-            <div className="text-center">
-              <svg
-                className={`animate-spin h-8 w-8 mx-auto ${
-                  darkMode ? "text-[#ff4d4f]" : "text-[#ff4d4f]"
-                }`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              <p
-                className={`mt-2 ${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Đang tải...
-              </p>
+            <div className="p-6">
+              <SkeletonTable />
             </div>
           ) : novelError ? (
             <p
@@ -337,6 +344,20 @@ const NovelList = () => {
             >
               Không thể tải danh sách truyện
             </p>
+          ) : mappedNovels.length === 0 ? (
+            <div className="p-8">
+              <div
+                className={[
+                  "rounded-xl border p-4",
+                  darkMode
+                    ? "border-white/10 bg-white/5 text-zinc-300"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-700",
+                ].join(" ")}
+              >
+                <div className="text-sm font-semibold">Không có kết quả</div>
+                <div className="text-sm mt-0.5">Thử từ khóa khác.</div>
+              </div>
+            </div>
           ) : (
             <>
               <DataTable
@@ -346,14 +367,14 @@ const NovelList = () => {
                 type="novel"
                 onOpenChapterPopup={handleOpenChapterPopup}
                 onLockUnlockNovel={handleLockUnlock}
+              />
+              <div className="mt-4">
+                <MemoizedPagination
+                  currentPage={currentPage}
+                  totalPages={novelData?.data?.totalPages || 1}
+                  onPageChange={handlePageChange}
                 />
-                <div className="mt-4">
-                  <MemoizedPagination
-                    currentPage={currentPage}
-                    totalPages={novelData?.data?.totalPages || 1}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
+              </div>
             </>
           )}
         </>
@@ -368,7 +389,7 @@ const NovelList = () => {
           error={chapterError}
         />
       )}
-     <ConfirmDialog
+      <ConfirmDialog
         isOpen={dialog.isOpen}
         onClose={() =>
           setDialog({ isOpen: false, type: null, title: "", novelId: null })
@@ -376,7 +397,6 @@ const NovelList = () => {
         onConfirm={handleConfirmDialog}
         title={dialog.title}
         variant={dialog.type === "lock" ? "danger" : "success"}
-        /* Khóa/Mở khóa novel chỉ cần xác nhận đơn giản: */
         showDuration={false}
         showNote={false}
         loading={updateNovelLockMutation.isPending}

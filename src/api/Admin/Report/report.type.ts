@@ -20,6 +20,7 @@ export const ReportScope = {
   Comment: 2,
   ForumPost: 3,
   ForumComment: 4,
+  User: 5,
 } as const;
 
 export const ReportReason = {
@@ -44,6 +45,12 @@ export const ReportStatus = {
   Rejected: 2,
   Ignored: 3,
 } as const;
+
+export type ReportStatusKey = keyof typeof ReportStatus;
+
+export const toNumber = (status: ReportStatusKey): number => {
+  return ReportStatus[status];
+};
 
 export const ModerationAction = {
   None: 0,

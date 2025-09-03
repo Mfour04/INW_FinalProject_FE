@@ -117,7 +117,10 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
 
   const handleSendReview = () => {
     if (ratingRequest.score === 0) {
-      toast?.onOpen({ message: "Vui lòng chọn số sao trước khi gửi!", variant: "error"});
+      toast?.onOpen({
+        message: "Vui lòng chọn số sao trước khi gửi!",
+        variant: "error",
+      });
       return;
     }
     const content = (ratingRequest.content ?? "").slice(0, MAX_LEN);
@@ -380,8 +383,19 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
             </div>
 
             <div className="mt-3">
-              <div
-                className="
+              {auth?.user.isBanned ? (
+                <div
+                  className="
+        rounded-xl border border-red-300 bg-red-50 p-3
+        text-sm text-red-600 dark:border-red-500/40
+        dark:bg-red-500/10 dark:text-red-400
+      "
+                >
+                  Tài khoản của bạn đang bị hạn chế, không thể gửi đánh giá.
+                </div>
+              ) : (
+                <div
+                  className="
                   rounded-xl transition-shadow
                   border bg-white
                   border-gray-200
@@ -390,27 +404,28 @@ const RatingSection = ({ novelInfo, isAuthor }: RatingSectionProps) => {
                   dark:bg-black/25 dark:border-white/15 dark:focus-within:border-white/40 dark:focus-within:ring-white/25
                   dark:shadow-none dark:focus-within:shadow-[0_12px_36px_-20px_rgba(255,255,255,0.35)]
                 "
-              >
-                <textarea
-                  value={(ratingRequest.content ?? "").slice(0, MAX_LEN)}
-                  disabled={isAuthor}
-                  onChange={(e) => {
-                    const next = e.target.value.slice(0, MAX_LEN);
-                    setRatingRequest((prev) => ({ ...prev, content: next }));
-                  }}
-                  placeholder="Viết đánh giá của bạn (tối đa 750 ký tự)..."
-                  maxLength={MAX_LEN}
-                  className="w-full h-20 p-3 text-[13px] bg-transparent rounded-xl resize-none focus:outline-none text-gray-900 dark:text-white"
-                />
-                <div className="flex items-center justify-end px-3 pb-2 -mt-1">
-                  <span className="text-[11px] tabular-nums text-gray-500 dark:text-white/60">
-                    {(ratingRequest.content ?? "").length}/{MAX_LEN}
-                  </span>
+                >
+                  <textarea
+                    value={(ratingRequest.content ?? "").slice(0, MAX_LEN)}
+                    disabled={isAuthor}
+                    onChange={(e) => {
+                      const next = e.target.value.slice(0, MAX_LEN);
+                      setRatingRequest((prev) => ({ ...prev, content: next }));
+                    }}
+                    placeholder="Viết đánh giá của bạn (tối đa 750 ký tự)..."
+                    maxLength={MAX_LEN}
+                    className="w-full h-20 p-3 text-[13px] bg-transparent rounded-xl resize-none focus:outline-none text-gray-900 dark:text-white"
+                  />
+                  <div className="flex items-center justify-end px-3 pb-2 -mt-1">
+                    <span className="text-[11px] tabular-nums text-gray-500 dark:text-white/60">
+                      {(ratingRequest.content ?? "").length}/{MAX_LEN}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="mt-3 flex justify-end">
-                {!isAuthor && (
+                {!isAuthor && !auth?.user.isBanned && (
                   <Button
                     onClick={handleSendReview}
                     isLoading={

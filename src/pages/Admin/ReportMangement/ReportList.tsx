@@ -1,4 +1,3 @@
-// ReportList.tsx
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ReportSearchBar from "./ReportSearchBar";
@@ -65,11 +64,14 @@ const ReportList = () => {
     error,
     isFetching,
   } = useQuery({
-    queryKey: ["Reports", currentPage],
+    queryKey: ["Reports", currentPage, statusFilter, typeFilter],
     queryFn: () =>
-      GetReports({ limit: itemsPerPage, page: currentPage - 1 }).then(
-        (res) => res.data.data
-      ),
+      GetReports({
+        limit: itemsPerPage,
+        page: currentPage - 1,
+        ...(statusFilter !== "All" ? { status: statusFilter } : undefined),
+        ...(typeFilter !== "All" ? { scope: typeFilter } : undefined),
+      }).then((res) => res.data.data),
   });
 
   const updateStatusMutation = useMutation({
@@ -85,7 +87,10 @@ const ReportList = () => {
       setDialog({ open: false, reportId: null, action: null });
     },
     onError: () => {
-      toast?.onOpen({ message: "Cập nhật trạng thái thất bại! Vui lòng thử lại.", variant: "error"});
+      toast?.onOpen({
+        message: "Cập nhật trạng thái thất bại! Vui lòng thử lại.",
+        variant: "error",
+      });
       setDialog({ open: false, reportId: null, action: null });
     },
   });
@@ -101,7 +106,7 @@ const ReportList = () => {
         report.commentAuthor?.displayName?.toLowerCase().includes(term) ||
         report.novelTitle?.toLowerCase().includes(term) ||
         report.forumPostAuthor?.displayName?.toLowerCase().includes(term) ||
-        report.targetUserId?.toLowerCase().includes(term);
+        report.targetUser?.displayName?.toLowerCase().includes(term);
 
       const matchesStatus =
         statusFilter === "All" || report.status === Number(statusFilter);
@@ -110,14 +115,7 @@ const ReportList = () => {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [
-    reportsData,
-    searchTerm,
-    statusFilter,
-    typeFilter,
-    currentPage,
-    reportsData,
-  ]);
+  }, [reportsData, searchTerm, statusFilter, typeFilter]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -138,6 +136,7 @@ const ReportList = () => {
 
   const confirmAction = () => {
     if (dialog.reportId && dialog.action) {
+      // Logic xác nhận hành động (nếu cần)
     }
     setDialog({ open: false, reportId: null, action: null });
   };
@@ -217,6 +216,12 @@ const ReportList = () => {
             return (
               <span className="line-clamp-1">
                 {report.forumPostAuthor?.displayName ?? "Bình luận diễn đàn"}
+              </span>
+            );
+          case 5:
+            return (
+              <span className="line-clamp-1">
+                {report.targetUser?.displayName ?? "Người dùng"}
               </span>
             );
           default:
@@ -356,7 +361,9 @@ const ReportList = () => {
             <div className="max-w-screen-2xl mx-auto">
               <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-bold">Danh sách báo cáo</h1>
+                  <h1 className="text-2xl font-bold">
+                    Danh sách yêu cầu báo cáo
+                  </h1>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     Quản trị & xử lý vi phạm trong hệ thống.
                   </p>
@@ -382,13 +389,9 @@ const ReportList = () => {
                 </div>
               </div>
 
-              {isLoading ? (
-                <div className="rounded-2xl ring-1 ring-zinc-200 bg-white/80 p-8 text-zinc-600 dark:ring-white/10 dark:bg-white/10 dark:text-zinc-300">
-                  Loading...
-                </div>
-              ) : error ? (
+              {error ? (
                 <div className="rounded-2xl ring-1 ring-red-200 bg-red-50 p-8 text-red-600 dark:ring-white/10 dark:bg-red-500/10 dark:text-red-300">
-                  Failed to load reports
+                  Lỗi tải dữ liệu
                 </div>
               ) : (
                 <>
@@ -398,12 +401,13 @@ const ReportList = () => {
                     pageSize={itemsPerPage}
                     dense
                     isBusy={isLoading || isFetching}
+                    emptyLabel="Không có báo cáo"
                   />
 
                   <div className="mt-5 flex items-center justify-center gap-3">
                     <Pagination
                       currentPage={currentPage}
-                      totalPages={reportsData?.totalPages!}
+                      totalPages={reportsData?.totalPages || 1}
                       onPageChange={setCurrentPage}
                     />
                   </div>

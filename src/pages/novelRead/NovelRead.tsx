@@ -55,6 +55,8 @@ export const NovelRead = () => {
   >("stopped");
   const [openPrefs, setOpenPrefs] = useState(false);
   const [openReport, setOpenReport] = useState(false);
+  const [isVietnameseSupported, setIsVietnameseSupported] = useState(true);
+  const [showNoSupport, setShowNoSupport] = useState(false);
 
   const { novelId, chapterId } = useParams();
   const navigate = useNavigate();
@@ -288,6 +290,10 @@ export const NovelRead = () => {
   }, []);
 
   const handleStart = () => {
+    if (!isVietnameseSupported) {
+      setShowNoSupport(true);
+      return;
+    }
     setSpeechState("started");
     start();
   };
@@ -343,6 +349,19 @@ export const NovelRead = () => {
     setSelectedChapterId("");
   };
 
+  useEffect(() => {
+    const checkVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const hasVietnamese = voices.some((v) =>
+        v.lang.toLowerCase().startsWith("vi")
+      );
+      setIsVietnameseSupported(hasVietnamese);
+    };
+
+    checkVoices();
+    window.speechSynthesis.onvoiceschanged = checkVoices;
+  }, []);
+
   return (
     <div className="min-h-screen antialiased bg-[#f7f7f9] text-gray-900 dark:bg-[#090a0c] dark:text-white">
       <div ref={pageTopRef} />
@@ -379,7 +398,6 @@ export const NovelRead = () => {
             </div>
           </header>
 
-          {/* TOP NAV */}
           <div className="px-6 pb-2">
             <div
               className="mx-auto"
@@ -614,6 +632,15 @@ export const NovelRead = () => {
         onConfirm={confirmBuy}
         confirmText="Mua"
         onCancel={handleCancel}
+      />
+
+      <ConfirmModal
+        isOpen={showNoSupport}
+        title="Thông báo"
+        message={`Trang web không hỗ trợ đọc tiếng Việt.\nHãy sử dụng Microsoft Edge để trải nghiệm tốt hơn`}
+        onConfirm={() => setShowNoSupport(false)}
+        confirmText="Đóng"
+        onCancel={() => setShowNoSupport(false)}
       />
     </div>
   );

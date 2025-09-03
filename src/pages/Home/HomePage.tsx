@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,16 +9,13 @@ import { UpdateUser } from "../../api/User/user.api";
 import { urlToFile } from "../../utils/img";
 import { useToast } from "../../context/ToastContext/toast-context";
 import { Hero } from "./components/Hero";
-// import { RecommendCarousel } from "./sections/RecommendCarousel";
 import {
   useSortedNovels,
   SORT_BY_FIELDS,
   SORT_DIRECTIONS,
 } from "./hooks/useSortedNovels";
-import { useBreakpoint } from "./hooks/useBreakpoint";
 import type { TagType as Tag } from "./types";
 
-// === Lucide icons (thay thế toàn bộ MUI & svg cũ) ===
 import {
   TrendingUp,
   Star,
@@ -26,7 +23,7 @@ import {
   Eye,
   Bookmark,
   PencilLine,
-  Lightbulb
+  Lightbulb,
 } from "lucide-react";
 
 import VerticalColumn from "./discovery/VerticalColumn";
@@ -39,27 +36,16 @@ import { GetCurrentUserInfo } from "../../api/User/user-settings.api";
 export const HomePage = () => {
   const [nNovelsIndex, setNNovelsIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   const navigate = useNavigate();
   const { auth } = useAuth();
   const toast = useToast();
-  const bp = useBreakpoint();
 
   const { data: user } = useQuery({
     queryKey: ["user-homepage"],
     queryFn: () => GetCurrentUserInfo().then((res) => res.data),
+    enabled: !!auth?.accessToken,
   });
-
-  const visibleCount = useMemo(() => {
-    if (bp.x4k) return 6;
-    if (bp.x2k) return 5;
-    if (bp.xl) return 5;
-    if (bp.lg) return 4;
-    if (bp.md) return 3; // tablet
-    if (bp.sm) return 2; // mobile M/L
-    return 1; // mobile S
-  }, [bp]);
 
   const { data: tagData } = useQuery({
     queryKey: ["home-tags"],
@@ -73,11 +59,6 @@ export const HomePage = () => {
       GetRecommendedNovels({ topN: 10 }).then((res) => res.data.data),
     staleTime: 60_000,
   });
-
-  const maxIndex = useMemo(
-    () => Math.max(0, (recommend?.novels?.length || 0) - visibleCount),
-    [recommend, visibleCount]
-  );
 
   const updateUserMutation = useMutation({
     mutationFn: (body: FormData) => UpdateUser(body),
@@ -119,10 +100,6 @@ export const HomePage = () => {
     if (!len) return;
     setNNovelsIndex((p) => (p - 1 + len) % len);
   };
-  const handleSlide = (dir: "left" | "right") =>
-    setCurrentIndex((prev) =>
-      dir === "right" ? Math.min(prev + 1, maxIndex) : Math.max(prev - 1, 0)
-    );
 
   const handleConfirmFavourite = async (selectedTypes: Tag[]) => {
     const formData = new FormData();
@@ -248,21 +225,21 @@ export const HomePage = () => {
           </div>
 
           {recommend?.novels?.length ? (
-          <div className="min-w-0 md:col-span-12">
-            <HorizontalRail
-              title="InkWave Đề cử"
-              icon={
-                <Lightbulb className="h-4 w-4 shrink-0 text-black dark:text-white" />
-              }
-              items={recommend.novels as Novel[]}
-              onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-              onSeeMore={() => navigate("/novels/recommended")}
-              // Bạn có thể chỉnh riêng tham số cho block này:
-              // scrollStep={400}
-              // cardWidth={176}
-            />
-          </div>
-        ) : null}
+            <div className="min-w-0 md:col-span-12">
+              <HorizontalRail
+                title="InkWave Đề cử"
+                icon={
+                  <Lightbulb className="h-4 w-4 shrink-0 text-black dark:text-white" />
+                }
+                items={recommend.novels as Novel[]}
+                onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
+                onSeeMore={() => navigate("/novels/recommended")}
+                // Bạn có thể chỉnh riêng tham số cho block này:
+                // scrollStep={400}
+                // cardWidth={176}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 

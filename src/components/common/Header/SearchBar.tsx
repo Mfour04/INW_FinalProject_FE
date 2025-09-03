@@ -13,6 +13,9 @@ import { FollowButton } from "../FollowButton";
 import { ClickableUserInfo } from "../ClickableUserInfo";
 import type { ReactNode, RefObject } from "react";
 import type { TagSelectProps } from "./Header";
+import { GetNovels } from "../../../api/Novels/novel.api";
+import type { Novel } from "../../../entity/novel";
+import { useNavigate } from "react-router-dom";
 
 type SortOption = { value: string; label: string };
 
@@ -220,8 +223,8 @@ function ModernSelect({
                     active
                       ? "text-white bg-gradient-to-r from-[#ff572e] via-[#ff6f45] to-[#ff9966] shadow-[0_10px_26px_rgba(255,111,69,0.35)]"
                       : focused
-                        ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg:white/6",
+                      ? "text-gray-900 bg-gray-100 dark:text-white dark:bg-white/6"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg:white/6",
                   ].join(" ")}
                 >
                   <span className="truncate">{opt.label}</span>
@@ -259,6 +262,7 @@ export const SearchBar = ({
   const [showUserResults, setShowUserResults] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null!);
+  const navigate = useNavigate();
 
   const { data: userSearchResults, isLoading: isSearchingUsers } = useQuery({
     queryKey: ["userSearch", searchTerm],
@@ -267,6 +271,19 @@ export const SearchBar = ({
       return result;
     },
     enabled: searchTerm.length >= 2,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+  });
+
+  const { data: novelSearchResult, isLoading: isSearchNovels } = useQuery({
+    queryKey: ["novel-search", searchTerm],
+    queryFn: async () => {
+      const result = await GetNovels({ searchTerm: searchTerm });
+      return result;
+    },
+    enabled: searchTerm.length > 2,
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
@@ -302,8 +319,9 @@ export const SearchBar = ({
   );
 
   const users = userSearchResults?.data?.users || [];
+  const novels = novelSearchResult?.data.data.novels || [];
 
-  const hasValidData =
+  const hasValidUserData =
     userSearchResults &&
     typeof userSearchResults === "object" &&
     userSearchResults !== null &&
@@ -311,6 +329,15 @@ export const SearchBar = ({
     userSearchResults.data &&
     typeof userSearchResults.data === "object" &&
     "users" in userSearchResults.data;
+
+  const hasValidNovelData =
+    novelSearchResult &&
+    typeof novelSearchResult === "object" &&
+    novelSearchResult !== null &&
+    "data" in novelSearchResult &&
+    Array.isArray(novelSearchResult.data);
+
+  const hasValidData = hasValidUserData || hasValidNovelData;
 
   const popupWidth = useElementWidth(containerRef, 720, 24);
 
@@ -337,7 +364,10 @@ export const SearchBar = ({
         ].join(" ")}
       >
         <button
-          onClick={onSubmit}
+          onClick={() => {
+            onSubmit();
+            setShowUserResults(false);
+          }}
           aria-label="Tìm kiếm"
           className={`${BTN} grid place-items-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/5`}
         >
@@ -356,6 +386,7 @@ export const SearchBar = ({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
+              setShowUserResults(false);
               onSubmit();
             }
           }}
@@ -406,7 +437,6 @@ export const SearchBar = ({
         </div>
       </div>
 
-      {/* User search results popup (now theme-aware) */}
       {showUserResults && (
         <div
           className={[
@@ -417,36 +447,76 @@ export const SearchBar = ({
           role="dialog"
           aria-label="Kết quả người dùng"
         >
-          {isSearchingUsers ? (
+          {isSearchingUsers || isSearchNovels ? (
             <div className="p-4 text-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#ff6f45] mx-auto" />
               <p className="text-gray-500 dark:text-zinc-400 mt-2 text-sm">
                 Đang tìm kiếm...
               </p>
             </div>
-          ) : users.length > 0 ? (
-            <div className="p-2">
-              {users.map((user: UserSearchResult) => (
-                <div
-                  key={user.id}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-white/6"
-                >
-                  <div className="flex-1">
-                    <ClickableUserInfo
-                      userId={user.id}
-                      username={user.username}
-                      displayName={user.displayName}
-                      avatarUrl={user.avatarUrl}
-                      size="medium"
-                      showUsername={true}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex-shrink-0">
-                    <FollowButton targetUserId={user.id} size="sm" />
-                  </div>
+          ) : users.length > 0 || novels.length > 0 ? (
+            <div className="p-2 space-y-4">
+              {users.length > 0 && (
+                <div>
+                  <h4 className="px-2 mb-2 text-xs font-semibold text-gray-500 dark:text-zinc-400">
+                    Người dùng
+                  </h4>
+                  {users.map((user: UserSearchResult) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-white/6"
+                    >
+                      <div className="flex-1">
+                        <ClickableUserInfo
+                          userId={user.id}
+                          username={user.username}
+                          displayName={user.displayName}
+                          avatarUrl={user.avatarUrl}
+                          size="medium"
+                          showUsername={true}
+                          className="cursor-pointer"
+                          setShowResult={() => setShowUserResults(false)}
+                        />
+                      </div>
+                      <div className="flex-shrink-0">
+                        <FollowButton targetUserId={user.id} size="sm" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {novels.length > 0 && (
+                <div>
+                  <h4 className="px-2 mb-2 text-xs font-semibold text-gray-500 dark:text-zinc-400">
+                    Truyện
+                  </h4>
+                  {novels.map((novel: Novel) => (
+                    <div
+                      onClick={() => {
+                        setShowUserResults(false);
+                        navigate(`/novels/${novel.slug}`);
+                      }}
+                      key={novel.novelId}
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-white/6 cursor-pointer"
+                    >
+                      <img
+                        src={novel.novelImage!}
+                        alt={novel.title}
+                        className="w-10 h-14 object-cover rounded-md"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {novel.title}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">
+                          {novel.authorName}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : searchTerm.length >= 2 && hasValidData ? (
             <div className="p-4 text-center">
@@ -458,7 +528,6 @@ export const SearchBar = ({
         </div>
       )}
 
-      {/* Filters popup (already theme-aware, just minor polish) */}
       {showDropdown && (
         <div
           ref={dropdownRef}

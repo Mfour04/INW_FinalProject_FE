@@ -25,6 +25,7 @@ type Props = {
   gradientBtn: string;
   loadingFollow: boolean;
   loadingUnfollow: boolean;
+  isBanned?: boolean;
 };
 
 export const AsidePanel = ({
@@ -42,11 +43,11 @@ export const AsidePanel = ({
   gradientBtn,
   loadingFollow,
   loadingUnfollow,
+  isBanned,
 }: Props) => {
   return (
     <aside className="md:sticky md:top-5 self-start">
       <div className="rounded-xl overflow-hidden backdrop-blur-md border bg-white border-gray-200 text-gray-900 shadow-[0_16px_56px_-28px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#121212]/80 dark:text-white dark:shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)]">
-        {/* Cover */}
         <div className="relative">
           <img
             src={novelInfo?.novelImage || undefined}
@@ -104,44 +105,49 @@ export const AsidePanel = ({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="p-2.5 flex flex-col gap-3.5">
-          {/* Follow button */}
-          {!isAuthor &&
-            (!follower ? (
-              <button
-                onClick={onFollow}
-                disabled={loadingFollow}
-                aria-label="Theo dõi tiểu thuyết"
-                className={`${gradientBtn} text-[12px] px-3 py-1.5 mt-1.5 rounded-full transition flex items-center justify-center`}
-              >
-                {loadingFollow ? "Đang xử lý..." : (
-                  <span className="inline-flex items-center gap-1.5 leading-none">
-                    <Pencil className="w-[15px] h-[15px]" />
-                    Theo dõi
-                  </span>
-                )}
-              </button>
-            ) : (
-              <div className="relative" ref={followBtnRef}>
-                <button
-                  onClick={onToggleFollow}
-                  disabled={loadingUnfollow}
-                  aria-label="Tùy chọn theo dõi"
-                  className="w-full rounded-full text-[12px] px-4 py-2 transition border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white flex items-center justify-center"
-                >
-                  {loadingUnfollow ? "Đang xử lý..." : (
-                    <span className="inline-flex items-center justify-center gap-1.5 leading-none">
-                      <Bell className="w-[15px] h-[15px]" />
-                      Đang theo dõi
-                      <ChevronDown className="w-[15px] h-[15px]" />
-                    </span>
-                  )}
-                </button>
-              </div>
-            ))}
+          {!isBanned && (
+            <>
+              {!isAuthor &&
+                (!follower ? (
+                  <button
+                    onClick={onFollow}
+                    disabled={loadingFollow}
+                    aria-label="Theo dõi tiểu thuyết"
+                    className={`${gradientBtn} text-[12px] px-3 py-1.5 mt-1.5 rounded-full transition flex items-center justify-center`}
+                  >
+                    {loadingFollow ? (
+                      "Đang xử lý..."
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 leading-none">
+                        <Pencil className="w-[15px] h-[15px]" />
+                        Theo dõi
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <div className="relative" ref={followBtnRef}>
+                    <button
+                      onClick={onToggleFollow}
+                      disabled={loadingUnfollow}
+                      aria-label="Tùy chọn theo dõi"
+                      className="w-full rounded-full text-[12px] px-4 py-2 transition border bg-white hover:bg-gray-50 border-gray-200 text-gray-900 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white flex items-center justify-center"
+                    >
+                      {loadingUnfollow ? (
+                        "Đang xử lý..."
+                      ) : (
+                        <span className="inline-flex items-center justify-center gap-1.5 leading-none">
+                          <Bell className="w-[15px] h-[15px]" />
+                          Đang theo dõi
+                          <ChevronDown className="w-[15px] h-[15px]" />
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                ))}
+            </>
+          )}
 
-          {/* Buy full novel */}
           {isCompleted &&
             (isAuthor ? (
               <div className="w-full rounded-full bg-gray-100 text-gray-600 text-[12px] px-3 py-1.5 text-center dark:bg-white/5 dark:text-gray-300">
@@ -165,7 +171,6 @@ export const AsidePanel = ({
               </button>
             ))}
 
-          {/* Rating & Report */}
           <div className="grid grid-cols-2 gap-2.5">
             <button
               onClick={onJumpToRating}

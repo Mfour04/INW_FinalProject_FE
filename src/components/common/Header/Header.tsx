@@ -330,7 +330,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
         notificationIds: notReadNotificationIds,
       });
     } else {
-      toast?.onOpen("Bạn đã đọc hết tất cả!");
+      toast?.onOpen({ message: "Bạn đã đọc hết tất cả!", variant: "success" });
     }
   };
 
@@ -404,26 +404,28 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
             </div>
 
             <div className="min-w-0 flex-1">
-              <SearchBar
-                searchTerm={searchTerm}
-                onSearchTermChange={setSearchTerm}
-                onSubmit={handleSearchNovels}
-                sortOptions={sortOptions}
-                tagFilterOptions={selectTagOptions}
-                searchIcon={
-                  <Search className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
-                clearIcon={
-                  <X className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
-                filterIcon={
-                  <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
-                }
-                initialSort={sortBy}
-                setSort={setSortBy}
-                initialTags={tagFilter}
-                setTags={setTagFilter}
-              />
+              {auth?.user.role !== "Admin" && (
+                <SearchBar
+                  searchTerm={searchTerm}
+                  onSearchTermChange={setSearchTerm}
+                  onSubmit={handleSearchNovels}
+                  sortOptions={sortOptions}
+                  tagFilterOptions={selectTagOptions}
+                  searchIcon={
+                    <Search className="h-5 w-5 text-gray-600 dark:text-white" />
+                  }
+                  clearIcon={
+                    <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                  }
+                  filterIcon={
+                    <ListFilter className="h-5 w-5 text-gray-600 dark:text-white" />
+                  }
+                  initialSort={sortBy}
+                  setSort={setSortBy}
+                  initialTags={tagFilter}
+                  setTags={setTagFilter}
+                />
+              )}
             </div>
 
             {/* Desktop actions */}

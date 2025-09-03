@@ -1,4 +1,3 @@
-// ReportDetailPopup.tsx
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -170,7 +169,11 @@ const ReportDetailPopup = ({
       report?.targetUserId
         ? GetUserById(report.targetUserId).then((res) => res.data)
         : Promise.reject("No member ID"),
-    enabled: isOpen && !!report?.targetUserId,
+    enabled:
+      isOpen &&
+      !!report?.targetUserId &&
+      report?.scope === 5 &&
+      !report?.isTargetDisappear,
   });
 
   const {
@@ -183,7 +186,11 @@ const ReportDetailPopup = ({
       report?.novelId
         ? GetNovelById(report.novelId).then((res) => res.data)
         : Promise.reject("No novel ID"),
-    enabled: isOpen && !!report?.novelId && report?.scope === 0,
+    enabled:
+      isOpen &&
+      !!report?.novelId &&
+      report?.scope === 0 &&
+      !report?.isTargetDisappear,
   });
 
   const {
@@ -196,7 +203,11 @@ const ReportDetailPopup = ({
       report?.chapterId
         ? GetChapter(report.chapterId).then((res) => res.data)
         : Promise.reject("No chapter ID"),
-    enabled: isOpen && !!report?.chapterId && report?.scope === 1,
+    enabled:
+      isOpen &&
+      !!report?.chapterId &&
+      report?.scope === 1 &&
+      !report?.isTargetDisappear,
   });
 
   const {
@@ -280,12 +291,35 @@ const ReportDetailPopup = ({
     onSuccess: () => {
       setIsConfirmOpen(false);
       setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["Report", reportId] });
+      if (deleteTarget) {
+        switch (deleteTarget.type) {
+          case "comment":
+            queryClient.invalidateQueries({
+              queryKey: ["Comment", report?.commentId],
+            });
+            break;
+          case "forumPost":
+            queryClient.invalidateQueries({
+              queryKey: ["ForumPost", report?.forumPostId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["ForumPostComment"] });
+            break;
+          case "forumComment":
+            queryClient.invalidateQueries({
+              queryKey: ["ForumPostComment", report?.forumCommentId],
+            });
+            break;
+        }
+      }
       queryClient.invalidateQueries({ queryKey: ["Reports"] });
       onClose();
     },
     onError: (err) => {
       console.error("Delete or update status error:", err);
       alert("Xóa hoặc cập nhật trạng thái thất bại! Vui lòng thử lại.");
+      setIsConfirmOpen(false);
+      setDeleteTarget(null);
     },
   });
 
@@ -456,7 +490,7 @@ const ReportDetailPopup = ({
                         Đối tượng đã bị xóa
                       </p>
                     ) : report.scope === 5 ? (
-                      isUserLoading || isMemberLoading ? (
+                      isMemberLoading ? (
                         <Skeleton rows={3} />
                       ) : memberError || !memberData ? (
                         <p className="text-sm text-rose-600 dark:text-rose-300">
@@ -530,8 +564,7 @@ const ReportDetailPopup = ({
                         <Skeleton rows={2} />
                       ) : commentError || !commentData?.data ? (
                         <p className="text-sm text-rose-600 dark:text-rose-300">
-                          Không thể tải bình luận:{" "}
-                          {commentError?.message || "Dữ liệu không hợp lệ"}
+                          Bình luận không khả dụng (có thể đã bị xóa)
                         </p>
                       ) : (
                         <>
@@ -567,7 +600,7 @@ const ReportDetailPopup = ({
                         <Skeleton rows={3} />
                       ) : forumPostsError || !postsData?.data ? (
                         <p className="text-sm text-rose-600 dark:text-rose-300">
-                          Không thể tải bài viết
+                          Bài viết không khả dụng (có thể đã bị xóa)
                         </p>
                       ) : (
                         <>
@@ -600,7 +633,7 @@ const ReportDetailPopup = ({
                         <Skeleton rows={2} />
                       ) : forumPostCommentsError || !forumCommentsData?.data ? (
                         <p className="text-sm text-rose-600 dark:text-rose-300">
-                          Không thể tải bình luận
+                          Bình luận không khả dụng (có thể đã bị xóa)
                         </p>
                       ) : (
                         <>
