@@ -1,10 +1,9 @@
-// ConfirmModal.tsx
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, X, Coins, Info, CheckCircle2 } from "lucide-react";
 
-type Tone = "default" | "danger" | "purchase" | "info" | "success";
+type Tone = "default" | "danger" | "purchase" | "info" | "success" | "warning";
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -69,12 +68,20 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           confirmBtn: "bg-emerald-600 hover:bg-emerald-700 text-white",
           defaultIcon: <CheckCircle2 className="w-5 h-5" />,
         };
+      case "warning":
+        return {
+          iconWrap: "bg-yellow-400/20 text-yellow-600 dark:text-yellow-400",
+          confirmBtn:
+            "bg-yellow-500/80 hover:bg-yellow-500 text-white " +
+            "focus:ring-2 focus:ring-yellow-300 dark:focus:ring-yellow-500",
+          defaultIcon: <AlertTriangle className="w-5 h-5" />,
+        };
       default:
         return {
-          iconWrap:
-            "bg-zinc-200 text-zinc-700 dark:bg-white/10 dark:text-white",
+          iconWrap: "bg-[#ff6740]/15 text-[#ff6740]",
           confirmBtn:
-            "bg-zinc-900 hover:bg-black text-white dark:bg-white/20 dark:hover:bg-white/30",
+            "bg-[#ff6740] hover:brightness-95 text-white " +
+            "dark:bg-[#ff6740] dark:hover:brightness-110",
           defaultIcon: <Info className="w-5 h-5" />,
         };
     }
@@ -87,7 +94,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 dark:bg-black/60 backdrop-blur-sm"
         onClick={dismissOnOverlay ? onCancel : undefined}
       >
         <motion.div
@@ -102,21 +109,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           aria-describedby="confirm-desc"
           className={[
             "w-[420px] max-w-[92vw] rounded-2xl shadow-2xl ring-1 p-5",
-            "bg-white text-zinc-900 ring-black/10",
-            "dark:bg-[#111318] dark:text-white dark:ring-white/10",
+            "bg-white text-zinc-900 ring-zinc-200",
+            "dark:bg-zinc-900 dark:text-zinc-100 dark:ring-white/10",
           ].join(" ")}
         >
           <div className="flex items-start justify-between gap-3 mb-3.5">
             <div className="flex items-center gap-3">
-              <div
-                className={["p-2 rounded-full", toneStyles.iconWrap].join(" ")}
-              >
+              <div className={["p-2 rounded-full", toneStyles.iconWrap].join(" ")}>
                 {icon ?? toneStyles.defaultIcon}
               </div>
-              <h2
-                id="confirm-title"
-                className="text-base sm:text-lg font-semibold"
-              >
+              <h2 id="confirm-title" className="text-base sm:text-lg font-semibold">
                 {title}
               </h2>
             </div>

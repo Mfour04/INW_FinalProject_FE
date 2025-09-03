@@ -179,7 +179,7 @@ export const Blogs = () => {
 
   const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
   const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
-  const refetch = tab === "following" ? () => { } : refetchAll;
+  const refetch = tab === "following" ? () => {} : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -424,8 +424,8 @@ export const Blogs = () => {
                     active
                       ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow"
                       : isDisabled
-                        ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
-                        : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
+                      ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
+                      : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
                   ].join(" ")}
                 >
                   {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
@@ -447,16 +447,28 @@ export const Blogs = () => {
             >
               {tab === "all" && (
                 <Card className="p-3 sm:p-4 mb-5">
-                  <PostForm
-                    content={content}
-                    setContent={setContent}
-                    isPosting={isPosting || createBlogPostMutation.isPending}
-                    handlePost={handlePost}
-                    handleKeyPress={handleKeyPress}
-                    selectedImages={selectedImages}
-                    setSelectedImages={setSelectedImages}
-                    resetFileInput={resetFileInputRef}
-                  />
+                  {auth?.user?.isBanned ? (
+                    <div
+                      className="
+          rounded-xl border border-red-300 bg-red-50 p-4
+          text-sm text-red-600 dark:border-red-500/40
+          dark:bg-red-500/10 dark:text-red-400
+        "
+                    >
+                      Tài khoản của bạn đang bị hạn chế, không thể đăng bài.
+                    </div>
+                  ) : (
+                    <PostForm
+                      content={content}
+                      setContent={setContent}
+                      isPosting={isPosting || createBlogPostMutation.isPending}
+                      handlePost={handlePost}
+                      handleKeyPress={handleKeyPress}
+                      selectedImages={selectedImages}
+                      setSelectedImages={setSelectedImages}
+                      resetFileInput={resetFileInputRef}
+                    />
+                  )}
                 </Card>
               )}
 
@@ -516,8 +528,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                    post.createdAt
-                                  )
+                                      post.createdAt
+                                    )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,
@@ -601,8 +613,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                    post.createdAt
-                                  )
+                                      post.createdAt
+                                    )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,

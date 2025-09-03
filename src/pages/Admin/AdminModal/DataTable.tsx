@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { useDarkMode } from "../../../context/ThemeContext/ThemeContext";
 import type { NovelAdmin } from "../../../api/Novels/novel.type";
 import type { User } from "../../../api/Admin/User/user.type";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
 import { Lock, Unlock, Eye, EyeOff } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface SortConfig<T> {
   key: keyof T;
@@ -31,11 +30,9 @@ interface DataTableProps<T> {
   onLockUnlockUser?: (userId: string, isBanned: boolean) => void;
 }
 
-/** Col width % cho mỗi type – giữ tổng ~100 để table-fixed không nhảy cột */
 const COLS_USER = [26, 10, 10, 8, 15, 16, 15];
 const COLS_NOVEL = [22, 16, 10, 8, 8, 10, 10, 10, 16];
 
-/** Ô mũi tên cố định 12px để không rung cột */
 const SortArrow = ({
   active,
   dir,
@@ -44,7 +41,11 @@ const SortArrow = ({
   dir: "asc" | "desc";
 }) => (
   <span className="inline-block w-3 text-center align-middle select-none">
-    {active ? (dir === "asc" ? "↑" : "↓") : " "}
+    {active ? (
+      <span className="text-[10px]">{dir === "asc" ? "↑" : "↓"}</span>
+    ) : (
+      <span className="text-zinc-400 dark:text-zinc-500">↕</span>
+    )}
   </span>
 );
 
@@ -63,8 +64,16 @@ const DataTable = <T extends NovelAdmin | User>({
   const headers: HeaderDef[] =
     type === "novel"
       ? [
-          { key: "Title", label: "Tên truyện", sortable: false },
-          { key: "AuthorName", label: "Tác giả", sortable: false },
+          {
+            key: "Title",
+            label: "Tên truyện",
+            sortable: false,
+          },
+          {
+            key: "AuthorName",
+            label: "Tác giả",
+            sortable: false,
+          },
           { key: "Status", label: "Trạng thái", sortable: false },
           {
             key: "IsPublic",
@@ -75,19 +84,21 @@ const DataTable = <T extends NovelAdmin | User>({
           { key: "IsLock", label: "Khóa", sortable: false, center: true },
           {
             key: "TotalViews",
+            sortKey: "total_views",
             label: "Lượt xem",
-            sortable: false,
+            sortable: true,
             center: true,
           },
           {
             key: "RatingAvg",
+            sortKey: "rating_avg",
             label: "Đánh giá",
-            sortable: false,
+            sortable: true,
             center: true,
           },
           {
             key: "CreateAt",
-            sortKey: "CreateAt",
+            sortKey: "created_at",
             label: "Ngày tạo",
             sortable: true,
           },
@@ -95,9 +106,9 @@ const DataTable = <T extends NovelAdmin | User>({
         ]
       : [
           {
-            key: "userName",
-            sortKey: "userName",
-            label: "Username",
+            key: "displayName",
+            sortKey: "displayname_normalized",
+            label: "Tên hiển thị",
             sortable: true,
           },
           { key: "role", label: "Vai trò", sortable: false },
@@ -110,14 +121,13 @@ const DataTable = <T extends NovelAdmin | User>({
           { key: "isBanned", label: "Khóa", sortable: false, center: true },
           {
             key: "bannedUntil",
-            sortKey: "bannedUntil",
             label: "Thời hạn",
-            sortable: true,
+            sortable: false,
             center: true,
           },
           {
             key: "createdAt",
-            sortKey: "createdAt",
+            sortKey: "created_at",
             label: "Ngày tạo",
             sortable: true,
           },
@@ -128,8 +138,33 @@ const DataTable = <T extends NovelAdmin | User>({
   const isActive = (h: HeaderDef): boolean =>
     !!(h.sortable && h.sortKey && (sortConfig.key as any) === h.sortKey);
 
-  /** ---------- Auto-scale to fit container ---------- */
+  const sortedData = useMemo(() => {
+    if (!sortConfig.key) return data;
+    return [...data].sort((a, b) => {
+      const aValue = (a as any)[sortConfig.key];
+      const bValue = (b as any)[sortConfig.key];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "asc"
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+      return 0;
+    });
+  }, [data, sortConfig]);
+
   const minDesignWidth = type === "novel" ? 1120 : 900;
+  const rowHeight = 48; // px, tương tự h-12
+  const headerHeight = 40; // px, tương tự h-10
+  const minHeightPx = headerHeight + rowHeight * (type === "novel" ? 10 : 10); // 10 rows
 
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -161,7 +196,7 @@ const DataTable = <T extends NovelAdmin | User>({
     if (innerRef.current) ro.observe(innerRef.current);
     updateScale();
     return () => ro.disconnect();
-  }, [data, type, minDesignWidth]);
+  }, [sortedData, type, minDesignWidth]);
 
   return (
     <div
@@ -172,6 +207,7 @@ const DataTable = <T extends NovelAdmin | User>({
           ? "bg-[#0b0f15]/80 text-white border-white/10"
           : "bg-white text-zinc-900 border-zinc-200",
       ].join(" ")}
+      style={{ minHeight: `${minHeightPx}px` }}
     >
       <div
         ref={innerRef}
@@ -206,7 +242,7 @@ const DataTable = <T extends NovelAdmin | User>({
                     "px-3 py-2 text-[12.5px] md:text-xs font-semibold uppercase tracking-wide whitespace-nowrap",
                     h.center ? "text-center" : "text-left",
                     h.sortable
-                      ? "cursor-pointer select-none"
+                      ? "cursor-pointer select-none hover:bg-zinc-100/50 dark:hover:bg-white/10"
                       : "cursor-default",
                   ].join(" ")}
                   aria-sort={
@@ -237,7 +273,7 @@ const DataTable = <T extends NovelAdmin | User>({
           </thead>
 
           <tbody>
-            {data.map((item) => (
+            {sortedData.map((item) => (
               <motion.tr
                 key={String(
                   type === "novel"
@@ -256,21 +292,16 @@ const DataTable = <T extends NovelAdmin | User>({
                 {headers.map((h) => {
                   const value: any = (item as any)[h.key];
 
-                  /** ---------- USER CELLS ---------- */
-                  if (type === "user" && h.key === "userName") {
+                  if (type === "user" && h.key === "displayName") {
                     const u = item as User;
                     return (
                       <td
                         key={h.key}
                         className="px-3 py-2 truncate font-medium"
                       >
-                        <Link
-                          to={`/admin/users/${u.userId}`}
-                          className="text-[#ff5f3d] hover:underline decoration-1 underline-offset-2"
-                          title={String(value ?? "")}
-                        >
+                        <span className="text-[#ff5f3d] decoration-1 underline-offset-2">
                           {value}
-                        </Link>
+                        </span>
                       </td>
                     );
                   }
@@ -370,8 +401,6 @@ const DataTable = <T extends NovelAdmin | User>({
                     );
                   }
 
-                  /** ---------- NOVEL CELLS ---------- */
-                  // Novel: Công khai -> icon Eye/EyeOff
                   if (type === "novel" && h.key === "IsPublic") {
                     const isPublic = Boolean(value);
                     return (
@@ -395,7 +424,6 @@ const DataTable = <T extends NovelAdmin | User>({
                     );
                   }
 
-                  // Novel: Khóa -> icon Lock/Unlock (khác với nút hành động)
                   if (type === "novel" && h.key === "IsLock") {
                     const isLocked = Boolean(value);
                     return (
@@ -419,7 +447,6 @@ const DataTable = <T extends NovelAdmin | User>({
                     );
                   }
 
-                  // ACTIONS: NOVEL (đã bỏ nút “Chi tiết” như yêu cầu)
                   if (h.key === "Actions" && type === "novel") {
                     const n = item as NovelAdmin;
                     return (
@@ -454,7 +481,6 @@ const DataTable = <T extends NovelAdmin | User>({
                     );
                   }
 
-                  /** DEFAULT CELL */
                   return (
                     <td
                       key={h.key}

@@ -74,7 +74,7 @@ export const CreateChapters = () => {
   const DeleteChapterMutation = useMutation({
     mutationFn: (id: string) => DeleteChapter(id),
     onSuccess: () => {
-      toast?.onOpen("Xóa chương truyện thành công!");
+      toast?.onOpen({ message: "Xóa chương truyện thành công!", variant: "success" });
       setDeleteModal(false);
       queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
     },

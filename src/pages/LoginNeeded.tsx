@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LogIn, Lock } from "lucide-react";
+import AuthModal from "../components/common/Header/AuthModal";
+import { useAuth } from "../hooks/useAuth";
 
 type LoginNeededProps = {
   onLogin?: () => void;
@@ -14,8 +16,9 @@ export const LoginNeeded = ({
   title = "Cần đăng nhập",
   subtitle = "Vui lòng đăng nhập để tiếp tục.",
 }: LoginNeededProps) => {
-  const goLogin = () =>
-    onLogin ? onLogin() : (window.location.href = toLoginHref);
+  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
+  const { auth } = useAuth();
+  const goLogin = () => (onLogin ? onLogin() : setIsAuthOpen(true));
 
   useEffect(() => {
     document.body.classList.add("overflow-hidden");
@@ -33,7 +36,9 @@ export const LoginNeeded = ({
           </div>
           <div className="min-w-0">
             <h1 className="text-base font-semibold">{title}</h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {subtitle}
+            </p>
           </div>
         </div>
 
@@ -47,6 +52,10 @@ export const LoginNeeded = ({
           </button>
         </div>
       </div>
+
+      {!auth?.user && isAuthOpen && (
+        <AuthModal onClose={() => setIsAuthOpen(false)} />
+      )}
     </div>
   );
 };

@@ -159,7 +159,7 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleOne(rpid)}
-                    className="h-4 w-4 accent-orange-500 cursor-pointer"
+                    className="h-4 w-4 accent-current cursor-pointer"
                   />
                   <span className="text-xs">Chọn</span>
                 </label>
@@ -384,7 +384,7 @@ export const ReadingProcess = ({ sidebarCollapsed = false }: Props) => {
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleOne(rpid)}
-                        className="h-4 w-4 accent-orange-500 cursor-pointer"
+                        className="h-4 w-4 accent-current cursor-pointer"
                       />
                       <span className="text-xs">Chọn</span>
                     </label>

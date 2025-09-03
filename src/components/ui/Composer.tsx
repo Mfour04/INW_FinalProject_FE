@@ -3,6 +3,7 @@ import defaultAvatar from "../../assets/img/default_avt.png";
 import { Smile, SendHorizontal, Loader2 } from "lucide-react";
 import { EmojiPickerBox } from "./EmojiPickerBox";
 import { useAutoGrow } from "../../pages/CommentUser/hooks/useAutoGrow";
+import { useAuth } from "../../hooks/useAuth";
 
 type UserLite = { name: string; user: string; avatarUrl?: string | null };
 
@@ -43,6 +44,8 @@ export const Composer = ({
     if (text.length <= MAX_CHARS) onChange(text);
     else onChange(text.slice(0, MAX_CHARS));
   };
+
+  const { auth } = useAuth();
 
   const pickEmoji = (emoji: string) => {
     const el = textareaRef.current;
@@ -102,6 +105,16 @@ export const Composer = ({
       <div className="text-center py-4">
         <button className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-sm shadow-black/10 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]">
           Tác giả đã khóa bình luận chương này
+        </button>
+      </div>
+    );
+  }
+
+  if (auth?.user.isBanned) {
+    return (
+      <div className="text-center py-4">
+        <button className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-sm shadow-black/10 bg-[linear-gradient(90deg,#ff512f_0%,#ff6740_40%,#ff9966_100%)]">
+          Bạn đã bị admin khóa bình luận
         </button>
       </div>
     );
