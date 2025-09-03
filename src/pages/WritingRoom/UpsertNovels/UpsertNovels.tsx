@@ -309,13 +309,10 @@ export const UpsertNovels = () => {
 
         <div className="grid grid-cols-12 gap-6">
           <main className="col-span-12 md:col-span-8 space-y-6">
-            {/* Card chính */}
             <div
               className={[
                 "rounded-lg p-5 md:p-6",
-                // light
                 "bg-white ring-1 ring-zinc-200 shadow-sm",
-                // dark
                 "dark:bg-[#0e1117]/92 dark:ring-1 dark:ring-white/8 dark:backdrop-blur-sm dark:shadow-[0_22px_60px_-30px_rgba(0,0,0,0.6)]",
               ].join(" ")}
             >
@@ -331,9 +328,7 @@ export const UpsertNovels = () => {
                   placeholder="Nhập tên truyện"
                   className={[
                     "w-full rounded-md px-3 py-2.5 text-[14px] outline-none transition",
-                    // light
                     "bg-white ring-1 ring-zinc-300 focus:ring-2 focus:ring-orange-300",
-                    // dark
                     "dark:bg-[#0b0e13] dark:ring-white/10 dark:focus:ring-[#ff8a5c]/35",
                   ].join(" ")}
                 />
@@ -342,7 +337,6 @@ export const UpsertNovels = () => {
                 </div>
               </div>
 
-              {/* Slug */}
               <div className="mb-5">
                 <label className="block text-[13px] mb-1.5 font-semibold">
                   Đường dẫn
@@ -350,18 +344,14 @@ export const UpsertNovels = () => {
                 <div
                   className={[
                     "flex items-stretch rounded-md overflow-hidden",
-                    // light
                     "ring-1 ring-zinc-300 bg-white",
-                    // dark
                     "dark:ring-1 dark:ring-white/10 dark:bg-[#0b0e13]",
                   ].join(" ")}
                 >
                   <span
                     className={[
                       "hidden sm:flex items-center px-3 text-[13px]",
-                      // light
                       "text-zinc-600 bg-zinc-50 ring-1 ring-inset ring-zinc-200",
-                      // dark
                       "dark:text-white/70 dark:bg-white/[0.04] dark:ring-white/10",
                     ].join(" ")}
                   >
