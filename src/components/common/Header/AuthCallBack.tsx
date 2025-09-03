@@ -1,4 +1,3 @@
-// GoogleCallback.tsx
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

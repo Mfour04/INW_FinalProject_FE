@@ -8,6 +8,7 @@ import {
   Info,
 } from "lucide-react";
 import type { ChapterForm } from "../UpsertChapter";
+import { useToast } from "../../../../context/ToastContext/toast-context";
 
 type ScheduleAndPriceStepProps = {
   chapterForm: ChapterForm;
@@ -34,6 +35,8 @@ export const ScheduleAndPrice = ({
   const [dateStr, setDateStr] = useState<string>(initialDate);
   const [isPaid, setIsPaid] = useState<boolean>(chapterForm.isPaid);
   const [price, setPrice] = useState<number>(chapterForm.price || 1);
+
+  const toast = useToast();
 
   const publishDate: Date | null = useMemo(() => {
     if (publishOption !== "scheduled" || !dateStr) return null;
@@ -92,7 +95,17 @@ export const ScheduleAndPrice = ({
 
           <SegmentedControl
             value={publishOption}
-            onChange={setPublishOption}
+            onChange={(v) => {
+              if (v !== "draft" && chapterForm.content.length < 1000) {
+                toast?.onOpen({
+                  message:
+                    "Bạn chỉ có thể lưu nháp nếu nội dung dưới 1000 kí tự",
+                  variant: "warning",
+                });
+                return;
+              }
+              setPublishOption(v);
+            }}
             items={[
               {
                 value: "draft",

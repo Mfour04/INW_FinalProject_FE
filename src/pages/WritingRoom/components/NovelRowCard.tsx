@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PencilLine, BookOpenCheck, Trash2, Star } from "lucide-react";
 import { formatVietnamTimeFromTicks } from "../../../utils/date_format";
 import type { Novel } from "../../../entity/novel";
+import { useToast } from "../../../context/ToastContext/toast-context";
 
 export const NovelRowCard = ({
   novel,
@@ -22,6 +23,7 @@ export const NovelRowCard = ({
     m.addEventListener("change", update);
     return () => m.removeEventListener("change", update);
   }, []);
+  const toast = useToast();
 
   const isCompleted = novel.status === 1;
   const isPublic = novel.isPublic;
@@ -90,7 +92,20 @@ export const NovelRowCard = ({
               <ActionBtn onClick={onEdit} label="Sửa">
                 <PencilLine className="h-4 w-4" />
               </ActionBtn>
-              <ActionBtn onClick={onChapters} label="Chương">
+              <ActionBtn
+                onClick={() => {
+                  if (isCompleted) {
+                    toast?.onOpen({
+                      message:
+                        "Tiểu thuyết này đã hoàn thành, nếu muốn thêm chương mới, hãy thay đổi trạng thái",
+                      variant: "warning",
+                    });
+                    return;
+                  }
+                  onChapters();
+                }}
+                label="Chương"
+              >
                 <BookOpenCheck className="h-4 w-4" />
               </ActionBtn>
               <ActionBtn onClick={onDelete} label="Xóa" tone="danger">
@@ -227,9 +242,21 @@ const StarIcon = ({ fillPercent }: { fillPercent: number }) => {
   const p = Math.max(0, Math.min(100, fillPercent));
   return (
     <span className="relative inline-block h-4 w-4">
-      <Star className="absolute inset-0 h-4 w-4 text-zinc-300 dark:text-white/25" stroke="currentColor" fill="currentColor" />
-      <span className="absolute inset-0 overflow-hidden" style={{ width: `${p}%` }} aria-hidden>
-        <Star className="h-4 w-4 text-yellow-400" stroke="currentColor" fill="currentColor" />
+      <Star
+        className="absolute inset-0 h-4 w-4 text-zinc-300 dark:text-white/25"
+        stroke="currentColor"
+        fill="currentColor"
+      />
+      <span
+        className="absolute inset-0 overflow-hidden"
+        style={{ width: `${p}%` }}
+        aria-hidden
+      >
+        <Star
+          className="h-4 w-4 text-yellow-400"
+          stroke="currentColor"
+          fill="currentColor"
+        />
       </span>
     </span>
   );

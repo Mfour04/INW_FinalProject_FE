@@ -18,7 +18,11 @@ import {
 import { Search, UserRound, Banknote } from "lucide-react";
 import RequestDetailDrawer from "./RequestDetailDrawer";
 
-const itemsPerPage = 100;
+const itemsPerPage = 10;
+const rowHeight = 56; // px, tương tự h-14 trong ReportDataTable
+const headerHeight = 40; // px, tương tự h-10 trong header
+const minHeightPx = headerHeight + rowHeight * itemsPerPage;
+const dataContainerMinHeight = rowHeight * itemsPerPage; // Chiều cao cố định cho phần chứa dữ liệu
 
 const coinPriceTable = [
   { amount: 65, price: 50000 },
@@ -94,11 +98,9 @@ const RequestList = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["PendingWithdrawRequests", currentPage],
+    queryKey: ["PendingWithdrawRequests"],
     queryFn: () =>
       GetPendingWithdrawRequests({
-        page: currentPage - 1,
-        limit: itemsPerPage,
         sortBy: "created_at:desc",
       }).then((res) => res.data),
   });
@@ -121,10 +123,17 @@ const RequestList = () => {
           const u = await GetUserById(id).then((r) => r.data);
           map[id] = {
             displayName: u.displayName ?? "Không tìm thấy",
-            username: u.username ?? u.userName ?? u.handle ?? undefined,
+            username:
+              typeof u.username === "string"
+                ? u.username
+                : typeof u.userName === "string"
+                ? u.userName
+                : typeof u.handle === "string"
+                ? u.handle
+                : "—",
           };
         } catch {
-          map[id] = { displayName: "Không tìm thấy" };
+          map[id] = { displayName: "Không tìm thấy", username: "—" };
         }
       }
       setUsersMap(map);
@@ -149,10 +158,16 @@ const RequestList = () => {
       queryClient.invalidateQueries({ queryKey: ["PendingWithdrawRequests"] });
       setDialog({ isOpen: false, type: null, title: "", requestId: null });
       setDetailFor(null);
-      toast?.onOpen({ message: "Cập nhật trạng thái thành công!", variant: "success" });
+      toast?.onOpen({
+        message: "Cập nhật trạng thái thành công!",
+        variant: "success",
+      });
     },
     onError: (e: any) => {
-      toast?.onOpen({ message: e?.message ?? "Cập nhật trạng thái thất bại!", variant: "error" });
+      toast?.onOpen({
+        message: e?.message ?? "Cập nhật trạng thái thất bại!",
+        variant: "error",
+      });
     },
   });
 
@@ -218,7 +233,7 @@ const RequestList = () => {
       <div className="max-w-[95rem] mx-auto w-full px-4 mb-2">
         <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            Danh sách báo cáo
+            Danh sách yêu cầu rút tiền
           </h1>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -245,6 +260,7 @@ const RequestList = () => {
         </div>
 
         <div className="rounded-2xl overflow-hidden bg-white/80 ring-1 ring-zinc-200 dark:bg-zinc-900/60 dark:ring-white/10">
+          {/* Header cố định */}
           <div className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 border-b border-zinc-200 dark:border-white/10">
             <div className="pl-4 h-10 flex items-center">Người yêu cầu</div>
             <div className="pl-4 h-10 flex items-center">Số tiền</div>
@@ -253,98 +269,156 @@ const RequestList = () => {
             <div className="pl-4 h-10 flex items-center"></div>
           </div>
 
-          <div className="divide-y divide-zinc-200 dark:divide-white/10">
+          {/* Container dữ liệu với chiều cao cố định */}
+          <div
+            className="divide-y divide-zinc-200 dark:divide-white/10 flex flex-col"
+            style={{ minHeight: `${dataContainerMinHeight}px` }}
+          >
             {isLoading ? (
-              <div className="py-10 text-center">Đang tải...</div>
+              // Skeleton loader
+              Array.from({ length: itemsPerPage }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] py-3 text-sm animate-pulse"
+                  style={{ height: `${rowHeight}px` }}
+                >
+                  <div className="pl-4 flex items-center gap-2">
+                    <div className="w-5 h-5 bg-zinc-200 dark:bg-zinc-700 rounded-full"></div>
+                    <div className="truncate">
+                      <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+                      <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2 mt-1"></div>
+                    </div>
+                  </div>
+                  <div className="pl-4 flex items-center gap-2">
+                    <div className="w-4 h-4 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+                    <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2"></div>
+                  </div>
+                  <div className="pl-4 flex items-center">
+                    <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+                  </div>
+                  <div className="pl-4 flex items-center">
+                    <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-28"></div>
+                  </div>
+                  <div className="pl-4 flex items-center justify-center">
+                    <div className="inline-grid grid-cols-3 gap-4">
+                      <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded-md w-16"></div>
+                      <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded-md w-16"></div>
+                      <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded-md w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
             ) : error ? (
-              <div className="py-10 text-center text-red-500">
+              <div
+                className="flex items-center justify-center text-red-500"
+                style={{ height: `${dataContainerMinHeight}px` }}
+              >
                 Lỗi tải dữ liệu
               </div>
             ) : pageItems.length === 0 ? (
-              <div className="py-10 text-center">Không có yêu cầu</div>
+              <div
+                className="flex items-center justify-center"
+                style={{ height: `${dataContainerMinHeight}px` }}
+              >
+                Không có yêu cầu
+              </div>
             ) : (
-              pageItems.map((r) => {
-                const canAct = r.status === PaymentStatus.Pending;
-                const vnd = toVNDExact(r.amount);
-                return (
-                  <div
-                    key={r.id}
-                    className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] py-3 text-sm"
-                  >
-                    <div className="pl-4 flex items-center gap-2">
-                      <UserRound className="w-5 h-5" />
-                      <div className="truncate">
-                        <div className="font-semibold">
-                          {usersMap[r.requesterId]?.displayName || "—"}
+              <>
+                {pageItems.map((r) => {
+                  const canAct = r.status === PaymentStatus.Pending;
+                  const vnd = toVNDExact(r.amount);
+                  return (
+                    <div
+                      key={r.id}
+                      className="grid grid-cols-[25%_15%_17.5%_15%_27.5%] py-3 text-sm"
+                      style={{ height: `${rowHeight}px` }}
+                    >
+                      <div className="pl-4 flex items-center gap-2">
+                        <UserRound className="w-5 h-5" />
+                        <div className="truncate">
+                          <div className="font-semibold">
+                            {usersMap[r.requesterId]?.displayName || "—"}
+                          </div>
+                          <div className="text-xs text-zinc-500 truncate">
+                            {usersMap[r.requesterId]?.username
+                              ? `@${usersMap[r.requesterId]?.username}`
+                              : "—"}
+                          </div>
                         </div>
-                        <div className="text-xs text-zinc-500 truncate">
-                          {usersMap[r.requesterId]?.username
-                            ? `@${usersMap[r.requesterId]?.username}`
+                      </div>
+
+                      <div className="pl-4 flex items-center gap-2">
+                        <Banknote className="w-4 h-4" />
+                        <span className="font-medium">
+                          {vnd !== null
+                            ? `${vnd.toLocaleString("vi-VN")} VND`
                             : "—"}
+                        </span>
+                      </div>
+
+                      <div className="pl-4 flex items-center">
+                        {formatDateTimeFromTicks(r.createdAt)}
+                      </div>
+
+                      <div className="pl-4 flex items-center">
+                        {statusChip(r)}
+                      </div>
+
+                      <div className="pl-4 flex items-center justify-center">
+                        <div className="inline-grid grid-cols-3 gap-4">
+                          <button
+                            onClick={() => openApprove(r.id)}
+                            className={[
+                              "px-3 py-1 rounded-md text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition",
+                              canAct
+                                ? ""
+                                : "invisible pointer-events-none select-none",
+                            ].join(" ")}
+                            aria-hidden={!canAct}
+                            tabIndex={canAct ? 0 : -1}
+                          >
+                            Duyệt
+                          </button>
+                          <button
+                            onClick={() => openReject(r.id)}
+                            className={[
+                              "px-3 py-1 rounded-md text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition",
+                              canAct
+                                ? ""
+                                : "invisible pointer-events-none select-none",
+                            ].join(" ")}
+                            aria-hidden={!canAct}
+                            tabIndex={canAct ? 0 : -1}
+                          >
+                            Từ chối
+                          </button>
+                          <button
+                            onClick={() => setDetailFor(r)}
+                            className="px-3 py-1 rounded-md text-xs font-semibold text-white bg-[#ff6740] hover:bg-[#e85530] transition"
+                          >
+                            Chi tiết
+                          </button>
                         </div>
                       </div>
                     </div>
-
-                    <div className="pl-4 flex items-center gap-2">
-                      <Banknote className="w-4 h-4" />
-                      <span className="font-medium">
-                        {vnd !== null
-                          ? `${vnd.toLocaleString("vi-VN")} VND`
-                          : "—"}
-                      </span>
-                    </div>
-
-                    <div className="pl-4 flex items-center">
-                      {formatDateTimeFromTicks(r.createdAt)}
-                    </div>
-
-                    <div className="pl-4 flex items-center ">
-                      {statusChip(r)}
-                    </div>
-
-                    <div className="pl-4 flex items-center justify-center">
-                      <div className="inline-grid grid-cols-3 gap-4">
-                        <button
-                          onClick={() => openApprove(r.id)}
-                          className={[
-                            "px-3 py-1 rounded-md text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition",
-                            canAct
-                              ? ""
-                              : "invisible pointer-events-none select-none",
-                          ].join(" ")}
-                          aria-hidden={!canAct}
-                          tabIndex={canAct ? 0 : -1}
-                        >
-                          Duyệt
-                        </button>
-                        <button
-                          onClick={() => openReject(r.id)}
-                          className={[
-                            "px-3 py-1 rounded-md text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition",
-                            canAct
-                              ? ""
-                              : "invisible pointer-events-none select-none",
-                          ].join(" ")}
-                          aria-hidden={!canAct}
-                          tabIndex={canAct ? 0 : -1}
-                        >
-                          Từ chối
-                        </button>
-                        <button
-                          onClick={() => setDetailFor(r)}
-                          className="px-3 py-1 rounded-md text-xs font-semibold text-white bg-[#ff6740] hover:bg-[#e85530] transition"
-                        >
-                          Chi tiết
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+                {/* Thêm spacer để đảm bảo pagination luôn ở vị trí cố định */}
+                {pageItems.length < itemsPerPage && (
+                  <div
+                    style={{
+                      height: `${
+                        (itemsPerPage - pageItems.length) * rowHeight
+                      }px`,
+                    }}
+                  />
+                )}
+              </>
             )}
           </div>
 
-          <div className="px-4 py-3 flex justify-center">
+          {/* Pagination cố định ở bottom */}
+          <div className="px-4 py-3 flex justify-center border-t border-zinc-200 dark:border-white/10">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -388,8 +462,12 @@ const RequestList = () => {
           {detailFor && (
             <RequestDetailDrawer
               item={detailFor}
-              requesterName={usersMap[detailFor.requesterId]?.displayName}
-              requesterUsername={usersMap[detailFor.requesterId]?.username}
+              requesterName={
+                usersMap[detailFor.requesterId]?.displayName || "Không tìm thấy"
+              }
+              requesterUsername={
+                usersMap[detailFor.requesterId]?.username || "—"
+              }
               onClose={() => setDetailFor(null)}
             />
           )}

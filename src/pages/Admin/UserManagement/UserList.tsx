@@ -18,9 +18,11 @@ import { formatTicksToDateString } from "../../../utils/date_format";
 import { UserDetailModal } from "../AdminModal/UserDetailModal";
 import { GetAnalysis } from "../../../api/Admin/Analysis/analysis.api";
 
+type SortKey = "created_at" | "displayname_normalized" | "follower_count";
+type SortDirection = "asc" | "desc";
 interface SortConfig {
-  key: keyof User;
-  direction: "asc" | "desc";
+  key: SortKey;
+  direction: SortDirection;
 }
 interface DialogState {
   isOpen: boolean;
@@ -32,29 +34,6 @@ interface DialogState {
 
 const usersPerPage = 10;
 
-const keyToApiField: Record<keyof User, string> = {
-  userId: "userId",
-  userName: "userName",
-  displayName: "displayName",
-  email: "email",
-  avatarUrl: "avatarUrl",
-  coverUrl: "coverUrl",
-  bio: "bio",
-  role: "role",
-  isVerified: "isVerified",
-  isBanned: "isBanned",
-  bannedUntil: "bannedUntil",
-  coin: "coin",
-  blockCoin: "blockCoin",
-  novelFollowCount: "novelFollowCount",
-  badgeId: "badgeId",
-  lastLogin: "lastLogin",
-  favouriteType: "favouriteType",
-  readCount: "readCount",
-  createdAt: "createAt",
-  updatedAt: "updateAt",
-};
-
 const MemoizedUserTopSection = memo(UserTopSection);
 const MemoizedPagination = memo(Pagination);
 
@@ -65,7 +44,7 @@ const UserList = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "displayName",
+    key: "created_at",
     direction: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,9 +58,8 @@ const UserList = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetail, setIsDetail] = useState<boolean>(false);
 
-  const sortBy = `${keyToApiField[sortConfig.key]}:${sortConfig.direction}`;
+  const sortBy = `${sortConfig.key}:${sortConfig.direction}`;
 
-  // Paged users
   const {
     data: userData,
     isLoading: isLoadingUsers,
@@ -97,7 +75,6 @@ const UserList = () => {
       }).then((res) => res.data),
   });
 
-  // All users for KPI + TopSection
   const {
     data: allUsersData,
     isLoading: isLoadingAllUsers,
@@ -108,7 +85,6 @@ const UserList = () => {
     queryFn: () => GetAllUsers().then((res) => res.data),
   });
 
-  // Analysis data
   const {
     data: analysisData,
     isLoading: isLoadingAnalysis,
@@ -144,7 +120,6 @@ const UserList = () => {
       updatedAt: formatTicksToDateString(Number(u.updateAt)),
     })) || [];
 
-  // Map for KPIs/Top
   const mappedAllUsers: User[] = useMemo(
     () =>
       allUsersData?.data?.users?.map((u: any) => ({
@@ -173,8 +148,6 @@ const UserList = () => {
     [allUsersData]
   );
 
-
-  // KPIs from analysis data (prioritize analysis if available, fallback to calculated)
   const kTotal = analysisData?.data?.totalUsers ?? mappedAllUsers.length;
   const kVerified =
     analysisData?.data?.verifiedUsers ??
@@ -186,7 +159,6 @@ const UserList = () => {
     analysisData?.data?.totalNovelViews ??
     mappedAllUsers.reduce((s, u) => s + (Number(u.readCount) || 0), 0);
 
-  // Ban/unban
   const updateBanUserMutation = useMutation({
     mutationFn: ({
       userId,
@@ -203,7 +175,7 @@ const UserList = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
-      queryClient.invalidateQueries({ queryKey: ["analysis"] }); // Invalidate analysis after update
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast?.onOpen(data.message);
       setDialog({ isOpen: false, type: null, title: "", userId: null });
     },
@@ -216,11 +188,13 @@ const UserList = () => {
     },
   });
 
-  const handleSort = (key: string) =>
+  const handleSort = (key: SortKey) => {
     setSortConfig((prev) => ({
-      key: key as keyof User,
+      key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= (userData?.data?.totalPages || 1))
@@ -242,7 +216,6 @@ const UserList = () => {
   }) => {
     if (dialog.userId && dialog.type) {
       const isBanned = dialog.type === "lock";
-      // durationType gửi lên API: lấy trực tiếp từ dialog (nếu cần) hoặc từ extra.duration
       const durationType = extra?.duration || dialog.durationType || "";
       updateBanUserMutation.mutate({
         userId: dialog.userId,
@@ -262,6 +235,42 @@ const UserList = () => {
     refetchAnalysis();
   };
 
+  const SkeletonTable = () => (
+    <div className="space-y-3">
+      {[...Array(usersPerPage)].map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-[26%_10%_10%_8%_15%_16%_15%] h-12 animate-pulse"
+        >
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+          </div>
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 w-4 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 w-4 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3 mx-auto"></div>
+          </div>
+          <div className="px-3 py-2">
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-2/3"></div>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <div className="inline-flex gap-2">
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-16"></div>
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-16"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -271,7 +280,6 @@ const UserList = () => {
         darkMode ? "bg-[#0a0f16] text-white" : "bg-zinc-50 text-zinc-900"
       }`}
     >
-      {/* Header */}
       <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -300,7 +308,6 @@ const UserList = () => {
         </button>
       </div>
 
-      {/* KPI row */}
       {isLoadingAnalysis ? (
         <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map((i) => (
@@ -324,7 +331,6 @@ const UserList = () => {
         </div>
       )}
 
-      {/* Top section */}
       <div className="mb-6">
         {isLoadingAllUsers ? (
           <SkeletonTop />
@@ -369,9 +375,9 @@ const UserList = () => {
         <>
           <div className="relative pb-2">
             <DataTable
-              data={mappedAllUsers}
+              data={mappedUsers}
               sortConfig={sortConfig}
-              onSort={handleSort}
+              onSort={(key) => handleSort(key as SortKey)}
               type="user"
               onLockUnlockUser={handleLockUnlock}
               onDetailUser={handleClickUserDetail}
@@ -394,10 +400,9 @@ const UserList = () => {
         }
         onConfirm={handleConfirmDialog}
         title={dialog.title}
-        // dùng API mới:
         variant={dialog.type === "lock" ? "danger" : "success"}
-        showDuration={dialog.type === "lock"} // mở dropdown thời hạn khi KHÓA
-        showNote={dialog.type === "lock"} // tuỳ bạn: bật ô ghi chú khi KHÓA
+        showDuration={dialog.type === "lock"}
+        showNote={dialog.type === "lock"}
         loading={updateBanUserMutation.isPending}
       />
       <UserDetailModal
@@ -408,8 +413,6 @@ const UserList = () => {
     </motion.div>
   );
 };
-
-export default UserList;
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
@@ -481,15 +484,4 @@ function SkeletonTop() {
   );
 }
 
-function SkeletonTable() {
-  return (
-    <div className="space-y-3">
-      {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="h-10 rounded-lg bg-zinc-200/70 dark:bg-zinc-700/40 animate-pulse"
-        />
-      ))}
-    </div>
-  );
-}
+export default UserList;

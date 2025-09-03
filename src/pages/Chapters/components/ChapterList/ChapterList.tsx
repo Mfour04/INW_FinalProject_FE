@@ -21,7 +21,6 @@ export const ChapterList = ({
   setParams,
 }: ChapterListProps) => {
   const chapters = novelData?.allChapters ?? [];
-  const lastChapter = chapters[chapters.length - 1];
 
   const acceptedChapterIds = useMemo(
     () => [
@@ -52,15 +51,19 @@ export const ChapterList = ({
           Cập nhật gần nhất
         </span>
         <span className="text-[13px] text-[#e35d3b] dark:text-[#ff8a5f]">
-          {lastChapter
-            ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
+          {novelData?.latestUpdatedChapter
+            ? `Chương ${novelData?.latestUpdatedChapter.chapterNumber}: ${novelData?.latestUpdatedChapter.title}`
             : "—"}
         </span>
         <span className="text-[12px] text-gray-500 dark:text-gray-400">
-          {lastChapter?.updateAt
-            ? formatTicksToRelativeTime(lastChapter.updateAt!)
-            : lastChapter?.createAt
-            ? formatTicksToRelativeTime(lastChapter.createAt)
+          {novelData?.latestUpdatedChapter?.updateAt
+            ? formatTicksToRelativeTime(
+                novelData?.latestUpdatedChapter.updateAt!
+              )
+            : novelData?.latestUpdatedChapter?.createAt
+            ? formatTicksToRelativeTime(
+                novelData?.latestUpdatedChapter.createAt
+              )
             : ""}
         </span>
       </div>

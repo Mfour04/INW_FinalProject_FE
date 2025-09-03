@@ -74,7 +74,10 @@ export const CreateChapters = () => {
   const DeleteChapterMutation = useMutation({
     mutationFn: (id: string) => DeleteChapter(id),
     onSuccess: () => {
-      toast?.onOpen({ message: "Xóa chương truyện thành công!", variant: "success" });
+      toast?.onOpen({
+        message: "Xóa chương truyện thành công!",
+        variant: "success",
+      });
       setDeleteModal(false);
       queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
     },
@@ -88,10 +91,6 @@ export const CreateChapters = () => {
   const handleConfirmDelete = () => {
     if (selectedChaptersId) DeleteChapterMutation.mutate(selectedChaptersId);
   };
-
-  const lastChapter = chapters.length
-    ? chapters[chapters.length - 1]
-    : undefined;
 
   // simple paging (client-side)
   const perPage = 20;
@@ -245,18 +244,18 @@ export const CreateChapters = () => {
               Cập nhật gần nhất
             </span>
             <span className="text-[12px] sm:text-[13px] text-[#ff7a45] dark:text-[#ff8a5f]">
-              {lastChapter
-                ? `Chương ${lastChapter.chapterNumber}: ${lastChapter.title}`
+              {data?.latestUpdatedChapter
+                ? `Chương ${data?.latestUpdatedChapter.chapterNumber}: ${data?.latestUpdatedChapter.title}`
                 : "—"}
             </span>
             <span className="hidden sm:inline text-zinc-400 dark:text-white/40">
               •
             </span>
             <span className="text-[11px] sm:text-[12px] text-zinc-500 dark:text-gray-400">
-              {lastChapter?.updateAt
-                ? formatTicksToRelativeTime(lastChapter.updateAt)
-                : lastChapter?.createAt
-                ? formatTicksToRelativeTime(lastChapter.createAt)
+              {data?.latestUpdatedChapter?.updateAt
+                ? formatTicksToRelativeTime(data?.latestUpdatedChapter.updateAt)
+                : data?.latestUpdatedChapter?.createAt
+                ? formatTicksToRelativeTime(data?.latestUpdatedChapter.createAt)
                 : ""}
             </span>
           </div>

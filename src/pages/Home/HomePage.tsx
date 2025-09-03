@@ -233,7 +233,7 @@ export const HomePage = () => {
                 }
                 items={recommend.novels as Novel[]}
                 onClickItem={(n) => navigate(`/novels/${n.slug ?? n.novelId}`)}
-                onSeeMore={() => navigate("/novels/recommended")}
+                onSeeMore={() => navigate("/novels")}
                 // Bạn có thể chỉnh riêng tham số cho block này:
                 // scrollStep={400}
                 // cardWidth={176}
