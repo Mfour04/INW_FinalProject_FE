@@ -35,7 +35,9 @@ export const Container = ({
   children,
   className = "",
 }: PropsWithChildren<{ className?: string }>) => (
-  <div className={`max-w-screen-2xl mx-auto px-4 md:px-6 ${className}`}>{children}</div>
+  <div className={`max-w-screen-2xl mx-auto px-4 md:px-6 ${className}`}>
+    {children}
+  </div>
 );
 
 export const Card = ({
@@ -167,8 +169,6 @@ export const AreaChart = ({
   );
 };
 
-/* ============ Chart Toolbar ============ */
-
 export const ChartToolbar = ({
   granularity,
   onGranularity,
@@ -178,9 +178,11 @@ export const ChartToolbar = ({
 }) => (
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-white/70">
-      <span className="h-6 w-6 grid place-items-center rounded-md
+      <span
+        className="h-6 w-6 grid place-items-center rounded-md
                        bg-zinc-100 ring-1 ring-zinc-200
-                       dark:bg-white/5 dark:ring-white/10">
+                       dark:bg-white/5 dark:ring-white/10"
+      >
         <BarChart3 className="h-3.5 w-3.5 text-zinc-700 dark:text-white" />
       </span>
       Chế độ hiển thị
@@ -195,8 +197,6 @@ export const ChartToolbar = ({
         title="Hiển thị theo"
       >
         <option value="day">Theo ngày</option>
-        <option value="month">Theo tháng</option>
-        <option value="year">Theo năm</option>
       </select>
     </div>
   </div>

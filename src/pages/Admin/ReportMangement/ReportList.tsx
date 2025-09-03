@@ -249,6 +249,8 @@ const ReportList = () => {
               ? "Bài viết"
               : report.scope === 4
               ? "BL diễn đàn"
+              : report.scope === 5
+              ? "Người dùng"
               : "Không xác định"
           }
         >
@@ -262,6 +264,8 @@ const ReportList = () => {
             ? "Bài viết"
             : report.scope === 4
             ? "BL diễn đàn"
+            : report.scope === 5
+            ? "Người dùng"
             : "Không xác định"}
         </span>
       ),
