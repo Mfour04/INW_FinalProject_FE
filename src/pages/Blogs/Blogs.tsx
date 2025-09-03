@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useContext, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext/AuthProvider";
 import { useToast } from "../../context/ToastContext/toast-context";
 
@@ -63,7 +63,10 @@ export const Blogs = () => {
   const { auth } = useContext(AuthContext);
   const toast = useToast();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const targetPostId = searchParams.get("post");
+  const scrollToPostId = location.state?.scrollToPost;
+  const shouldHighlightPost = location.state?.highlightPost;
 
   const [tab, setTab] = useState<Tabs>("all");
   const [content, setContent] = useState("");
@@ -91,6 +94,7 @@ export const Blogs = () => {
   >({});
   const resetFileInputRef = useRef<(() => void) | null>(null);
   const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
+  const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
 
   const [visibleRootComments, setVisibleRootComments] = useState<{
     [postId: string]: number;
@@ -175,7 +179,7 @@ export const Blogs = () => {
 
   const blogPosts = tab === "following" ? followingBlogPosts : allBlogPosts;
   const isLoading = tab === "following" ? isLoadingFollowing : isLoadingAll;
-  const refetch = tab === "following" ? () => {} : refetchAll;
+  const refetch = tab === "following" ? () => { } : refetchAll;
   const createBlogPostMutation = useCreateBlogPost();
   const deleteBlogPostMutation = useDeleteBlogPost();
   const updateBlogPostMutation = useUpdateBlogPost();
@@ -189,6 +193,36 @@ export const Blogs = () => {
       return map;
     }
   );
+
+  // Handle scroll to post and highlight when coming from blog detail
+  useEffect(() => {
+    if (scrollToPostId && blogPosts.length > 0 && !hasScrolledToTarget) {
+      const targetPost = blogPosts.find(
+        (post: any) => post.id === scrollToPostId
+      );
+
+      if (targetPost) {
+        // Scroll to the post
+        const postElement = document.getElementById(`post-${scrollToPostId}`);
+        if (postElement) {
+          postElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          // Highlight the post temporarily
+          if (shouldHighlightPost) {
+            setHighlightedPostId(scrollToPostId);
+            setTimeout(() => {
+              setHighlightedPostId(null);
+            }, 3000); // Remove highlight after 3 seconds
+          }
+
+          setHasScrolledToTarget(true);
+        }
+      }
+    }
+  }, [scrollToPostId, blogPosts, hasScrolledToTarget, shouldHighlightPost]);
 
   useEffect(() => {
     if (targetPostId && blogPosts.length > 0 && !hasScrolledToTarget) {
@@ -308,9 +342,9 @@ export const Blogs = () => {
   const handleRequestDelete = (_type: "post" | "comment", id: string) =>
     setConfirmDeleteId(id);
 
-  const handleUpdatePost = (postId: string, content: string) => {
+  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[], existingImages?: string[]) => {
     updateBlogPostMutation.mutate(
-      { postId, content },
+      { postId, content, images: newImages, removedImageUrls, existingImages },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();
@@ -416,8 +450,8 @@ export const Blogs = () => {
                     active
                       ? "bg-gradient-to-r from-[#ff7847] to-[#ff4d40] text-white font-semibold shadow"
                       : isDisabled
-                      ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
-                      : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
+                        ? "text-zinc-400 dark:text-white/35 cursor-not-allowed opacity-50"
+                        : "text-zinc-700 hover:text-zinc-900 hover:bg-black/5 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10",
                   ].join(" ")}
                 >
                   {t === "all" ? "Dành cho bạn" : `Đang theo dõi`}
@@ -498,7 +532,10 @@ export const Blogs = () => {
                       (post: any) => (
                         <Card
                           key={post.id}
-                          className="mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition"
+                          className={`mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition ${highlightedPostId === post.id
+                            ? "ring-2 ring-[#ff6740] bg-orange-50/50 dark:bg-orange-500/10"
+                            : ""
+                            }`}
                         >
                           <div id={`post-${post.id}`}>
                             <PostItem
@@ -517,8 +554,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,
@@ -580,7 +617,10 @@ export const Blogs = () => {
                       (post: any) => (
                         <Card
                           key={post.id}
-                          className="mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition"
+                          className={`mb-5 hover:bg-zinc-50 dark:hover:bg-white/[0.05] transition ${highlightedPostId === post.id
+                            ? "ring-2 ring-[#ff6740] bg-orange-50/50 dark:bg-orange-500/10"
+                            : ""
+                            }`}
                         >
                           <div id={`post-${post.id}`}>
                             <PostItem
@@ -599,8 +639,8 @@ export const Blogs = () => {
                                 content: post.content,
                                 timestamp: post.createdAt
                                   ? blogFormatVietnamTimeFromTicks(
-                                      post.createdAt
-                                    )
+                                    post.createdAt
+                                  )
                                   : "Không rõ thời gian",
                                 likes: post.likeCount || 0,
                                 comments: post.commentCount || 0,

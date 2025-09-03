@@ -167,9 +167,9 @@ export const UserProfile = () => {
     backendData?.userId ||
     "";
 
-  const handleUpdatePost = (postId: string, content: string) => {
+  const handleUpdatePost = (postId: string, content: string, newImages?: File[], removedImageUrls?: string[], existingImages?: string[]) => {
     updateBlogPostMutation.mutate(
-      { postId, content },
+      { postId, content, images: newImages, removedImageUrls, existingImages },
       {
         onSuccess: () => {
           const nowTicks = blogGetCurrentTicks();
@@ -543,7 +543,7 @@ export const UserProfile = () => {
                   targetUserId={targetUserId}
                   enabled={!!targetUserId}
                   size="lg"
-                  // variant="contained"
+                // variant="contained"
                 />
               )}
 
@@ -565,7 +565,7 @@ export const UserProfile = () => {
                   {menuOpen && (
                     <div
                       ref={menuRef}
-                      className="absolute right-6 md:right-8 mt-12 w-52 rounded-xl overflow-hidden ring-1 ring-zinc-200 shadow-lg bg-white text-zinc-900 dark:bg-[#1b1e24] dark:text-white dark:ring-white/10 z-50"
+                      className="absolute right-6 md:right-8 mt-22 w-52 rounded-xl overflow-hidden ring-1 ring-zinc-200 shadow-lg bg-white text-zinc-900 dark:bg-[#1b1e24] dark:text-white dark:ring-white/10 z-50"
                       role="menu"
                     >
                       <button
@@ -578,7 +578,7 @@ export const UserProfile = () => {
                       >
                         <Flag size={16} /> Báo cáo
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => {
                           alert("Đã chặn người dùng");
                           setMenuOpen(false);
@@ -587,7 +587,7 @@ export const UserProfile = () => {
                         role="menuitem"
                       >
                         <Ban size={16} /> Chặn người dùng
-                      </button>
+                      </button> */}
                     </div>
                   )}
                 </>
@@ -616,10 +616,11 @@ export const UserProfile = () => {
                 {userPosts.length}
               </span>{" "}
               Bài đăng
-              <span className="mx-1">•</span>
+
+              {/* <span className="mx-1">•</span>
               <span className="flex items-center gap-1 text-sm text-zinc-900 dark:text-white">
                 <Calendar className="w-3 h-3" /> Tham gia {joinDate}
-              </span>
+              </span> */}
             </div>
           </div>
         </div>
@@ -643,10 +644,10 @@ export const UserProfile = () => {
                 {tab === "posts"
                   ? "Bài đăng"
                   : tab === "followers"
-                  ? "Người theo dõi"
-                  : tab === "following"
-                  ? "Đang theo dõi"
-                  : "Thành tựu"}
+                    ? "Người theo dõi"
+                    : tab === "following"
+                      ? "Đang theo dõi"
+                      : "Thành tựu"}
               </button>
             )
           )}
