@@ -335,7 +335,7 @@ export const Header = ({ onToggleSidebar, isSidebarOpen }: HeaderProps) => {
   };
 
   useEffect(() => {
-    if (notifications[0]) {
+    if (notifications[notifications.length - 1]) {
       toast?.onOpen(notifications[notifications.length - 1].message);
       notificationsRefetch();
     }
