@@ -62,7 +62,7 @@ export const AuthorRevenue = ({ mode, onChangeMode }: AuthorRevenueProps) => {
     endDate: "12/31/2050",
     filter: "all",
     page: 0,
-    PageSize: 10,
+    PageSize: 1000,
   });
 
   const [chartParams, setChartParams] = useState<IncomeChartParams>({
