@@ -604,7 +604,6 @@ const ReportDetailPopup = ({
                         </p>
                       ) : (
                         <>
-                          <Row label="Tiêu đề" value={postsData.data.title} />
                           <Row
                             label="Nội dung"
                             value={postsData.data.content}

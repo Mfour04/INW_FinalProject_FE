@@ -246,25 +246,6 @@ export default function AuthModal({ onClose }: Props) {
             )}
 
             <div className="flex items-center justify-between text-xs">
-              <label className="inline-flex items-center gap-2 cursor-pointer select-none text-zinc-600 dark:text-zinc-300">
-                <input type="checkbox" className="peer sr-only" />
-                <span
-                  className={[
-                    "grid place-items-center h-4 w-4 rounded-[4px] transition-colors",
-                    "border border-zinc-400 bg-transparent peer-checked:bg-zinc-900 peer-checked:border-zinc-900",
-                    "dark:border-white/35 dark:peer-checked:bg-white dark:peer-checked:border-white",
-                    "[&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100",
-                  ].join(" ")}
-                >
-                  <Check
-                    size={12}
-                    strokeWidth={3}
-                    className="text-white dark:text-black transition-opacity"
-                  />
-                </span>
-                Ghi nhớ tôi
-              </label>
-
               <button
                 onClick={() => setAction(AUTH_ACTIONS.FORGOT_PASSWORD)}
                 className="text-[#ff6740] font-bold hover:underline text-xs"
