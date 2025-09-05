@@ -201,12 +201,6 @@ export const NovelRead = () => {
   });
 
   const handleGoToChapterNumber = (offset: number) => {
-    if (!auth?.accessToken) {
-      toast?.onOpen({
-        message: "Bạn cần đăng nhập để tiếp tục với chương bị khóa",
-      });
-      return;
-    }
     if (!finalChapterList || currentNumber === 0) return;
     const next = finalChapterList.find((chap: any) => {
       const cnum =
@@ -224,10 +218,17 @@ export const NovelRead = () => {
       !novelInfo?.isAccessFull &&
       !acceptedChapters.includes(nextChapterId)
     ) {
-      setChapterPrice(next.price);
-      setSelectedChapterId(nextChapterId);
-      setIsBuyChapter(true);
-      return;
+      if (!auth?.accessToken) {
+        toast?.onOpen({
+          message: "Bạn cần đăng nhập để tiếp tục với chương bị khóa",
+        });
+        return;
+      } else {
+        setChapterPrice(next.price);
+        setSelectedChapterId(nextChapterId);
+        setIsBuyChapter(true);
+        return;
+      }
     }
     navigate(`/novels/${novelId}/${nextChapterId}`);
   };
